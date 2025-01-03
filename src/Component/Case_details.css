@@ -1,0 +1,29 @@
+/* Sidebar */
+.sidebar {
+  min-height: 100vh;
+}
+
+.sidebar div {
+  width: 40px;
+  height: 40px;
+}
+
+/* Lawyer Details */
+.lawyer-detail {
+  height: 40px;
+  background-color: #343a40;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
+
+/* Case Details */
+.logo {
+  background-color: #343a40;
+}
+
+.case-point {
+  height: 50px;
+  background-color: #343a40;
+  margin-bottom: 10px;
+  border-radius: 4px;
+}
