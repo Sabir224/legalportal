@@ -1,29 +1,118 @@
-/* Sidebar */
-.sidebar {
-  min-height: 100vh;
+/* .card-grid {
+  display: grid;
+  grid-template-areas:
+    "subject-line important-points"
+    "small-card small-card";
+    gap: 16px;
+    /* grid-template-columns: 2fr 1fr; *
+  padding: 20px;
+  /* background-color: #f5f5f5; *
+  border-radius: 10px;
 }
 
-.sidebar div {
-  width: 40px;
-  height: 40px;
+.subject-line {
+  grid-area: subject-line;
 }
 
-/* Lawyer Details */
-.lawyer-detail {
-  height: 40px;
-  background-color: #343a40;
-  margin-bottom: 10px;
-  border-radius: 4px;
+.important-points {
+  grid-area: important-points;
 }
 
-/* Case Details */
-.logo {
-  background-color: #343a40;
+.small-card {
+  height: 100px;
+  width: 50;
+}
+.SUBJECT-card {
+  height: 150px;
+}
+.Important-card {
+  height: 200px;
 }
 
-.case-point {
-  height: 50px;
-  background-color: #343a40;
-  margin-bottom: 10px;
-  border-radius: 4px;
+.card {
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.othercard {
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.Subjectcard {
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  height: "50%";
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+} */
+
+.dashboard-container {
+  display: grid;
+  grid-template-areas:
+    "subject-line important-points"
+    "grid-item grid-item";
+  grid-template-rows: auto 1fr;
+  grid-template-columns: 2fr 1fr;
+  gap: 16px;
+  padding-bottom: 8px;
+  padding-right: 8px;
+
+  /* background-color: #f5f5f5; */
+}
+
+.subject-line {
+  grid-area: subject-line;
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  /* text-overflow: ellipsis;  */
+  overflow: hidden;
+  overflow-y: auto;
+  /* Enable vertical scrolling for overflow */
+  overflow-x: hidden;
+
+}
+
+.important-points {
+  grid-area: important-points;
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  overflow: hidden;
+  overflow-y: auto;
+  /* Enable vertical scrolling for overflow */
+  overflow-x: hidden;
+}
+
+.grid {
+  grid-area: grid-item;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+
+}
+
+.grid-item {
+  background-color: #a5abb4;
+  border-radius: 8px;
+  padding: 16px;
+  text-overflow: ellipsis;
+  /* Handle long text */
+  overflow: hidden;
+  /* Hide overflow content */
+  /* text-align: center; */
+  overflow: hidden;
+  overflow-y: auto;
+  /* Enable vertical scrolling for overflow */
+  overflow-x: hidden;
 }

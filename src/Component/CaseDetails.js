@@ -1,33 +1,39 @@
-import React from 'react';
+import React from "react";
+import "./Case_details";
 
-function CaseDetails() {
+const CaseDetails = () => {
   return (
-    <div className="bg-light p-3 rounded">
-      <div className="text-center mb-3">
-        <div
-          className="bg-dark rounded-circle mx-auto"
-          style={{ width: '100px', height: '100px' }}
-        ></div>
-        <h6 className="mt-3">Subject Line</h6>
-      </div>
+    // <div className="card-grid1">
+    //   <div className="card-grid">
+    //     <div className="card SUBJECT-card" style={{}}>
+    //       <h2>Subject Line</h2>
+    //       <p>Subject line comes here with other details like number, name, etc.</p>
+    //     </div>
+    //     <div className="card important-points Important-card">
+    //       <p>Important points will be mentioned in the grid.</p>
+    //     </div>
+    //   </div>
+    //   <div style={{flexDirection:'row', flex:1}}>
+    //     <div className="card small-card" style={{ height: 200, width: 200, marginTop: -50 }}></div>
+    //     <div className="card small-card" style={{ height: 200, width: 200, marginTop: -50 }}></div>
+    //     <div className="card small-card" style={{ height: 100, width: 200, marginTop: -50 }}></div>
+    //   </div>
+    // </div>
 
-      <div className="row">
-        {[...Array(6)].map((_, index) => (
-          <div key={index} className="col-4">
-            <div
-              className="bg-dark rounded mb-2"
-              style={{ height: '50px' }}
-            ></div>
-          </div>
-        ))}
+    <div className="dashboard-container">
+      <div className="subject-line" style={{height:200}}>
+        <h2>Subject Line</h2>
+        <p>Subject line comes here with other details like number, name, etc.</p>
       </div>
-
-      <div className="bg-dark rounded text-light text-center p-2 mt-3">
-        Important points will be mentioned in the grid. Remaining points will be
-        displayed in the horizontal card below.
+      <div className="important-points" style={{height:270}}>
+        <p>Important points will be mentioned in the grid.</p>
+      </div>
+      <div className="grid">
+        <div className="grid-item" style={{height:150,marginTop:-70}}>Item 1</div>
+        <div className="grid-item"  style={{height:150,marginTop:-70}}>Item 2</div>
+        <div className="grid-item">Item 3</div>
       </div>
     </div>
   );
 }
-
 export default CaseDetails;
