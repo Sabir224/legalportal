@@ -77,9 +77,8 @@ h2 {
   padding: 16px;
   /* text-overflow: ellipsis;  */
   overflow: hidden;
-  overflow-y: auto;
-  /* Enable vertical scrolling for overflow */
-  overflow-x: hidden;
+  /*overflow-y: auto;
+  overflow-x: hidden; */
 
 }
 
@@ -89,9 +88,9 @@ h2 {
   border-radius: 8px;
   padding: 16px;
   overflow: hidden;
-  overflow-y: auto;
-  /* Enable vertical scrolling for overflow */
-  overflow-x: hidden;
+
+  /* overflow-y: auto;
+  overflow-x: hidden; */
 }
 
 .grid {
@@ -112,7 +111,6 @@ h2 {
   /* Hide overflow content */
   /* text-align: center; */
   overflow: hidden;
-  overflow-y: auto;
-  /* Enable vertical scrolling for overflow */
-  overflow-x: hidden;
+  /*overflow-y: auto;
+  overflow-x: hidden; */
 }

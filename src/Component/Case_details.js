@@ -86,7 +86,7 @@ function Case_details() {
           <div className="row mt-3">
             <div className="col-md-3" >
               {/* <LawyerDetails /> */}
-              <div className="p-3 rounded" style={{ marginLeft: 5, background: "#c0a262" }}>
+              <div className="p-3 rounded" style={{ marginLeft: 5, background: "#c0a262", boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)" }}>
                 <h6>Lawyer Details</h6>
                 {[...Array(6)].map((_, index) => (
                   <div
@@ -95,7 +95,7 @@ function Case_details() {
                     style={{ height: '40px' }}
                   >
                     {/* <button  className="bg-secondary rounded my-2"> 
-            </button> */}
+                    </button> */}
                   </div>
                 ))}
                 <p className="mt-3">
@@ -109,34 +109,59 @@ function Case_details() {
               {/* <CaseDetails /> */}
               <div className="dashboard-container">
                 <div className="subject-line" style={{ height: 200 }}>
-                  <div style={{ height: 200 }}>
-                    <h5 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h5>
+                  <div style={{ height: 200, fontSize: 15 }}>
+                    <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8>
                     <p>number : {caseData.case_detail.caseNumber}
                       <br />
                       status : {caseData.case_detail.caseStatus} etc.</p>
                   </div>
                 </div>
-                <div className="important-points" style={{ height: 270 }}>
+                <div className="important-points" style={{ height: 270, fontSize: 12 }}>
                   <p>claimedAmount: {caseData.case_detail.claimedAmount}</p>
+                  <p>litigationStage: {caseData.case_detail.casePreparationDetails}</p>
                   <p>totalClaimedAmount: {caseData.case_detail.totalClaimedAmount}</p>
                   <p>requestNumber: {caseData.case_detail.requestNumber}</p>
-                  <p>requestDate: {caseData.case_detail.requestDate}</p>
-                  <p>caseBalance: {caseData.case_detail.caseBalance}</p>
-                  <p>ascriptionDescription: {caseData.case_detail.ascriptionDescription}</p>
-                  <p>ascriptionDescription:{caseData.case_detail.rootCaseNumber}</p>
-                  <p>ascriptionDescription:{caseData.case_detail.rootDecision}</p>
-                  <p>ascriptionDescription:{caseData.case_detail.litigationStage}</p>
-                  <p>ascriptionDescription:{caseData.case_detail.eSubmitDate}</p>
-                  <p>ascriptionDescription:{caseData.case_detail.startPreparationDate}</p>
+                  <p>rootCaseNumber: {caseData.case_detail.rootCaseNumber}</p>
+                  <p>rootDecision: {caseData.case_detail.rootDecision}</p>
+                  <p>litigationStage: {caseData.case_detail.litigationStage}</p>
                 </div>
+
+
                 <div className="grid">
-                  <div className="grid-item" style={{ height: 150, marginTop: -70 }}>
-                    <p>rootCaseNumber: {caseData.case_detail.rootCaseNumber}</p>
-                    <p>rootDecision: {caseData.case_detail.rootDecision}</p>
-                    <p>litigationStage: {caseData.case_detail.litigationStage}</p>
+                  <div className="grid-item" style={{ height: 200, marginTop: -70, fontSize: 12 }}>
+
+                    <div style={{ overflow: 'hidden' }}>
+                      <p >requestDate: {caseData.case_detail.requestDate}</p>
+                    </div>
+                    <div style={{}}>
+                      <p>eSubmitDate: {caseData.case_detail.eSubmitDate}</p>
+                    </div>
+                    <div style={{}}>
+                      <p>startPreparationDate: {caseData.case_detail.startPreparationDate}</p>
+                    </div>
+                    <div style={{}}>
+                      <p>nextSessionDate: {caseData.case_detail.nextSessionDate}</p>
+                    </div>
+                    <div style={{}}>
+                      <p>lastSessionDate: {caseData.case_detail.lastSessionDate}</p>
+                    </div>
+
+
                   </div>
-                  <div className="grid-item" style={{ height: 150, marginTop: -70 }}>Item 2</div>
-                  <div className="grid-item">Item 3</div>
+                  <div className="grid-item" style={{ height: 200, marginTop: -70, fontSize: 12 }}>
+
+                    <p>caseBalance: {caseData.case_detail.caseBalance}</p>
+                    <p>ascriptionDescription: {caseData.case_detail.ascriptionDescription}</p>
+                    <p>litigationStage: {caseData.case_detail.caseCurrentDetails}</p>
+                  </div>
+                  <div className="grid-item">
+                    <p style={{ height: 12 }}>lastDecisions</p>
+                    {caseData.case_detail.lastDecisions.map((item, index) => (
+                      <div style={{ height: 20, fontSize: 12, overflow: 'hidden' }}>
+                        {item}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
