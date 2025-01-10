@@ -9,6 +9,7 @@ import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
 import { screenChange } from "../REDUX/sliece";
+import LawyerProfile from "./Pages/LawyerProfile";
 
 
 
@@ -17,12 +18,15 @@ const Dashboard = () => {
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const dispatch = useDispatch();
+  console.log(screen)
 
   useEffect(() => {
     if (screen === 0) {
       setCurrentScreen(<BasicCase />);
     } else if (screen === 1) {
       setCurrentScreen(<Case_details />);
+    } else if (screen === 2) {
+      setCurrentScreen(<LawyerProfile />);
     }
   }, [screen]);
   // if (screen === 0) {
@@ -42,6 +46,11 @@ const Dashboard = () => {
     { status: 'Pending', name: 'GHI', number: '9101' },
   ];
 
+  const handlescreen2 = (number) => {
+    dispatch(screenChange(number))
+
+  }
+
   return (
     <div className="m-0 px-0 pt-2" style={{ overflow: "hidden", height: '93%' }}>
       <div
@@ -59,7 +68,7 @@ const Dashboard = () => {
       >
         <FontAwesomeIcon icon={faHome} size="2x" color="white" style={{ margin: 10 }} className="clickable" onClick={() => dispatch(screenChange(0))} />
         <FontAwesomeIcon icon={faMessage} size="2x" color="white" style={{ margin: 10 }} />
-        <FontAwesomeIcon icon={faCalendar} size="2x" color="white" style={{ margin: 10 }} />
+        <FontAwesomeIcon icon={faCalendar} size="2x" color="white" style={{ margin: 10 }} className="clickable" onClick={() => handlescreen2(2)}/>
         <FontAwesomeIcon icon={faWhatsapp} size="2x" color="white" style={{ margin: 10 }} />
         <FontAwesomeIcon icon={faFacebook} size="2x" color="white" style={{ margin: 10 }} />
 
@@ -75,7 +84,7 @@ const Dashboard = () => {
           <h2>Case</h2>
           <div id="notification-profile">
             <button className="btn  me-2">🔔</button>
-            <button className="btn ">👤</button>
+            <button className="btn" >👤</button>
           </div>
         </div>
 

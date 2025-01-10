@@ -1,90 +1,93 @@
 .lawyer-profile {
-    font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background-color: #f5f5f5;
-    padding: 20px;
-  }
-  
-  .profile-section {
-    display: flex;
-    background-color: #16213e;
-    color: white;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    width: 90%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .lawyer-picture {
-    background-color: #1f4068;
-    border-radius: 50%;
-    width: 100px;
-    height: 100px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin-right: 20px;
-  }
-  
-  .lawyer-details h2 {
-    margin: 0;
-  }
-  
-  .slots-section {
-    display: flex;
-    flex-direction: column;
-    background-color: #16213e;
-    color: white;
-    border-radius: 8px;
-    padding: 20px;
-    width: 90%;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  }
-  
-  .month-selector select {
-    background-color: #1f4068;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px;
-    margin-bottom: 20px;
-  }
-  
-  .available-slots h3 {
-    margin-bottom: 10px;
-  }
-  
-  .days button,
-  .hours button {
-    background-color: #1f4068;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 10px 20px;
-    margin: 5px;
-    cursor: pointer;
-  }
-  
-  .days button:hover,
-  .hours button:hover {
-    background-color: #e6af4b;
-  }
-  
-  .schedule-button {
-    background-color: #e6af4b;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 15px 30px;
-    font-size: 16px;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-  
-  .schedule-button:hover {
-    background-color: #c9983e;
-  }
-  
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+}
+
+.profile-section {
+  display: flex;
+  background-color: #16213e;
+  color: white;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.lawyer-picture {
+  background-color: #1f4068;
+  border-radius: 100%;
+  width: 350px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 30px;
+}
+
+.lawyer-details h2 {
+  margin: 0;
+}
+
+
+.slots-section {
+  display: flex;
+  flex-direction: column;
+  background-color: #16213e;
+  color: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(223, 218, 218, 0.1);
+}
+
+.monthselector {
+  background-color: #1a2a43;
+  color: white;
+  border: 1px solid white;
+  border-radius: 5px;
+  padding: 2px;
+  margin-bottom: 1px;
+}
+
+.available-slots h3 {
+  margin-bottom: 10px;
+}
+
+.days button,
+.hours button {
+  background-color: #1f4068;
+  color: #d2a85a;
+  border: 1px solid #d2a85a;
+  border-radius: 4px;
+  padding: 10px 20px;
+  margin: 5px;
+  cursor: pointer;
+}
+
+.days button:hover,
+.hours button:hover {
+  background-color: skyblue;
+}
+
+.schedule-button {
+  background-color: #1f4068;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 15px 30px;
+  font-size: 16px;
+  cursor: pointer;
+  /* Smooth transition for the width change */
+  width: 200px;
+  /* Set an initial width */
+  text-align: center;
+  /* Center text */
+}
+
+.schedule-button:hover {
+  width: 220px;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}

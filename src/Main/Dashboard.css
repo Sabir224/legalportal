@@ -44,9 +44,9 @@
 #maincontent {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: 4px 4px 6px rgba(15, 20, 20, 0.829);
   width: 92%;
-  height: 81vh;
+  height: 83vh;
   margin-bottom: 20px;
   /* overflow-y: auto; */
   
@@ -79,16 +79,25 @@
   font-family: Arial, sans-serif;
   
 }
+#numberbar {
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  box-shadow: 4px 4px 6px rgba(34, 48, 48, 0.596);
+  background-color: #e9e3e3e5;
+  /* margin: 20px auto; */
+  font-family: Arial, sans-serif;
+}
 
 .card-header {
   display: flex;
-  justify-content: space-between;
-  background-color: #d1b26f;
+  justify-content:space-between;
+  background-color: #d4af37;
   color: white;
   font-weight: bold;
   padding: 10px 15px;
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
+  
 }
 
 .card-list {
@@ -113,20 +122,21 @@
 .status {
   display: flex;
   align-items: center;
-  width: 150px;
+  width: 40vh;
   overflow: hidden;
 }
 .name {
   display: flex;
   align-items: center;
-  width: 200px;
+  width: 70vh;
   overflow: hidden;
 }
 .number {
   display: flex;
   align-items: center;
   width: 90px;
-  overflow: hidden;
+  /* overflow: hidden; */
+  
 }
 
 .status-dot {
