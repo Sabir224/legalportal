@@ -1,0 +1,108 @@
+{
+    "cases": [
+        {
+            "Table_1": [
+                [
+                    "Case Number",
+                    "211 / 2024 / 1240 Execution, real estate",
+                    "E Request Number",
+                    "447465/2024"
+                ],
+                [
+                    "Subject",
+                    "تنفيذ الحكم الصادر في الدعوى رقم 515/2021 استئناف عقاري ، بسداد المبلغ المنفذ به وقدره  ( 60371.5  درهم ) ، شاملاً للرسوم والمصاريف",
+                    "E Request Date",
+                    "27-12-2024 09:05:31"
+                ],
+                [
+                    "Case status",
+                    "مسجلة",
+                    "Litigation Stage",
+                    "محاكم دبي الابتدائية"
+                ],
+                [
+                    "Claimed amount",
+                    "60371.5",
+                    "Total claimed amount",
+                    "60371.5",
+                    "Case balance",
+                    ""
+                ],
+                [
+                    "Ascription Description",
+                    "عقاري",
+                    "",
+                    ""
+                ],
+                [
+                    "Root case number",
+                    "322 / 2021 / 515 Real estate appeal",
+                    "",
+                    ""
+                ],
+                [
+                    "Root decision",
+                    "17 - على السلطات والجهات المُختصة أن تُبادر إلى تنفيذ هذا السند وإجراء مقتضاه وعليها أن تعين على تنفيذه ولو جبراً متى طُلب إليها ذلك.",
+                    "",
+                    ""
+                ],
+                [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                [
+                    "",
+                    "",
+                    "",
+                    ""
+                ],
+                [
+                    "E submit date",
+                    "27-12-2024",
+                    "First session date",
+                    "",
+                    "Next session Date",
+                    ""
+                ],
+                [
+                    "Case Preparation Details",
+                    "",
+                    "Start Preparation Date",
+                    "",
+                    "Next session Date",
+                    ""
+                ],
+                [
+                    "Case's Current Details",
+                    "ينظر التنفيذ في دائرة التنفيذ التاسعة رقم (230) التي يرأسها القاضي وائل محمد كمال أحمد بركة  لدى أمين السر خليفه يوسف المرزوقي",
+                    "",
+                    ""
+                ],
+                [
+                    "Last decisions",
+                    "تم التدقيق على الطلب المُقدم واعتماد الإعلان على البيانات المتوفرة بالطلب بشكل آلي.",
+                    "Latest Session Date",
+                    "30-12-2024"
+                ],
+                [
+                    "Verdict date",
+                    "",
+                    "",
+                    ""
+                ]
+            ],
+            "case_number": "2024/447465",
+            "row_data": [
+                "2024/447465",
+                "Real Estate Execution case filing",
+                "سهاد الجبوري للمحاماة والإستشارات القانونية",
+                "24-12-2024",
+                "Case Filed",
+                "2024/1240 Execution, real estate",
+                "Choose View Option\n    View the application\n    View the case\n    View the payment receipt"
+            ]
+        }
+    ]
+}

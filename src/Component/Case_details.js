@@ -1,11 +1,17 @@
 import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Case_details.css';
-
+// // import { FaBell, FaUser, FaHome } from 'react-icons/fa';
+// import { FaCalendarAlt } from 'react-icons/fa';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAdd, faAddressCard, faAudioDescription, faBook, faCalendarAlt, faCopy, faGavel, faJedi, faJugDetergent, faMoneyBills, faOtter } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from './Sidebar';
 import NotificationBar from './NotificationBar';
 import LawyerDetails from './LawyerDetails';
-import CaseDetails from './CaseDetails';
+import { faCashRegister } from '@fortawesome/free-solid-svg-icons';
+import { faCreativeCommons, faFirstOrder, faJediOrder } from '@fortawesome/free-brands-svg-icons';
+import { FcMakeDecision } from 'react-icons/fc';
+import { faComment } from '@fortawesome/free-solid-svg-icons/faComment';
 
 function Case_details() {
 
@@ -67,110 +73,167 @@ function Case_details() {
 
 
   return (
-    <div className="" >
-      <div className="row">
-        {/* <Sidebar /> */}
 
-        <div className="col-1 bg-dark d-flex flex-column align-items-center py-3" >
-          {[...Array(5)].map((_, index) => (
+    <div className="row m-0 d-flex " >
+
+      <div className="col-md-3" style={{ marginRight: 20 }}>        {/* <LawyerDetails /> */}
+        <div className="p-4 rounded" style={{ marginLeft: 5, background: "#c0a262", boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)" }}>
+          <h6>Lawyer Details</h6>
+          {[...Array(6)].map((_, index) => (
             <div
               key={index}
-              className="bg-secondary rounded-circle mb-3"
-              style={{ width: '40px', height: '40px' }}
-            ></div>
-          ))}
-        </div>
-        <div className="col">
-          <NotificationBar />
-
-          <div className="row mt-3">
-            <div className="col-md-3" >
-              {/* <LawyerDetails /> */}
-              <div className="p-3 rounded" style={{ marginLeft: 5, background: "#c0a262", boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)" }}>
-                <h6>Lawyer Details</h6>
-                {[...Array(6)].map((_, index) => (
-                  <div
-                    key={index}
-                    className="bg-secondary rounded my-2"
-                    style={{ height: '40px' }}
-                  >
-                    {/* <button  className="bg-secondary rounded my-2"> 
+              className="bg-secondary rounded my-2"
+              style={{ height: '36px' }}
+            >
+              {/* <button  className="bg-secondary rounded my-2"> 
                     </button> */}
-                  </div>
-                ))}
-                <p className="mt-3">
-
-                  Other information regarding the case will be displayed here.
-                </p>
-              </div>
             </div>
+          ))}
+          <p className="mt-3">
 
-            <div className="col-md-9">
-              {/* <CaseDetails /> */}
-              <div className="dashboard-container">
-                <div className="subject-line" style={{ height: 200 }}>
-                  <div style={{ height: 200, fontSize: 15 }}>
-                    <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8>
-                    <p>number : {caseData.case_detail.caseNumber}
-                      <br />
-                      status : {caseData.case_detail.caseStatus} etc.</p>
-                  </div>
-                </div>
-                <div className="important-points" style={{ height: 270, fontSize: 12 }}>
-                  <p>claimedAmount: {caseData.case_detail.claimedAmount}</p>
-                  <p>litigationStage: {caseData.case_detail.casePreparationDetails}</p>
-                  <p>totalClaimedAmount: {caseData.case_detail.totalClaimedAmount}</p>
-                  <p>requestNumber: {caseData.case_detail.requestNumber}</p>
-                  <p>rootCaseNumber: {caseData.case_detail.rootCaseNumber}</p>
-                  <p>rootDecision: {caseData.case_detail.rootDecision}</p>
-                  <p>litigationStage: {caseData.case_detail.litigationStage}</p>
-                </div>
-
-
-                <div className="grid">
-                  <div className="grid-item" style={{ height: 200, marginTop: -70, fontSize: 12 }}>
-
-                    <div style={{ overflow: 'hidden' }}>
-                      <p >requestDate: {caseData.case_detail.requestDate}</p>
-                    </div>
-                    <div style={{}}>
-                      <p>eSubmitDate: {caseData.case_detail.eSubmitDate}</p>
-                    </div>
-                    <div style={{}}>
-                      <p>startPreparationDate: {caseData.case_detail.startPreparationDate}</p>
-                    </div>
-                    <div style={{}}>
-                      <p>nextSessionDate: {caseData.case_detail.nextSessionDate}</p>
-                    </div>
-                    <div style={{}}>
-                      <p>lastSessionDate: {caseData.case_detail.lastSessionDate}</p>
-                    </div>
-
-
-                  </div>
-                  <div className="grid-item" style={{ height: 200, marginTop: -70, fontSize: 12 }}>
-
-                    <p>caseBalance: {caseData.case_detail.caseBalance}</p>
-                    <p>ascriptionDescription: {caseData.case_detail.ascriptionDescription}</p>
-                    <p>litigationStage: {caseData.case_detail.caseCurrentDetails}</p>
-                  </div>
-                  <div className="grid-item">
-                    <p style={{ height: 12 }}>lastDecisions</p>
-                    {caseData.case_detail.lastDecisions.map((item, index) => (
-                      <div style={{ height: 20, fontSize: 12, overflow: 'hidden' }}>
-                        {item}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-          </div>
+            Other information regarding the case will be displayed here.
+          </p>
         </div>
       </div>
-    </div >
+
+      <div className="col-md-8" style={{}} >
+        {/* <CaseDetails /> */}
+        <div className="row gap-3">
+          <div className="subject-line col-8" style={{ height: 200, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+            <div className='d-flex mb-2 p-0 ' style={{ color: "#c0a262", fontWeight: 'bold' }}>
+              {/* <div style={{width:50}}> */}
+              <FontAwesomeIcon icon={faComment} size={'2x'} color="#c0a262" style={{ marginRight: 10 }} />
+              <div style={{ padding: 1, fontSize: 15, }}>
+                Subject
+              </div>
+              {/* </div> */}
+
+            </div>
+            <div className='datatextcolor' style={{ height: 200, marginLeft: 15, fontSize: 12, color: 'white' }}>
+              <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8>
+              <div className='datatextcolor'>caseNumber : {caseData.case_detail.caseNumber}
+                <br />
+                status : {caseData.case_detail.caseStatus} etc.</div>
+            </div>
+          </div>
+
+          <div className="important-points datatextcolor col-3" style={{ height: 270, width: '27%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+
+            <div className=' d-flex m-0' style={{ color: "#c0a262", fontWeight: 'bold' }}>
+              {/* <div style={{width:50}}> */}
+              <FontAwesomeIcon icon={faMoneyBills} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
+              <div style={{}}>
+                Amount
+              </div>
+              {/* </div> */}
+
+            </div>
+            <div style={{ fontSize: 12 }} className='textpositions text-wrap-1 pt-2' >
+              <div style={{}} >
+                <div >claimedAmount: {caseData.case_detail.claimedAmount}</div>
+              </div>
+              <div style={{}}>
+                <div>litigationStage: {caseData.case_detail.casePreparationDetails}</div>
+              </div>
+              <div style={{}}>
+                <div>totalClaimedAmount: {caseData.case_detail.totalClaimedAmount}</div>
+              </div>
+
+              <div style={{}}>
+                <div>caseBalance: {caseData.case_detail.caseBalance}</div>
+              </div>
+            </div>
+
+          </div>
+
+
+          <div className="row  gap-3 pb-2">
+            <div className="grid-item col-4 datatextcolor" style={{ marginTop: -70, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+              {/* <FaCalendarAlt size="3em" color="#4CAF50" /> */}
+              <div className=' d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+                {/* <div style={{width:50}}> */}
+                <FontAwesomeIcon icon={faCalendarAlt} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
+                <div style={{ padding: 4 }}>
+                  Date
+                </div>
+                {/* </div> */}
+
+              </div>
+              <div style={{ fontSize: 12, }} className='textpositions text-wrap-1'>
+                <div style={{ overflow: 'hidden' }}>
+                  <div >requestDate: {caseData.case_detail.requestDate}</div>
+                </div>
+                <div style={{}}>
+                  <div>eSubmitDate: {caseData.case_detail.eSubmitDate}</div>
+                </div>
+                <div style={{}}>
+                  <div>startPreparationDate: {caseData.case_detail.startPreparationDate}</div>
+                </div>
+                <div style={{}}>
+                  <div>nextSessionDate: {caseData.case_detail.nextSessionDate}</div>
+                </div>
+                <div style={{}}>
+                  <div>lastSessionDate: {caseData.case_detail.lastSessionDate}</div>
+                </div>
+              </div>
+
+
+            </div>
+            <div className="grid-item datatextcolor col-4" style={{ marginTop: -70, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+              <div className=' d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+                {/* <div style={{width:50}}> */}
+                <FontAwesomeIcon icon={faCreativeCommons} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
+                <div style={{ padding: 2 }}>
+                  Others Details
+                </div>
+                {/* </div> */}
+
+              </div>
+              <div style={{ fontSize: 12, }} className='textpositions text-wrap-1'>
+                <div style={{}}>
+                  <div>ascriptionDescription: {caseData.case_detail.ascriptionDescription}</div>
+                </div>
+                <div style={{}}>
+                  <div>requestNumber: {caseData.case_detail.requestNumber}</div>
+                </div>
+                <div style={{}}>
+                  <div>caseCurrentDetails: {caseData.case_detail.caseCurrentDetails}</div>
+
+                </div>
+                <div style={{}}>
+                  <div>rootCaseNumber: {caseData.case_detail.rootCaseNumber}</div>
+                </div>
+                <div style={{}}>
+                  <div>rootDecision: {caseData.case_detail.rootDecision}</div>
+                </div>
+                <div style={{}}>
+                  <div>litigationStage: {caseData.case_detail.litigationStage}</div>
+                </div>
+              </div>
+
+            </div>
+            <div className="grid-item col-3" style={{ width: '28%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+              <div className='d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+                {/* <div style={{width:50}}> */}
+                <FontAwesomeIcon icon={faGavel} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
+                <div style={{ padding: 2 }}>
+                  Last Decisions
+                </div>
+
+              </div>
+              {caseData.case_detail.lastDecisions.map((item, index) => (
+                <div className='datatextcolor textpositions text-wrap-1' style={{ fontSize: 12, overflow: 'hidden' }}>
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    // {/* </div> */}
+    // </div >
   );
 }
 
