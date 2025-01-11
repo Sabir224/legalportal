@@ -288,6 +288,7 @@ const BasicCase = () => {
                 ))}
 
                 {/* Sticky Pagination */}
+                </div>
                 <div
                     id="numberbar"
                     style={{
@@ -303,12 +304,12 @@ const BasicCase = () => {
                         bottom: "10px",
                         // left: "50%",
                         // transform: "translateX(-20%)",
-                        width: "80%",
+                        // width: "80%",
                         backgroundColor: "#18273e", // Semi-transparent background
                         zIndex: 10,
                         padding: "10px",
                         borderRadius: "8px",
-                        alignSelf: 'center'
+                        // alignSelf: 'center'
                         // textAlign: "center",
                     }}
                 >
@@ -316,6 +317,8 @@ const BasicCase = () => {
                         <button
                             onClick={() => goToPage(1)}
                             disabled={currentPage === 1}
+                            className="first-lastbutton"
+
                             style={{
                                 backgroundColor: "#18273e",
                                 color: "white",
@@ -327,6 +330,7 @@ const BasicCase = () => {
                         <button
                             onClick={() => goToPage(currentPage - 1)}
                             disabled={currentPage === 1}
+                            className="date-button"
                             style={{
                                 backgroundColor: "#18273e",
                                 color: "white",
@@ -344,12 +348,14 @@ const BasicCase = () => {
                             return (
                                 <button
                                     key={pageNumber}
+                                    className="date-button"
                                     onClick={() => goToPage(pageNumber)}
                                     style={{
                                         fontWeight: currentPage === pageNumber ? "bold" : "normal",
                                         backgroundColor: currentPage === pageNumber ? "#d4af37" : "#18273e",
                                         color: currentPage === pageNumber ? "#18273e" : "white",
-                                        borderRadius: "100%",
+                                         borderRadius: "100%",
+                                         borderColor: currentPage === pageNumber ? "#18273e" : "#d4af37",
                                     }}
                                 >
                                     {pageNumber}
@@ -359,6 +365,7 @@ const BasicCase = () => {
                         <button
                             onClick={() => goToPage(currentPage + 1)}
                             disabled={currentPage === totalPages}
+                            className="date-button"
                             style={{
                                 backgroundColor: "#18273e",
                                 color: "white",
@@ -370,6 +377,7 @@ const BasicCase = () => {
                         <button
                             onClick={() => goToPage(totalPages)}
                             disabled={currentPage === totalPages}
+                            className="first-lastbutton"
                             style={{
                                 backgroundColor: "#18273e",
                                 color: "white",
@@ -379,7 +387,6 @@ const BasicCase = () => {
                             Last
                         </button>
                     </div>
-                </div>
             </div>
         </div>
 

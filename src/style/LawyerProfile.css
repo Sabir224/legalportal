@@ -8,18 +8,18 @@
 
 .profile-section {
   display: flex;
-  background-color: #16213e;
+  /* background-color: #16213e; */
   color: white;
   border-radius: 8px;
   padding: 20px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
 }
 
 .lawyer-picture {
   background-color: #1f4068;
   border-radius: 100%;
-  width: 350px;
+  width: 450px;
   height: 120px;
   display: flex;
   justify-content: center;
@@ -57,7 +57,7 @@
 
 .days button,
 .hours button {
-  background-color: #1f4068;
+  background-color: #16213e;
   color: #d2a85a;
   border: 1px solid #d2a85a;
   border-radius: 4px;
@@ -72,7 +72,7 @@
 }
 
 .schedule-button {
-  background-color: #1f4068;
+  background-color: #16213e;
   color: white;
   border: none;
   border-radius: 4px;
@@ -86,8 +86,62 @@
   /* Center text */
 }
 
+
+
 .schedule-button:hover {
   width: 220px;
   /* Increase the width on hover */
   transition: width 0.3s ease;
+}
+
+.calender-button {
+  /* background-color: #16213e; */
+  background: none;
+  border: 1px solid #d4af37;
+  ;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-Radius: 5px;
+  width: 70px;
+}
+
+
+.calender-button:hover {
+  width: 80px;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}
+
+.time-button:hover {
+  width: 100px;
+
+  /* Increase the width on hover */
+  /* transition: width 0.3s ease;  */
+}
+
+
+.calendarDates {
+  /* background-color: #16213e; */
+  width: calc(100% / 7);
+  height: 40px;
+  display: flex;
+  justify-Content: center;
+  align-Items: center;
+  margin: 2px 0;
+  cursor: 'pointer';
+  border-Radius: '5px';
+}
+
+.calendarDates:hover {
+  color: #d4af37;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}
+
+.Calendarday {
+  /* background-color: #16213e; */
+  width: calc(100% / 7);
+  text-Align: center;
+  border: #d4af37;
 }

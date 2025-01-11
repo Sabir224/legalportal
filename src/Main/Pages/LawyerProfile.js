@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import "../../style/LawyerProfile.css";
 import { Alert } from "bootstrap";
-
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 const LawyerProfile = () => {
   // const [selectedMonth, setSelectedMonth] = useState("January");
 
@@ -44,6 +45,73 @@ const LawyerProfile = () => {
 
 
 
+
+
+
+
+  const [currentDate, setCurrentDate] = useState(new Date());
+  //const [selectedDate, setSelectedDate] = useState(null);
+  //const [selectedTime, setSelectedTime] = useState(null);
+
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  // Generate dates for the current month
+  const generateCalendarDates = () => {
+    const dates = [];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    // Get the first day of the month
+    const firstDay = new Date(year, month, 1).getDay();
+
+    // Get the number of days in the month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Fill the first week with empty slots until the first day
+    for (let i = 0; i < firstDay; i++) {
+      dates.push(null);
+    }
+
+    // Add all the days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      dates.push(new Date(year, month, day));
+    }
+
+    return dates;
+  };
+
+  // Move to the previous month
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  // Move to the next month
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  // Handle date selection
+  const handleDateClick = (date) => {
+    if (date) setSelectedDate(date);
+    setSelectedTime(null); // Reset selected time when the date changes
+  };
+
+  // Handle time selection
+  // const handleTimeClick = (time) => {
+  //   setSelectedTime(time);
+  // };
+
+  //const timeSlots = ['02:00', '03:00', '04:00', '05:00']; // Example time slots
+  const calendarDates = generateCalendarDates();
+
+
+
+
+
+
+
+
+
   const [date, setdate] = useState(null);
   const [getDay, setDay] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -57,6 +125,22 @@ const LawyerProfile = () => {
   ];
   const hours = ["02:00", "03:00", "04:00", "05:00"];
 
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  // const [selectedTime, setSelectedTime] = useState(null);
+
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    setSelectedTime(null); // Reset the time when the date changes
+  };
+
+  const handleTimeSelect = (time) => {
+    setSelectedTime(time);
+  };
+
+  const timeSlots = ['02:00', '03:00', '04:00', '05:00']; // Example time slots
+
+
   const handleDayClick = (day) => {
     setdate(day.date)
     setDay(day.day)
@@ -68,11 +152,11 @@ const LawyerProfile = () => {
   };
 
   const handleSchedule = () => {
-    if (getDay && date && selectedTime) {
-      alert(`Meeting scheduled on ${date} ${getDay} at ${selectedTime}`);
-    } else {
-      alert("Please select both a day and time to schedule a meeting.");
-    }
+    // if (selectedDate && selectedTime) {
+    alert(`Meeting scheduled on  ${selectedDate} at ${selectedTime}`);
+    // } else {
+    //   alert("Please select both a day and time to schedule a meeting.");
+    // }
   };
 
   return (
@@ -80,7 +164,7 @@ const LawyerProfile = () => {
       <div className="row gap-5 justify-content-center " >
         <div className="slots-section col-5" style={{ boxShadow: "5px 5px 5px gray" }}>
           <div className="profile-section"  >
-            <div className="lawyer-picture">Lawyer's Picture</div>
+            <div className="lawyer-picture" style={{ alignSelf: 'center', textAlign: 'center' }}>Lawyer's Picture</div>
             <div className="lawyer-details">
               <h2>Lawyer's Name</h2>
               <p>Designation</p>
@@ -104,7 +188,9 @@ const LawyerProfile = () => {
             <div>
               <h4>Available Slots</h4>
             </div>
-            <select className="monthselector"
+
+
+            {/* <select className="monthselector"
               style={{
                 // padding: "5px",
                 // borderRadius: "5px",
@@ -118,10 +204,17 @@ const LawyerProfile = () => {
                   {month}
                 </option>
               ))}
-            </select>
-          </div>
+            </select> */}
+            {/* 
+          <Calendar
+            onChange={handleDateChange}
+            value={selectedDate}
+            minDate={new Date()} // Prevent selecting past dates
+            className="react-calendar "
+            style={{ borderRadius:6 }}
+            />
+            </div>
 
-          {/* Day Selection */}
           <h4>Days</h4>
           <div className="days button" style={{
             //display: "flex", gap: "10px", flexWrap: "wrap", marginBottom: "20px"
@@ -145,7 +238,6 @@ const LawyerProfile = () => {
             ))}
           </div>
 
-          {/* Hour Selection */}
           <h4>Hours</h4>
           <div className="hours button" style={{
             //display: "flex", gap: "10px", flexWrap: "wrap"
@@ -167,12 +259,115 @@ const LawyerProfile = () => {
                 {hour}
               </button>
             ))}
+            */}
+            {/* Calendar Header */}
           </div>
 
-          {/* Schedule Button */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button
+              className="calender-button"
+              onClick={prevMonth}
+              style={{
+                // background: 'none',
+                // border: '1px solid white',
+                // color: 'white',
+                // padding: '5px 10px',
+                // cursor: 'pointer',
+                // borderRadius: '5px',
+              }}
+            >
+              Prev
+            </button>
+            <h3>
+              {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
+            </h3>
+            <button
+              onClick={nextMonth}
+              className="calender-button"
+            // style={{
+            //   background: 'none',
+            //   border: '1px solid white',
+            //   color: 'white',
+            //   padding: '5px 10px',
+            //   cursor: 'pointer',
+            //   borderRadius: '5px',
+            // }}
+            >
+              Next
+            </button>
+          </div>
 
+          {/* Days of the Week */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '5px' }}>
+            {daysOfWeek.map((day) => (
+              <div key={day} className="Calendarday" style={{ width: 'calc(100% / 7)', textAlign: 'center' }}>
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Calendar Grid */}
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {calendarDates.map((date, index) => (
+              <div
+                key={index}
+                onClick={() => handleDateClick(date)}
+                className="calendarDates"
+                style={{
+                  // width: 'calc(100% / 7)',
+                  // // height: '40px',
+                  // display: 'flex',
+                  // justifyContent: 'center',
+                  // alignItems: 'center',
+                  // margin: '2px 0',
+                  cursor: date ? 'pointer' : 'default',
+                  background: selectedDate?.getTime() === date?.getTime() ? '#001f3f' : 'none',
+                  borderRadius: '5px',
+                  color: date ? 'white' : '#001f3f',
+                  border: selectedDate?.getTime() === date?.getTime() ? '2px solid #d2a85a' : '1px solid #001f3f',
+                }}
+              >
+                {date ? date.getDate() : ''}
+              </div>
+            ))}
+          </div>
+
+          {/* Selected Date */}
+          <div style={{ marginTop: '8px' }}>
+            {selectedDate ? (
+              <h5>Selected Date: {selectedDate.toDateString()}</h5>
+            ) : (
+              <h6>Please select a date</h6>
+            )}
+          </div>
+
+          {/* Available Time Slots */}
+          <div>
+            <h5>Available Times:</h5>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {timeSlots.map((time) => (
+                <button
+                  key={time}
+                  onClick={() => handleTimeClick(time)}
+                  className="time-button"
+                  disabled={!selectedDate}
+                  style={{
+                    padding: '10px 20px',
+                    borderRadius: '5px',
+                    border: selectedTime === time ? '2px solid white' : '1px solid #d4af37',
+                    background: selectedTime === time ? '#d2a85a' : '#16213e',
+                    color: selectedDate ? 'white' : 'gray',
+                    cursor: selectedDate ? 'pointer' : 'not-allowed',
+                  }}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
-        <div style={{ marginTop: "10px", textAlign: "center" }}>
+
+        <div style={{ marginTop: "1px", textAlign: "center" }}>
           <button className="schedule-button"
             style={{ boxShadow: "5px 5px 5px gray" }}
             onClick={handleSchedule}

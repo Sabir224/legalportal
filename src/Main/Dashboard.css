@@ -153,3 +153,14 @@
 .status-dot.inactive {
   background-color: red;
 }
+.date-button:hover {
+  width: 50px;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}
+
+.first-lastbutton:hover {
+  width: 70px;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}
