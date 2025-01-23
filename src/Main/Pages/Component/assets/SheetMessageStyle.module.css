@@ -1,0 +1,96 @@
+.sheet-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto; /* Add this line for scrollability */
+}
+.sheet-content {
+  background: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  max-height: 80%;
+  text-align: left;
+  overflow-y: auto;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+.sheet-container-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: 500px; /* Adjust the width as needed */
+  background-color: white;
+  color: black;
+  max-width: 100%;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+  overflow: auto; /* Add this line for scrollability */
+}
+.sheet-content-right {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  
+}
+.sheet-text textarea {
+  resize: vertical;
+  height: 100px;
+  text-align: justify;
+}
+.message-content {
+  max-height: 100%;
+  text-align: justify; /* Adjust the height as needed */
+ 
+}
+
+@media (min-width: 600px) {
+  /* Adjust the breakpoint as needed */
+  .sheet-container {
+    align-items: flex-start;
+  }
+
+  .sheet-content-right {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    text-align: left;
+    justify-content: space-between; /* Add this line for spacing */
+  }
+  .message-container {
+    margin-bottom: 20px; /* Add space between messages */
+  }
+  
+  .reply-section {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .button-container {
+    margin-top: 10px; /* Adjust the margin as needed */
+    text-align: right;
+  }
+ 
+  .btn.btn-secondary{
+    background-color: goldenrod;
+    color: white;
+  }
+  
+  
+}

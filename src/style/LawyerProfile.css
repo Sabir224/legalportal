@@ -11,16 +11,17 @@
   /* background-color: #16213e; */
   color: white;
   border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
+  padding: 10px;
+  margin-bottom: 2px;
   /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); */
 }
 
 .lawyer-picture {
   background-color: #1f4068;
   border-radius: 100%;
-  width: 450px;
-  height: 120px;
+  width: 150px;
+  min-width: 150px;
+  height: 150px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -89,7 +90,7 @@
 
 
 .schedule-button:hover {
-  width: 220px;
+  background-color: #d2a85a;
   /* Increase the width on hover */
   transition: width 0.3s ease;
 }
@@ -98,7 +99,6 @@
   /* background-color: #16213e; */
   background: none;
   border: 1px solid #d4af37;
-  ;
   color: white;
   padding: 5px 10px;
   cursor: pointer;
@@ -108,14 +108,22 @@
 
 
 .calender-button:hover {
-  width: 80px;
+  background-color: #d2a85a;
   /* Increase the width on hover */
   transition: width 0.3s ease;
 }
 
-.time-button:hover {
-  width: 100px;
+.time-button {
+  background-color: #16213e;
+  color: white;
+  /* width: 100px; */
+  /* Increase the width on hover */
+  /* transition: width 0.3s ease;  */
+}
 
+.time-button:hover {
+  background-color: #d2a85a;
+  /* width: 100px; */
   /* Increase the width on hover */
   /* transition: width 0.3s ease;  */
 }
@@ -124,19 +132,32 @@
 .calendarDates {
   /* background-color: #16213e; */
   width: calc(100% / 7);
-  height: 40px;
+  height: 30px;
   display: flex;
   justify-Content: center;
   align-Items: center;
-  margin: 2px 0;
+  margin: 1px 0;
+  background-color: #16213e;
   cursor: 'pointer';
-  border-Radius: '5px';
+  /* border-Radius: '5px'; */
+}
+
+.calendarEmpty {
+  /* background-color: #16213e; */
+  width: calc(100% / 7);
+  height: 30px;
+  display: flex;
+  justify-Content: center;
+  align-Items: center;
+  margin: 1px 0;
+  background-color: #16213e;
+  cursor: 'pointer';
+  /* border-Radius: '5px'; */
 }
 
 .calendarDates:hover {
-  color: #d4af37;
+  background-color: #d2a85a;
   /* Increase the width on hover */
-  transition: width 0.3s ease;
 }
 
 .Calendarday {
@@ -144,4 +165,75 @@
   width: calc(100% / 7);
   text-Align: center;
   border: #d4af37;
+}
+
+
+/* pop up */
+
+
+.app {
+  text-align: center;
+  padding: 50px;
+}
+
+.open-popup-btn {
+  padding: 10px 20px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup {
+  background: #16213e;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.popupconfirm {
+  background: #d2a85a;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.popup h3 {
+  margin-bottom: 20px;
+}
+
+.popup-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.confirm-btn,
+.cancel-btn {
+  padding: 10px 15px;
+  font-size: 14px;
+  cursor: pointer;
+  border: none;
+  border-radius: 5px;
+}
+
+.confirm-btn {
+  background-color: #4caf50;
+  color: white;
+}
+
+.cancel-btn {
+  background-color: #f44336;
+  color: white;
 }

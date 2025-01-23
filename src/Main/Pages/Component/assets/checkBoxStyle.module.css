@@ -1,0 +1,117 @@
+/* checkBoxStyle.css */
+.userSelectionContainer {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  overflow: auto;
+  margin: 10px;
+}
+.inputField::placeholder {
+  padding-left: 10px;
+}
+.inputField {
+  display: inline-flex;
+  margin-bottom: 10px;
+  color: goldenrod;
+  border-radius: 10px;
+  border: 1px solid goldenrod;
+  width: 100%;
+  height: 40px;
+  max-height: 100%;
+  align-items: center; /* Corrected property for vertical alignment */
+  outline: none;
+}
+.userListContainer {
+  height: 100%;
+  overflow: auto;
+}
+.searchField {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  border-color: goldenrod;
+}
+
+.userList table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.userList th,
+.userList td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+  max-width: 300px;
+}
+.userList tr:hover {
+  background-color: #af8c8c;
+  color: white;
+}
+.deleteUser {
+  color: red;
+}
+.ShowMessage {
+  border-radius: 20px;
+  background-color: goldenrod;
+  color: white;
+  border-style: none;
+}
+.selectedRow {
+  background-color: rgb(59, 57, 57);
+  color: white;
+}
+
+.deleteIcon {
+  max-width: 25px;
+  max-height: 25px;
+}
+.filter-dropdown div {
+  padding: 8px;
+  cursor: pointer;
+}
+.filter-dropdown div:hover {
+  background-color: #3d3c3c;
+  color: white;
+  transition: background-color 0.3s;
+}
+.filter-container {
+  position: relative;
+  display: inline-block;
+}
+.filter-dropdown-container {
+  position: relative;
+}
+.filter-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 5px;
+  z-index: 1;
+  max-height: 200px;
+  width: 150px;
+  overflow-y: auto;
+  transition: background-color 0.3s;
+  display: none;
+  color: black;
+}
+.filter-dropdown-container:hover .filter-dropdown,
+.filter-dropdown:hover {
+  display: block;
+}
+.filter-dropdown:hover {
+  background-color: goldenrod;
+  color: white;
+}
+.filter-dropdown div:hover {
+  background-color: #3d3c3c;
+  color: white;
+  transition: background-color 0.3s;
+}
+.filter-dropdown-container.active .filter-dropdown {
+  display: block;
+}
+
+

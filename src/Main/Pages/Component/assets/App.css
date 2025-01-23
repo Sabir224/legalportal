@@ -1,0 +1,88 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* styles.css */
+
+/* .page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dropzone {
+  border: 2px dashed #bc9641;
+  border-radius: 4px;
+  width: 420px;
+  height: 150px;
+  max-width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.active {
+  background-color: #eee;
+}
+
+.button {
+  margin-top: 10px;
+  border-radius: 15px;
+  width: 50%;
+  background-color: #bc9641;
+  padding: 10px 20px;
+  color: #fff;
+  cursor: pointer;
+  margin: 10px 0;
+}
+#drozonebutton{
+  color:  white;
+  background-color: #bc9641;
+  border-radius: 15px;
+
+  
+
+} */
+
+/* Send Messages  box Styles  */
+

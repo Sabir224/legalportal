@@ -1,0 +1,104 @@
+.chatMessageLeft {
+    display: flex;
+    align-items: flex-start;
+    margin-right: auto;
+    max-width: 40%;
+  }
+  
+  .avatarLeft {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 60px; /* Adjust this as needed for your layout */
+    padding: 2px;
+  }
+  
+ 
+  
+  .senderName {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px; /* Adjust as needed */
+  }
+  
+  .senderName br {
+    display: none;
+  }
+  
+  .textWrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .chatMessages {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow-y: scroll;
+  }
+  
+  .loadingIndicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 73vh; /* Match the height of the chat section */
+  }
+  
+  .spinner {
+    border: 6px solid #f3f3f3; /* Light grey */
+    border-top: 6px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Additional CSS from previous usage */
+  .userListWidget:hover {
+    background-color: rgb(195, 219, 247);
+  }
+  
+  .noUserSelected {
+    background-color: rgb(127, 188, 245); /* Set your desired background color */
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .userListWidget::after {
+    background-color: rgb(101, 178, 250);
+  }
+  
+  .chatOnline {
+    color: #34ce57;
+  }
+  
+  .chatOffline {
+    color: #e4606d;
+  }
+  
+  .chatMessageLeft {
+    margin-right: auto;
+  }
+  
+  .py3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .px4 {
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+  }
+  
+  

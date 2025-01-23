@@ -1,0 +1,70 @@
+.image-container {
+  position: relative;
+  display: inline-block;
+  width: 200px;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+
+.image:hover {
+  transform: scale(0.95);
+}
+
+.download-btn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  border: none;
+  border-radius: 50%;
+  padding: 10px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-container:hover .download-btn {
+  opacity: 1;
+}
+
+.chat-message-left {
+  width: 92%;
+  text-align: left;
+}
+
+.chat-message-right {
+  align-content: end;
+  width: 92%;
+  text-align: right;
+}
+
+.timestamp {
+  position: absolute;
+  bottom: 0px;
+  right: 5px;
+  font-size: 0.8em;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+.sender-name {
+  width: 100%;
+  text-align: center;
+  word-wrap: break-word;
+  font-size: 0.9em;
+}

@@ -1,0 +1,166 @@
+.chat-message-right {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    margin-left: auto;
+    max-width: 40%;
+  }
+  
+  .avatar-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 60px; /* Adjust this as needed for your layout */
+    padding: 2px;
+  }
+  
+  .avatar-right img {
+    border-radius: 50%; /* Make the image circular */
+    margin-bottom: 5px; /* Adjust space between avatar and name/time */
+    object-fit: cover; /* Ensure the image covers the container */
+    width: 40px;
+    height: 40px;
+  }
+  
+  .sender-name {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px; /* Adjust as needed */
+  }
+  
+  .sender-name br {
+    display: none;
+  }
+  
+  .text-wrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .chat-messages {
+    display: flex;
+    flex-direction: column;
+    max-height: 100%;
+    overflow-y: scroll;
+  }
+  
+  .loading-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 73vh; /* Match the height of the chat section */
+  }
+  
+  .spinner {
+    border: 6px solid #f3f3f3; /* Light grey */
+    border-top: 6px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Additional CSS from previous usage */
+  .userListWidget:hover {
+    background-color: rgb(195, 219, 247);
+  }
+  
+  .no-user-selected {
+    background-color: rgb(127, 188, 245); /* Set your desired background color */
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .userListWidget::after {
+    background-color: rgb(101, 178, 250);
+  }
+  
+  .chat-online {
+    color: #34ce57;
+  }
+  
+  .chat-offline {
+    color: #e4606d;
+  }
+  
+  .chat-message-left {
+    display: flex;
+    align-items: flex-start;
+    margin-right: auto;
+    max-width: 40%;
+  }
+  
+  .avatar-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+   /* Adjust this as needed for your layout */
+    padding: 2px;
+  }
+  
+  .avatar-left img {
+    border-radius: 50%; /* Make the image circular */
+    margin-bottom: 5px; /* Adjust space between avatar and name/time */
+    object-fit: cover; /* Ensure the image covers the container */
+    width: 40px;
+    height: 40px;
+  }
+  
+  .py-3 {
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+  }
+  
+  .px-4 {
+    padding-right: 1.5rem !important;
+    padding-left: 1.5rem !important;
+  }
+  
+  .container-fluid {
+    flex-grow: 0 !important;
+    margin-top: 10px;
+    margin-left: 8px;
+    margin-right: 10%;
+    position: fixed;
+    max-width: 90%;
+    margin-bottom: 5px;
+  }
+  
+  .border-top {
+    border-top: 1px solid #dee2e6 !important;
+  }
+  
+  .flex-grow-1 {
+    margin-left: 20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+  
+  .headerbtn {
+    margin-right: 10px;
+  }
+  
+  .inputPosition {
+    position: absolute;
+  }
+  
+  .flex-grow-2 {
+    margin-left: 10px;
+  }
+  
+  .userListWidget {
+    margin-bottom: 10px;
+  }
+  

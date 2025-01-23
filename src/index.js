@@ -8,6 +8,7 @@ import Dashboard from './Main/Dashboard';
 import store from './REDUX/store';
 import { Provider } from 'react-redux';
 import LawyerProfile from './Main/Pages/LawyerProfile';
+import SignIn from './Main/Pages/SignIn';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

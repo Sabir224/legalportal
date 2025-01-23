@@ -1,0 +1,57 @@
+/* Sidebar */
+.sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    padding: 58px 0 0; /* Height of navbar */
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 5%), 0 2px 10px 0 rgb(0 0 0 / 5%);
+    width: 60px;
+    z-index: 600;
+    background-color: goldenrod;
+    align-items: start;
+  }
+  
+  /* Sidebar styles for small screens */
+  @media (max-width: 991.98px) {
+    .sidebar {
+      width: 100%;
+      padding: 58px 0 0; /* Adjust padding as needed */
+    }
+  }
+  
+  .sidebar .active {
+    border-radius: 5px;
+    box-shadow: 0 2px 5px 0 rgb(0 0 0 / 16%), 0 2px 10px 0 rgb(0 0 0 / 12%);
+  }
+  
+  .sidebar-sticky {
+    position: relative;
+    top: 0;
+    height: calc(100vh - 48px); /* Adjust if necessary */
+    padding-top: 0.5rem;
+    overflow-x: hidden;
+    overflow-y: auto; /* Scrollable contents if viewport is shorter than content */
+  }
+  
+  /* Color for the first section */
+  .first-section {
+    background-color: lightblue;
+  }
+  
+  /* Color for the second section */
+  .second-section {
+    background-color: lightgreen;
+    height: 100%;
+  }
+  
+  /* Container color */
+  .chatall {
+    background-color: black;
+  }
+  
+  /* Row container color */
+  .rowContainer {
+    background-color: black;
+  }
+  
