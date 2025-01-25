@@ -6,7 +6,7 @@ import 'react-calendar/dist/Calendar.css';
 import axios from 'axios';
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAddressCard, faCalendar, faHome, faMailBulk, faMailReply, faMessage, faPhone } from "@fortawesome/free-solid-svg-icons";
+import { faAddressCard, faCalendar, faCheck, faHome, faMailBulk, faMailReply, faMessage, faPhone } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 
 
@@ -17,7 +17,8 @@ const LawyerProfile = () => {
   const [loading, setLoading] = useState(true); // State to handle loading
   const [error, setError] = useState("");
   const [lawyerDetails, setLawyersDetails] = useState([])
-  const [user, setUser] = useState(global.User)
+  const [ClientDetails, setClientDetails] = useState([])
+  const [user, setUser] = useState([global.User])
 
   const [date, setdate] = useState(null);
   const [getDay, setDay] = useState(null);
@@ -46,6 +47,14 @@ const LawyerProfile = () => {
       const response = await axios.get(`http://localhost:8080/api/users/geLawyerDetails?Email=taha@gmail.com`); // API endpoint
       setUser(response.data.user)
       setLawyersDetails(response.data.lawyerDetails)
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+    try {
+      const response = await axios.get(`http://localhost:8080/api/users/getClientDetails?Email=Raheem@gmail.com`); // API endpoint
+      setClientDetails(response.data)
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -184,11 +193,30 @@ const LawyerProfile = () => {
     setIsPopupVisible(false);
   };
 
-  const handleConfirm = () => {
-    handleSchedule();
+  // const handleConfirm = () => {
+  //   handleSchedule();
+  // };
+
+
+  const [isLoading, setIsLoading] = useState(false); // Loader state
+  const [isEmailSent, setIsEmailSent] = useState(false); // Email sent confirmation
+
+  const handleConfirm = async () => {
+    setIsLoading(true); // Show loader
+    try {
+      await handleSchedule(); // Call the function to send the email
+      setIsEmailSent(true); // Set email sent confirmation
+      setTimeout(() => {
+        setIsPopupVisible(false); // Close popup after showing confirmation
+        setIsEmailSent(false); // Reset confirmation state after a delay
+      }, 8000);
+    } catch (error) {
+      console.error("Failed to send email:", error);
+      setpopupmessage("Failed to send email. Please try again.");
+    } finally {
+      setIsLoading(false); // Hide loader
+    }
   };
-
-
 
   const handleSchedule = async () => {
     // if (selectedDate && selectedTime) {
@@ -198,8 +226,9 @@ const LawyerProfile = () => {
     const requestBody = {
       to: email,
       subject: subject,
-      text:  ` Please note that clientFirstName clientLastName has scheduled a meeting with you at ${selectedTime} on ${formattedDate} `,
-      html:null,
+      client:ClientDetails,
+      text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} `,
+      html: null,
     };
 
     console.log("Sending mail...");
@@ -245,8 +274,9 @@ const LawyerProfile = () => {
     // }
   };
 
+  
   return (
-    <div className="border rounded row gap-5 justify-content-center ms-1 mb-3" style={{ width: "92%",maxHeight:'83vh', overflowY:"auto",  padding: 14, boxShadow: "5px 5px 5px gray" }}>
+    <div className="border rounded row gap-5 justify-content-center ms-1 mb-3" style={{ width: "92%", maxHeight: '83vh', overflowY: "auto", padding: 14, boxShadow: "5px 5px 5px gray" }}>
       {/* <div className="row gap-5 justify-content-center "  > */}
       <div className="slots-section col-5 " style={{ boxShadow: "5px 5px 5px gray", }}>
         <div className="profile-section"  >
@@ -256,9 +286,9 @@ const LawyerProfile = () => {
             textAlign: 'center'
           }}>Lawyer's Picture</div>
           <div className="lawyer-details" >
-            <h2>{user.Username}</h2>
+            <h2>{user.UserName}</h2>
             <p>{lawyerDetails.Position}</p>
-            <div className="d-flex" style={{ width: "auto" }}>
+            <div className="d-flex" style={{ width: "auto" ,height:"55%",overflowY:'auto' }}>
               <p>{lawyerDetails.Bio}</p>
 
             </div>
@@ -287,7 +317,7 @@ const LawyerProfile = () => {
       >
 
 
-        {isPopupVisible && (
+        {/* {isPopupVisible && (
           <div className="popup-overlay">
             <div className={popupcolor}>
               <h3 >{popupmessage}</h3>
@@ -305,7 +335,45 @@ const LawyerProfile = () => {
               }
             </div>
           </div>
-        )}
+        )} */}
+
+
+        <div>
+          {isPopupVisible && (
+            <div className="popup-overlay">
+              <div className={popupcolor}>
+                {!isLoading && !isEmailSent && (
+                  <>
+                    <h3>{popupmessage}</h3>
+                    {isPopupVisiblecancel && (
+                      <div className="popup-actions d-flex justify-content-center">
+                        <button className="confirm-btn" onClick={handleConfirm}>
+                          Yes
+                        </button>
+                        <button className="cancel-btn" onClick={handleClosePopup}>
+                          No
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {isLoading && (
+                  <div className="loading-indicator">
+                    <p>Sending...</p>
+                    <div className="spinner"></div> {/* You can style a spinner here */}
+                  </div>
+                )}
+                {isEmailSent && (
+                  <div className="confirmation">
+              <FontAwesomeIcon icon={faCheck} size="3x" color="white" className="m-2" />
+
+                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
 
         {/* Month Selector */}
@@ -376,7 +444,7 @@ const LawyerProfile = () => {
                 className="time-button"
                 disabled={!selectedDate}
                 style={{
-                  padding: '10px 20px',
+                  padding: '2px 10px',
                   borderRadius: '5px',
                   border: selectedTime === time ? '2px solid white' : '1px solid #d4af37',
                   background: selectedTime === time ? '#d2a85a' : '',
