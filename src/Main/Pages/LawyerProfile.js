@@ -33,16 +33,45 @@ const LawyerProfile = () => {
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("")}`;
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  const [availableDatesInfo, setAvailableDatesInfo] = useState({});
+  const [availableSlotsMap, setAvailableSlotsMap] = useState({});
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [AppointmentDetails, setAppoinmentDetails] = useState(new Date());
 
   const options = { weekday: 'long', month: 'long', day: 'numeric' }; // Format options
 
   useEffect(() => {
     fetchLawyerDetails()
-  }, [user]);
+  }, [user, AppointmentDetails]);
 
   const fetchLawyerDetails = async () => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/appointments/678cef7dd814e650e7fe5544`); // API endpoint
+      console.log("msdasda", response.data[0])
+      setAppoinmentDetails(response.data[0])
+      let data = response.data[0]
+
+      setAvailableSlotsMap(data.availableSlots.reduce((acc, slot) => {
+        const dateStr = new Date(slot.date).toDateString();
+        acc[dateStr] = slot.slots; // Store slots by date
+        return acc;
+      }, {})
+      )
+      setAvailableDatesInfo(data.availableSlots.reduce((acc, slot) => {
+        const dateStr = new Date(slot.date).toDateString();
+        const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked); // Check for booked slots
+        acc[dateStr] = { isAvailable: true, hasBookedSlot };
+        return acc;
+      }, {})
+      )
+
+
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
     try {
       const response = await axios.get(`http://localhost:8080/api/users/geLawyerDetails?Email=taha@gmail.com`); // API endpoint
       setUser(response.data.user)
@@ -60,6 +89,7 @@ const LawyerProfile = () => {
       setError(err.message);
       setLoading(false);
     }
+
   };
 
 
@@ -226,7 +256,7 @@ const LawyerProfile = () => {
     const requestBody = {
       to: email,
       subject: subject,
-      client:ClientDetails,
+      client: ClientDetails,
       text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} `,
       html: null,
     };
@@ -274,7 +304,55 @@ const LawyerProfile = () => {
     // }
   };
 
-  
+
+
+  // data = {
+  //   "_id": "6793988d3743e4374be812ae",
+  //   "FkLawyerId": {
+  //     "_id": "678cef7dd814e650e7fe5544"
+  //   },
+  //   "availableSlots": [
+  //     {
+  //       "date": "2025-01-25",
+  //       "slots": [
+  //         {
+  //           "startTime": "10:00",
+  //           "endTime": "11:00",
+  //           "isBooked": false,
+  //           "_id": "6793988d3743e4374be812b0"
+  //         },
+  //         {
+  //           "startTime": "11:00",
+  //           "endTime": "12:00",
+  //           "isBooked": false,
+  //           "_id": "6793988d3743e4374be812b1"
+  //         }
+  //       ],
+  //       "_id": "6793988d3743e4374be812af"
+  //     },
+  //     {
+  //       "date": "2025-01-26",
+  //       "slots": [
+  //         {
+  //           "startTime": "14:00",
+  //           "endTime": "15:00",
+  //           "isBooked": true,
+  //           "_id": "6793988d3743e4374be812b3"
+  //         },
+  //         {
+  //           "startTime": "15:00",
+  //           "endTime": "16:00",
+  //           "isBooked": false,
+  //           "_id": "6793988d3743e4374be812b4"
+  //         }
+  //       ],
+  //       "_id": "6793988d3743e4374be812b2"
+  //     }
+  //   ],
+  //   "__v": 0
+  // }
+
+
   return (
     <div className="border rounded row gap-5 justify-content-center ms-1 mb-3" style={{ width: "92%", maxHeight: '83vh', overflowY: "auto", padding: 14, boxShadow: "5px 5px 5px gray" }}>
       {/* <div className="row gap-5 justify-content-center "  > */}
@@ -288,7 +366,7 @@ const LawyerProfile = () => {
           <div className="lawyer-details" >
             <h2>{user.UserName}</h2>
             <p>{lawyerDetails.Position}</p>
-            <div className="d-flex" style={{ width: "auto" ,height:"55%",overflowY:'auto' }}>
+            <div className="d-flex" style={{ width: "auto", height: "55%", overflowY: 'auto' }}>
               <p>{lawyerDetails.Bio}</p>
 
             </div>
@@ -315,27 +393,6 @@ const LawyerProfile = () => {
         className="slots-section col-5 "
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
-
-
-        {/* {isPopupVisible && (
-          <div className="popup-overlay">
-            <div className={popupcolor}>
-              <h3 >{popupmessage}</h3>
-              {isPopupVisiblecancel
-                && (
-                  <div className="popup-actions d-flex justify-content-center">
-                    <button className="confirm-btn" onClick={handleConfirm}>
-                      Yes
-                    </button>
-                    <button className="cancel-btn" onClick={handleClosePopup}>
-                      No
-                    </button>
-                  </div>
-                )
-              }
-            </div>
-          </div>
-        )} */}
 
 
         <div>
@@ -365,7 +422,7 @@ const LawyerProfile = () => {
                 )}
                 {isEmailSent && (
                   <div className="confirmation">
-              <FontAwesomeIcon icon={faCheck} size="3x" color="white" className="m-2" />
+                    <FontAwesomeIcon icon={faCheck} size="3x" color="white" className="m-2" />
 
                     {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
                   </div>
@@ -413,7 +470,7 @@ const LawyerProfile = () => {
         </div>
 
         {/* Calendar Grid */}
-        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {/* <div style={{ display: 'flex', flexWrap: 'wrap' }}>
           {calendarDates.map((date, index) => (
             <div
               key={index}
@@ -431,8 +488,12 @@ const LawyerProfile = () => {
               {date ? date.getDate() : ''}
             </div>
           ))}
-        </div>
+        </div> */}
 
+
+
+
+        {/*        
 
         <div>
           <h5>Available Times:</h5>
@@ -455,6 +516,137 @@ const LawyerProfile = () => {
                 {time}
               </button>
             ))}
+          </div>
+        </div> */}
+
+        <div>
+          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+            {calendarDates.map((date, index) => {
+              const dateStr = date ? date.toDateString() : null;
+              const dateInfo = dateStr ? availableDatesInfo[dateStr] : {};
+              const isAvailableDate = dateInfo?.isAvailable;
+
+              // Check if the current date is available
+              if (!isAvailableDate) {
+                return (
+                  <div
+                    key={index}
+                    className="calendarEmpty"
+                    style={{
+                      width: 'calc(100% / 7)',
+                      height: '20px',
+                    border: selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '1px solid #001f3f',
+
+                    }}
+                  ></div>
+                );
+              }
+
+              return (
+                <div
+                  key={index}
+                  onClick={() => handleDateClick(date)}
+                  className="calendarDates"
+                  style={{
+                    border: selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '1px solid #001f3f',
+                    borderRadius: '5px',
+                    cursor: 'pointer',
+                    background: selectedDate?.getDate() === date?.getDate() ? '#d2a85a' : '',
+                    color: selectedDate?.getDate() === date?.getDate() ? '#001f3f' : 'white',
+                    width: 'calc(100% / 7)',
+                    textAlign: 'center',
+                  }}
+                >
+                  {date.getDate()}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* <div>
+            <h5>Available Times:</h5>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {timeSlots.map((time) => {
+                // Check if the time slot is booked
+                const isBookedSlot = selectedDate && data.availableSlots.some((slot) => {
+                  const dateStr = new Date(slot.date).toDateString();
+                  return (
+                    dateStr === selectedDate.toDateString() &&
+                    slot.slots.some((timeSlot) => timeSlot.startTime === time && timeSlot.isBooked)
+                  );
+                });
+
+                return (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeClick(time)}
+                    className="time-button"
+                    disabled={!selectedDate}
+                    style={{
+                      padding: '2px 10px',
+                      borderRadius: '5px',
+                      border: (selectedTime === time && isBookedSlot)? '2px solid white' : '1px solid #d4af37',
+                      background: isBookedSlot
+                        ? 'green' // Green for booked slots
+                        : selectedTime === time
+                          ? '#d2a85a' // Highlight selected slot
+                          : '',
+                      color: isBookedSlot ? 'white' : selectedTime === time ? '#16213e' : 'white',
+                      cursor: selectedDate ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+             */}
+        </div>
+
+
+        <div>
+          <div>
+            <h5>Available Times:</h5>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {selectedDate ? (
+                availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
+                  <button
+                    key={slot._id}
+                    onClick={() => handleTimeClick(slot.startTime)}
+                    className="time-button"
+                    style={{
+                      padding: '5px 10px',
+                      borderRadius: '5px',
+                      border: '1px solid #d4af37',
+                      background:
+                        slot.isBooked
+                          ? 'green' // Green if booked
+                          : selectedTime === slot.startTime
+                            ? '#d2a85a' // Golden when selected
+                            : '#16213e', // Default background
+                      color: 'white',
+                      cursor: slot.isBooked ? 'not-allowed' : 'pointer',
+                    }}
+                    disabled={slot.isBooked}
+                    onMouseEnter={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = '#d4af37'; // Hover background (light golden)
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = '#16213e'; // Reset to default
+                      }
+                    }}
+                  >
+                    {slot.startTime} - {slot.endTime}
+                  </button>
+                ))
+              ) : (
+                <p style={{ color: 'gray' }}>Select a date to view available times.</p>
+              )}
+            </div>
           </div>
         </div>
       </div>
