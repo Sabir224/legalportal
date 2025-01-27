@@ -33,14 +33,12 @@ const LawyerProfile = () => {
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("")}`;
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [availableDatesInfo, setAvailableDatesInfo] = useState({});
-  const [availableSlotsMap, setAvailableSlotsMap] = useState({});
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState();
   const [AppointmentDetails, setAppoinmentDetails] = useState(new Date());
 
   const options = { weekday: 'long', month: 'long', day: 'numeric' }; // Format options
-
+  let data;
   useEffect(() => {
     fetchLawyerDetails()
   }, [user, AppointmentDetails]);
@@ -50,23 +48,7 @@ const LawyerProfile = () => {
       const response = await axios.get(`http://localhost:8080/api/appointments/678cef7dd814e650e7fe5544`); // API endpoint
       console.log("msdasda", response.data[0])
       setAppoinmentDetails(response.data[0])
-      let data = response.data[0]
-
-      setAvailableSlotsMap(data.availableSlots.reduce((acc, slot) => {
-        const dateStr = new Date(slot.date).toDateString();
-        acc[dateStr] = slot.slots; // Store slots by date
-        return acc;
-      }, {})
-      )
-      setAvailableDatesInfo(data.availableSlots.reduce((acc, slot) => {
-        const dateStr = new Date(slot.date).toDateString();
-        const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked); // Check for booked slots
-        acc[dateStr] = { isAvailable: true, hasBookedSlot };
-        return acc;
-      }, {})
-      )
-
-
+      data = response.data[0]
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -120,11 +102,13 @@ const LawyerProfile = () => {
   const calendarDates = generateCalendarDates();
   // Move to the previous month
   const prevMonth = () => {
+    setSelectedDate()
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
 
   // Move to the next month
   const nextMonth = () => {
+    setSelectedDate()
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
@@ -306,52 +290,62 @@ const LawyerProfile = () => {
 
 
 
-  // data = {
-  //   "_id": "6793988d3743e4374be812ae",
-  //   "FkLawyerId": {
-  //     "_id": "678cef7dd814e650e7fe5544"
-  //   },
-  //   "availableSlots": [
-  //     {
-  //       "date": "2025-01-25",
-  //       "slots": [
-  //         {
-  //           "startTime": "10:00",
-  //           "endTime": "11:00",
-  //           "isBooked": false,
-  //           "_id": "6793988d3743e4374be812b0"
-  //         },
-  //         {
-  //           "startTime": "11:00",
-  //           "endTime": "12:00",
-  //           "isBooked": false,
-  //           "_id": "6793988d3743e4374be812b1"
-  //         }
-  //       ],
-  //       "_id": "6793988d3743e4374be812af"
-  //     },
-  //     {
-  //       "date": "2025-01-26",
-  //       "slots": [
-  //         {
-  //           "startTime": "14:00",
-  //           "endTime": "15:00",
-  //           "isBooked": true,
-  //           "_id": "6793988d3743e4374be812b3"
-  //         },
-  //         {
-  //           "startTime": "15:00",
-  //           "endTime": "16:00",
-  //           "isBooked": false,
-  //           "_id": "6793988d3743e4374be812b4"
-  //         }
-  //       ],
-  //       "_id": "6793988d3743e4374be812b2"
-  //     }
-  //   ],
-  //   "__v": 0
-  // }
-
+  data = {
+    "_id": "6793988d3743e4374be812ae",
+    "FkLawyerId": {
+      "_id": "678cef7dd814e650e7fe5544"
+    },
+    "availableSlots": [
+      {
+        "date": "2025-01-25",
+        "slots": [
+          {
+            "startTime": "10:00",
+            "endTime": "11:00",
+            "isBooked": false,
+            "_id": "6793988d3743e4374be812b0"
+          },
+          {
+            "startTime": "11:00",
+            "endTime": "12:00",
+            "isBooked": false,
+            "_id": "6793988d3743e4374be812b1"
+          }
+        ],
+        "_id": "6793988d3743e4374be812af"
+      },
+      {
+        "date": "2025-01-26",
+        "slots": [
+          {
+            "startTime": "14:00",
+            "endTime": "15:00",
+            "isBooked": true,
+            "_id": "6793988d3743e4374be812b3"
+          },
+          {
+            "startTime": "15:00",
+            "endTime": "16:00",
+            "isBooked": false,
+            "_id": "6793988d3743e4374be812b4"
+          }
+        ],
+        "_id": "6793988d3743e4374be812b2"
+      }
+    ],
+    "__v": 0
+  }
+  const availableSlotsMap = data.availableSlots.reduce((acc, slot) => {
+    const dateStr = new Date(slot.date).toDateString();
+    acc[dateStr] = slot.slots; // Store slots by date
+    return acc;
+  }, {});
+  const availableDatesInfo = data.availableSlots.reduce((acc, slot) => {
+    const dateStr = new Date(slot.date).toDateString();
+    const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked); // Check for booked slots
+    acc[dateStr] = { isAvailable: true, hasBookedSlot };
+    return acc;
+  }, {});
 
   return (
     <div className="border rounded row gap-5 justify-content-center ms-1 mb-3" style={{ width: "92%", maxHeight: '83vh', overflowY: "auto", padding: 14, boxShadow: "5px 5px 5px gray" }}>
@@ -520,41 +514,43 @@ const LawyerProfile = () => {
         </div> */}
 
         <div>
+
+
           <div style={{ display: 'flex', flexWrap: 'wrap' }}>
             {calendarDates.map((date, index) => {
-              const dateStr = date ? date.toDateString() : null;
-              const dateInfo = dateStr ? availableDatesInfo[dateStr] : {};
-              const isAvailableDate = dateInfo?.isAvailable;
-
-              // Check if the current date is available
-              if (!isAvailableDate) {
+              if (!date) {
                 return (
                   <div
                     key={index}
                     className="calendarEmpty"
                     style={{
                       width: 'calc(100% / 7)',
-                      height: '20px',
-                    border: selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '1px solid #001f3f',
-
+                      height: '40px', // Consistent height for empty cells
                     }}
                   ></div>
                 );
               }
 
+              const dateStr = date.toDateString();
+              const dateInfo = availableDatesInfo[dateStr] || {};
+              const isAvailableDate = dateInfo.isAvailable;
+
               return (
                 <div
                   key={index}
-                  onClick={() => handleDateClick(date)}
-                  className="calendarDates"
+                  onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
+
+                  className={`calendarDates ${isAvailableDate ? 'availableDate' : ''}`}
                   style={{
-                    border: selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '1px solid #001f3f',
+                    border:  selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '2px solid rgb(2, 30, 58)',
                     borderRadius: '5px',
-                    cursor: 'pointer',
-                    background: selectedDate?.getDate() === date?.getDate() ? '#d2a85a' : '',
-                    color: selectedDate?.getDate() === date?.getDate() ? '#001f3f' : 'white',
-                    width: 'calc(100% / 7)',
+                    color: isAvailableDate ? "" : "gray",
+                    cursor: isAvailableDate ? 'pointer' : 'not-allowed', // Indicate disabled dates
+                    background: selectedDate?.getDate() === date?.getDate() ? '#d2a85a' : "",
+                    // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
                     textAlign: 'center',
+                    lineHeight: '40px',
+                    height: '40px', // Ensure consistent height
                   }}
                 >
                   {date.getDate()}

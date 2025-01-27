@@ -155,7 +155,7 @@
   /* border-Radius: '5px'; */
 }
 
-.calendarDates:hover {
+.availableDate:hover {
   background-color: #d2a85a;
   /* Increase the width on hover */
 }
