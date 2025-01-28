@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Case_details.css';
 // // import { FaBell, FaUser, FaHome } from 'react-icons/fa';
 // import { FaCalendarAlt } from 'react-icons/fa';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAdd, faAddressCard, faAudioDescription, faBook, faCalendarAlt, faCopy, faGavel, faJedi, faJugDetergent, faMoneyBills, faOtter } from '@fortawesome/free-solid-svg-icons';
+import { faAdd, faAddressCard, faAudioDescription, faBook, faCalendarAlt, faCopy, faGavel, faJedi, faJugDetergent, faMoneyBills, faMultiply, faOtter } from '@fortawesome/free-solid-svg-icons';
 import Sidebar from './Sidebar';
 import NotificationBar from './NotificationBar';
 // import LawyerDetails from './LawyerDetails';
@@ -20,56 +20,133 @@ import { screenChange } from '../REDUX/sliece';
 function Case_details() {
 
   const dispatch = useDispatch();
+  const [activeSections, setActiveSections] = useState([]);
+  const [buttoncolor, setbuttoncolor] = useState([]);
 
-  // const caseData = {
-  //   serial_number: "2024/415394",
-  //   type: "Restricted Jurisdiction Real Estate case filing",
-  //   applicant: "سهيل الجبري للمحاماة والاستشارات القانونية",
-  //   date: "27-11-2024",
-  //   party_details: [
-  //     {
-  //       party_number: "7909550",
-  //       party_name: "عبدالرحمن بن احمد بن ماجد الغامدي",
-  //       title_in_case: "مدعي",
-  //       title_after_judgment: "Address",
-  //     },
-  //     {
-  //       party_number: "5623411",
-  //       party_name: "شركة بناء التطوير العقاري ذ.م.م",
-  //       title_in_case: "مدعى عليه",
-  //       title_after_judgment: "Address",
-  //     },
-  //   ],
-  //   status: "The Application Has Been Executed",
-  //   case_number: "2024/53 Real estates, Partial",
-  //   case_detail: {
-  //     caseNumber: "18 / 2024 / 53 Real estates, Partial",
-  //     subject:
-  //       "استلام مبلغ لإبراء الذمة مقابل مبلغ وقدره (398,400.00 درهم) بالإضافــة الى الفائــدة القانونيــة بمقدار (%5) سنويـا من تاريـخ تسليم المطالبة وحتى تاريخ الوفاء، بالإضافة إلى التعويض عن الأضرار بمبلغ 150.000 درهم مع الرسوم والمصاريف وأتعاب المحاماة.",
-  //     caseStatus: "قيد التسيير",
-  //     claimedAmount: "548,400 درهم",
-  //     totalClaimedAmount: "548,400 درهم",
-  //     requestNumber: "415394/2024",
-  //     requestDate: "28-11-2024 12:30:54",
-  //     caseBalance: "548,400 درهم",
-  //     ascriptionDescription: "محاكم دبي الإبتدائية",
-  //     rootCaseNumber: "4566778",
-  //     rootDecision: "تمت الموافقة",
-  //     litigationStage: "محاكم دبي الإبتدائية",
-  //     eSubmitDate: "28-11-2024",
-  //     startPreparationDate: "29-11-2024",
-  //     casePreparationDetails: "المعاملة جاهزة للإعداد",
-  //     nextSessionDate: "11-12-2024",
-  //     lastSessionDate: "29-11-2024",
-  //     caseCurrentDetails: "تفاصيل الجلسة الأخيرة",
-  //     lastDecisions: [
-  //       "جلسة 2024-11-29:",
-  //       "1- إدخال التدخل في الدعوى من قبل أشخاص.",
-  //       "2- إدخال أطراف أخرى في الدعوى.",
-  //     ],
-  //   },
-  // };
 
+  const sections = [
+    {
+      id: "party",
+      title: "Party Details",
+      content: (
+        <>
+          <p>Name: John Doe</p>
+          <p>Event: Birthday Party</p>
+          <p>Date: 2025-02-14</p>
+        </>
+      ),
+    },
+    {
+      id: "Exibit",
+      title: "Exibit Details",
+      content: (
+        <>
+          <p>Name: John Doe</p>
+          <p>Event: Birthday Party</p>
+          <p>Date: 2025-02-14</p>
+        </>
+      ),
+    },
+    {
+      id: "notics",
+      title: "notic Details",
+      content: (
+        <>
+          <p>Name: John Doe</p>
+          <p>Event: Birthday Party</p>
+          <p>Date: 2025-02-14</p>
+        </>
+      ),
+    },
+    {
+      id: "decision",
+      title: "decision Details",
+      content: (
+        <>
+          <p>Name: John Doe</p>
+          <p>Event: Birthday Party</p>
+          <p>Date: 2025-02-14</p>
+        </>
+      ),
+    },
+    {
+      id: "Related Claims And SubClaims",
+      title: "Related Claims And SubClaims Details",
+      content: (
+        <>
+          <p>Document Name: Contract Agreement</p>
+          <p>Issued Date: 2025-01-01</p>
+          <p>Status: Approved</p>
+        </>
+      ),
+    },
+    {
+      id: "Experience Reports",
+      title: "Experience Reports Details",
+      content: (
+        <>
+          <p>Document Name: Contract Agreement</p>
+          <p>Issued Date: 2025-01-01</p>
+          <p>Status: Approved</p>
+        </>
+      ),
+    },
+    {
+      id: "Public Prosecution Reports",
+      title: "Public Prosecution Reports Details",
+      content: (
+        <>
+          <p>Document Name: Contract Agreement</p>
+          <p>Issued Date: 2025-01-01</p>
+          <p>Status: Approved</p>
+        </>
+      ),
+    },
+    {
+      id: "Seizures",
+      title: "Seizures Details",
+      content: (
+        <>
+          <p>Document Name: Contract Agreement</p>
+          <p>Issued Date: 2025-01-01</p>
+          <p>Status: Approved</p>
+        </>
+      ),
+    },
+    {
+      id: "Auctions",
+      title: "Auctions Details",
+      content: (
+        <>
+          <p>Document Name: Contract Agreement</p>
+          <p>Issued Date: 2025-01-01</p>
+          <p>Status: Approved</p>
+        </>
+      ),
+    },
+  ];
+
+
+  const scrollRef = useRef(null);
+
+  const handleScroll = (event) => {
+    if (scrollRef.current) {
+      // Adjust the scroll speed factor
+      const scrollSpeed = 5;
+      scrollRef.current.scrollTop += event.deltaY / scrollSpeed;
+    }
+  };
+
+
+  const toggleSection = (id) => {
+    if (activeSections.includes(id)) {
+      // Remove the section if already active
+      setActiveSections(activeSections.filter((section) => section !== id));
+    } else {
+      // Add the section to active list
+      setActiveSections([...activeSections, id]);
+    }
+  };
 
 
   // const [caseData, setCaseData] = useState([]);
@@ -124,6 +201,7 @@ function Case_details() {
 
 
 
+
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
   };
@@ -133,75 +211,49 @@ function Case_details() {
     <div className="row m-0 d-flex " >
 
       <div className="col-md-3" style={{ marginRight: 20, }} >        {/* <LawyerDetails /> */}
-        <div className="p-4 rounded " style={{ marginLeft: 5, height: "72vh", background: "#c0a262", boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)" }}>
+        <div
+          className="p-4 rounded"
+          style={{
+            overflow: 'hidden',
+            marginLeft: 5,
+            height: '72vh',
+            background: '#c0a262',
+            boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+          }}
+          onWheel={handleScroll} // Add scroll handler for mouse wheel
+          ref={scrollRef} // Attach ref for scrolling
+        >
           <h6>Lawyer Details</h6>
-          {lawyerDetails.map((item, index) => (
-            <div>
-              <div
-                key={index}
-                className="bg-secondary rounded my-3"
-                style={{ height: '36px', textAlign: 'center', alignContent: 'center', color: 'white' }}
-              >
-                {user.UserName}
-                {/* <button  className="bg-secondary rounded my-2"> 
-                    </button> */}
-              </div>
-              <div
-                key={index}
-                className="bg-secondary rounded my-3"
-                style={{ height: '36px', textAlign: 'center', alignContent: 'center', color: 'white' }}
-              >
-                {item.Position}
-                {/* <button  className="bg-secondary rounded my-2"> 
-                    </button> */}
-              </div>
-              <div
-                key={index}
-                className="bg-secondary rounded my-3"
-                style={{ height: '36px', textAlign: 'center', alignContent: 'center', color: 'white' }}
-              >
-                {item.Expertise}
-                {/* <button  className="bg-secondary rounded my-2"> 
-                    </button> */}
-              </div>
-              <div
-                key={index}
-                className="bg-secondary rounded my-3"
-                style={{ height: '36px', textAlign: 'center', alignContent: 'center', color: 'white' }}
-              >
-                {item.Department}
-                {/* <button  className="bg-secondary rounded my-2"> 
-                    </button> */}
-              </div>
-              <div
-                key={index}
-                className="bg-secondary rounded my-3"
-                style={{ height: '36px', textAlign: 'center', alignContent: 'center', color: 'white' }}
-              >
-                {user.Email}
-                {/* <button  className="bg-secondary rounded my-2"> 
-                    </button> */}
-              </div>
 
-            </div>
-          ))}
-          {/* <p className="mt-3"> */}
+          <div className="flex flex-col gap-2">
+            {sections.map((section) => (
+              <button
+                key={section.id}
+                onClick={() => toggleSection(section.id)}
+                className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-button`}
+              >
+                {section.title}
+              </button>
+            ))}
+          </div>
 
-          {/* Other information regarding the case will be displayed here. */}
-
-          <div style={{ textAlign: "center" }}>
-            <button className="View-button my-5"
-              style={{ boxShadow: "5px 5px 5px gray", border: "2px solid #d4af37", borderRadius: '6px' }}
+          <div style={{ textAlign: 'center' }}>
+            <button
+              className="View-button my-5"
+              style={{
+                boxShadow: '5px 5px 5px gray',
+                border: '2px solid #d4af37',
+                borderRadius: '6px',
+              }}
               onClick={handleViewDetails}
             >
               View
             </button>
           </div>
-          {/* </p> */}
         </div>
       </div>
 
-      <div className="col-md-8" style={{ maxHeight: "80vh", height: '75vh', overflowY: 'auto'}} >
+      <div className="col-md-8" style={{ maxHeight: "80vh", height: '75vh', overflowY: 'auto' }} >
         {/* <CaseDetails /> */}
         <div className="row gap-3">
           <div className="subject-line col-8" style={{ height: 200, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
@@ -333,31 +385,38 @@ function Case_details() {
               {/* ))} */}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}>
-              {Array.from({ length: 12 }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleButtonClick(index + 1)}
-                  style={{
-                    padding: "10px",
-                    borderRadius: "5px",
-                    backgroundColor: "#888",
-                    color: "#fff",
-                    border: "none",
-                    cursor: "pointer",
-                  }}
-                >
-                  Button {index + 1}
-                </button>
-              ))}
-              <p style={{ gridColumn: "span 4", textAlign: "center", marginTop: "20px", fontSize: "16px", color: "#333" }}>
-                Upon clicking on any of these, the infographic will appear shown on the next screen.
-              </p>
-            </div>
+            {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
+
+            {sections.map(
+              (section) =>
+                activeSections.includes(section.id) && (
+                  // <div className="flex-1  border rounded-3">
+                  <div
+                    key={section.id}
+                    className="p-4 border rounded-3 bg-gray-50 shadow"
+                    style={{ background: '#16213e', color: 'white' }}
+                  >
+                    <h2 className="text-xl font-semibold " style={{ color: "#c0a262" }}>
+
+                      {section.title}
+                      {/* <FontAwesomeIcon icon={faMultiply} size="1x" color="#c0a262" style={{ marginRight: 10 }} /> */}
+                    </h2>
+                    <div>
+                      {section.content}
+                    </div>
+                  </div>
+                  // </div>
+                )
+            )}
+            {/* {activeSections.length === 0 && (
+              <p className="text-gray-600">Select a button to view details.</p>
+            )} */}
+
           </div>
         </div>
-
       </div>
+
+      {/* </div> */}
     </div>
     // {/* </div> */}
     // </div >

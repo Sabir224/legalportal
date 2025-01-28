@@ -35,7 +35,7 @@ const BasicCase = () => {
     // Function to fetch cases
     const fetchCases = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/getcase'); // API endpoint
+            const response = await axios.get('http://192.168.18.122:8080/api/getcase'); // API endpoint
             // console.log("data of case",response.data.data); // Assuming the API returns data in the `data` field
             setData(response.data.data)
             setLoading(false);
