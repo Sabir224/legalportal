@@ -1,24 +1,32 @@
 import React, { useEffect, useState } from "react";
 import "../../style/LawyerProfile.css";
 import { Alert } from "bootstrap";
-import Calendar from 'react-calendar';
-import 'react-calendar/dist/Calendar.css';
-import axios from 'axios';
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import axios from "axios";
 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faAddressCard, faCalendar, faCheck, faHome, faMailBulk, faMailReply, faMessage, faPhone } from "@fortawesome/free-solid-svg-icons";
+import {
+  faAddressCard,
+  faCalendar,
+  faCheck,
+  faHome,
+  faMailBulk,
+  faMailReply,
+  faMessage,
+  faPhone,
+} from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-
+import { ApiEndPoint } from "../../utils/utils";
 
 const LawyerProfile = () => {
-
   const [currentDate, setCurrentDate] = useState(new Date());
-  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
   const [error, setError] = useState("");
-  const [lawyerDetails, setLawyersDetails] = useState([])
-  const [ClientDetails, setClientDetails] = useState([])
-  const [user, setUser] = useState([global.User])
+  const [lawyerDetails, setLawyersDetails] = useState([]);
+  const [ClientDetails, setClientDetails] = useState([]);
+  const [user, setUser] = useState([global.User]);
 
   const [date, setdate] = useState(null);
   const [getDay, setDay] = useState(null);
@@ -26,54 +34,59 @@ const LawyerProfile = () => {
   const [responseData, setResponseData] = useState(null);
   const [popupmessage, setpopupmessage] = useState();
   const [popupcolor, setpopupcolor] = useState("popup");
-  const [email, setEmail] = useState("raheemakbar999@gmail.com")
-  const [subject, setSubject] = useState("Meeting Confirmation")
+  const [email, setEmail] = useState("raheemakbar999@gmail.com");
+  const [subject, setSubject] = useState("Meeting Confirmation");
 
-
-  const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("")}`;
+  const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
+    subject
+  )}&body=${encodeURIComponent("")}`;
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
   const [selectedDate, setSelectedDate] = useState();
   const [AppointmentDetails, setAppoinmentDetails] = useState(new Date());
 
-  const options = { weekday: 'long', month: 'long', day: 'numeric' }; // Format options
+  const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
   let data;
   useEffect(() => {
-    fetchLawyerDetails()
+    fetchLawyerDetails();
   }, [user, AppointmentDetails]);
 
   const fetchLawyerDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/appointments/678cef7dd814e650e7fe5544`); // API endpoint
-      console.log("msdasda", response.data[0])
-      setAppoinmentDetails(response.data[0])
-      data = response.data[0]
+      const response = await axios.get(
+        `${ApiEndPoint}appointments/678cef7dd814e650e7fe5544`
+      ); // API endpoint
+      console.log("msdasda", response.data[0]);
+      setAppoinmentDetails(response.data[0]);
+      data = response.data[0];
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/geLawyerDetails?Email=taha@gmail.com`); // API endpoint
-      setUser(response.data.user)
-      setLawyersDetails(response.data.lawyerDetails)
+      const response = await axios.get(
+        `${ApiEndPoint}users/geLawyerDetails?Email=taha@gmail.com`
+      ); // API endpoint
+      setUser(response.data.user);
+      setLawyersDetails(response.data.lawyerDetails);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/getClientDetails?Email=Raheem@gmail.com`); // API endpoint
-      setClientDetails(response.data)
+      const response = await axios.get(
+        `${ApiEndPoint}users/getClientDetails?Email=Raheem@gmail.com`
+      ); // API endpoint
+      setClientDetails(response.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
-
   };
-
 
   const generateCalendarDates = () => {
     const dates = [];
@@ -102,14 +115,18 @@ const LawyerProfile = () => {
   const calendarDates = generateCalendarDates();
   // Move to the previous month
   const prevMonth = () => {
-    setSelectedDate()
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+    setSelectedDate();
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
   };
 
   // Move to the next month
   const nextMonth = () => {
-    setSelectedDate()
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+    setSelectedDate();
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
   };
 
   // Handle date selection
@@ -119,15 +136,15 @@ const LawyerProfile = () => {
   };
 
   useEffect(() => {
-    setUser(global.User)
+    setUser(global.User);
 
-    console.log(" dfsd", global.User.UserName)
+    console.log(" dfsd", global.User.UserName);
   }, []);
 
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: '',
+    name: "",
+    email: "",
+    message: "",
   });
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -178,10 +195,9 @@ const LawyerProfile = () => {
 
   const timeSlots = ["02:00 PM", "03:00 PM", "04:00 PM", "08:00 AM"]; // Example time slots
 
-
   const handleDayClick = (day) => {
-    setdate(day.date)
-    setDay(day.day)
+    setdate(day.date);
+    setDay(day.day);
     setSelectedTime();
   };
 
@@ -189,18 +205,18 @@ const LawyerProfile = () => {
     setSelectedTime(time);
   };
 
-
   const handleOpenPopup = () => {
     setpopupmessage(
-      `${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${selectedTime}?`
-    )
+      `${subject} on ${new Intl.DateTimeFormat("en-US", options).format(
+        selectedDate
+      )} at ${selectedTime}?`
+    );
 
-    setpopupcolor("popup")
-    setisPopupVisiblecancel(true)
+    setpopupcolor("popup");
+    setisPopupVisiblecancel(true);
     setTimeout(() => {
       setIsPopupVisible(true);
     }, 500);
-
   };
 
   const handleClosePopup = () => {
@@ -210,7 +226,6 @@ const LawyerProfile = () => {
   // const handleConfirm = () => {
   //   handleSchedule();
   // };
-
 
   const [isLoading, setIsLoading] = useState(false); // Loader state
   const [isEmailSent, setIsEmailSent] = useState(false); // Email sent confirmation
@@ -236,7 +251,9 @@ const LawyerProfile = () => {
     // if (selectedDate && selectedTime) {
     // setpopupmessage(`${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${selectedTime} ?`)
 
-    const formattedDate = new Intl.DateTimeFormat('en-US', options).format(selectedDate);
+    const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
+      selectedDate
+    );
     const requestBody = {
       to: email,
       subject: subject,
@@ -248,10 +265,10 @@ const LawyerProfile = () => {
     console.log("Sending mail...");
 
     try {
-      const response = await fetch('http://localhost:8080/api/send-mail', {
-        method: 'POST',
+      const response = await fetch("${ApiEndPoint}send-mail", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(requestBody),
       });
@@ -259,9 +276,13 @@ const LawyerProfile = () => {
       console.log("Response received");
 
       if (!response.ok) {
-        setisPopupVisiblecancel(false)
-        setpopupcolor("popupconfirm")
-        setpopupmessage(isPopupVisible ? `Meeting Schedule mail not end ${response.status}` : new Intl.DateTimeFormat('en-US', options).format(selectedDate))
+        setisPopupVisiblecancel(false);
+        setpopupcolor("popupconfirm");
+        setpopupmessage(
+          isPopupVisible
+            ? `Meeting Schedule mail not end ${response.status}`
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+        );
         setTimeout(() => {
           setIsPopupVisible(false);
         }, 3000);
@@ -270,17 +291,21 @@ const LawyerProfile = () => {
 
       const data = await response.json();
       setResponseData(data);
-      setisPopupVisiblecancel(false)
-      setpopupcolor("popupconfirm")
-      setpopupmessage(isPopupVisible ? "Meeting Schedule mail is send" : new Intl.DateTimeFormat('en-US', options).format(selectedDate))
+      setisPopupVisiblecancel(false);
+      setpopupcolor("popupconfirm");
+      setpopupmessage(
+        isPopupVisible
+          ? "Meeting Schedule mail is send"
+          : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+      );
       setTimeout(() => {
         setIsPopupVisible(false);
       }, 3000);
       // Assuming setResponseData is a state updater
       console.log("Mail sent successfully:", data);
     } catch (error) {
-      console.error('Error in POST request:', error.message || error);
-    };
+      console.error("Error in POST request:", error.message || error);
+    }
 
     // alert(`Meeting scheduled on  ${selectedDate.day} at ${selectedTime}`);
     // } else {
@@ -288,53 +313,51 @@ const LawyerProfile = () => {
     // }
   };
 
-
-
   data = {
-    "_id": "6793988d3743e4374be812ae",
-    "FkLawyerId": {
-      "_id": "678cef7dd814e650e7fe5544"
+    _id: "6793988d3743e4374be812ae",
+    FkLawyerId: {
+      _id: "678cef7dd814e650e7fe5544",
     },
-    "availableSlots": [
+    availableSlots: [
       {
-        "date": "2025-01-25",
-        "slots": [
+        date: "2025-01-25",
+        slots: [
           {
-            "startTime": "10:00",
-            "endTime": "11:00",
-            "isBooked": false,
-            "_id": "6793988d3743e4374be812b0"
+            startTime: "10:00",
+            endTime: "11:00",
+            isBooked: false,
+            _id: "6793988d3743e4374be812b0",
           },
           {
-            "startTime": "11:00",
-            "endTime": "12:00",
-            "isBooked": false,
-            "_id": "6793988d3743e4374be812b1"
-          }
+            startTime: "11:00",
+            endTime: "12:00",
+            isBooked: false,
+            _id: "6793988d3743e4374be812b1",
+          },
         ],
-        "_id": "6793988d3743e4374be812af"
+        _id: "6793988d3743e4374be812af",
       },
       {
-        "date": "2025-01-26",
-        "slots": [
+        date: "2025-01-26",
+        slots: [
           {
-            "startTime": "14:00",
-            "endTime": "15:00",
-            "isBooked": true,
-            "_id": "6793988d3743e4374be812b3"
+            startTime: "14:00",
+            endTime: "15:00",
+            isBooked: true,
+            _id: "6793988d3743e4374be812b3",
           },
           {
-            "startTime": "15:00",
-            "endTime": "16:00",
-            "isBooked": false,
-            "_id": "6793988d3743e4374be812b4"
-          }
+            startTime: "15:00",
+            endTime: "16:00",
+            isBooked: false,
+            _id: "6793988d3743e4374be812b4",
+          },
         ],
-        "_id": "6793988d3743e4374be812b2"
-      }
+        _id: "6793988d3743e4374be812b2",
+      },
     ],
-    "__v": 0
-  }
+    __v: 0,
+  };
   const availableSlotsMap = data.availableSlots.reduce((acc, slot) => {
     const dateStr = new Date(slot.date).toDateString();
     acc[dateStr] = slot.slots; // Store slots by date
@@ -348,33 +371,71 @@ const LawyerProfile = () => {
   }, {});
 
   return (
-    <div className="border rounded row gap-5 justify-content-center ms-1 mb-3" style={{ width: "92%", maxHeight: '83vh', overflowY: "auto", padding: 14, boxShadow: "5px 5px 5px gray" }}>
+    <div
+      className="border rounded row gap-5 justify-content-center ms-1 mb-3"
+      style={{
+        width: "92%",
+        maxHeight: "83vh",
+        overflowY: "auto",
+        padding: 14,
+        boxShadow: "5px 5px 5px gray",
+      }}
+    >
       {/* <div className="row gap-5 justify-content-center "  > */}
-      <div className="slots-section col-5 " style={{ boxShadow: "5px 5px 5px gray", }}>
-        <div className="profile-section"  >
-          <div className="lawyer-picture " style={{
-            border: "2px solid #d4af37",
-            // alignSelf: 'center', 
-            textAlign: 'center'
-          }}>Lawyer's Picture</div>
-          <div className="lawyer-details" >
+      <div
+        className="slots-section col-5 "
+        style={{ boxShadow: "5px 5px 5px gray" }}
+      >
+        <div className="profile-section">
+          <div
+            className="lawyer-picture "
+            style={{
+              border: "2px solid #d4af37",
+              // alignSelf: 'center',
+              textAlign: "center",
+            }}
+          >
+            Lawyer's Picture
+          </div>
+          <div className="lawyer-details">
             <h2>{user.UserName}</h2>
             <p>{lawyerDetails.Position}</p>
-            <div className="d-flex" style={{ width: "auto", height: "55%", overflowY: 'auto' }}>
+            <div
+              className="d-flex"
+              style={{ width: "auto", height: "55%", overflowY: "auto" }}
+            >
               <p>{lawyerDetails.Bio}</p>
-
             </div>
             <div className="d-flex">
-              <FontAwesomeIcon icon={faMailBulk} size="1x" color="white" className="m-2" />
-              <p className="ms-2 m-1"><a href={mailtoLink} style={{ color: "white" }}>{user.Email}</a></p>
+              <FontAwesomeIcon
+                icon={faMailBulk}
+                size="1x"
+                color="white"
+                className="m-2"
+              />
+              <p className="ms-2 m-1">
+                <a href={mailtoLink} style={{ color: "white" }}>
+                  {user.Email}
+                </a>
+              </p>
             </div>
             <div className="d-flex">
-              <FontAwesomeIcon icon={faPhone} size="1x" color="white" className="m-2" />
+              <FontAwesomeIcon
+                icon={faPhone}
+                size="1x"
+                color="white"
+                className="m-2"
+              />
               <p className="ms-2 m-1">{lawyerDetails.Contact}</p>
             </div>
 
             <div className="d-flex">
-              <FontAwesomeIcon icon={faAddressCard} size="1x" color="white" className="m-2" />
+              <FontAwesomeIcon
+                icon={faAddressCard}
+                size="1x"
+                color="white"
+                className="m-2"
+              />
               <p style={{ height: 50, fontSize: 12 }} className="ms-2 m-1 ">
                 {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
                 {lawyerDetails.Address}
@@ -387,8 +448,6 @@ const LawyerProfile = () => {
         className="slots-section col-5 "
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
-
-
         <div>
           {isPopupVisible && (
             <div className="popup-overlay">
@@ -401,7 +460,10 @@ const LawyerProfile = () => {
                         <button className="confirm-btn" onClick={handleConfirm}>
                           Yes
                         </button>
-                        <button className="cancel-btn" onClick={handleClosePopup}>
+                        <button
+                          className="cancel-btn"
+                          onClick={handleClosePopup}
+                        >
                           No
                         </button>
                       </div>
@@ -411,12 +473,18 @@ const LawyerProfile = () => {
                 {isLoading && (
                   <div className="loading-indicator">
                     <p>Sending...</p>
-                    <div className="spinner"></div> {/* You can style a spinner here */}
+                    <div className="spinner"></div>{" "}
+                    {/* You can style a spinner here */}
                   </div>
                 )}
                 {isEmailSent && (
                   <div className="confirmation">
-                    <FontAwesomeIcon icon={faCheck} size="3x" color="white" className="m-2" />
+                    <FontAwesomeIcon
+                      icon={faCheck}
+                      size="3x"
+                      color="white"
+                      className="m-2"
+                    />
 
                     {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
                   </div>
@@ -426,38 +494,55 @@ const LawyerProfile = () => {
           )}
         </div>
 
-
         {/* Month Selector */}
-        <div className="d-flex " style={{ marginBottom: "2px", justifyContent: 'space-between' }}>
+        <div
+          className="d-flex "
+          style={{ marginBottom: "2px", justifyContent: "space-between" }}
+        >
           <div>
             <h2>Available Slots</h2>
           </div>
         </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button
-            className="calender-button"
-            onClick={prevMonth}
-
-          >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <button className="calender-button" onClick={prevMonth}>
             Prev
           </button>
           <h3>
-            {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
+            {currentDate.toLocaleString("default", { month: "long" })}{" "}
+            {currentDate.getFullYear()}
           </h3>
-          <button
-            onClick={nextMonth}
-            className="calender-button"
-
-          >
+          <button onClick={nextMonth} className="calender-button">
             Next
           </button>
         </div>
 
         {/* Days of the Week */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', marginBottom: '5px' }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            fontWeight: "bold",
+            marginBottom: "5px",
+          }}
+        >
           {daysOfWeek.map((day) => (
-            <div key={day} className="Calendarday" style={{ border: ' 1px solid #d2a85a', margin: 3, width: 'calc(100% / 7)', textAlign: 'center' }}>
+            <div
+              key={day}
+              className="Calendarday"
+              style={{
+                border: " 1px solid #d2a85a",
+                margin: 3,
+                width: "calc(100% / 7)",
+                textAlign: "center",
+              }}
+            >
               {day}
             </div>
           ))}
@@ -483,9 +568,6 @@ const LawyerProfile = () => {
             </div>
           ))}
         </div> */}
-
-
-
 
         {/*        
 
@@ -514,9 +596,7 @@ const LawyerProfile = () => {
         </div> */}
 
         <div>
-
-
-          <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
             {calendarDates.map((date, index) => {
               if (!date) {
                 return (
@@ -524,8 +604,8 @@ const LawyerProfile = () => {
                     key={index}
                     className="calendarEmpty"
                     style={{
-                      width: 'calc(100% / 7)',
-                      height: '40px', // Consistent height for empty cells
+                      width: "calc(100% / 7)",
+                      height: "40px", // Consistent height for empty cells
                     }}
                   ></div>
                 );
@@ -539,18 +619,25 @@ const LawyerProfile = () => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-
-                  className={`calendarDates ${isAvailableDate ? 'availableDate' : ''}`}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
                   style={{
-                    border:  selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '2px solid rgb(2, 30, 58)',
-                    borderRadius: '5px',
+                    border:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "2px solid white"
+                        : "2px solid rgb(2, 30, 58)",
+                    borderRadius: "5px",
                     color: isAvailableDate ? "" : "gray",
-                    cursor: isAvailableDate ? 'pointer' : 'not-allowed', // Indicate disabled dates
-                    background: selectedDate?.getDate() === date?.getDate() ? '#d2a85a' : "",
+                    cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
+                    background:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "#d2a85a"
+                        : "",
                     // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
-                    textAlign: 'center',
-                    lineHeight: '40px',
-                    height: '40px', // Ensure consistent height
+                    textAlign: "center",
+                    lineHeight: "40px",
+                    height: "40px", // Ensure consistent height
                   }}
                 >
                   {date.getDate()}
@@ -600,11 +687,10 @@ const LawyerProfile = () => {
              */}
         </div>
 
-
         <div>
           <div>
             <h5>Available Times:</h5>
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               {selectedDate ? (
                 availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
                   <button
@@ -612,27 +698,26 @@ const LawyerProfile = () => {
                     onClick={() => handleTimeClick(slot.startTime)}
                     className="time-button"
                     style={{
-                      padding: '5px 10px',
-                      borderRadius: '5px',
-                      border: '1px solid #d4af37',
-                      background:
-                        slot.isBooked
-                          ? 'green' // Green if booked
-                          : selectedTime === slot.startTime
-                            ? '#d2a85a' // Golden when selected
-                            : '#16213e', // Default background
-                      color: 'white',
-                      cursor: slot.isBooked ? 'not-allowed' : 'pointer',
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border: "1px solid #d4af37",
+                      background: slot.isBooked
+                        ? "green" // Green if booked
+                        : selectedTime === slot.startTime
+                        ? "#d2a85a" // Golden when selected
+                        : "#16213e", // Default background
+                      color: "white",
+                      cursor: slot.isBooked ? "not-allowed" : "pointer",
                     }}
                     disabled={slot.isBooked}
                     onMouseEnter={(e) => {
                       if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = '#d4af37'; // Hover background (light golden)
+                        e.target.style.background = "#d4af37"; // Hover background (light golden)
                       }
                     }}
                     onMouseLeave={(e) => {
                       if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = '#16213e'; // Reset to default
+                        e.target.style.background = "#16213e"; // Reset to default
                       }
                     }}
                   >
@@ -640,7 +725,9 @@ const LawyerProfile = () => {
                   </button>
                 ))
               ) : (
-                <p style={{ color: 'gray' }}>Select a date to view available times.</p>
+                <p style={{ color: "gray" }}>
+                  Select a date to view available times.
+                </p>
               )}
             </div>
           </div>
@@ -648,8 +735,13 @@ const LawyerProfile = () => {
       </div>
 
       <div style={{ textAlign: "center" }}>
-        <button className="schedule-button"
-          style={{ boxShadow: "5px 5px 5px gray", border: "2px solid #d4af37", borderRadius: '6px' }}
+        <button
+          className="schedule-button"
+          style={{
+            boxShadow: "5px 5px 5px gray",
+            border: "2px solid #d4af37",
+            borderRadius: "6px",
+          }}
           onClick={handleOpenPopup}
         >
           Schedule Meeting
@@ -658,7 +750,6 @@ const LawyerProfile = () => {
       {/* </div> */}
     </div>
   );
-
 };
 
 export default LawyerProfile;

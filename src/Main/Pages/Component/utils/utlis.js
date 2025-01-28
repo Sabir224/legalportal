@@ -1,7 +1,7 @@
 import { jwtDecode } from "jwt-decode";
 import user from "../assets/icons/user.png";
 import { Modal } from "react-bootstrap";
- import { DateTime } from "luxon";
+import { DateTime } from "luxon";
 import React from "react";
 export const icons = {
   user: user,
@@ -62,8 +62,7 @@ export const formatTimestamp = (timestamp) => {
     return date.toFormat("MMM dd");
   }
 };
-
-export const ApiEndPoint = "https://aousmkt.awschatbot.online/api";
+export const ApiEndPoint = "http://192.168.18.122:8080/api/";
 //export const ApiEndPoint = "http://localhost:5000/api";
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {

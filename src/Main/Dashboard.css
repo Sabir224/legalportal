@@ -5,11 +5,7 @@
   padding: 10px;
   border-radius: 8px;
   font-weight: bold;
-
 }
-
-
-
 
 #casecontainer {
   background-color: hsl(210, 17%, 98%);
@@ -22,10 +18,9 @@
   background-color: #18273e;
   color: white;
   border-radius: 8px;
- 
+
   padding: 10px;
   padding-left: 25px;
-
 }
 
 #notification-profile button {
@@ -42,28 +37,24 @@
 #sidebar .btn {
   background-color: #001f3f;
   color: #d4af37;
-
 }
 
 #maincontent {
   background-color: white;
   border-radius: 8px;
-  box-shadow: 4px 4px 6px rgba(15, 20, 20, 0.829);
-  width: 92%;
-  height: 83vh;
+  backdrop-filter: blur(10px); /* Adds the glassy blur effect */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Soft shadow */
+  /* width: 99%; */
+  height: 85vh;
   margin-bottom: 20px;
- }
+}
 
-
-.card {
-  width: 200vh;
-  
+.Customcard {
   border: 1px solid #dcdcdc;
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   background-color: #fafafa;
   font-family: Arial, sans-serif;
-
 }
 
 #numberbar {
@@ -81,9 +72,8 @@
   color: white;
   font-weight: bold;
   padding: 10px 15px;
-  border-top-left-radius: 10px;
-  border-top-right-radius: 10px;
 
+  border-radius: 10px;
 }
 
 .card-list {
@@ -123,7 +113,6 @@
 .number {
   display: flex;
   align-items: center;
-
 }
 
 .status-dot {
@@ -147,33 +136,44 @@
 }
 
 .first-lastbutton {
-
-  background-Color: #18273e;
+  background-color: #18273e;
   color: white;
-  border-Radius: 6px;
+  border-radius: 6px;
   padding: 5px 10px;
   border: 2px solid #d4af37;
   transition: width 0.3s ease;
 }
 
 .first-lastbutton:hover {
-  background-color:#d4af37;
+  background-color: #d4af37;
   transition: width 0.3s ease;
 }
 
+.collapse-toggle {
+  position: absolute;
+  top: 15px; /* Distance from the top of the sidebar */
+  right: -10px; /* Initial positioning outside the sidebar */
+  width: 20px;
+  height: 20px;
+  background-color: #d3b386; /* Background color of the bubble */
+  border-radius: 50%; /* Bubble shape */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 0 5px rgb(255, 255, 255); /* Optional shadow for better visibility */
+  z-index: 100; /* Ensure it’s above other elements */
+}
 
+.collapse-toggle svg {
+  color: white; /* Arrow color */
+  font-size: 6px; /* Arrow size */
+}
 
-
-
-
-
-
-
-
-
-
-
-
+.menu-icon-text {
+  display: flex;
+  align-items: center;
+}
 
 /* 
 
