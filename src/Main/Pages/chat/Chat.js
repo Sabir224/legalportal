@@ -10,7 +10,7 @@ import { faArchive, faComments } from "@fortawesome/free-solid-svg-icons";
 export default function Chat({ isCollapsed }) {
   //const Users = useSelector((state) => state.Data.usersdetail);
 
-  const [users, setUsers] = useState([]);   
+  const [users, setUsers] = useState([]);
   const [selectUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
   const [ArchivedMessageCount, setArchivedMessageCount] = useState(0);
@@ -27,13 +27,9 @@ export default function Chat({ isCollapsed }) {
     const interval = setInterval(fetchPendingMessagesCount, 5000);
     return () => clearInterval(interval);
   });
-  const fetchPendingMessagesCount = async () => {
-   
-  };
+  const fetchPendingMessagesCount = async () => {};
 
-  const fetchUsers = async () => {
-   
-  };
+  const fetchUsers = async () => {};
 
   const handleUserClick = (user) => {
     setSelectedUser(user);
@@ -65,11 +61,11 @@ export default function Chat({ isCollapsed }) {
 
   return (
     <div
-      className="ms-1 p-0 m-0 d-flex flex-row"
+      className="p-0 m-0 d-flex flex-row"
       style={{
         borderRadius: "0",
-        height: "83vh",
-        width: "92%",
+        height: "85vh",
+        width: "100%",
         margin: "0px",
         padding: "0px",
 
@@ -233,6 +229,7 @@ export default function Chat({ isCollapsed }) {
           borderRadius: "10px", // Rounded corners for card-like appearance
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", // Subtle shadow for card effect
           marginLeft: "10px", // Space between the two inner divs
+          marginRight: "10px",
         }}
       >
         <ChatField user={selectUser} isCollapsed={isCollapsed} />
