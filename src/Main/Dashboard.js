@@ -58,7 +58,7 @@ const Dashboard = () => {
   return (
     <div
       className="d-flex w-99 gap-3 m-1"
-      style={{ height: "96vh", overflow: "hidden" }}
+      style={{ height: "96vh", overflowY: "auto" }}
     >
       {/* Sidebar */}
       <div

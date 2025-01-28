@@ -208,13 +208,27 @@ const BasicCase = () => {
   // }, []);
 
   return (
-    <div className="container-fluid">
+    <div
+      className="container-fluid "
+      style={{ height: "84vh", overflowY: "auto" }}
+    >
       <div className="card mb-3 shadow">
-        <div className="card-header d-flex justify-content-between">
-          <span>Status</span>
-          <span>Case Number</span>
-          <span>Name</span>
+        <div
+          className="card-header d-flex justify-content-between align-items-center"
+          style={{
+            height: "8vh",
+          }}
+        >
+          {/* First Column */}
+          <span className="col-4 text-start">Status</span>
+
+          {/* Second Column */}
+          <span className="col-3 text-start">Case Number</span>
+
+          {/* Third Column */}
+          <span className="col-5 text-start">Name</span>
         </div>
+
         <div className="card-list p-0">
           {getCurrentPageData().map((item, index) => (
             <div key={index}>
@@ -223,7 +237,8 @@ const BasicCase = () => {
                 style={{ cursor: "pointer" }}
                 onClick={() => handleClick(1, item)}
               >
-                <span className="d-flex align-items-center">
+                {/* First Column */}
+                <span className="col-4 d-flex align-items-center text-start text-wrap">
                   <span
                     className={`me-2 rounded-circle ${
                       item.Status.toLowerCase() === "case filed"
@@ -238,12 +253,21 @@ const BasicCase = () => {
                   ></span>
                   {item.Status}
                 </span>
-                <span>{item["CaseNumber"]}</span>
-                <span>{item["Name"]}</span>
+
+                {/* Second Column */}
+                <span className="col-3 d-flex align-items-center text-start text-wrap">
+                  {item["CaseNumber"]}
+                </span>
+
+                {/* Third Column */}
+                <span className="col-5 d-flex align-items-center text-start text-wrap">
+                  {item["Name"]}
+                </span>
               </div>
             </div>
           ))}
         </div>
+
         {/* Pagination */}
         <div
           id="numberbar"
