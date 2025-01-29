@@ -209,7 +209,7 @@ const BasicCase = () => {
 
   return (
     <div
-      className="container-fluid "
+      className="container-fluid m-0 p-0"
       style={{ height: "84vh", overflowY: "auto" }}
     >
       <div className="card mb-3 shadow">
