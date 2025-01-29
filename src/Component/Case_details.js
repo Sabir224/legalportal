@@ -22,6 +22,7 @@ function Case_details() {
   const dispatch = useDispatch();
   const [activeSections, setActiveSections] = useState([]);
   const [buttoncolor, setbuttoncolor] = useState([]);
+  const [activeButtons, setActiveButtons] = useState({}); // Track button states by ID
 
 
   const sections = [
@@ -145,7 +146,12 @@ function Case_details() {
     } else {
       // Add the section to active list
       setActiveSections([...activeSections, id]);
+
     }
+    setActiveButtons((prevState) => ({
+      ...prevState,
+      [id]: !prevState[id], // Toggle the current button's state
+    }));
   };
 
 
@@ -217,13 +223,13 @@ function Case_details() {
             overflow: 'hidden',
             marginLeft: 5,
             height: '72vh',
-            background: '#c0a262',
+            background: '#d3b386',
             boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
           }}
           onWheel={handleScroll} // Add scroll handler for mouse wheel
           ref={scrollRef} // Attach ref for scrolling
         >
-          <h6>Lawyer Details</h6>
+          <h6>Further Details</h6>
 
           <div className="flex flex-col gap-2">
             {sections.map((section) => (
@@ -231,25 +237,30 @@ function Case_details() {
                 key={section.id}
                 onClick={() => toggleSection(section.id)}
                 className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-button`}
+                style={{
+                  // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
+                  // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+                  border: '2px solid rgba(0, 0, 0, 0.2)',
+                  // transition: "background-color 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = "#d3b386"
+                }
+                }
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = activeButtons[section.id] ? "hsl(210, 88.90%, 3.50%)" : " #18273e"
+                }
+                }
               >
+
                 {section.title}
+
+
               </button>
             ))}
           </div>
 
-          <div style={{ textAlign: 'center' }}>
-            <button
-              className="View-button my-5"
-              style={{
-                boxShadow: '5px 5px 5px gray',
-                border: '2px solid #d4af37',
-                borderRadius: '6px',
-              }}
-              onClick={handleViewDetails}
-            >
-              View
-            </button>
-          </div>
+
         </div>
       </div>
 
@@ -385,6 +396,7 @@ function Case_details() {
               {/* ))} */}
             </div>
 
+
             {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
 
             {sections.map(
@@ -412,6 +424,19 @@ function Case_details() {
               <p className="text-gray-600">Select a button to view details.</p>
             )} */}
 
+            <div style={{ textAlign: 'center' }}>
+              <button
+                className="View-button"
+                style={{
+                  boxShadow: '5px 5px 5px gray',
+                  border: '2px solid #d4af37',
+                  borderRadius: '6px',
+                }}
+                onClick={handleViewDetails}
+              >
+                View lawyer
+              </button>
+            </div>
           </div>
         </div>
       </div>

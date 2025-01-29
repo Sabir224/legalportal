@@ -17,7 +17,8 @@ import {
   faPhone,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { ApiEndPoint } from "../../utils/utils";
+import { ApiEndPoint } from "./Component/utils/utlis";
+// import { ApiEndPoint } from "../../utils/utils";
 
 const LawyerProfile = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
