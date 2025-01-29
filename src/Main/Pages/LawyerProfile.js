@@ -53,6 +53,15 @@ const LawyerProfile = () => {
     fetchLawyerDetails();
   }, [user, AppointmentDetails]);
 
+  const [imageUrl, setImageUrl] = useState("");
+
+  useEffect(() => {
+    fetch("http://172.16.18.250:8080/api/upload") // Replace with your API URL
+      .then((response) => response.json())
+      .then((data) => setImageUrl(data.imageUrl)) // Adjust based on API response
+      .catch((error) => console.error("Error fetching image:", error));
+  }, []);
+
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
@@ -375,10 +384,10 @@ const LawyerProfile = () => {
     <div
       className="border rounded row gap-5 justify-content-center ms-1 mb-3"
       style={{
-        width: "92%",
+        width: "100%",
         maxHeight: "83vh",
         overflowY: "auto",
-        padding: 14,
+        padding: 10,
         boxShadow: "5px 5px 5px gray",
       }}
     >

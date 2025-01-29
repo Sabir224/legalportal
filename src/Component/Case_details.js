@@ -214,57 +214,59 @@ function Case_details() {
 
   return (
 
-    <div className="row m-0 d-flex " >
+    <div className='container-fluid m-0 p-0'>
+      <div className=" row m-0  "  >
 
-      <div className="col-md-3" style={{ marginRight: 20, }} >        {/* <LawyerDetails /> */}
-        <div
-          className="p-4 rounded"
-          style={{
-            overflow: 'hidden',
-            marginLeft: 5,
-            height: '72vh',
-            background: '#d3b386',
-            boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-          }}
-          onWheel={handleScroll} // Add scroll handler for mouse wheel
-          ref={scrollRef} // Attach ref for scrolling
-        >
-          <h6>Further Details</h6>
+        <div className="col-md-3" style={{}} >
+          {/* <LawyerDetails /> */}
+          <div
+            className="p-4 rounded"
+            style={{
+              overflow: 'hidden',
+              // marginLeft: 5,
+              height: '72vh',
+              background: '#d3b386',
+              boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+            }}
+            onWheel={handleScroll} // Add scroll handler for mouse wheel
+            ref={scrollRef} // Attach ref for scrolling
+          >
+            <h6>Further Details</h6>
 
-          <div className="flex flex-col gap-2">
-            {sections.map((section) => (
-              <button
-                key={section.id}
-                onClick={() => toggleSection(section.id)}
-                className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-button`}
-                style={{
-                  // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
-                  // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-                  border: '2px solid rgba(0, 0, 0, 0.2)',
-                  // transition: "background-color 0.3s ease",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#d3b386"
-                }
-                }
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = activeButtons[section.id] ? "hsl(210, 88.90%, 3.50%)" : " #18273e"
-                }
-                }
-              >
+            <div className=" flex-col gap-2">
+              {sections.map((section) => (
+                <button
+                  key={section.id}
+                  onClick={() => toggleSection(section.id)}
+                  className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-button`}
+                  style={{
+                    // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
+                    // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+                    border: '2px solid rgba(0, 0, 0, 0.2)',
+                    // transition: "background-color 0.3s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "#d3b386"
+                  }
+                  }
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = activeButtons[section.id] ? "hsl(210, 88.90%, 3.50%)" : " #18273e"
+                  }
+                  }
+                >
 
-                {section.title}
+                  {section.title}
 
 
-              </button>
-            ))}
+                </button>
+              ))}
+            </div>
+
+
           </div>
-
-
         </div>
-      </div>
 
-      <div className="col-md-8" style={{ maxHeight: "80vh", height: '75vh', overflowY: 'auto' }} >
+        <div className="col-8" style={{ maxHeight: "80vh", height: '75vh', overflowY: 'auto' }} >
         {/* <CaseDetails /> */}
         <div className="row gap-3">
           <div className="subject-line col-8" style={{ height: 200, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
@@ -285,7 +287,7 @@ function Case_details() {
             </div>
           </div>
 
-          <div className="important-points datatextcolor col-3" style={{ height: 270, width: '27%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+          <div className="important-points datatextcolor col-4" style={{ height: 270, width: '27%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
 
             <div className=' d-flex m-0' style={{ color: "#c0a262", fontWeight: 'bold' }}>
               {/* <div style={{width:50}}> */}
@@ -439,12 +441,13 @@ function Case_details() {
             </div>
           </div>
         </div>
-      </div>
+        {/* </div> */}
 
+        {/* </div> */}
+      </div>
       {/* </div> */}
-    </div>
-    // {/* </div> */}
-    // </div >
+       </div >
+    </div >
   );
 }
 

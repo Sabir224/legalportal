@@ -169,9 +169,9 @@ const Dashboard = () => {
         </div>
 
         {/* Main Form */}
-        <div className="px-3 py-2">
+        {/* <div className=" py-2"> */}
           <div style={{ padding: 1, marginRight: "10px" }}>{currenScreen}</div>
-        </div>
+        {/* </div> */}
       </div>
     </div>
   );
