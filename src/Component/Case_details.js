@@ -1,24 +1,41 @@
-import React, { useEffect, useRef, useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import './Case_details.css';
+import React, { useEffect, useRef, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./Case_details.css";
 // // import { FaBell, FaUser, FaHome } from 'react-icons/fa';
 // import { FaCalendarAlt } from 'react-icons/fa';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faAdd, faAddressCard, faAudioDescription, faBook, faCalendarAlt, faCopy, faGavel, faJedi, faJugDetergent, faMoneyBills, faMultiply, faOtter } from '@fortawesome/free-solid-svg-icons';
-import Sidebar from './Sidebar';
-import NotificationBar from './NotificationBar';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faAdd,
+  faAddressCard,
+  faAudioDescription,
+  faBook,
+  faCalendarAlt,
+  faCopy,
+  faGavel,
+  faJedi,
+  faJugDetergent,
+  faMoneyBills,
+  faMultiply,
+  faOtter,
+} from "@fortawesome/free-solid-svg-icons";
+import Sidebar from "./Sidebar";
+import NotificationBar from "./NotificationBar";
 // import LawyerDetails from './LawyerDetails';
-import { faCashRegister } from '@fortawesome/free-solid-svg-icons';
-import { faCreativeCommons, faFirstOrder, faJediOrder } from '@fortawesome/free-brands-svg-icons';
-import { FcMakeDecision } from 'react-icons/fc';
-import { faComment } from '@fortawesome/free-solid-svg-icons/faComment';
-import axios from 'axios';
-import { useDispatch, useSelector } from 'react-redux';
-import { useParams } from 'react-router-dom';
-import { screenChange } from '../REDUX/sliece';
+import { faCashRegister } from "@fortawesome/free-solid-svg-icons";
+import {
+  faCreativeCommons,
+  faFirstOrder,
+  faJediOrder,
+} from "@fortawesome/free-brands-svg-icons";
+import { FcMakeDecision } from "react-icons/fc";
+import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { useParams } from "react-router-dom";
+import { screenChange } from "../REDUX/sliece";
+import { ApiEndPoint } from "../Main/Pages/Component/utils/utlis";
 
 function Case_details() {
-
   const dispatch = useDispatch();
   const [activeSections, setActiveSections] = useState([]);
   const [buttoncolor, setbuttoncolor] = useState([]);
@@ -382,7 +399,6 @@ function Case_details() {
     }
   };
 
-
   const toggleSection = (id) => {
     if (activeSections.includes(id)) {
       // Remove the section if already active
@@ -390,7 +406,6 @@ function Case_details() {
     } else {
       // Add the section to active list
       setActiveSections([...activeSections, id]);
-
     }
     setActiveButtons((prevState) => ({
       ...prevState,
@@ -398,15 +413,14 @@ function Case_details() {
     }));
   };
 
-
   // const [caseData, setCaseData] = useState([]);
   const [error, setError] = useState("");
-  const [caseData, setCaseData] = useState("")
-  const [user, setUser] = useState("")
-  const [lawyerDetails, setLawyersDetails] = useState([])
+  const [caseData, setCaseData] = useState("");
+  const [user, setUser] = useState("");
+  const [lawyerDetails, setLawyersDetails] = useState([]);
   useEffect(() => {
     fetchCases();
-    fetchLawyerDetails()
+    fetchLawyerDetails();
   }, [caseData]);
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -414,7 +428,9 @@ function Case_details() {
   // Function to fetch cases
   const fetchCases = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/getCaseDetail?FkCaseId?${global.CaseId._id}`); // API endpoint
+      const response = await axios.get(
+        `${ApiEndPoint}getCaseDetail?FkCaseId?${global.CaseId._id}`
+      ); // API endpoint
       // console.log("data of case", response.data.caseDetails);
       // Assuming the API returns data in the `data` field
       setCaseData(response.data.caseDetails)
@@ -438,12 +454,14 @@ function Case_details() {
 
   const fetchLawyerDetails = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/users/geLawyerDetails?Email=taha@gmail.com`); // API endpoint
+      const response = await axios.get(
+        `${ApiEndPoint}users/geLawyerDetails?Email=taha@gmail.com`
+      ); // API endpoint
       // console.log("data of case", response.data.caseDetails);
       // Assuming the API returns data in the `data` field
-      setUser(response.data.user)
+      setUser(response.data.user);
       // console.log(response.data.lawyerDetails)
-      setLawyersDetails([response.data.lawyerDetails])
+      setLawyersDetails([response.data.lawyerDetails]);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -451,17 +469,11 @@ function Case_details() {
     }
   };
   const handleViewDetails = async () => {
-    global.lawyerDetails = lawyerDetails[0]
-    global.User = user
-    console.log(global.User)
-    dispatch(screenChange(2))
-
+    global.lawyerDetails = lawyerDetails[0];
+    global.User = user;
+    console.log(global.User);
+    dispatch(screenChange(2));
   };
-
-
-
-
-
 
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
@@ -478,7 +490,7 @@ function Case_details() {
           <div
             className="p-4 rounded"
             style={{
-              overflow: 'hidden',
+              overflow: "hidden",
               // marginLeft: 5,
               height: '75vh',
               background: '#d3b386',
@@ -512,27 +524,22 @@ function Case_details() {
                   style={{
                     // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
                     // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-                    border: '2px solid rgba(0, 0, 0, 0.2)',
+                    border: "2px solid rgba(0, 0, 0, 0.2)",
                     // transition: "background-color 0.3s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#d3b386"
-                  }
-                  }
+                    e.currentTarget.style.background = "#d3b386";
+                  }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = activeButtons[section.id] ? "hsl(210, 88.90%, 3.50%)" : " #18273e"
-                  }
-                  }
+                    e.currentTarget.style.background = activeButtons[section.id]
+                      ? "hsl(210, 88.90%, 3.50%)"
+                      : " #18273e";
+                  }}
                 >
-
                   {section.title}
-
-
                 </button>
               ))}
             </div>
-
-
           </div>
         </div>
 
@@ -669,6 +676,7 @@ function Case_details() {
               </div>
 
 
+              {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
 
               {sections.map(

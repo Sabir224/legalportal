@@ -18,6 +18,7 @@ import LawyerProfile from "./Pages/LawyerProfile";
 import { useNavigate } from "react-router-dom";
 import Chat from "./Pages/chat/Chat";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import UserProfile from "./Pages/UserProfile";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,6 +36,9 @@ const Dashboard = () => {
       setCurrentScreen(<LawyerProfile />);
     } else if (screen === 3) {
       setCurrentScreen(<Chat />);
+    }
+    if (screen === 4) {
+      setCurrentScreen(<UserProfile />);
     }
   }, [screen]);
 
@@ -159,18 +163,26 @@ const Dashboard = () => {
             borderBottom: "1px solid #ddd",
             borderRadius: "6px",
             marginRight: "10px",
+            color: "white",
           }}
         >
           <h2 className="m-0">Case</h2>
           <div id="notification-profile">
             <button className="btn me-2">🔔</button>
-            <button className="btn">👤</button>
+            <button
+              className="btn"
+              onClick={() => {
+                handlescreen2(4);
+              }}
+            >
+              👤
+            </button>
           </div>
         </div>
 
         {/* Main Form */}
         {/* <div className=" py-2"> */}
-          <div style={{ padding: 1, marginRight: "10px" }}>{currenScreen}</div>
+        <div style={{ padding: 1, marginRight: "10px" }}>{currenScreen}</div>
         {/* </div> */}
       </div>
     </div>
