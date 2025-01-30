@@ -42,7 +42,7 @@ const BasicCase = () => {
   const fetchCases = async () => {
     try {
       const response = await axios.get(`${ApiEndPoint}/getcase`); // API endpoint
-      console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
+      // console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
       setData(response.data.data);
       setLoading(false);
     } catch (err) {

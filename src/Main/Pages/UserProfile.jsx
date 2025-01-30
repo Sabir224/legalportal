@@ -13,11 +13,13 @@ import {
   faMusic,
   faPhone,
   faTrash,
+  faUserCircle,
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useState } from "react";
 import { Button, Card, Col, Row, Tab, Tabs } from "react-bootstrap";
+import "../../style/userProfile.css";
 
 const UserProfile = (props) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -102,15 +104,18 @@ const UserProfile = (props) => {
                 border: "2px solid #d4af37",
                 textAlign: "center",
                 padding: "10px",
-                borderRadius: "100%",
+                borderRadius: "50%", // Use 50% for a perfect circle
                 width: "100px",
                 height: "100px",
+                display: "flex", // Use flexbox for centering
+                alignItems: "center", // Vertically center the icon
+                justifyContent: "center", // Horizontally center the icon
               }}
             >
-              <img
-                src="https://via.placeholder.com/150"
-                alt="Client"
+              <FontAwesomeIcon
+                icon={faUserCircle}
                 className="rounded-circle"
+                style={{ fontSize: "48px" }} // Adjust the size of the icon
               />
             </div>
             <div className="client-details">
@@ -171,32 +176,74 @@ const UserProfile = (props) => {
           md={6}
           className="card border rounded p-3 mb-3"
           style={{
-            background: "#001f3f",
-
+            background: "#001f3f", // Semi-transparent dark blue
             width: "45%",
             backdropFilter: "blur(10px)", // Glass effect
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
-            border: "1px solid rgba(255, 255, 255, 0.1)", // Slight border for contrast
+            boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)", // Softer shadow
+            border: "1px solid rgba(255, 255, 255, 0.2)", // Subtle border
+            transition: "transform 0.2s, box-shadow 0.2s", // Smooth hover effect
           }}
         >
-          <h4 className="text-white">File and Docs</h4>
+          <h4 className="text-white mb-4" style={{ fontWeight: "600" }}>
+            File and Docs
+          </h4>
           <Tabs
             activeKey={activeTab}
             onSelect={(k) => setActiveTab(k)}
-            className="mb-3"
+            className="mb-3 custom-tabs"
+            variant="primary"
+            style={{
+              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+              color: "white",
+            }}
           >
-            <Tab eventKey="documents" title="Documents 📄">
+            <Tab
+              eventKey="documents"
+              title={
+                <span
+                  style={{
+                    background:
+                      activeTab === "documents" ? "#d3b386" : "transparent",
+                    padding: "8px 12px",
+                    borderRadius: "5px",
+                    color: "white",
+                  }}
+                >
+                  Documents 📄
+                </span>
+              }
+            >
               <Row className="g-3">
                 {getFilesByCategory("documents").map((file, index) => (
                   <Col key={index} sm={6} md={4} lg={3}>
-                    <Card className="text-white bg-dark p-2">
+                    <Card
+                      className="text-white bg-dark p-2"
+                      style={{
+                        background: "white",
+                        border: "1px solid white",
+                        transition: "transform 0.2s, box-shadow 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow =
+                          "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
                       <FontAwesomeIcon
                         icon={fileIcons[file.type] || faFileAlt}
                         size="2x"
                         className="mb-2"
+                        style={{ color: "#d3b386" }} // Gold color for icons
                       />
                       <Card.Body className="p-1">
-                        <Card.Text className="text-truncate">
+                        <Card.Text
+                          className="text-truncate"
+                          style={{ fontSize: "0.9rem" }}
+                        >
                           {file.name}
                         </Card.Text>
                         <div className="d-flex justify-content-between">
@@ -205,10 +252,15 @@ const UserProfile = (props) => {
                             size="sm"
                             href={file.url}
                             download
+                            style={{ background: "#28a745", border: "none" }}
                           >
                             <FontAwesomeIcon icon={faDownload} />
                           </Button>
-                          <Button variant="danger" size="sm">
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            style={{ background: "#dc3545", border: "none" }}
+                          >
                             <FontAwesomeIcon icon={faTrash} />
                           </Button>
                         </div>
@@ -219,18 +271,54 @@ const UserProfile = (props) => {
               </Row>
             </Tab>
 
-            <Tab eventKey="media" title="Media Files 🎬">
+            <Tab
+              eventKey="media"
+              title={
+                <span
+                  style={{
+                    background:
+                      activeTab === "media" ? "#d3b386" : "transparent",
+                    padding: "8px 12px",
+                    borderRadius: "5px",
+                    color: "white",
+                  }}
+                >
+                  Media Files 🎬
+                </span>
+              }
+            >
               <Row className="g-3">
                 {getFilesByCategory("media").map((file, index) => (
                   <Col key={index} sm={6} md={4} lg={3}>
-                    <Card className="text-white bg-dark p-2">
+                    <Card
+                      className="text-white bg-dark p-2"
+                      style={{
+                        background: "white",
+
+                        border: "1px solid white",
+                        transition: "transform 0.2s, box-shadow 0.2s",
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.transform = "scale(1.05)";
+                        e.currentTarget.style.boxShadow =
+                          "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.transform = "scale(1)";
+                        e.currentTarget.style.boxShadow = "none";
+                      }}
+                    >
                       <FontAwesomeIcon
                         icon={fileIcons[file.type] || faFileAlt}
                         size="2x"
                         className="mb-2"
+                        style={{ color: "#d3b386" }} // Gold color for icons
                       />
                       <Card.Body className="p-1">
-                        <Card.Text className="text-truncate">
+                        <Card.Text
+                          className="text-truncate"
+                          style={{ fontSize: "0.9rem" }}
+                        >
                           {file.name}
                         </Card.Text>
                         <div className="d-flex justify-content-between">
@@ -239,10 +327,15 @@ const UserProfile = (props) => {
                             size="sm"
                             href={file.url}
                             download
+                            style={{ background: "#28a745", border: "none" }}
                           >
                             <FontAwesomeIcon icon={faDownload} />
                           </Button>
-                          <Button variant="danger" size="sm">
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            style={{ background: "#dc3545", border: "none" }}
+                          >
                             <FontAwesomeIcon icon={faTrash} />
                           </Button>
                         </div>
