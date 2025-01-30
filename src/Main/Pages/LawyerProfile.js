@@ -45,7 +45,7 @@ const LawyerProfile = () => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
   const [selectedDate, setSelectedDate] = useState();
-  const [AppointmentDetails, setAppoinmentDetails] = useState(new Date());
+  const [appointmentDetails, setAppoinmentDetails] = useState(null);
 
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
   let data;
@@ -323,62 +323,65 @@ const LawyerProfile = () => {
     // }
   };
 
-  data = {
-    _id: "6793988d3743e4374be812ae",
-    FkLawyerId: {
-      _id: "678cef7dd814e650e7fe5544",
-    },
-    availableSlots: [
-      {
-        date: "2025-01-25",
-        slots: [
-          {
-            startTime: "10:00",
-            endTime: "11:00",
-            isBooked: false,
-            _id: "6793988d3743e4374be812b0",
-          },
-          {
-            startTime: "11:00",
-            endTime: "12:00",
-            isBooked: false,
-            _id: "6793988d3743e4374be812b1",
-          },
-        ],
-        _id: "6793988d3743e4374be812af",
-      },
-      {
-        date: "2025-01-26",
-        slots: [
-          {
-            startTime: "14:00",
-            endTime: "15:00",
-            isBooked: true,
-            _id: "6793988d3743e4374be812b3",
-          },
-          {
-            startTime: "15:00",
-            endTime: "16:00",
-            isBooked: false,
-            _id: "6793988d3743e4374be812b4",
-          },
-        ],
-        _id: "6793988d3743e4374be812b2",
-      },
-    ],
-    __v: 0,
-  };
-  const availableSlotsMap = data.availableSlots.reduce((acc, slot) => {
-    const dateStr = new Date(slot.date).toDateString();
-    acc[dateStr] = slot.slots; // Store slots by date
-    return acc;
-  }, {});
-  const availableDatesInfo = data.availableSlots.reduce((acc, slot) => {
-    const dateStr = new Date(slot.date).toDateString();
-    const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked); // Check for booked slots
-    acc[dateStr] = { isAvailable: true, hasBookedSlot };
-    return acc;
-  }, {});
+  // data = {
+  //   _id: "6793988d3743e4374be812ae",
+  //   FkLawyerId: {
+  //     _id: "678cef7dd814e650e7fe5544",
+  //   },
+  //   availableSlots: [
+  //     {
+  //       date: "2025-01-25",
+  //       slots: [
+  //         {
+  //           startTime: "10:00",
+  //           endTime: "11:00",
+  //           isBooked: false,
+  //           _id: "6793988d3743e4374be812b0",
+  //         },
+  //         {
+  //           startTime: "11:00",
+  //           endTime: "12:00",
+  //           isBooked: false,
+  //           _id: "6793988d3743e4374be812b1",
+  //         },
+  //       ],
+  //       _id: "6793988d3743e4374be812af",
+  //     },
+  //     {
+  //       date: "2025-01-26",
+  //       slots: [
+  //         {
+  //           startTime: "14:00",
+  //           endTime: "15:00",
+  //           isBooked: true,
+  //           _id: "6793988d3743e4374be812b3",
+  //         },
+  //         {
+  //           startTime: "15:00",
+  //           endTime: "16:00",
+  //           isBooked: false,
+  //           _id: "6793988d3743e4374be812b4",
+  //         },
+  //       ],
+  //       _id: "6793988d3743e4374be812b2",
+  //     },
+  //   ],
+  //   __v: 0,
+  // };
+  const availableSlotsMap =
+    appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      acc[dateStr] = slot.slots;
+      return acc;
+    }, {}) || {};
+
+  const availableDatesInfo =
+    appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked);
+      acc[dateStr] = { isAvailable: true, hasBookedSlot };
+      return acc;
+    }, {}) || {};
 
   return (
     <div
