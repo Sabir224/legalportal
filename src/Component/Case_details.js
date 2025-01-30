@@ -42,9 +42,6 @@ function Case_details() {
   const [activeButtons, setActiveButtons] = useState({}); // Track button states by ID
   const [sections, setsections] = useState([]); // Track button states by ID
 
-
-
-
   // const sections = [
   //   {
   //     id: "party",
@@ -207,7 +204,6 @@ function Case_details() {
   //     ),
   //   },
   // ];
-
 
   // const transformData = (apiData) => {
   //   return apiData.map((caseData) => {
@@ -374,7 +370,9 @@ function Case_details() {
                     <td>{exhibit.Attachment_Date}</td>
                     <td>
                       {exhibit.submiter.submiterBody.map((submitter, i) => (
-                        <p key={i}>{submitter.PartName} ({submitter.PartyType})</p>
+                        <p key={i}>
+                          {submitter.PartName} ({submitter.PartyType})
+                        </p>
                       ))}
                     </td>
                     <td>Attachment</td>
@@ -384,10 +382,9 @@ function Case_details() {
             </table>
           </>
         ),
-      }
+      },
     ];
   };
-
 
   const scrollRef = useRef(null);
 
@@ -433,7 +430,7 @@ function Case_details() {
       ); // API endpoint
       // console.log("data of case", response.data.caseDetails);
       // Assuming the API returns data in the `data` field
-      setCaseData(response.data.caseDetails)
+      setCaseData(response.data.caseDetails);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -444,7 +441,7 @@ function Case_details() {
       console.log("data of parties", response.data[0].Parties);
 
       // Assuming the API returns data in the `data` field
-      setsections(transformData(await response.data))
+      setsections(transformData(await response.data));
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -480,33 +477,29 @@ function Case_details() {
   };
 
   return (
-
-    <div className='container-fluid  m-0 p-0'>
-      <div className=" row m-0 "  >
-
+    <div className="container-fluid  m-0 p-0">
+      <div className=" row m-0 ">
         <div className="col-md-3">
-
           {/* <LawyerDetails /> */}
           <div
             className="p-4 rounded"
             style={{
               overflow: "hidden",
               // marginLeft: 5,
-              height: '75vh',
-              background: '#d3b386',
-              boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+              height: "75vh",
+              background: "#d3b386",
+              boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
             }}
             onWheel={handleScroll} // Add scroll handler for mouse wheel
             ref={scrollRef} // Attach ref for scrolling
           >
-            <div style={{ textAlign: 'center', marginBottom: "10px" }}>
+            <div style={{ textAlign: "center", marginBottom: "10px" }}>
               <button
                 className="View-button rounded-4 m-1  w-100 px-4 py-2"
                 style={{
-                  boxShadow: '5px 5px 5px gray',
-                  border: '2px solid #d4af37',
-                  borderRadius: '6px',
-
+                  boxShadow: "5px 5px 5px gray",
+                  border: "2px solid #d4af37",
+                  borderRadius: "6px",
                 }}
                 onClick={handleViewDetails}
               >
@@ -543,41 +536,79 @@ function Case_details() {
           </div>
         </div>
 
-        <div className="col-8" style={{ maxHeight: "80vh", height: '75vh', overflowY: 'auto' }} >
+        <div
+          className="col-8"
+          style={{ maxHeight: "80vh", height: "75vh", overflowY: "auto" }}
+        >
           {/* <CaseDetails /> */}
           <div className="row gap-3">
-            <div className="subject-line col-8" style={{ height: 200, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
-              <div className='d-flex mb-2 p-0 ' style={{ color: "#c0a262", fontWeight: 'bold' }}>
+            <div
+              className="subject-line col-8"
+              style={{
+                height: 200,
+                boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <div
+                className="d-flex mb-2 p-0 "
+                style={{ color: "#c0a262", fontWeight: "bold" }}
+              >
                 {/* <div style={{width:50}}> */}
-                <FontAwesomeIcon icon={faComment} size={'2x'} color="#c0a262" style={{ marginRight: 10 }} />
-                <div style={{ padding: 1, fontSize: 15, }}>
-                  Subject
-                </div>
+                <FontAwesomeIcon
+                  icon={faComment}
+                  size={"2x"}
+                  color="#c0a262"
+                  style={{ marginRight: 10 }}
+                />
+                <div style={{ padding: 1, fontSize: 15 }}>Subject</div>
                 {/* </div> */}
-
               </div>
-              <div className='datatextcolor' style={{ height: 200, marginLeft: 15, fontSize: 12, color: 'white' }}>
+              <div
+                className="datatextcolor"
+                style={{
+                  height: 200,
+                  marginLeft: 15,
+                  fontSize: 12,
+                  color: "white",
+                }}
+              >
                 {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
-                <div className='datatextcolor'>caseNumber : {global.CaseId.CaseNumber}
+                <div className="datatextcolor">
+                  caseNumber : {global.CaseId.CaseNumber}
                   <br />
-                  status : {global.CaseId.Status} etc.</div>
+                  status : {global.CaseId.Status} etc.
+                </div>
               </div>
             </div>
 
-            <div className="important-points datatextcolor col-4" style={{ height: 270, width: '27%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
-
-              <div className=' d-flex m-0' style={{ color: "#c0a262", fontWeight: 'bold' }}>
+            <div
+              className="important-points datatextcolor col-4"
+              style={{
+                height: 270,
+                width: "27%",
+                boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              <div
+                className=" d-flex m-0"
+                style={{ color: "#c0a262", fontWeight: "bold" }}
+              >
                 {/* <div style={{width:50}}> */}
-                <FontAwesomeIcon icon={faMoneyBills} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
-                <div style={{}}>
-                  Amount
-                </div>
+                <FontAwesomeIcon
+                  icon={faMoneyBills}
+                  size="2x"
+                  color="#c0a262"
+                  style={{ marginRight: 10 }}
+                />
+                <div style={{}}>Amount</div>
                 {/* </div> */}
-
               </div>
-              <div style={{ fontSize: 12 }} className='textpositions text-wrap-1 pt-2' >
-                <div style={{}} >
-                  <div >claimedAmount: {caseData.ClaimedAmount}</div>
+              <div
+                style={{ fontSize: 12 }}
+                className="textpositions text-wrap-1 pt-2"
+              >
+                <div style={{}}>
+                  <div>claimedAmount: {caseData.ClaimedAmount}</div>
                 </div>
                 <div style={{}}>
                   <div>litigationStage: {caseData.CasePreparationDetails}</div>
@@ -590,31 +621,45 @@ function Case_details() {
                   <div>caseBalance: {caseData.CaseBalance}</div>
                 </div>
               </div>
-
             </div>
 
-
             <div className="row gap-3 pb-2" style={{}}>
-              <div className="grid-item col-4 datatextcolor" style={{ marginTop: -70, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
+              <div
+                className="grid-item col-4 datatextcolor"
+                style={{
+                  marginTop: -70,
+                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+                }}
+              >
                 {/* <FaCalendarAlt size="3em" color="#4CAF50" /> */}
-                <div className=' d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+                <div
+                  className=" d-flex mb-2 p-0"
+                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                >
                   {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon icon={faCalendarAlt} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
-                  <div style={{ padding: 4 }}>
-                    Date
-                  </div>
+                  <FontAwesomeIcon
+                    icon={faCalendarAlt}
+                    size="2x"
+                    color="#c0a262"
+                    style={{ marginRight: 10 }}
+                  />
+                  <div style={{ padding: 4 }}>Date</div>
                   {/* </div> */}
-
                 </div>
-                <div style={{ fontSize: 12, }} className='textpositions text-wrap-1'>
-                  <div style={{ overflow: 'hidden' }}>
-                    <div >requestDate: {caseData.RequestDate}</div>
+                <div
+                  style={{ fontSize: 12 }}
+                  className="textpositions text-wrap-1"
+                >
+                  <div style={{ overflow: "hidden" }}>
+                    <div>requestDate: {caseData.RequestDate}</div>
                   </div>
                   <div style={{}}>
                     <div>eSubmitDate: {caseData.ESubmitDate}</div>
                   </div>
                   <div style={{}}>
-                    <div>startPreparationDate: {caseData.StartPreparationDate}</div>
+                    <div>
+                      startPreparationDate: {caseData.StartPreparationDate}
+                    </div>
                   </div>
                   <div style={{}}>
                     <div>nextSessionDate: {caseData.NextSessionDate}</div>
@@ -623,29 +668,42 @@ function Case_details() {
                     <div>lastSessionDate: {caseData.LastSessionDate}</div>
                   </div>
                 </div>
-
-
               </div>
-              <div className="grid-item datatextcolor col-4" style={{ marginTop: -70, boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
-                <div className=' d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+              <div
+                className="grid-item datatextcolor col-4"
+                style={{
+                  marginTop: -70,
+                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                <div
+                  className=" d-flex mb-2 p-0"
+                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                >
                   {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon icon={faCreativeCommons} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
-                  <div style={{ padding: 2 }}>
-                    Others Details
-                  </div>
+                  <FontAwesomeIcon
+                    icon={faCreativeCommons}
+                    size="2x"
+                    color="#c0a262"
+                    style={{ marginRight: 10 }}
+                  />
+                  <div style={{ padding: 2 }}>Others Details</div>
                   {/* </div> */}
-
                 </div>
-                <div style={{ fontSize: 12, }} className='textpositions text-wrap-1'>
+                <div
+                  style={{ fontSize: 12 }}
+                  className="textpositions text-wrap-1"
+                >
                   <div style={{}}>
-                    <div>ascriptionDescription: {caseData.AscriptionDescription}</div>
+                    <div>
+                      ascriptionDescription: {caseData.AscriptionDescription}
+                    </div>
                   </div>
                   <div style={{}}>
                     <div>requestNumber: {caseData.RequestNumber}</div>
                   </div>
                   <div style={{}}>
                     <div>caseCurrentDetails: {caseData.CaseCurrentDetails}</div>
-
                   </div>
                   <div style={{}}>
                     <div>rootCaseNumber: {caseData.RootCaseNumber}</div>
@@ -657,24 +715,36 @@ function Case_details() {
                     <div>litigationStage: {caseData.LitigationStage}</div>
                   </div>
                 </div>
-
               </div>
-              <div className="grid-item col-3" style={{ width: '28%', boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)" }}>
-                <div className='d-flex mb-2 p-0' style={{ color: "#c0a262", fontWeight: 'bold', fontSize: 15, }}>
+              <div
+                className="grid-item col-3"
+                style={{
+                  width: "28%",
+                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                <div
+                  className="d-flex mb-2 p-0"
+                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                >
                   {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon icon={faGavel} size="2x" color="#c0a262" style={{ marginRight: 10 }} />
-                  <div style={{ padding: 2 }}>
-                    Last Decisions
-                  </div>
-
+                  <FontAwesomeIcon
+                    icon={faGavel}
+                    size="2x"
+                    color="#c0a262"
+                    style={{ marginRight: 10 }}
+                  />
+                  <div style={{ padding: 2 }}>Last Decisions</div>
                 </div>
                 {/* {caseData.lastDecisions.map((item, index) => ( */}
-                <div className='datatextcolor textpositions text-wrap-1' style={{ fontSize: 12, overflow: 'hidden' }}>
+                <div
+                  className="datatextcolor textpositions text-wrap-1"
+                  style={{ fontSize: 12, overflow: "hidden" }}
+                >
                   {caseData.LastDecisions}
                 </div>
                 {/* ))} */}
               </div>
-
 
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
@@ -686,16 +756,16 @@ function Case_details() {
                     <div
                       key={section.id}
                       className="p-4 border rounded-3 bg-gray-50 shadow"
-                      style={{ background: '#16213e', color: 'white' }}
+                      style={{ background: "#16213e", color: "white" }}
                     >
-                      <h2 className="text-xl font-semibold " style={{ color: "#c0a262" }}>
-
+                      <h2
+                        className="text-xl font-semibold "
+                        style={{ color: "#c0a262" }}
+                      >
                         {section.title}
                         {/* <FontAwesomeIcon icon={faMultiply} size="1x" color="#c0a262" style={{ marginRight: 10 }} /> */}
                       </h2>
-                      <div>
-                        {section.content}
-                      </div>
+                      <div>{section.content}</div>
                     </div>
                     // </div>
                   )
@@ -703,8 +773,6 @@ function Case_details() {
               {/* {activeSections.length === 0 && (
               <p className="text-gray-600">Select a button to view details.</p>
             )} */}
-
-
             </div>
           </div>
           {/* </div> */}
@@ -712,8 +780,8 @@ function Case_details() {
           {/* </div> */}
         </div>
         {/* </div> */}
-      </div >
-    </div >
+      </div>
+    </div>
   );
 }
 
