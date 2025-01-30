@@ -440,7 +440,7 @@ function Case_details() {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`http://localhost:8080/api/getparties`); // API endpoint
+      const response = await axios.get(`https://awsrealestate.awschatbot.online/api/getparties`); // API endpoint
       console.log("data of parties", response.data[0].Parties);
 
       // Assuming the API returns data in the `data` field
@@ -455,7 +455,7 @@ function Case_details() {
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails?Email=taha@gmail.com`
+        `${ApiEndPoint}geLawyerDetails?Email=Lawyer@gmail.com`
       ); // API endpoint
       // console.log("data of case", response.data.caseDetails);
       // Assuming the API returns data in the `data` field

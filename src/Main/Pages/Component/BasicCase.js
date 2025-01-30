@@ -204,7 +204,7 @@ const BasicCase = () => {
 
   // Load the file automatically when the component mounts
   useEffect(() => {
-      loadExcelFile();
+    //  loadExcelFile();
   }, []);
 
   return (
