@@ -17,13 +17,19 @@ import {
   faVideo,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, Card, Col, Row, Tab, Tabs } from "react-bootstrap";
 import "../../style/userProfile.css";
+import { ApiEndPoint } from "./Component/utils/utlis";
+import axios from "axios";
 
 const UserProfile = (props) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
+  const [clientDetails, setClientDetails] = useState({});
+  const [usersDetails, setUsersDetails] = useState({});
+  const [loading, setLoading] = useState(false);
+
   const files = [
     {
       name: "Contract_Agreement.pdf",
@@ -75,6 +81,23 @@ const UserProfile = (props) => {
         : ["image", "video", "audio"].includes(file.type)
     );
   };
+  useEffect(() => {
+    const fetchClientDetails = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(
+          `${ApiEndPoint}users/getClientDetails?Email=taha@gmai.com`
+        );
+        setUsersDetails(response.data.user);
+        setClientDetails(response.data.clientDetails); // Set the API response to state
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching client details:", err);
+        setLoading(false);
+      }
+    };
+    fetchClientDetails();
+  }, []);
   return (
     <div
       className="card container-fluid justify-content-center mr-3 ml-3 p-0"
@@ -98,6 +121,7 @@ const UserProfile = (props) => {
           }}
         >
           <div className="client-section p-3 text-white">
+            {/* Client Picture */}
             <div
               className="client-picture mb-3"
               style={{
@@ -118,19 +142,20 @@ const UserProfile = (props) => {
                 style={{ fontSize: "48px" }} // Adjust the size of the icon
               />
             </div>
+
+            {/* Client Details */}
             <div className="client-details">
-              <h2>Sabir Khan</h2>
-              <p>Business Owner</p>
+              <h2>{usersDetails.UserName}</h2>
+
+              {/* Bio */}
               <div
                 className="d-flex"
                 style={{ width: "auto", overflowY: "auto" }}
               >
-                <p>
-                  Sabir Khan is a successful entrepreneur with a growing
-                  business in the finance sector. She is looking for legal
-                  guidance on contracts, corporate structuring, and compliance.
-                </p>
+                <p>{usersDetails.Bio}</p>
               </div>
+
+              {/* Email */}
               <div className="d-flex align-items-center">
                 <FontAwesomeIcon
                   icon={faMailBulk}
@@ -140,13 +165,15 @@ const UserProfile = (props) => {
                 />
                 <p className="ms-2 m-1">
                   <a
-                    href="mailto:janesmith@example.com"
+                    href={`mailto:${usersDetails.Email}`}
                     style={{ color: "white" }}
                   >
-                    janesmith@example.com
+                    {usersDetails.Email}
                   </a>
                 </p>
               </div>
+
+              {/* Contact */}
               <div className="d-flex align-items-center">
                 <FontAwesomeIcon
                   icon={faPhone}
@@ -154,8 +181,10 @@ const UserProfile = (props) => {
                   color="white"
                   className="m-2"
                 />
-                <p className="ms-2 m-1">+1 987 654 3210</p>
+                <p className="ms-2 m-1">{clientDetails.Contact}</p>
               </div>
+
+              {/* Address */}
               <div className="d-flex align-items-center">
                 <FontAwesomeIcon
                   icon={faAddressCard}
@@ -164,7 +193,7 @@ const UserProfile = (props) => {
                   className="m-2"
                 />
                 <p style={{ fontSize: 12 }} className="ms-2 m-1">
-                  456 Elm Street, Los Angeles, CA 90001
+                  {clientDetails.Address}
                 </p>
               </div>
             </div>
