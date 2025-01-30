@@ -152,7 +152,7 @@ const UserProfile = (props) => {
                 className="d-flex"
                 style={{ width: "auto", overflowY: "auto" }}
               >
-                <p>{usersDetails.Bio}</p>
+                <p>{clientDetails.Bio}</p>
               </div>
 
               {/* Email */}
