@@ -41,7 +41,7 @@ const BasicCase = () => {
     // Function to fetch cases
     const fetchCases = async () => {
         try {
-            const response = await axios.get('http://localhost:8080/api/getcase'); // API endpoint
+            const response = await axios.get(`${ApiEndPoint}getcase`); // API endpoint
             // console.log("data of case",response.data.data); // Assuming the API returns data in the `data` field
             setData(response.data.data)
             setLoading(false);
@@ -119,7 +119,7 @@ const BasicCase = () => {
 
     console.log(requestBody);
     try {
-      const response = await fetch(`${ApiEndPoint}getcase`, {
+      const response = await fetch(`${ApiEndPoint}case`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -140,72 +140,72 @@ const BasicCase = () => {
     }
   };
   // Function to fetch and parse the Excel file
-  // const loadExcelFile = async () => {
-  //     try {
-  //         // Fetch the file from a predefined location
-  //         const response = await fetch(filepath);
-  //         if (!response.ok) {
-  //             throw new Error("Failed to fetch the Excel file");
-  //         }
+  const loadExcelFile = async () => {
+      try {
+          // Fetch the file from a predefined location
+          const response = await fetch(filepath);
+          if (!response.ok) {
+              throw new Error("Failed to fetch the Excel file");
+          }
 
-  //         // Read the file as a binary blob
-  //         const blob = await response.blob();
+          // Read the file as a binary blob
+          const blob = await response.blob();
 
-  //         // Use FileReader to convert blob to binary string
-  //         const reader = new FileReader();
-  //         reader.onload = (e) => {
-  //             try {
-  //                 const binaryData = e.target.result;
+          // Use FileReader to convert blob to binary string
+          const reader = new FileReader();
+          reader.onload = (e) => {
+              try {
+                  const binaryData = e.target.result;
 
-  //                 // Parse the binary data using xlsx
-  //                 const workbook = XLSX.read(binaryData, { type: "binary" });
+                  // Parse the binary data using xlsx
+                  const workbook = XLSX.read(binaryData, { type: "binary" });
 
-  //                 // Get the first sheet
-  //                 const sheetName = workbook.SheetNames[0];
-  //                 const worksheet = workbook.Sheets[sheetName];
+                  // Get the first sheet
+                  const sheetName = workbook.SheetNames[0];
+                  const worksheet = workbook.Sheets[sheetName];
 
-  //                 // Convert the sheet to JSON
-  //                 const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                  // Convert the sheet to JSON
+                  const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-  //                 // Filter only the required columns
-  //                 const filteredData = jsonData.map((row) => {
-  //                     const filteredRow = {};
-  //                     requiredColumns.forEach((column) => {
-  //                         filteredRow[column] = row[column] || null; // Use null for missing columns
-  //                     });
-  //                     return filteredRow;
-  //                 });
+                  // Filter only the required columns
+                  const filteredData = jsonData.map((row) => {
+                      const filteredRow = {};
+                      requiredColumns.forEach((column) => {
+                          filteredRow[column] = row[column] || null; // Use null for missing columns
+                      });
+                      return filteredRow;
+                  });
 
-  //                 // Update state
-  //                 console.log("data is =", filteredData)
-  //                 // setData(filteredData);
-  //                 filteredData.forEach(element => {
-  //                     handleSaveInCase(element)
+                  // Update state
+                  console.log("data is =", filteredData)
+                  // setData(filteredData);
+                  filteredData.forEach(element => {
+                      handleSaveInCase(element)
 
-  //                 });
+                  });
 
-  //             } catch (parseError) {
-  //                 setError("Error parsing the Excel file.");
-  //                 console.error(parseError);
-  //             }
-  //         };
+              } catch (parseError) {
+                  setError("Error parsing the Excel file.");
+                  console.error(parseError);
+              }
+          };
 
-  //         reader.onerror = (err) => {
-  //             setError("Error reading the Excel file.");
-  //             console.error(err);
-  //         };
+          reader.onerror = (err) => {
+              setError("Error reading the Excel file.");
+              console.error(err);
+          };
 
-  //         reader.readAsBinaryString(blob);
-  //     } catch (err) {
-  //         setError(err.message || "An error occurred while loading the file.");
-  //         console.error(err);
-  //     }
-  // };
+          reader.readAsBinaryString(blob);
+      } catch (err) {
+          setError(err.message || "An error occurred while loading the file.");
+          console.error(err);
+      }
+  };
 
-  // // Load the file automatically when the component mounts
-  // useEffect(() => {
-  //     loadExcelFile();
-  // }, []);
+  // Load the file automatically when the component mounts
+  useEffect(() => {
+      loadExcelFile();
+  }, []);
 
   return (
     <div
