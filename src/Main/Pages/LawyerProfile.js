@@ -51,7 +51,7 @@ const LawyerProfile = () => {
   let data;
   useEffect(() => {
     fetchLawyerDetails();
-  }, [user, AppointmentDetails]);
+  }, []);
 
   const [imageUrl, setImageUrl] = useState("");
 
@@ -65,7 +65,7 @@ const LawyerProfile = () => {
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}appointments/678cef7dd814e650e7fe5544`
+        `${ApiEndPoint}appointments/679b74a63a4be5f9d8414b77`
       ); // API endpoint
       console.log("msdasda", response.data[0]);
       setAppoinmentDetails(response.data[0]);
@@ -77,7 +77,7 @@ const LawyerProfile = () => {
     }
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails?Email=taha@gmail.com`
+        `${ApiEndPoint}users/geLawyerDetails?Email=Lawyer@gmail.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
@@ -88,7 +88,7 @@ const LawyerProfile = () => {
     }
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=Raheem@gmail.com`
+        `${ApiEndPoint}users/getClientDetails?Email=taha@gmai.com`
       ); // API endpoint
       setClientDetails(response.data);
       setLoading(false);
