@@ -3,12 +3,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-
 }
 
 .profile-section {
-  display: flex;
+  /* display: flex; */
   /* background-color: #16213e; */
+  height: 50vh;
   color: white;
   border-radius: 8px;
   padding: 10px;
@@ -31,7 +31,6 @@
 .lawyer-details h2 {
   margin: 0;
 }
-
 
 .slots-section {
   display: flex;
@@ -87,8 +86,6 @@
   /* Center text */
 }
 
-
-
 .schedule-button:hover {
   background-color: #d2a85a;
   /* Increase the width on hover */
@@ -102,10 +99,9 @@
   color: white;
   padding: 5px 10px;
   cursor: pointer;
-  border-Radius: 5px;
+  border-radius: 5px;
   width: 70px;
 }
-
 
 .calender-button:hover {
   background-color: #d2a85a;
@@ -128,17 +124,16 @@
   /* transition: width 0.3s ease;  */
 }
 
-
 .calendarDates {
   /* background-color: #16213e; */
   width: calc(100% / 7);
   height: 30px;
   display: flex;
-  justify-Content: center;
-  align-Items: center;
+  justify-content: center;
+  align-items: center;
   margin: 1px 0;
   background-color: #16213e;
-  cursor: 'pointer';
+  cursor: "pointer";
   /* border-Radius: '5px'; */
 }
 
@@ -147,11 +142,11 @@
   width: calc(100% / 7);
   height: 30px;
   display: flex;
-  justify-Content: center;
-  align-Items: center;
+  justify-content: center;
+  align-items: center;
   margin: 1px 0;
   background-color: #16213e;
-  cursor: 'pointer';
+  cursor: "pointer";
   /* border-Radius: '5px'; */
 }
 
@@ -163,13 +158,11 @@
 .Calendarday {
   /* background-color: #16213e; */
   width: calc(100% / 7);
-  text-Align: center;
+  text-align: center;
   border: #d4af37;
 }
 
-
 /* pop up */
-
 
 .app {
   text-align: center;
@@ -237,8 +230,6 @@
   background-color: #f44336;
   color: white;
 }
-
-
 
 .loading-indicator {
   display: flex;

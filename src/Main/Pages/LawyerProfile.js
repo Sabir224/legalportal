@@ -15,6 +15,7 @@ import {
   faMailReply,
   faMessage,
   faPhone,
+  faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { ApiEndPoint } from "./Component/utils/utlis";
@@ -400,19 +401,34 @@ const LawyerProfile = () => {
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
         <div className="profile-section">
-          <div
-            className="lawyer-picture "
-            style={{
-              border: "2px solid #d4af37",
-              // alignSelf: 'center',
-              textAlign: "center",
-            }}
-          >
-            Lawyer's Picture
+          <div className="d-flex flex-row">
+            <div
+              className="client-picture mb-3"
+              style={{
+                border: "2px solid #d4af37",
+                textAlign: "center",
+                padding: "10px",
+                borderRadius: "50%", // Use 50% for a perfect circle
+                width: "100px",
+                height: "100px",
+                display: "flex", // Use flexbox for centering
+                alignItems: "center", // Vertically center the icon
+                justifyContent: "center", // Horizontally center the icon
+              }}
+            >
+              <FontAwesomeIcon
+                icon={faUserCircle}
+                className="rounded-circle"
+                style={{ fontSize: "48px" }} // Adjust the size of the icon
+              />
+            </div>
+            <div className="d-flex flex-column justify-content-center ml-2">
+              <h2>{user.UserName}</h2>
+              <p>{lawyerDetails.Position}</p>
+            </div>
           </div>
-          <div className="lawyer-details">
-            <h2>{user.UserName}</h2>
-            <p>{lawyerDetails.Position}</p>
+
+          <div className="lawyer-details mt-1">
             <div
               className="d-flex"
               style={{ width: "auto", height: "55%", overflowY: "auto" }}
