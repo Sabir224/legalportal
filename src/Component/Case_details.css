@@ -18,6 +18,21 @@
   /* Center text */
 }
 
+.View-furtherdetailsbutton {
+  background-color: #16213e;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  /* Smooth transition for the width change */
+  width: 150px;
+  /* Set an initial width */
+  text-align: center;
+  /* Center text */
+}
+
 
 
 .View-button:hover {
