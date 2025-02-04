@@ -717,7 +717,7 @@ function Case_details() {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`http://localhost:8080/api/getparties`); // API endpoint
+      const response = await axios.get(`${ApiEndPoint}getparties`); // API endpoint
       console.log("data of parties", response.data[0].Parties);
 
       // Assuming the API returns data in the `data` field
