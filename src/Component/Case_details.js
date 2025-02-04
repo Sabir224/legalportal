@@ -323,7 +323,10 @@ function Case_details() {
                 </tr>
               </thead>
               <tbody>
-                {[...(caseData.Parties[0]?.Parties_header || []), ...(caseData.Parties[0]?.Parties_body || [])].map((party) => (
+                {[
+                  ...(caseData.Parties[0]?.Parties_header || []),
+                  ...(caseData.Parties[0]?.Parties_body || []),
+                ].map((party) => (
                   <tr key={party._id}>
                     <td>{party.PartyNumber}</td>
                     <td>{party.PartyName}</td>
@@ -347,18 +350,21 @@ function Case_details() {
                 </tr>
               </thead>
               <tbody>
-                {caseData.Parties[0]?.Parties_body?.flatMap((party) =>
-                  party.Legal_Consultants?.Legal_Consultants_header?.map((consultant) => (
-                    <tr key={consultant._id}>
-                      <td>{consultant.Name}</td>
-                      <td>{consultant.Date_of_disconnection || "N/A"}</td>
-                      <td>{consultant.City}</td>
-                      <td>{consultant.Address}</td>
-                      <td>{consultant.Tel}</td>
-                      <td>{consultant.Fax || "N/A"}</td>
-                      <td>{consultant.Email}</td>
-                    </tr>
-                  )) || []
+                {caseData.Parties[0]?.Parties_body?.flatMap(
+                  (party) =>
+                    party.Legal_Consultants?.Legal_Consultants_header?.map(
+                      (consultant) => (
+                        <tr key={consultant._id}>
+                          <td>{consultant.Name}</td>
+                          <td>{consultant.Date_of_disconnection || "N/A"}</td>
+                          <td>{consultant.City}</td>
+                          <td>{consultant.Address}</td>
+                          <td>{consultant.Tel}</td>
+                          <td>{consultant.Fax || "N/A"}</td>
+                          <td>{consultant.Email}</td>
+                        </tr>
+                      )
+                    ) || []
                 )}
               </tbody>
             </table>
@@ -385,7 +391,10 @@ function Case_details() {
                     <td>{exhibit.Detailed_Description}</td>
                     <td>{exhibit.Session_Date || "N/A"}</td>
                     <td>{exhibit.Attachment_Date}</td>
-                    <td>{exhibit.Party_Name?.submitter?.PartyName} ({exhibit.Party_Name?.submitter?.PartyType})</td>
+                    <td>
+                      {exhibit.Party_Name?.submitter?.PartyName} (
+                      {exhibit.Party_Name?.submitter?.PartyType})
+                    </td>
                     <td>{exhibit.Attachment || "No Attachment"}</td>
                   </tr>
                 ))}
@@ -394,277 +403,276 @@ function Case_details() {
           </>
         ),
       },
-      {
-        id: "documents",
-        title: "Document Details",
-        content: (
-          <>
-            <h5>Documents</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.Documents?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.Documents?.body?.map((document, index) => (
-                  <tr key={index}>
-                    <td>{document.Detailed_Description}</td>
-                    <td>{document.Session_Date || "N/A"}</td>
-                    <td>{document.Attachment_Date}</td>
-                    <td>{document.Party_Name?.submitter?.PartyName} ({document.Party_Name?.submitter?.PartyType})</td>
-                    <td>{document.Attachment || "No Attachment"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
-      {
-        id: "notices",
-        title: "Notices Details",
-        content: (
-          <>
-            <h5>Notices</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.Notices?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.Notices?.body?.map((notice, index) => (
-                  <tr key={index}>
-                    <td>{notice.Notice_number}</td>
-                    <td>{notice.Notice_Type}</td>
-                    <td>{notice.Registration_date}</td>
-                    <td>{notice.Notice_Party}</td>
-                    <td>{notice.Notice_Party_Description}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
-      {
-        id: "publishedNotices",
-        title: "Published Notices Details",
-        content: (
-          <>
-            <h5>Published Notices</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.PublishedNotices?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.PublishedNotices?.body?.map((notice, index) => (
-                  <tr key={index}>
-                    <td>{notice.Notice_Number}</td>
-                    <td>{notice.Insertion_Date}</td>
-                    <td>{notice.Notice_Type}</td>
-                    <td>{notice.Journal_Name}</td>
-                    <td>{notice.Journal_Number}</td>
-                    <td>{notice.Journal_Issue_Date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
+      // {
+      //   id: "documents",
+      //   title: "Document Details",
+      //   content: (
+      //     <>
+      //       <h5>Documents</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.Documents?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.Documents?.body?.map((document, index) => (
+      //             <tr key={index}>
+      //               <td>{document.Detailed_Description}</td>
+      //               <td>{document.Session_Date || "N/A"}</td>
+      //               <td>{document.Attachment_Date}</td>
+      //               <td>{document.Party_Name?.submitter?.PartyName} ({document.Party_Name?.submitter?.PartyType})</td>
+      //               <td>{document.Attachment || "No Attachment"}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
+      // {
+      //   id: "notices",
+      //   title: "Notices Details",
+      //   content: (
+      //     <>
+      //       <h5>Notices</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.Notices?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.Notices?.body?.map((notice, index) => (
+      //             <tr key={index}>
+      //               <td>{notice.Notice_number}</td>
+      //               <td>{notice.Notice_Type}</td>
+      //               <td>{notice.Registration_date}</td>
+      //               <td>{notice.Notice_Party}</td>
+      //               <td>{notice.Notice_Party_Description}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
+      // {
+      //   id: "publishedNotices",
+      //   title: "Published Notices Details",
+      //   content: (
+      //     <>
+      //       <h5>Published Notices</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.PublishedNotices?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.PublishedNotices?.body?.map((notice, index) => (
+      //             <tr key={index}>
+      //               <td>{notice.Notice_Number}</td>
+      //               <td>{notice.Insertion_Date}</td>
+      //               <td>{notice.Notice_Type}</td>
+      //               <td>{notice.Journal_Name}</td>
+      //               <td>{notice.Journal_Number}</td>
+      //               <td>{notice.Journal_Issue_Date}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
 
-      {
-        id: "petitions",
-        title: "Petitions Details",
-        content: (
-          <>
-            <h5>Petitions</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.Petitions?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.Petitions?.body?.map((petition, index) => (
-                  <tr key={index}>
-                    <td>{petition.Petition_Number}</td>
-                    <td>{petition.Subject}</td>
-                    <td>{petition.Petition_Date}</td>
-                    <td>{petition.Petition_Details}</td>
-                    <td>{petition.Applicant}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
-      {
-        id: "effsahPlatformOrders",
-        title: "Effsah Platform Orders Details",
-        content: (
-          <>
-            <h5>Effsah Platform Orders</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.Effsah_Platform_Orders?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.Effsah_Platform_Orders?.body?.map((order, index) => (
-                  <tr key={index}>
-                    <td>{order.Request_Number}</td>
-                    <td>{order.Case_Number}</td>
-                    <td>{order.Service_Name}</td>
-                    <td>{order.Request_Date}</td>
-                    <td>{order.Judge_Name}</td>
-                    <td>{order.Request_Status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
-      {
-        id: "experienceReports",
-        title: "Experience Reports Details",
-        content: (
-          <>
-            <h5>Experience Reports</h5>
-            <table>
-              <thead>
-                <tr>
-                  {caseData.Experience_Reports?.header?.map((header, index) => (
-                    <th key={index}>{header}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {caseData.Experience_Reports?.body?.map((report, index) => (
-                  <tr key={index}>
-                    <td>{report.Decision_Number}</td>
-                    <td>{report.Expert_Name}</td>
-                    <td>{report.Mission_Ascription_Date}</td>
-                    <td>{report.Expected_Submission_Date}</td>
-                    <td>{report.Actual_Submission_Date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </>
-        ),
-      },
-      {
-        id: "publicProsecutionReports",
-        title: "Public Prosecution Reports Details",
-        content: generateReportContent("Public_Prosecution_Reports"),
-      },
-      {
-        id: "socialResearcherReports",
-        title: "Social Researcher Reports Details",
-        content: generateReportContent("Social_Researcher_Reports"),
-      },
-      {
-        id: "relatedCases",
-        title: "Related Cases Details",
-        content: generateReportContent("Related_Cases"),
-      },
-      {
-        id: "joinedCases",
-        title: "Joined Cases Details",
-        content: generateReportContent("Joined_Cases"),
-      },
+      // {
+      //   id: "petitions",
+      //   title: "Petitions Details",
+      //   content: (
+      //     <>
+      //       <h5>Petitions</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.Petitions?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.Petitions?.body?.map((petition, index) => (
+      //             <tr key={index}>
+      //               <td>{petition.Petition_Number}</td>
+      //               <td>{petition.Subject}</td>
+      //               <td>{petition.Petition_Date}</td>
+      //               <td>{petition.Petition_Details}</td>
+      //               <td>{petition.Applicant}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
+      // {
+      //   id: "effsahPlatformOrders",
+      //   title: "Effsah Platform Orders Details",
+      //   content: (
+      //     <>
+      //       <h5>Effsah Platform Orders</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.Effsah_Platform_Orders?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.Effsah_Platform_Orders?.body?.map((order, index) => (
+      //             <tr key={index}>
+      //               <td>{order.Request_Number}</td>
+      //               <td>{order.Case_Number}</td>
+      //               <td>{order.Service_Name}</td>
+      //               <td>{order.Request_Date}</td>
+      //               <td>{order.Judge_Name}</td>
+      //               <td>{order.Request_Status}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
+      // {
+      //   id: "experienceReports",
+      //   title: "Experience Reports Details",
+      //   content: (
+      //     <>
+      //       <h5>Experience Reports</h5>
+      //       <table>
+      //         <thead>
+      //           <tr>
+      //             {caseData.Experience_Reports?.header?.map((header, index) => (
+      //               <th key={index}>{header}</th>
+      //             ))}
+      //           </tr>
+      //         </thead>
+      //         <tbody>
+      //           {caseData.Experience_Reports?.body?.map((report, index) => (
+      //             <tr key={index}>
+      //               <td>{report.Decision_Number}</td>
+      //               <td>{report.Expert_Name}</td>
+      //               <td>{report.Mission_Ascription_Date}</td>
+      //               <td>{report.Expected_Submission_Date}</td>
+      //               <td>{report.Actual_Submission_Date}</td>
+      //             </tr>
+      //           ))}
+      //         </tbody>
+      //       </table>
+      //     </>
+      //   ),
+      // },
+      // {
+      //   id: "publicProsecutionReports",
+      //   title: "Public Prosecution Reports Details",
+      //   content: generateReportContent("Public_Prosecution_Reports"),
+      // },
+      // {
+      //   id: "socialResearcherReports",
+      //   title: "Social Researcher Reports Details",
+      //   content: generateReportContent("Social_Researcher_Reports"),
+      // },
+      // {
+      //   id: "relatedCases",
+      //   title: "Related Cases Details",
+      //   content: generateReportContent("Related_Cases"),
+      // },
+      // {
+      //   id: "joinedCases",
+      //   title: "Joined Cases Details",
+      //   content: generateReportContent("Joined_Cases"),
+      // },
 
-      {
-        id: "Settlements_Legal_Reasoned_Decisions",
-        title: "Settlements & Legal Reasoned Decisions",
-        content: generateReportContent("Settlements_Legal_Reasoned_Decisions"),
-      },
-      {
-        id: "Related_Claims_And_SubClaims",
-        title: "Related Claims And SubClaims",
-        content: generateReportContent("Related_Claims_And_SubClaims"),
-      },
-      {
-        id: "Arrest_Orders",
-        title: "Arrest Orders",
-        content: generateReportContent("Arrest_Orders"),
-      },
-      {
-        id: "Detentions",
-        title: "Detentions",
-        content: generateReportContent("Detentions"),
-      },
-      {
-        id: "Bans",
-        title: "Bans",
-        content: generateReportContent("Bans"),
-      },
-      {
-        id: "Seizures",
-        title: "Seizures",
-        content: generateReportContent("Seizures"),
-      },
-      {
-        id: "auctions",
-        title: "Auctions",
-        content: generateReportContent("Auctions"),
-      },
-      {
-        id: "seizedDocuments",
-        title: "Seized Documents",
-        content: generateReportContent("Seized_Documents"),
-      },
-      {
-        id: "caseLetters",
-        title: "Case Letters",
-        content: generateReportContent("Case_Letters"),
-      },
-      {
-        id: "mrletters",
-        title: "Mr Letters",
-        content: generateReportContent("Mr_Letters"),
-      },
-      {
-        id: "payments",
-        title: "Payments",
-        content: generateReportContent("Payments"),
-      },
-      {
-        id: "depositvouchers",
-        title: "Deposit Vouchers",
-        content: generateReportContent("Deposit_Vouchers"),
-      },
-      {
-        id: "claims",
-        title: "Claims",
-        content: generateReportContent("Claims"),
-      },
-      {
-        id: "relatedcaseregapps",
-        title: "Related Case Reg Apps",
-        content: generateReportContent("Related_Case_Reg_Apps"),
-      },
+      // {
+      //   id: "Settlements_Legal_Reasoned_Decisions",
+      //   title: "Settlements & Legal Reasoned Decisions",
+      //   content: generateReportContent("Settlements_Legal_Reasoned_Decisions"),
+      // },
+      // {
+      //   id: "Related_Claims_And_SubClaims",
+      //   title: "Related Claims And SubClaims",
+      //   content: generateReportContent("Related_Claims_And_SubClaims"),
+      // },
+      // {
+      //   id: "Arrest_Orders",
+      //   title: "Arrest Orders",
+      //   content: generateReportContent("Arrest_Orders"),
+      // },
+      // {
+      //   id: "Detentions",
+      //   title: "Detentions",
+      //   content: generateReportContent("Detentions"),
+      // },
+      // {
+      //   id: "Bans",
+      //   title: "Bans",
+      //   content: generateReportContent("Bans"),
+      // },
+      // {
+      //   id: "Seizures",
+      //   title: "Seizures",
+      //   content: generateReportContent("Seizures"),
+      // },
+      // {
+      //   id: "auctions",
+      //   title: "Auctions",
+      //   content: generateReportContent("Auctions"),
+      // },
+      // {
+      //   id: "seizedDocuments",
+      //   title: "Seized Documents",
+      //   content: generateReportContent("Seized_Documents"),
+      // },
+      // {
+      //   id: "caseLetters",
+      //   title: "Case Letters",
+      //   content: generateReportContent("Case_Letters"),
+      // },
+      // {
+      //   id: "mrletters",
+      //   title: "Mr Letters",
+      //   content: generateReportContent("Mr_Letters"),
+      // },
+      // {
+      //   id: "payments",
+      //   title: "Payments",
+      //   content: generateReportContent("Payments"),
+      // },
+      // {
+      //   id: "depositvouchers",
+      //   title: "Deposit Vouchers",
+      //   content: generateReportContent("Deposit_Vouchers"),
+      // },
+      // {
+      //   id: "claims",
+      //   title: "Claims",
+      //   content: generateReportContent("Claims"),
+      // },
+      // {
+      //   id: "relatedcaseregapps",
+      //   title: "Related Case Reg Apps",
+      //   content: generateReportContent("Related_Case_Reg_Apps"),
+      // },
     ];
   };
-
 
   const scrollRef = useRef(null);
 

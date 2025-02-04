@@ -422,7 +422,7 @@ const LawyerProfile = () => {
                 style={{ fontSize: "48px" }} // Adjust the size of the icon
               />
             </div>
-            <div className="d-flex flex-column justify-content-center ml-2">
+            <div className="d-flex flex-column justify-content-center p-2">
               <h2>{user.UserName}</h2>
               <p>{lawyerDetails.Position}</p>
             </div>

@@ -37,6 +37,7 @@ import {
 import "../../style/userProfile.css";
 import { ApiEndPoint } from "./Component/utils/utlis";
 import axios from "axios";
+import DragAndDrop from "./Component/DragAndDrop";
 
 const UserProfile = (props) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -49,7 +50,16 @@ const UserProfile = (props) => {
   const [showUploadModal, setShowUploadModal] = useState(false); // State to control upload moda
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   // Function to categorize files
+
+  const onHide = () => {
+    setShowUploadModal(false);
+    setSelectedFiles([]);
+    setUploading(false);
+    setUploadSuccess(false);
+    setErrorMessage("");
+  };
   const getFilesByCategory = (category, files) => {
     return files.filter((file) => {
       const fileType = getFileType(file.fileName);
@@ -130,52 +140,121 @@ const UserProfile = (props) => {
       "xls",
       "xlsx",
       "csv",
-      "ods",
       "ppt",
       "pptx",
       "txt",
-      "rtf",
-      "odt",
-      "odp",
-      "odg",
-      "epub",
     ];
-    const archiveExtensions = ["zip", "rar", "7z", "tar", "gz", "bz2", "xz"];
-    const codeExtensions = [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "html",
-      "css",
-      "json",
-      "xml",
-      "sql",
-      "py",
-      "java",
-      "c",
-      "cpp",
-      "sh",
-    ];
+    const archiveExtensions = ["zip", "rar", "7z"];
 
     if (imageExtensions.includes(extension)) return "image";
     if (videoExtensions.includes(extension)) return "video";
     if (audioExtensions.includes(extension)) return "audio";
     if (documentExtensions.includes(extension)) return "document";
     if (archiveExtensions.includes(extension)) return "archive";
-    if (codeExtensions.includes(extension)) return "code";
 
-    return "other"; // For unsupported file types
+    return "other";
   };
-
-  // Function to handle file selection
+  const allowedExtensions = [
+    "jpg",
+    "jpeg",
+    "png",
+    "gif",
+    "bmp",
+    "svg",
+    "webp",
+    "tiff",
+    "mp4",
+    "avi",
+    "mov",
+    "wmv",
+    "flv",
+    "mkv",
+    "webm",
+    "mp3",
+    "wav",
+    "aac",
+    "ogg",
+    "flac",
+    "m4a",
+    "pdf",
+    "doc",
+    "docx",
+    "xls",
+    "xlsx",
+    "csv",
+    "ppt",
+    "pptx",
+    "txt",
+    "zip",
+    "rar",
+    "7z",
+  ];
+  const sizeLimits = {
+    image: 5 * 1024 * 1024, // 5MB
+    document: 16 * 1024 * 1024, // 16MB
+    video: 16 * 1024 * 1024, // 50MB
+    audio: 16 * 1024 * 1024, // 10MB
+    archive: 16 * 1024 * 1024, // 50MB code: 5 * 1024 * 1024, // 5MB other: 2 * 1024 * 1024, // 2MB default limit
+  };
+  const validateFileSize = (file) => {
+    const fileType = getFileType(file.name);
+    return file.size <= (sizeLimits[fileType] || sizeLimits.other);
+  };
   const handleFileChange = (e) => {
-    const files = Array.from(e.target.files).filter((file) => {
-      const fileType = getFileType(file.name); // Get file type based on extension
-      return ["image", "video", "audio", "document", "archive"].includes(
-        fileType
+    setErrorMessage(""); // Reset errors
+    let files = Array.from(e.target.files);
+    let validFiles = [];
+    let invalidSizeFiles = [];
+    let invalidTypeFiles = [];
+    let totalFiles = selectedFiles.length; // Track total files
+
+    for (let file of files) {
+      if (totalFiles >= 5) break; // Stop if we reach the limit
+
+      const fileType = getFileType(file.name);
+      if (fileType === "other") {
+        invalidTypeFiles.push(file.name); // Store file name if type is not allowed
+      } else if (!validateFileSize(file)) {
+        invalidSizeFiles.push(
+          `${file.name} (Max: ${(
+            (sizeLimits[fileType] || 2 * 1024 * 1024) /
+            (1024 * 1024)
+          ).toFixed(1)}MB) `
+        ); // Show max limit
+      } else {
+        validFiles.push(file);
+        totalFiles++; // Increment total count
+      }
+    }
+
+    // Handle file limit error
+    if (totalFiles > 5) {
+      setErrorMessage("You can only select up to 5 files.");
+      validFiles = validFiles.slice(0, 5 - selectedFiles.length);
+    }
+
+    // Set appropriate error messages
+    if (invalidSizeFiles.length > 0) {
+      setErrorMessage(
+        `These will not upload files exceed the size limit: ${invalidSizeFiles.join(
+          ", "
+        )}`
       );
-    });
+    }
+    if (invalidTypeFiles.length > 0) {
+      setErrorMessage(
+        (prev) =>
+          `${
+            prev ? prev + "\n" : ""
+          }These file types are not allowed: ${invalidTypeFiles.join(", ")}`
+      );
+    }
+
+    // Update state
+    setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
+
+    // Reset input to allow selecting the same file again
+    e.target.value = "";
   };
 
   // Function to handle file upload
@@ -202,13 +281,13 @@ const UserProfile = (props) => {
       console.log("Files response:", response.data);
 
       if (response.status === 200) {
-        setFiles((prevFiles) => [...prevFiles, ...response.data.files]); // Safe state update
         setSelectedFiles([]);
         setUploadSuccess(true);
         setTimeout(() => {
           setShowUploadModal(false);
           setUploadSuccess(false);
-        }, 2000); // Hide modal after 2 seconds
+        }, 1000); // Hide modal after 2 seconds
+        fetchClientDetails();
       }
     } catch (error) {
       console.error("Error uploading files:", error);
@@ -229,20 +308,6 @@ const UserProfile = (props) => {
     } catch (error) {
       console.error("Error deleting file:", error);
     }
-  };
-
-  // Function to handle file drop
-  const handleFileDrop = (e) => {
-    e.preventDefault();
-
-    const files = Array.from(e.dataTransfer.files).filter((file) => {
-      const fileType = getFileType(file.name); // Use getFileType to determine type
-      return ["image", "video", "audio", "document", "archive"].includes(
-        fileType
-      );
-    });
-
-    setSelectedFiles((prevFiles) => [...prevFiles, ...files]); // Append to existing files
   };
 
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
@@ -267,25 +332,24 @@ const UserProfile = (props) => {
       console.error("Error downloading file:", error);
     }
   };
+  const fetchClientDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `${ApiEndPoint}users/getClientDetails?Email=taha@gmai.com`
+      );
+      setUsersDetails(response.data.user);
+      setClientDetails(response.data.clientDetails); // Set the API response to state
+      console.log("Files Data:", response.data.clientDetails.Files);
+      setFiles(response.data.clientDetails.Files);
 
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching client details:", err);
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchClientDetails = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `${ApiEndPoint}users/getClientDetails?Email=taha@gmai.com`
-        );
-        setUsersDetails(response.data.user);
-        setClientDetails(response.data.clientDetails); // Set the API response to state
-        console.log("Files Data:", response.data.clientDetails.Files);
-        setFiles(response.data.clientDetails.Files);
-
-        setLoading(false);
-      } catch (err) {
-        console.error("Error fetching client details:", err);
-        setLoading(false);
-      }
-    };
     fetchClientDetails();
   }, []);
   return (
@@ -313,30 +377,37 @@ const UserProfile = (props) => {
           <div className="client-section p-3 text-white">
             {/* Client Picture */}
             <div
-              className="client-picture mb-3"
-              style={{
-                border: "2px solid #d4af37",
-                textAlign: "center",
-                padding: "10px",
-                borderRadius: "50%", // Use 50% for a perfect circle
-                width: "100px",
-                height: "100px",
-                display: "flex", // Use flexbox for centering
-                alignItems: "center", // Vertically center the icon
-                justifyContent: "center", // Horizontally center the icon
-              }}
+              className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
             >
-              <FontAwesomeIcon
-                icon={faUserCircle}
-                className="rounded-circle"
-                style={{ fontSize: "48px" }} // Adjust the size of the icon
-              />
-            </div>
+              {/* Profile Icon */}
+              <div
+                className="client-picture"
+                style={{
+                  border: "2px solid #d4af37",
+                  textAlign: "center",
+                  padding: "10px",
+                  borderRadius: "50%", // Circle shape
+                  width: "100px",
+                  height: "100px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUserCircle}
+                  className="rounded-circle"
+                  style={{ fontSize: "48px" }} // Icon size
+                />
+              </div>
 
+              {/* Username */}
+              <div className="ms-3">
+                <h2>{usersDetails.UserName}</h2>
+              </div>
+            </div>
             {/* Client Details */}
             <div className="client-details">
-              <h2>{usersDetails.UserName}</h2>
-
               {/* Bio */}
               <div
                 className="d-flex"
@@ -471,6 +542,7 @@ const UserProfile = (props) => {
                           style={{ fontSize: "0.9rem" }}
                         >
                           {file.fileName}
+                          {file._id}
                         </Card.Text>
                         <div className="d-flex justify-content-between">
                           <Button
@@ -605,112 +677,16 @@ const UserProfile = (props) => {
             </Button>
           </div>
         </Col>
-        <Modal
-          show={showUploadModal}
-          onHide={() => {
-            setShowUploadModal(false);
-            setSelectedFiles([]);
-            setUploading(false);
-            setUploadSuccess(false);
-          }}
-          centered
-        >
-          <Modal.Header closeButton>
-            <Modal.Title>Upload Files</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div
-              onDrop={handleFileDrop}
-              onDragOver={(e) => e.preventDefault()}
-              onClick={() => document.getElementById("file-upload").click()} // Trigger file input on click
-              style={{
-                border: "2px dashed #18273e",
-                borderRadius: "10px",
-                padding: "20px",
-                textAlign: "center",
-                cursor: "pointer",
-                position: "relative",
-              }}
-            >
-              {/* Hidden file input */}
-              <input
-                type="file"
-                id="file-upload"
-                multiple
-                style={{ display: "none" }}
-                onChange={(e) =>
-                  setSelectedFiles([...selectedFiles, ...e.target.files])
-                }
-              />
-
-              {uploading ? (
-                <div>
-                  <FontAwesomeIcon
-                    icon={faSpinner}
-                    spin // Makes the spinner rotate
-                    style={{
-                      color: "#18273e",
-                      fontSize: "60px", // Increased size
-                    }}
-                  />
-                  <p>Uploading...</p>
-                </div>
-              ) : uploadSuccess ? (
-                <div>
-                  <FontAwesomeIcon
-                    icon={faCheckCircle}
-                    style={{
-                      fontSize: "60px", // Bigger icon
-                      color: "green",
-                    }}
-                  />
-                  <p>Upload Successful!</p>
-                </div>
-              ) : (
-                <>
-                  <p>Drag and drop files here</p>
-                  <p>or Click to choose file</p>
-                </>
-              )}
-            </div>
-
-            {selectedFiles.length > 0 && !uploadSuccess && (
-              <div className="mt-3">
-                <h6>Selected Files:</h6>
-                <ul>
-                  {selectedFiles.map((file, index) => (
-                    <li key={index}>{file.name}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Modal.Body>
-          <Modal.Footer className="d-flex justify-content-center">
-            <Button
-              variant="secondary"
-              className="border border-rounded"
-              style={{ backgroundColor: "red", color: "white" }}
-              onClick={() => {
-                setShowUploadModal(false);
-                setSelectedFiles([]);
-                setUploading(false);
-                setUploadSuccess(false);
-              }}
-              disabled={uploading}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              style={{ backgroundColor: "green", color: "white" }}
-              className="border border-rounded"
-              onClick={handleFileUpload}
-              disabled={uploading || uploadSuccess}
-            >
-              {uploading ? "Uploading..." : "Upload"}
-            </Button>
-          </Modal.Footer>
-        </Modal>
+        <DragAndDrop
+          showModal={showUploadModal}
+          onHide={onHide}
+          handleFileChange={handleFileChange}
+          uploading={uploading}
+          uploadSuccess={uploadSuccess}
+          selectedFiles={selectedFiles}
+          handleFileUpload={handleFileUpload}
+          errorMessage={errorMessage}
+        />
       </Row>
     </div>
   );
