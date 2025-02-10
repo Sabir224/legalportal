@@ -41,6 +41,7 @@ const SignIn = () => {
             // Save token in localStorage
             //      localStorage.setItem("token", data.token);
             alert("Login successful!");
+            sessionStorage.setItem("Email", data.user.Email);
             // Redirect or update UI after login
             navigate("/Dashboards", {
                 replace: true,
@@ -213,6 +214,11 @@ const SignIn = () => {
                         <div className="mt-3 text-center">
                             <Link className="text-muted font-size-13" to="/ForgetPassword">
                                 Forgot password?
+                            </Link>
+                        </div>
+                        <div className="mt-3 text-center">
+                            <Link className="text-muted font-size-13" to="/SignUp">
+                            don't have account
                             </Link>
                         </div>
                     </Col>

@@ -9,6 +9,7 @@ import store from './REDUX/store';
 import { Provider } from 'react-redux';
 import LawyerProfile from './Main/Pages/LawyerProfile';
 import SignIn from './Main/Pages/SignIn';
+import SignUp_Screen from './Main/Pages/SignUp_Screen';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

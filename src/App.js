@@ -9,6 +9,7 @@ import {
 import Dashboard from "./Main/Dashboard";
 import Case_details from "./Component/Case_details";
 import SignIn from "./Main/Pages/SignIn";
+import SignUp_Screen from "./Main/Pages/SignUp_Screen";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         <Route path="/" element={<SignIn />} />
         <Route path="/Dashboards" element={<Dashboard />} />
         <Route path="/CaseDetails" element={<Case_details />} />
+        <Route path="/SignUp" element={<SignUp_Screen />} />
       </Routes>
     </BrowserRouter>
   );

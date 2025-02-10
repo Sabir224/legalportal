@@ -612,7 +612,7 @@ function Case_details() {
         </div>
 
         <div
-          className="col-8"
+          className="col-9"
           style={{ maxHeight: "80vh", height: "75vh", overflowY: "auto" }}
         >
           {/* <CaseDetails /> */}
@@ -641,45 +641,41 @@ function Case_details() {
               <div
                 className="datatextcolor"
                 style={{
-                  height: 200,
-                  marginLeft: 15,
+                  // height: 200,
+                  // marginLeft: 15,
                   fontSize: 12,
                   color: "white",
                 }}
               >
                 {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
-                <div className="datatextcolor">
-                  <div className="gap-3 d-flex">
-                    <div style={{ fontWeight: 'bold' }}>
-                      Case Number :
-                    </div>
-                    <div>
-                      {global.CaseId.CaseNumber}
-                    </div>
-                    <br />
-                  </div>
-                  <div className="gap-3 d-flex">
-                    <div style={{ fontWeight: 'bold' }}>
-                      status :
-                    </div>
-                    <div>
-                      {global.CaseId.Status} etc.
-                    </div>
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className=" border border-gray-300 table-fixed w-100">
+                    <tbody>
+                      <tr className="bg-gray-100 ">
+                        <td className="border border-gray-300 px-1 py-2 font-bold w-1/7">Case Number</td>
+                        <td className="border border-gray-300 px-1 py-2 w-1/7">{global.CaseId.CaseNumber}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-1 py-2 font-bold">Status</td>
+                        <td className="border border-gray-300 px-1 py-2">{global.CaseId.Status}</td>
+                      </tr>
+                      {/* Add more rows as needed */}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
 
             <div
-              className="important-points datatextcolor col-4"
+              className="important-points datatextcolor col-3"
               style={{
                 height: 270,
-                width: "27%",
+                // width: "27%",
                 boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
               }}
             >
               <div
-                className=" d-flex m-0"
+                className="d-flex m-0"
                 style={{ color: "#c0a262", fontWeight: "bold" }}
               >
                 {/* <div style={{width:50}}> */}
@@ -696,46 +692,33 @@ function Case_details() {
                 style={{ fontSize: 12 }}
                 className="textpositions text-wrap-1 pt-2"
               >
-                <div style={{}}>
-                  <div className="gap-3 d-flex">
-                    <div style={{ fontWeight: 'bold' }}>
-                      claimed Amount:
-                    </div>
-                    <div>
-                      {caseData.ClaimedAmount}
-                    </div>
-                  </div>
-                  <div className="gap-3 d-flex">
-                    <div style={{ fontWeight: 'bold' }}>
-                      Litigation Stage:
-                    </div>
-                    <div>
-                      {caseData.LitigationStage}</div>
-                  </div>
-                </div>
-                <div className="gap-3 d-flex">
-                  <div style={{ fontWeight: 'bold' }}>
-                    Total Claimed Amount:
-                  </div>
-                  <div>
-                    {caseData.TotalClaimedAmount}
-                  </div>
-                </div>
-
-                <div className="gap-3 d-flex">
-                  <div style={{ fontWeight: 'bold' }}>
-                    Case Balance:
-                  </div>
-                  <div>
-                    {caseData.CaseBalance}
-                  </div>
+                <div className="overflow-x-auto">
+                  <table className="table-auto border-collapse border border-gray-300 w-100">
+                    <tbody>
+                      <tr className="bg-gray-100">
+                        <td className="border border-gray-300 px-1 py-2 font-bold">Claimed Amount</td>
+                        <td className="border border-gray-300 px-1 py-2">{caseData?.ClaimedAmount}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-1 py-2 font-bold">Litigation Stage</td>
+                        <td className="border border-gray-300 px-1 py-2">{caseData?.LitigationStage}</td>
+                      </tr>
+                      <tr className="bg-gray-100">
+                        <td className="border border-gray-300 px-1 py-2 font-bold">Total Claimed Amount</td>
+                        <td className="border border-gray-300 px-1 py-2">{caseData?.TotalClaimedAmount}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-1 py-2 font-bold">Case Balance</td>
+                        <td className="border border-gray-300 px-1 py-2">{caseData?.CaseBalance}</td>
+                      </tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
             </div>
-
-            <div className="row gap-3 pb-2" style={{}}>
+            <div className="row m-0 p-0 d-flex gap-3" style={{}}>
               <div
-                className="grid-item col-4 datatextcolor"
+                className="subject-line col-8 datatextcolor"
                 style={{
                   marginTop: -70,
                   boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
@@ -760,94 +743,40 @@ function Case_details() {
                   style={{ fontSize: 12 }}
                   className="textpositions text-wrap-1"
                 >
-                  <div className="gap-3 d-flex" style={{ overflow: "hidden" }}>
-                    <div style={{ fontWeight: 'bold' }}>
-                      requestDate:
-                    </div>
-                    <div>
-                      {caseData.RequestDate ? caseData.RequestDate.split('T')[0] : ""}
-                    </div>
-                  </div>
-                  <div className="gap-3 d-flex flex-column" style={{ overflow: "hidden" }}>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>eSubmit Date:</div>
-                      <div>{caseData.ESubmitDate ? caseData.ESubmitDate.split('T')[0] : ""}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Start Preparation Date:</div>
-                      <div>{caseData.StartPreparationDate ? caseData.StartPreparationDate.split('T')[0] : ""}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Next Session Date:</div>
-                      <div>{caseData.NextSessionDate ? caseData.NextSessionDate.split('T')[0] : ""}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Last Session Date:</div>
-                      <div>{caseData.LastSessionDate ? caseData.LastSessionDate.split('T')[0] : ""}</div>
-                    </div>
-                  </div>
-
-
-                </div>
-              </div>
-              <div
-                className="grid-item datatextcolor col-4"
-                style={{
-                  marginTop: -70,
-                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-                }}
-              >
-                <div
-                  className=" d-flex mb-2 p-0"
-                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
-                >
-                  {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon
-                    icon={faCreativeCommons}
-                    size="2x"
-                    color="#c0a262"
-                    style={{ marginRight: 10 }}
-                  />
-                  <div style={{ padding: 2 }}>Others Details</div>
-                  {/* </div> */}
-                </div>
-                <div
-                  style={{ fontSize: 12 }}
-                  className="textpositions text-wrap-1"
-                >
-                  <div className="gap-3 d-flex flex-column" style={{ overflow: "hidden" }}>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Ascription Description:</div>
-                      <div>{caseData.AscriptionDescription}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Request Number:</div>
-                      <div>{caseData.RequestNumber}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Case Current Details:</div>
-                      <div>{caseData.CaseCurrentDetails}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Root Case Number:</div>
-                      <div>{caseData.RootCaseNumber}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Root Decision:</div>
-                      <div>{caseData.RootDecision}</div>
-                    </div>
-                    <div className="d-flex gap-3">
-                      <div style={{ fontWeight: "bold" }}>Litigation Stage:</div>
-                      <div>{caseData.LitigationStage}</div>
-                    </div>
+                  <div className="overflow-x-auto ">
+                    <table className="table-auto border-collapse border border-gray-300  w-100">
+                      <tbody>
+                        <tr className="bg-gray-100">
+                          <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">Request Date</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.RequestDate ? caseData.RequestDate.split('T')[0] : ""}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">eSubmit Date</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.ESubmitDate ? caseData.ESubmitDate.split('T')[0] : ""}</td>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Start Preparation Date</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.StartPreparationDate ? caseData.StartPreparationDate.split('T')[0] : ""}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Next Session Date</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.NextSessionDate ? caseData.NextSessionDate.split('T')[0] : ""}</td>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Last Session Date</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.LastSessionDate ? caseData.LastSessionDate.split('T')[0] : ""}</td>
+                        </tr>
+                      </tbody>
+                    </table>
                   </div>
 
                 </div>
               </div>
+
               <div
                 className="grid-item col-3"
                 style={{
-                  width: "28%",
+                  // width: "27%",
                   boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
                 }}
               >
@@ -866,7 +795,7 @@ function Case_details() {
                 </div>
                 {/* {caseData.lastDecisions.map((item, index) => ( */}
                 <div
-                  className="datatextcolor textpositions text-wrap-1"
+                  className="datatextcolor border  border-gray-300 px-1 py-2 textpositions text-wrap-1 w-100"
                   style={{ fontSize: 12, overflow: "hidden" }}
                 >
                   {caseData.LastDecisions}
@@ -874,6 +803,71 @@ function Case_details() {
                 {/* ))} */}
               </div>
 
+
+              <div
+                className="grid-item datatextcolor col-11"
+                style={{
+                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+                }}
+              >
+                <div
+                  className="d-flex mb-2 p-0"
+                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                >
+                  {/* <div style={{width:50}}> */}
+                  <FontAwesomeIcon
+                    icon={faCreativeCommons}
+                    size="2x"
+                    color="#c0a262"
+                    style={{ marginRight: 10 }}
+                  />
+                  <div style={{ padding: 2 }}>Others Details</div>
+                  {/* </div> */}
+                </div>
+                <div
+                  style={{ fontSize: 12 }}
+                  className="textpositions text-wrap-1"
+                >
+                  <div className="overflow-x-auto">
+                    <table className="table-auto border-collapse border border-gray-300 w-100">
+                      <tbody>
+                        {/* <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Case Number</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.CaseNumber}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Status</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.Status}</td>
+                        </tr> */}
+                        <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Ascription Description</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.AscriptionDescription}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Request Number</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.RequestNumber}</td>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Case Current Details</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.CaseCurrentDetails}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">Root Case Number</td>
+                          <td className="border border-gray-300 px-1 py-2">{caseData?.RootCaseNumber}</td>
+                        </tr>
+                        <tr className="bg-gray-100">
+                          <td className="border border-gray-300 px-1  font-bold">Root Decision</td>
+                          <td className="border border-gray-300 px-1 ">{caseData?.RootDecision}</td>
+                        </tr>
+                        <tr>
+                          <td className="border border-gray-300 px-1  font-bold">Litigation Stage</td>
+                          <td className="border border-gray-300 px-1 ">{caseData?.LitigationStage}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
 
