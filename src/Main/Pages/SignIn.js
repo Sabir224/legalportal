@@ -15,11 +15,42 @@ const SignIn = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const jwtToken = sessionStorage.getItem("jwtToken");
     const isTabletOrSmaller = useMediaQuery({ maxWidth: 992 });
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
 
-    const handleNavigation = async () => {
-        navigate("/Dashboards", {
-            replace: true,
-        })
+    const handleNavigation = async (e) => {
+        console.log("Clicked on Button ")
+           e.preventDefault(); // Prevent page reload
+              setError("");
+              setLoading(true);
+        try {
+            const response = await fetch("http://localhost:5001/api/users/loginUser", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ Email: email, Password: password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                alert("Login Unsuccessful!");
+                throw new Error(data.message || "Login failed");
+
+            }
+           
+            // Save token in localStorage
+            //      localStorage.setItem("token", data.token);
+            alert("Login successful!");
+            // Redirect or update UI after login
+            navigate("/Dashboards", {
+                replace: true,
+            })
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+
     };
 
     return (
@@ -125,7 +156,7 @@ const SignIn = () => {
                         >
                             Sign In
                         </div>
-                        <Form onSubmit={() => handleNavigation()}>
+                        <Form>
                             <Form.Group className="mb-3 text-start">
                                 <Form.Label style={{ color: "grey" }}>Email</Form.Label>
                                 <div className="input-group">
@@ -161,7 +192,7 @@ const SignIn = () => {
                             <div style={{ textAlign: "center" }}>
                                 <Button
                                     className="btn btn-primary mt-3 border border-none"
-                                    type="submit"
+                                    onClick={handleNavigation}
                                     style={{
                                         backgroundColor: "#18273e",
                                         width: "150px",

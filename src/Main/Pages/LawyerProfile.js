@@ -78,7 +78,7 @@ const LawyerProfile = () => {
     }
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails?Email=Lawyer@gmail.com`
+        `${ApiEndPoint}users/geLawyerDetails?Email=wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
