@@ -24,45 +24,6 @@ const DragAndDrop = ({
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
-    maxFiles: 5,
-    accept: {
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
-      "image/gif": [".gif"],
-      "image/bmp": [".bmp"],
-      "image/svg+xml": [".svg"],
-      "image/webp": [".webp"],
-      "image/tiff": [".tiff"],
-      "video/mp4": [".mp4"],
-      "video/x-msvideo": [".avi"],
-      "video/quicktime": [".mov"],
-      "video/x-ms-wmv": [".wmv"],
-      "video/x-flv": [".flv"],
-      "video/x-matroska": [".mkv"],
-      "video/webm": [".webm"],
-      "audio/mpeg": [".mp3"],
-      "audio/wav": [".wav"],
-      "audio/aac": [".aac"],
-      "audio/ogg": [".ogg"],
-      "audio/flac": [".flac"],
-      "audio/mp4": [".m4a"],
-      "application/pdf": [".pdf"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
-        [".docx"],
-      "application/vnd.ms-excel": [".xls"],
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
-        ".xlsx",
-      ],
-      "text/csv": [".csv"],
-      "application/vnd.ms-powerpoint": [".ppt"],
-      "application/vnd.openxmlformats-officedocument.presentationml.presentation":
-        [".pptx"],
-      "text/plain": [".txt"],
-      "application/zip": [".zip"],
-      "application/x-rar-compressed": [".rar"],
-      "application/x-7z-compressed": [".7z"],
-    },
   });
 
   return (
@@ -97,8 +58,14 @@ const DragAndDrop = ({
           }
   
           .dropzone-text {
-            font-size: 18px;
+            font-size: 12px;
+            margin: 0;
+  padding: 0;
+  line-height: 1.6;
           }
+            .text-danger {
+  white-space: pre-line;
+}
         `}</style>
       <Modal show={showModal} onHide={onHide} centered>
         <Modal.Header closeButton>
@@ -126,7 +93,7 @@ const DragAndDrop = ({
                   <p>Upload Successful!</p>
                 </div>
               ) : (
-                <>
+                <div className="p-4">
                   <FontAwesomeIcon
                     icon={faFileArrowUp}
                     style={{ fontSize: "60px", color: "#18273e" }}
@@ -134,14 +101,41 @@ const DragAndDrop = ({
                   <p className="dropzone-text">Drag and drop files here</p>
                   <p className="dropzone-text">OR</p>
                   <p className="dropzone-text">Click to choose file</p>
-                </>
+                </div>
               )}
             </div>
           </div>
-          {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
+          {errorMessage.length > 0 && (
+            <div className="text-danger mt-2">
+              <ul style={{ paddingLeft: "20px", margin: 0 }}>
+                {errorMessage.map((msg, index) => {
+                  // Split the message by both commas and colons into an array
+                  const messages = msg
+                    .split(/,|:/)
+                    .map((msgPart) => msgPart.trim()); // Trim to remove unnecessary spaces
+
+                  return (
+                    <li
+                      key={index}
+                      style={{ marginBottom: "2px", lineHeight: "1.2" }}
+                    >
+                      {/* Display each part of the message with the count */}
+                      {messages.map((message, i) => (
+                        <div key={i}>
+                          {/* Display count starting from 1 and skip 0 */}
+                          {i > 0 && <span>({i})</span>} {message}
+                        </div>
+                      ))}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
+
           {selectedFiles?.length > 0 && !uploadSuccess && (
             <div className="mt-3">
-              <h6>Selected Files:</h6>
+              <h6>Uploadable Files:</h6>
               <ul>
                 {selectedFiles.map((file, index) => (
                   <li key={index}>{file.name}</li>

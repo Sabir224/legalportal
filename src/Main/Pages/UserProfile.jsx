@@ -58,7 +58,7 @@ const UserProfile = (props) => {
     setSelectedFiles([]);
     setUploading(false);
     setUploadSuccess(false);
-    setErrorMessage("");
+    setErrorMessage([]);
   };
   const getFilesByCategory = (category, files) => {
     return files.filter((file) => {
@@ -120,141 +120,124 @@ const UserProfile = (props) => {
   };
   const getFileType = (fileName) => {
     const extension = fileName.split(".").pop().toLowerCase();
+    const allowedExtensions = {
+      image: ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp", "tiff"],
+      video: ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"],
+      audio: ["mp3", "wav", "aac", "ogg", "flac", "m4a"],
+      document: [
+        "pdf",
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "csv",
+        "ppt",
+        "pptx",
+        "txt",
+      ],
+      archive: ["zip", "rar", "7z"],
+    };
 
-    const imageExtensions = [
-      "jpg",
-      "jpeg",
-      "png",
-      "gif",
-      "bmp",
-      "svg",
-      "webp",
-      "tiff",
-    ];
-    const videoExtensions = ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"];
-    const audioExtensions = ["mp3", "wav", "aac", "ogg", "flac", "m4a"];
-    const documentExtensions = [
-      "pdf",
-      "doc",
-      "docx",
-      "xls",
-      "xlsx",
-      "csv",
-      "ppt",
-      "pptx",
-      "txt",
-    ];
-    const archiveExtensions = ["zip", "rar", "7z"];
-
-    if (imageExtensions.includes(extension)) return "image";
-    if (videoExtensions.includes(extension)) return "video";
-    if (audioExtensions.includes(extension)) return "audio";
-    if (documentExtensions.includes(extension)) return "document";
-    if (archiveExtensions.includes(extension)) return "archive";
+    for (let [type, extensions] of Object.entries(allowedExtensions)) {
+      if (extensions.includes(extension)) return type;
+    }
 
     return "other";
   };
-  const allowedExtensions = [
-    "jpg",
-    "jpeg",
-    "png",
-    "gif",
-    "bmp",
-    "svg",
-    "webp",
-    "tiff",
-    "mp4",
-    "avi",
-    "mov",
-    "wmv",
-    "flv",
-    "mkv",
-    "webm",
-    "mp3",
-    "wav",
-    "aac",
-    "ogg",
-    "flac",
-    "m4a",
-    "pdf",
-    "doc",
-    "docx",
-    "xls",
-    "xlsx",
-    "csv",
-    "ppt",
-    "pptx",
-    "txt",
-    "zip",
-    "rar",
-    "7z",
-  ];
+
   const sizeLimits = {
     image: 5 * 1024 * 1024, // 5MB
     document: 16 * 1024 * 1024, // 16MB
     video: 16 * 1024 * 1024, // 50MB
     audio: 16 * 1024 * 1024, // 10MB
-    archive: 16 * 1024 * 1024, // 50MB code: 5 * 1024 * 1024, // 5MB other: 2 * 1024 * 1024, // 2MB default limit
+    archive: 16 * 1024 * 1024, // 50MB
   };
+
   const validateFileSize = (file) => {
     const fileType = getFileType(file.name);
-    return file.size <= (sizeLimits[fileType] || sizeLimits.other);
+    return (
+      fileType !== "other" &&
+      file.size <= (sizeLimits[fileType] || 2 * 1024 * 1024)
+    );
   };
-  const handleFileChange = (e) => {
-    setErrorMessage(""); // Reset errors
-    let files = Array.from(e.target.files);
+
+  const handleFileChange = (input) => {
+    setErrorMessage([]);
+    let files = Array.isArray(input) ? input : Array.from(input.target.files);
+
     let validFiles = [];
-    let invalidSizeFiles = [];
-    let invalidTypeFiles = [];
     let totalFiles = selectedFiles.length; // Track total files
 
+    let invalidSizeFiles = [];
+    let invalidTypeFiles = [];
+    let invalidLengthFiles = [];
+
     for (let file of files) {
-      if (totalFiles >= 5) break; // Stop if we reach the limit
+      if (totalFiles > 5) break; // Stop if we reach the limit
+
+      if (file.name.length > 40) {
+        // Truncate file name for display
+        let truncatedName =
+          file.name.substring(0, 20) + "..." + file.name.slice(-10);
+        invalidLengthFiles.push(truncatedName); // Store truncated name
+        continue; // Skip this file
+      }
 
       const fileType = getFileType(file.name);
       if (fileType === "other") {
         invalidTypeFiles.push(file.name); // Store file name if type is not allowed
       } else if (!validateFileSize(file)) {
         invalidSizeFiles.push(
-          `${file.name} (Max: ${(
+          `${file.name} (Max ${(
             (sizeLimits[fileType] || 2 * 1024 * 1024) /
             (1024 * 1024)
-          ).toFixed(1)}MB) `
-        ); // Show max limit
+          ).toFixed(1)}MB)` // Show max limit
+        );
       } else {
         validFiles.push(file);
         totalFiles++; // Increment total count
       }
     }
 
-    // Handle file limit error
-    if (totalFiles > 5) {
-      setErrorMessage("You can only select up to 5 files.");
+    let fileLimitExceeded = totalFiles > 5;
+    if (fileLimitExceeded) {
+      setErrorMessage((prevErrors) => [
+        ...prevErrors,
+        `Maximum 5 files can be uploaded at any time and allow first 5 for upload`,
+      ]);
       validFiles = validFiles.slice(0, 5 - selectedFiles.length);
     }
 
-    // Set appropriate error messages
     if (invalidSizeFiles.length > 0) {
-      setErrorMessage(
-        `These will not upload files exceed the size limit: ${invalidSizeFiles.join(
+      setErrorMessage((prevErrors) => [
+        ...prevErrors,
+        `The following files exceed the size limit: ${invalidSizeFiles.join(
           ", "
-        )}`
-      );
-    }
-    if (invalidTypeFiles.length > 0) {
-      setErrorMessage(
-        (prev) =>
-          `${
-            prev ? prev + "\n" : ""
-          }These file types are not allowed: ${invalidTypeFiles.join(", ")}`
-      );
+        )}`,
+      ]);
     }
 
-    // Update state
+    if (invalidTypeFiles.length > 0) {
+      setErrorMessage((prevErrors) => [
+        ...prevErrors,
+        `The following file extensions are not allowed: ${invalidTypeFiles.join(
+          ", "
+        )}`,
+      ]);
+    }
+
+    if (invalidLengthFiles.length > 0) {
+      setErrorMessage((prevErrors) => [
+        ...prevErrors,
+        `The following files have names longer than 40 characters: ${invalidLengthFiles.join(
+          ", "
+        )}`,
+      ]);
+    }
+
     setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
 
-    // Reset input to allow selecting the same file again
-    e.target.value = "";
+    if (!Array.isArray(input)) input.target.value = "";
   };
 
   // Function to handle file upload
@@ -288,6 +271,7 @@ const UserProfile = (props) => {
           setUploadSuccess(false);
         }, 1000); // Hide modal after 2 seconds
         fetchClientDetails();
+        setErrorMessage([]);
       }
     } catch (error) {
       console.error("Error uploading files:", error);
