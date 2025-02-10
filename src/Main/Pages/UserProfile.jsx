@@ -51,6 +51,7 @@ const UserProfile = (props) => {
   const [uploading, setUploading] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const storedEmail = sessionStorage.getItem("Email");
   // Function to categorize files
 
   const onHide = () => {
@@ -320,7 +321,7 @@ const UserProfile = (props) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=Sabir@awsyounus.com`
+        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
       );
       setUsersDetails(response.data.user);
       setClientDetails(response.data.clientDetails); // Set the API response to state

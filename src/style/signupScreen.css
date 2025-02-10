@@ -1,0 +1,156 @@
+/* Main Container
+.container-fluid1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; 
+    background-color: #f4f4f4;
+    width: 100vw;
+    margin: 0; 
+} */
+
+/* Wrapper for form and sidebar */
+.form-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+    width: 100%; /* Full width of the screen */
+    max-width: 1200px; /* Limit max width if needed */
+}
+
+/* Left Side (Illustration) */
+.legal-group {
+    background-color: #25243a;
+    height: 90vh; /* Reduced height from 100vh to 90vh */
+   /* Increased width from 55% to 60% */
+   
+    border-radius: 12px 0 0 12px;
+}
+
+.legal-group img {
+    max-width: 90%;
+    height: auto;
+}
+
+/* Form Container (Right Card) */
+.form-container1 {
+    height: auto; /* Set to auto height to fit content */
+    width: 90%; /* Adjusted width for the form */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 0 12px 12px 0;
+    /* border-color: grey; */
+    box-shadow: 0 4px 8px rgb(139, 135, 135);
+    /* Removed overflow-y to stop scroll */
+}
+
+/* Form Styling */
+/* Form Layout Adjustments */
+.form-container1 form {
+    display: flex;
+    flex-wrap: wrap; /* Allow items to wrap onto a new row */
+    justify-content: space-between;
+    width: 100%; /* Full width of the container */
+}
+/* Icon Color */
+.input.form-control .fa {
+    color: grey;  /* Change the color code as needed */
+  
+}
+/* Icon Color within input group */
+.input-group-text i {
+    color: grey;  /* Change this to your preferred color */
+
+}
+.form-text{
+    margin-left: 19px;
+}
+.transparent-icon {
+    opacity: 0.5; /* Adjust the transparency level */
+}
+
+
+
+/* Form Fields */
+.form-group1 {
+    width: 48%; /* 48% width for each form field */
+    margin-bottom: 10px;
+    /* border-color: grey; */
+    display: inline-block; /* Line up form fields in rows */
+    margin-right: 4%; /* Add space between columns */
+}
+
+/* Bio section */
+.form-BIO {
+    width: 100%; /* Adjust width for bio */
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    margin-right: 4%; /* Add margin-right to create gap between columns */
+}
+
+/* Move button below the bio section */
+.btn-primary {
+    background-color: #25243a;
+    border: none;
+    padding: 10px 15px;
+    font-size: 14px;
+    border-radius: 5px;
+    width: 20%;
+    cursor: pointer;
+    color: #ffffff;
+    margin-top: 20px; /* Add top margin to push the button below the form */
+}
+
+/* Submit Button Hover */
+.btn-primary:hover {
+    background-color: #c0a262;
+}
+
+/* Remove right margin for every second form field */
+.form-group1:nth-child(2n) {
+    margin-right: 0;
+}
+
+/* Smaller Label Styling */
+label {
+    font-size: 14px;
+    font-weight: bold;
+    margin-bottom: 2px;
+    display: block;
+    color: #333;
+}
+
+/* Input Fields Styling */
+input.form-control, textarea.form-control {
+    
+        width: 100%;
+        border: 1px solid #b1ada6;
+        border-radius: 5px;
+        padding: 8px;
+        font-size: 14px;
+        outline: none;
+        color:grey; /* Golden-grey color for text */
+  
+}
+
+/* Focus on Input */
+input.form-control:focus, textarea.form-control:focus {
+    box-shadow: none;
+    border-color: grey;
+}
+
+/* Logo Styling */
+.logo {
+    width: 90px; /* Adjust logo size */
+    height: auto;
+}
+
+.text-center p {
+    margin-top: 5px;
+    font-size: 13px;
+}
