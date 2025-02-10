@@ -78,7 +78,7 @@ const LawyerProfile = () => {
     }
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails?Email=Lawyer@gmail.com`
+        `${ApiEndPoint}users/geLawyerDetails?Email=wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
@@ -386,7 +386,7 @@ const LawyerProfile = () => {
 
   return (
     <div
-      className="border rounded row gap-5 justify-content-center ms-1 mb-3"
+      className="border rounded row gap-5 justify-content-center ms-1 mb-3 mt-2"
       style={{
         width: "100%",
         maxHeight: "83vh",
@@ -397,7 +397,7 @@ const LawyerProfile = () => {
     >
       {/* <div className="row gap-5 justify-content-center "  > */}
       <div
-        className="slots-section col-5 "
+        className="slots-section col-5 mt-3"
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
         <div className="profile-section">
@@ -474,7 +474,7 @@ const LawyerProfile = () => {
         </div>
       </div>
       <div
-        className="slots-section col-5 "
+        className="slots-section col-5  mt-3"
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
         <div>
