@@ -41,6 +41,7 @@ const SignIn = () => {
       // Save token in localStorage
       //      localStorage.setItem("token", data.token);
       alert("Login successful!");
+      sessionStorage.setItem("Email", data.user.Email);
       // Redirect or update UI after login
       navigate("/Dashboards", {
         replace: true,
