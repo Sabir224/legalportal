@@ -66,7 +66,7 @@ const LawyerProfile = () => {
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}appointments/679b74a63a4be5f9d8414b77`
+        `${ApiEndPoint}appointments/67a2275aa70023929b5a3d3e`
       ); // API endpoint
       console.log("msdasda", response.data[0]);
       setAppoinmentDetails(response.data[0]);

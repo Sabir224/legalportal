@@ -631,11 +631,11 @@ function Case_details() {
                 {/* <div style={{width:50}}> */}
                 <FontAwesomeIcon
                   icon={faComment}
-                  size={"2x"}
+                  size={"1x"}
                   color="#c0a262"
-                  style={{ marginRight: 10 }}
+                  style={{ marginRight: 10, marginTop: 8 }}
                 />
-                <div style={{ padding: 1, fontSize: 15 }}>Subject</div>
+                <div style={{fontSize: 20 }}>Subject</div>
                 {/* </div> */}
               </div>
               <div
@@ -649,15 +649,15 @@ function Case_details() {
               >
                 {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
                 <div className="overflow-x-auto">
-                  <table className=" border border-gray-300 table-fixed w-100">
+                  <table className=" table-fixed w-100">
                     <tbody>
                       <tr className="bg-gray-100 ">
-                        <td className="border border-gray-300 px-1 py-2 font-bold w-1/7">Case Number</td>
-                        <td className="border border-gray-300 px-1 py-2 w-1/7">{global.CaseId.CaseNumber}</td>
+                        <td className=" px-1 py-2 font-bold w-1/7">Case Number :</td>
+                        <td className=" px-1 py-2 w-1/7">{global.CaseId.CaseNumber}</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 px-1 py-2 font-bold">Status</td>
-                        <td className="border border-gray-300 px-1 py-2">{global.CaseId.Status}</td>
+                        <td className=" px-1 py-2 font-bold">Status :</td>
+                        <td className=" px-1 py-2">{global.CaseId.Status}</td>
                       </tr>
                       {/* Add more rows as needed */}
                     </tbody>
@@ -681,11 +681,11 @@ function Case_details() {
                 {/* <div style={{width:50}}> */}
                 <FontAwesomeIcon
                   icon={faMoneyBills}
-                  size="2x"
+                  size="1x"
                   color="#c0a262"
-                  style={{ marginRight: 10 }}
+                  style={{ marginRight: 10, marginTop: 8 }}
                 />
-                <div style={{}}>Amount</div>
+                <div style={{fontSize: 20}}>Amount</div>
                 {/* </div> */}
               </div>
               <div
@@ -693,23 +693,23 @@ function Case_details() {
                 className="textpositions text-wrap-1 pt-2"
               >
                 <div className="overflow-x-auto">
-                  <table className="table-auto border-collapse border border-gray-300 w-100">
+                  <table className="table-auto border-collapse w-100">
                     <tbody>
                       <tr className="bg-gray-100">
-                        <td className="border border-gray-300 px-1 py-2 font-bold">Claimed Amount</td>
-                        <td className="border border-gray-300 px-1 py-2">{caseData?.ClaimedAmount}</td>
+                        <td className=" px-1 py-2 font-bold">Claimed Amount :</td>
+                        <td className=" px-1 py-2">{caseData?.ClaimedAmount}</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 px-1 py-2 font-bold">Litigation Stage</td>
-                        <td className="border border-gray-300 px-1 py-2">{caseData?.LitigationStage}</td>
+                        <td className=" px-1 py-2 font-bold">Litigation Stage :</td>
+                        <td className=" px-1 py-2">{caseData?.LitigationStage}</td>
                       </tr>
                       <tr className="bg-gray-100">
-                        <td className="border border-gray-300 px-1 py-2 font-bold">Total Claimed Amount</td>
-                        <td className="border border-gray-300 px-1 py-2">{caseData?.TotalClaimedAmount}</td>
+                        <td className=" px-1 py-2 font-bold">Total Claimed Amount :</td>
+                        <td className=" px-1 py-2">{caseData?.TotalClaimedAmount}</td>
                       </tr>
                       <tr>
-                        <td className="border border-gray-300 px-1 py-2 font-bold">Case Balance</td>
-                        <td className="border border-gray-300 px-1 py-2">{caseData?.CaseBalance}</td>
+                        <td className=" px-1 py-2 font-bold">Case Balance :</td>
+                        <td className=" px-1 py-2">{caseData?.CaseBalance}</td>
                       </tr>
                     </tbody>
                   </table>
@@ -732,11 +732,11 @@ function Case_details() {
                   {/* <div style={{width:50}}> */}
                   <FontAwesomeIcon
                     icon={faCalendarAlt}
-                    size="2x"
+                    size="1x"
                     color="#c0a262"
-                    style={{ marginRight: 10 }}
+                    style={{ marginRight: 10,marginTop:8 }}
                   />
-                  <div style={{ padding: 4 }}>Date</div>
+                  <div style={{ fontSize: 20 }}>Date</div>
                   {/* </div> */}
                 </div>
                 <div
@@ -787,15 +787,15 @@ function Case_details() {
                   {/* <div style={{width:50}}> */}
                   <FontAwesomeIcon
                     icon={faGavel}
-                    size="2x"
+                    size="1x"
                     color="#c0a262"
-                    style={{ marginRight: 10 }}
+                    style={{ marginRight: 10,marginTop: 10  }}
                   />
-                  <div style={{ padding: 2 }}>Last Decisions</div>
+                  <div style={{ fontSize:20   }}>Last Decisions</div>
                 </div>
                 {/* {caseData.lastDecisions.map((item, index) => ( */}
                 <div
-                  className="datatextcolor border  border-gray-300 px-1 py-2 textpositions text-wrap-1 w-100"
+                  className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
                   style={{ fontSize: 12, overflow: "hidden" }}
                 >
                   {caseData.LastDecisions}
@@ -819,9 +819,9 @@ function Case_details() {
                     icon={faCreativeCommons}
                     size="2x"
                     color="#c0a262"
-                    style={{ marginRight: 10 }}
+                    style={{ marginRight: 10,marginTop:1 }}
                   />
-                  <div style={{ padding: 2 }}>Others Details</div>
+                  <div style={{ fontSize:20}}>Others Details</div>
                   {/* </div> */}
                 </div>
                 <div

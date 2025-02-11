@@ -394,12 +394,12 @@ const UserProfile = (props) => {
             {/* Client Details */}
             <div className="client-details">
               {/* Bio */}
-              <div
+              {/* <div
                 className="d-flex"
                 style={{ width: "auto", overflowY: "auto" }}
               >
                 <p>{clientDetails.Bio}</p>
-              </div>
+              </div> */}
 
               {/* Email */}
               <div className="d-flex align-items-center">
@@ -572,7 +572,11 @@ const UserProfile = (props) => {
                 </span>
               }
             >
-              <Row className="g-3">
+              <Row className="g-3"
+                style={{
+                  height: "50vh",
+                  overflow: "auto",
+                }}>
                 {getFilesByCategory("media", files).map((file, index) => (
                   <Col key={index} sm={6} md={4} lg={3}>
                     <Card
