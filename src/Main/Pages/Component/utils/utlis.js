@@ -62,8 +62,8 @@ export const formatTimestamp = (timestamp) => {
     return date.toFormat("MMM dd");
   }
 };
-// export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
-export const ApiEndPoint = "http://localhost:5001/api/";
+export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
+//export const ApiEndPoint = "http://localhost:5001/api/";
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
   let currentTime;
