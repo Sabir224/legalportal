@@ -32,6 +32,7 @@ const SignIn = () => {
       });
 
       const data = await response.json();
+      console.log("____data:", data);
 
       if (!response.ok) {
         alert("Login Unsuccessful!");

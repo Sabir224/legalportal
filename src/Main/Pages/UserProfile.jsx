@@ -147,11 +147,11 @@ const UserProfile = (props) => {
   };
 
   const sizeLimits = {
-    image: 5 * 1024 * 1024, // 5MB
-    document: 16 * 1024 * 1024, // 16MB
-    video: 16 * 1024 * 1024, // 50MB
-    audio: 16 * 1024 * 1024, // 10MB
-    archive: 16 * 1024 * 1024, // 50MB
+    image: 20 * 1024 * 1024, // 5MB
+    document: 20 * 1024 * 1024, // 16MB
+    video: 20 * 1024 * 1024, // 50MB
+    audio: 20 * 1024 * 1024, // 10MB
+    archive: 20 * 1024 * 1024, // 50MB
   };
 
   const validateFileSize = (file) => {
@@ -174,7 +174,7 @@ const UserProfile = (props) => {
     let invalidLengthFiles = [];
 
     for (let file of files) {
-      if (totalFiles > 5) break; // Stop if we reach the limit
+      if (totalFiles > 10) break; // Stop if we reach the limit
 
       if (file.name.length > 40) {
         // Truncate file name for display
@@ -200,13 +200,13 @@ const UserProfile = (props) => {
       }
     }
 
-    let fileLimitExceeded = totalFiles > 5;
+    let fileLimitExceeded = totalFiles > 10;
     if (fileLimitExceeded) {
       setErrorMessage((prevErrors) => [
         ...prevErrors,
-        `Maximum 5 files can be uploaded at any time and allow first 5 for upload`,
+        `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
       ]);
-      validFiles = validFiles.slice(0, 5 - selectedFiles.length);
+      validFiles = validFiles.slice(0, 10 - selectedFiles.length);
     }
 
     if (invalidSizeFiles.length > 0) {
@@ -572,11 +572,13 @@ const UserProfile = (props) => {
                 </span>
               }
             >
-              <Row className="g-3"
+              <Row
+                className="g-3"
                 style={{
                   height: "50vh",
                   overflow: "auto",
-                }}>
+                }}
+              >
                 {getFilesByCategory("media", files).map((file, index) => (
                   <Col key={index} sm={6} md={4} lg={3}>
                     <Card

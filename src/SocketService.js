@@ -1,7 +1,8 @@
 /* eslint-disable import/no-anonymous-default-export */
 // services/SocketService.js
 import { io } from "socket.io-client";
-const ApiBase = "https://awsrealestate.awschatbot.online";
+// const ApiBase = "https://awsrealestate.awschatbot.online";
+const ApiBase = "http://localhost:5001";
 const socket = io(`${ApiBase}`, {
   transports: ["websocket"], // Force WebSocket connection
   autoConnect: false, // Prevent auto-connecting
