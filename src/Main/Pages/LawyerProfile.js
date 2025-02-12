@@ -39,6 +39,9 @@ const LawyerProfile = () => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
 
+  const storedEmail = sessionStorage.getItem("Email");
+
+  
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
     subject
   )}&body=${encodeURIComponent("")}`;
@@ -89,9 +92,11 @@ const LawyerProfile = () => {
     }
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=taha@gmai.com`
-      ); // API endpoint
+        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
+      );
+       // API endpoint
       setClientDetails(response.data);
+      console.log("clint data ",response.data)
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -272,11 +277,11 @@ const LawyerProfile = () => {
       text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} `,
       html: null,
     };
-
     console.log("Sending mail...");
 
+
     try {
-      const response = await fetch("${ApiEndPoint}send-mail", {
+      const response = await fetch(`${ApiEndPoint}send-mail`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -298,22 +303,25 @@ const LawyerProfile = () => {
           setIsPopupVisible(false);
         }, 3000);
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      }else{
 
-      const data = await response.json();
-      setResponseData(data);
-      setisPopupVisiblecancel(false);
-      setpopupcolor("popupconfirm");
-      setpopupmessage(
-        isPopupVisible
+        
+        const data = await response.json();
+        console.log("Mail sent successfully:", data);
+        setResponseData(data);
+        setisPopupVisiblecancel(false);
+        setpopupcolor("popupconfirm");
+        setpopupmessage(
+          isPopupVisible
           ? "Meeting Schedule mail is send"
           : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-      );
-      setTimeout(() => {
-        setIsPopupVisible(false);
-      }, 3000);
-      // Assuming setResponseData is a state updater
-      console.log("Mail sent successfully:", data);
+        );
+        setTimeout(() => {
+          setIsPopupVisible(false);
+        }, 3000);
+        // Assuming setResponseData is a state updater
+        console.log("Mail sent successfully:", data);
+      }
     } catch (error) {
       console.error("Error in POST request:", error.message || error);
     }
@@ -648,9 +656,8 @@ const LawyerProfile = () => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${
-                    isAvailableDate ? "availableDate" : ""
-                  }`}
+                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
+                    }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -733,8 +740,8 @@ const LawyerProfile = () => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                        ? "#d2a85a" // Golden when selected
-                        : "#16213e", // Default background
+                          ? "#d2a85a" // Golden when selected
+                          : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                     }}
