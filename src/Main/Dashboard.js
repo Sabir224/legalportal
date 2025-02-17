@@ -20,6 +20,7 @@ import Chat from "./Pages/chat/Chat";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
+import ClientAppointment from "./Pages/ClientAppointment";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -34,11 +35,13 @@ const Dashboard = () => {
     } else if (screen === 1) {
       setCurrentScreen(<Case_details />);
     } else if (screen === 2) {
-      setCurrentScreen(<LawyerProfile />);
+      setCurrentScreen(<ClientAppointment />);
     } else if (screen === 3) {
       setCurrentScreen(<ChatVat />);
+    } else if (screen === 5) {
+      setCurrentScreen(<LawyerProfile />);
     }
-    if (screen === 4) {
+    else if (screen === 4) {
       setCurrentScreen(<UserProfile />);
     }
   }, [screen]);
@@ -67,9 +70,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white bg-dark ${
-          isCollapsed ? "col-1" : "col-2"
-        } h-100 position-relative`}
+        className={`d-flex flex-column text-white bg-dark ${isCollapsed ? "col-1" : "col-2"
+          } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -169,7 +171,9 @@ const Dashboard = () => {
         >
           <h2 className="m-0">Case</h2>
           <div id="notification-profile">
-            <button className="btn me-2">🔔</button>
+            <button className="btn me-2" onClick={() => {
+              handlescreen2(5);
+            }}>🔔</button>
             <button
               className="btn"
               onClick={() => {

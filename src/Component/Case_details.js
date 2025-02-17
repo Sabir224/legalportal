@@ -635,7 +635,7 @@ function Case_details() {
                   color="#c0a262"
                   style={{ marginRight: 10, marginTop: 8 }}
                 />
-                <div style={{fontSize: 20 }}>Subject</div>
+                <div style={{ fontSize: 20 }}>Subject</div>
                 {/* </div> */}
               </div>
               <div
@@ -685,7 +685,7 @@ function Case_details() {
                   color="#c0a262"
                   style={{ marginRight: 10, marginTop: 8 }}
                 />
-                <div style={{fontSize: 20}}>Amount</div>
+                <div style={{ fontSize: 20 }}>Amount</div>
                 {/* </div> */}
               </div>
               <div
@@ -734,7 +734,7 @@ function Case_details() {
                     icon={faCalendarAlt}
                     size="1x"
                     color="#c0a262"
-                    style={{ marginRight: 10,marginTop:8 }}
+                    style={{ marginRight: 10, marginTop: 8 }}
                   />
                   <div style={{ fontSize: 20 }}>Date</div>
                   {/* </div> */}
@@ -789,9 +789,9 @@ function Case_details() {
                     icon={faGavel}
                     size="1x"
                     color="#c0a262"
-                    style={{ marginRight: 10,marginTop: 10  }}
+                    style={{ marginRight: 10, marginTop: 10 }}
                   />
-                  <div style={{ fontSize:20   }}>Last Decisions</div>
+                  <div style={{ fontSize: 20 }}>Last Decisions</div>
                 </div>
                 {/* {caseData.lastDecisions.map((item, index) => ( */}
                 <div
@@ -811,17 +811,14 @@ function Case_details() {
                 }}
               >
                 <div
-                  className="d-flex mb-2 p-0"
+                  className="d-flex mb-2 p-0 gap-2"
                   style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
                 >
                   {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon
-                    icon={faCreativeCommons}
-                    size="2x"
-                    color="#c0a262"
-                    style={{ marginRight: 10,marginTop:1 }}
-                  />
-                  <div style={{ fontSize:20}}>Others Details</div>
+                  <div>
+                    <img src={require(`../Main/Pages/Component/Casedetails/Icons/others.png`)} style={{ height: "30px" }} />
+                  </div>
+                  <div style={{ fontSize: 20 }}>Others Details</div>
                   {/* </div> */}
                 </div>
                 <div

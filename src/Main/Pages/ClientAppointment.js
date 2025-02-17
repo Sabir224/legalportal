@@ -21,7 +21,7 @@ import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { ApiEndPoint } from "./Component/utils/utlis";
 // import { ApiEndPoint } from "../../utils/utils";
 
-const LawyerProfile = () => {
+const ClientAppointment = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -788,4 +788,4 @@ const LawyerProfile = () => {
   );
 };
 
-export default LawyerProfile;
+export default ClientAppointment;
