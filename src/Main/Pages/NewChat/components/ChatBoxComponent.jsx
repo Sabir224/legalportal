@@ -8,21 +8,31 @@ import SocketService from "../../../../SocketService";
 const ChatBox = ({ selectedChat, userId }) => {
   const [messages, setMessages] = useState([]);
   const [typingUser, setTypingUser] = useState(null);
-  const chatId = "67a4c1af8e51d355c298084a";
+
   useEffect(() => {
     if (selectedChat) {
-      // Get initial messages
+      const chatId = selectedChat._id;
+
+      // Fetch initial messages for the selected chat
       const fetchMessages = async () => {
-        const { data } = await axios.get(
-          `http://localhost:5001/api/chats/${chatId}/messages`
-        );
-        setMessages(data);
+        try {
+          const { data } = await axios.get(
+            `http://localhost:5001/api/chats/${chatId}/messages`
+          );
+          setMessages(data); // Set the initial list of messages
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+        }
       };
       fetchMessages();
 
       // Listen for new messages
       SocketService.onNewMessage((newMessage) => {
-        setMessages((prevMessages) => [...prevMessages, newMessage]);
+        // Only append the message if it belongs to the current chat
+        if (newMessage.chatId === chatId) {
+          console.log("New message received:", newMessage); // Log the new message
+          setMessages((prevMessages) => [...prevMessages, newMessage]); // Append the message to state
+        }
       });
 
       // Listen for typing notifications
@@ -35,7 +45,7 @@ const ChatBox = ({ selectedChat, userId }) => {
         setTypingUser(null);
       });
     }
-  }, [selectedChat, messages]);
+  }, [selectedChat]); // This hook runs when selectedChat changes
 
   return (
     <div>
