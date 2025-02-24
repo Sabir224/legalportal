@@ -36,3 +36,15 @@
     transform: rotate(360deg);
   }
 }
+@media (max-width: 768px) {
+  .user-list {
+    width: 50px !important;
+    min-width: 50px;
+    overflow: hidden;
+  }
+
+  .user-list input,
+  .user-list .username {
+    display: none; /* Hide search input and usernames */
+  }
+}

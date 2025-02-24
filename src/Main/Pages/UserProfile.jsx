@@ -249,7 +249,7 @@ const UserProfile = (props) => {
     setUploadSuccess(false);
 
     const formData = new FormData();
-    formData.append("Email", usersDetails.Email);
+    formData.append("Email", storedEmail);
 
     selectedFiles.forEach((file) => {
       formData.append("files", file);
@@ -301,22 +301,43 @@ const UserProfile = (props) => {
   const [activeTab, setActiveTab] = useState("documents");
   const handleDownload = async (fileId, fileName) => {
     try {
-      const response = await fetch(`${ApiEndPoint}/download/${fileId}`);
+      const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
+        method: "POST", // Changed to POST to send body
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ Email: storedEmail }), // Sending email in request body
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch the file");
+      }
+
+      const contentType = response.headers.get("Content-Type");
+      if (
+        !contentType ||
+        (!contentType.startsWith("application/") &&
+          contentType !== "application/octet-stream")
+      ) {
+        throw new Error("Invalid content type: " + contentType);
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
 
       const a = document.createElement("a");
       a.href = url;
-      a.download = fileName;
+      a.download = fileName || "downloaded_file"; // Default filename if none is provided
       document.body.appendChild(a);
       a.click();
 
-      window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
+      setTimeout(() => window.URL.revokeObjectURL(url), 100); // Ensures proper cleanup
     } catch (error) {
       console.error("Error downloading file:", error);
     }
   };
+
   const fetchClientDetails = async () => {
     setLoading(true);
     try {

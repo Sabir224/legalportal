@@ -5,7 +5,7 @@ import LeftChatTextWidget from "../LeftChatTextWidget";
 import chatstyle from "../Chat.module.css";
 import RightChatTextWidget from "../RightChatTextWidget";
 import axios from "axios";
-
+import "./chatField.css";
 import { UserContext } from "./userContext";
 import mondayLogo from "../../Component/images/monLogo.png";
 
@@ -19,119 +19,153 @@ import { useMediaQuery } from "react-responsive";
 import DropdownSheet from "./DropdownSheet";
 import ReplyInput from "./ReplyChatInput";
 import { base64ToUrl, mondayLogoImage } from "../../Component/utils/utlis";
+import SocketService from "../../../../SocketService";
+import { FaArrowDown } from "react-icons/fa";
 
 const scrollToBottom = (ref) => {
   if (ref.current) {
     ref.current.scrollTop = ref.current.scrollHeight;
   }
 };
-export default function ChatField({ user, isCollapsed }) {
-  const [userData, setUserData] = useState([]);
-  const [triggerEffect, setTriggerEffect] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  const [selectedUser, setSelectedUser] = useState(user ? user : null);
-  const chatContainerRef = useRef(null);
-
-  let [messagesArray, setMessagesArray] = useState([]);
-  const messagesEndRef = useRef(null);
-
-  const mouseMoveTimer = useRef(null);
-
-  const jwtToken = sessionStorage.getItem("jwtToken");
-
+export default function ChatField({ selectedChat, user }) {
   const isDesktop = useMediaQuery({ minWidth: 992 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 991 });
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]); // Store typing users
+  const [isAtBottom, setIsAtBottom] = useState(false);
+  console.log("UserData", user);
+  const chatContainerRef = useRef(null);
+  const [isNewMessage, setNewMessage] = useState(false);
+  // ✅ Function to check if the scroll is at the bottom
+  const isScrollAtBottom = () => {
+    if (!chatContainerRef.current) return false;
+
+    const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
+    return scrollTop + clientHeight >= scrollHeight - 10; // Small buffer
+  };
+
+  // ✅ Function to scroll to the bottom
+  const scrollToBottom = (smooth = true) => {
+    if (!chatContainerRef.current) return;
+
+    chatContainerRef.current.scrollTo({
+      top: chatContainerRef.current.scrollHeight,
+      behavior: smooth ? "smooth" : "instant",
+    });
+    setNewMessage(false);
+  };
+
+  // useEffect(() => {
+  //   console.log("Typing Users:", typingUsers);
+  // }, [typingUsers]); // Runs whenever typingUsers updates
+  // useEffect(() => {
+  //   if (isScrollAtBottom()) {
+  //     scrollToBottom();
+  //   } else {
+  //     setNewMessage(true); // Show arrow if not at bottom
+  //   }
+  // }, [messages]);
 
   useEffect(() => {
+    if (!selectedChat) return;
 
-  }, [selectedUser, user]);
+    const chatId = selectedChat._id;
+    console.log("SelectedChat:", selectedChat);
 
-  const [scrollBlocked, setScrollBlocked] = useState(false);
-  const [replyData, setReplyData] = useState(null);
+    const fetchMessages = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(
+          `http://localhost:5001/api/chats/${chatId}/messages`
+        );
+        setMessages(data);
+        setLoading(false);
 
-  const [isDropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedMessage, setSelectedMessage] = useState(null);
-  const [selectedAction, setSelectedAction] = useState("");
-  const [replyingMessage, setReplyingMessage] = useState(null); // State for the selected action
-  const handleOpenDropdown = (messageData) => {
-    setSelectedMessage(messageData); // Store the selected message
-    setDropdownOpen(true); // Open the dropdown
-  };
-
-  const handleCloseDropdown = () => {
-    setSelectedMessage(null);
-    setDropdownOpen(false);
-    setSelectedAction(""); // Reset the action state
-  };
-
-  const handleMessageClick = (data) => {
-    // console.log("Datatata:", data);
-    setSelectedMessage(data); // Set the selected message data to state
-  };
-
-  // Function to block scrolling
-  const blockScroll = () => {
-    if (chatContainerRef.current) {
-      //chatContainerRef.current.style.overflowY = 'hidden';  // Disable vertical scrolling
-      setScrollBlocked(true);
-    }
-  };
-
-  // Function to unblock scrolling
-  const unblockScroll = () => {
-    if (chatContainerRef.current) {
-      // chatContainerRef.current.style.overflowY = 'scroll';  // Enable vertical scrolling
-      setScrollBlocked(false);
-    }
-  };
-
-
-  const onSendReplyMessage = async (message) => {
-
-  };
-  const [refreshKey, setRefreshKey] = useState(0);
-
-  const changeState = () => {
-    setRefreshKey((prevKey) => prevKey + 1); // Increment the key to trigger re-render
-  };
-  const handleSendMessage = async (message) => {
-
-  };
-
-  const handleSendImage = async (file, caption) => {
-    const phone = localStorage.getItem("phone");
-    const currentTime = new Date().toLocaleTimeString(); // Get current time
-    const newMessage = {
-      message_text: caption || "Sent an image",
-      timestamp: currentTime,
-      sent_by: "Admin",
-      files: file,
+        // ✅ Emit "markAsRead" event to backend
+        SocketService.markAsRead(chatId, user._id);
+        // ✅ Ensure scrolls after messages load
+        setTimeout(() => scrollToBottom(false), 100);
+      } catch (error) {
+        console.error("Error fetching messages:", error);
+      }
     };
-    setMessagesArray((prevMessages) => [...prevMessages, newMessage]);
-  };
 
-  const handleSendDoc = async (file, caption) => {
-    const phone = localStorage.getItem("phone");
-    const currentTime = new Date().toLocaleTimeString(); // Get current time
-    const newMessage = {
-      message_text: caption || "Sent a document",
-      timestamp: currentTime,
-      sent_by: "Admin",
-      files: file,
+    fetchMessages();
+    SocketService.connect(user._id);
+    SocketService.joinChat(selectedChat._id, user._id);
+
+    const handleNewMessage = (newMessage) => {
+      if (newMessage.chat === chatId) {
+        const isAtBottom = isScrollAtBottom();
+        setIsAtBottom(isAtBottom);
+        setNewMessage(isNewMessage);
+        setMessages((prevMessages) => {
+          const isDuplicate = prevMessages.some(
+            (msg) => msg._id === newMessage._id
+          );
+          return isDuplicate ? prevMessages : [...prevMessages, newMessage];
+        });
+      }
     };
-    setMessagesArray((prevMessages) => [...prevMessages, newMessage]);
 
+    const handleUserTyping = ({
+      chatId: receivedChatId,
+      userId: typingUserId,
+    }) => {
+      if (receivedChatId === chatId && typingUserId !== user._id) {
+        setTypingUsers((prev) => [...new Set([...prev, typingUserId])]);
+      }
+    };
 
-  };
+    const handleUserStopTyping = ({
+      chatId: receivedChatId,
+      userId: typingUserId,
+    }) => {
+      if (receivedChatId === chatId && typingUserId !== user?._id) {
+        setTypingUsers((prev) => prev.filter((id) => id !== typingUserId));
+      }
+    };
+    const handleMessagesRead = ({ chatId: receivedChatId, userId }) => {
+      if (receivedChatId === chatId && userId !== user._id) {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.sender !== user._id ? { ...msg, status: "read" } : msg
+          )
+        );
+      }
+    };
+    const handleMessagesDelivered = ({ userId }) => {
+      if (userId !== user._id) {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.sender !== user._id &&
+            msg.status !== "read" &&
+            msg.status !== "delivered"
+              ? { ...msg, status: "delivered" }
+              : msg
+          )
+        );
+      }
+    };
 
-  const handleSendVoice = async (audioBlob) => {
-    const phone = localStorage.getItem("phone");
-    const currentTime = new Date().toLocaleTimeString();
+    // ✅ Add event listeners
+    SocketService.onNewMessage(handleNewMessage);
+    SocketService.onUserTyping(handleUserTyping);
+    SocketService.onUserStopTyping(handleUserStopTyping);
+    SocketService.onMessageRead(handleMessagesRead);
+    SocketService.onMessageDelivered(handleMessagesDelivered);
 
-  };
+    return () => {
+      // 🧹 Cleanup on unmount
+      SocketService?.socket?.off("newMessage", handleNewMessage);
+      SocketService?.socket?.off("userTyping", handleUserTyping);
+      SocketService?.socket?.off("userStopTyping", handleUserStopTyping);
+      SocketService?.socket?.off("messagesRead", handleMessagesRead);
+    };
+  }, [selectedChat, user._id]);
 
-  if (!selectedUser && userData) {
+  if (!selectedChat && user?._id) {
     return (
       <div
         className={`${chatstyle["no-user-selected"]} d-flex justify-content-center align-items-center`}
@@ -144,16 +178,16 @@ export default function ChatField({ user, isCollapsed }) {
           borderRadius: "10px",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
           overflow: "hidden",
-
           padding: isTablet ? "1rem" : "2rem",
         }}
       >
         <div
-          className={`${isDesktop ? "col-lg-9" : isTablet ? "col-md-8" : "col-sm-12"
-            } d-none d-md-block`}
+          className={`${
+            isDesktop ? "col-lg-9" : isTablet ? "col-md-8" : "col-sm-12"
+          } d-none d-md-block`}
         >
           <div
-            className=" text-center d-flex flex-column justify-content-center align-items-center h-100"
+            className="text-center d-flex flex-column justify-content-center align-items-center h-100"
             style={{
               padding: isTablet ? "1rem" : "2rem",
             }}
@@ -167,8 +201,8 @@ export default function ChatField({ user, isCollapsed }) {
                   fontSize: isDesktop
                     ? "1.5rem"
                     : isTablet
-                      ? "1.25rem"
-                      : "1rem",
+                    ? "1.25rem"
+                    : "1rem",
                 }}
               >
                 Conversation detail
@@ -193,42 +227,46 @@ export default function ChatField({ user, isCollapsed }) {
         display: "flex",
         flexDirection: "column",
         height: "100%",
-        maxHeight: "100vh", // Ensure it never grows beyond the viewport height
+        maxHeight: "100vh",
         width: "100%",
-        maxWidth: "100%", // Keep within the screen width bounds
-        overflow: "hidden", // Prevent overflow from causing the container to grow
+        maxWidth: "100%",
+        overflow: "hidden",
         gap: "10px",
       }}
     >
-      <div className="chatfield border-bottom  d-lg-block">
+      {/* Chat Header */}
+      <div
+        className="chatfield border-bottom d-block"
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1001,
+          background: "#fff",
+          width: "100%",
+        }}
+      >
         <div className="d-flex align-items-center">
-          <div
-            className="pl-3 row container-fluid d-flex flex-grow-1"
-          // style={{ maxHeight: "11vh", overflowY: "auto" }}
-          >
+          <div className="pl-3 row container-fluid d-flex flex-grow-1">
             <ChatHeader
-              refresh={refreshKey}
-              clientId={selectedUser.id}
-              name={selectedUser ? selectedUser.name : "Name"}
-              phone={selectedUser ? selectedUser.phone : ""}
-              profilePic={selectedUser ? selectedUser.profilepic : ""}
-              color_code={selectedUser?.color_code}
-              triggerEffect={triggerEffect}
-              isArchived={selectedUser.isArchive}
+              isUserTyping={typingUsers}
+              selectedChat={selectedChat}
+              user={user}
             />
           </div>
         </div>
       </div>
 
+      {/* Chat Messages */}
       <div
+        ref={chatContainerRef}
         className="pl-5 py-4 mb-2 chat-messages"
         style={{
-          height: "59vh",
+          height: "calc(100vh - 150px)", // Adjusted height to accommodate typing indicator
           flexGrow: 1,
           width: "100%",
-          maxWidth: "100%", // Prevent overflow horizontally
-          overflowX: "hidden", // Ensure no horizontal scrolling
-          // Allow vertical scrolling only
+          maxWidth: "100%",
+          overflowX: "hidden",
+          overflowY: "auto",
         }}
       >
         {loading ? (
@@ -236,176 +274,79 @@ export default function ChatField({ user, isCollapsed }) {
             <div className={`${chatstyle["spinner"]}`}></div>
           </div>
         ) : (
-          userData &&
-          userData.map((user, index) =>
-            messagesArray.map((message, messageIndex) => {
-              if (message.message_text) {
-                const replyMessage = message.reply_to
-                  ? messagesArray.find(
-                    (msg) => msg.message_id === message.reply_to
-                  )
-                  : null;
-                return message.sent_by === "Client" ? (
-                  <LeftChatTextWidget
-                    key={messageIndex}
-                    Name={selectedUser.name}
-                    message={message.message_text}
-                    time={message.timestamp}
-                    profilePic={selectedUser ? selectedUser.profilepic : ""}
-                    color_code={selectedUser ? selectedUser?.color_code : ""}
-                    id={message.message_id}
-                    blockScroll={blockScroll}
-                    unblockScroll={unblockScroll}
-                    onMessageClick={handleMessageClick}
-                    reply_to={replyMessage ? replyMessage.message_text : null}
-                  />
-                ) : message.sent_by === "Admin" ? (
-                  <RightChatTextWidget
-                    key={messageIndex}
-                    Name={message.admin_name}
-                    message={message.message_text}
-                    time={message.timestamp}
-                    botImage={base64ToUrl(message.profilePIc)}
-                    status={message.message_status}
-                    id={message.message_id}
-                    blockScroll={blockScroll}
-                    unblockScroll={unblockScroll}
-                    onMessageClick={handleMessageClick}
-                    reply_to={replyMessage ? replyMessage.message_text : null}
-                  />
-                ) : message.sent_by === "monday" ? (
-                  <RightChatTextWidget
-                    key={messageIndex}
-                    Name="Monday"
-                    message={message.message_text}
-                    time={message.timestamp}
-                    botImage={mondayLogo}
-                    status={message.message_status}
-                    id={message.message_id}
-                    onMessageClick={handleMessageClick}
-                    reply_to={replyMessage ? replyMessage.message_text : null}
-                  />
-                ) : (
-                  <RightChatTextWidget
-                    key={messageIndex}
-                    Name={"Bot"}
-                    message={message.message_text}
-                    time={message.timestamp}
-                    botImage={botImage}
-                    status={message.message_status}
-                    id={message.message_id}
-                    type="text"
-                    onMessageClick={handleMessageClick}
-                    reply_to={replyMessage ? replyMessage.message_text : null}
-                  />
-                );
-              } else if (message.files) {
-                const file = JSON.parse(message.files); // Assuming file is a JSON object
-                if (file && file.filetype) {
-                  const isClient = message.sent_by === "Client";
-                  const position = isClient ? "left" : "right";
-                  const senderName = isClient
-                    ? ""
-                    : message.sent_by === "Admin"
-                      ? message.admin_name
-                      : message.sent_by === "monday"
-                        ? "Monday"
-                        : "Bot";
+          messages.map((message) => {
+            const senderId =
+              typeof message.sender === "object" && message.sender._id
+                ? message.sender._id
+                : String(message.sender);
 
-                  const avatar = isClient
-                    ? selectedUser.profilepic
-                    : message.sent_by === "Admin"
-                      ? message.profilePIc
-                      : message.sent_by === "monday"
-                        ? `${mondayLogoImage}`
-                        : Buffer.from(botImage).toString("base64");
+            const userId = String(user._id);
 
-                  const status = isClient ? "" : message.message_status;
-
-                  if (
-                    file.filetype === "image/jpeg" ||
-                    file.filetype === "image/png"
-                  ) {
-                    return (
-                      <div style={{ position: "relative" }}>
-                        <DynamicImage
-                          key={messageIndex}
-                          mimeType={file.filetype}
-                          file_id={file.file_id}
-                          position={position}
-                          timestamp={message.timestamp}
-                          fileName={file.filename}
-                          senderName={senderName}
-                          avatar={avatar}
-                          status={status}
-                          type="file"
-                          blockScroll={blockScroll}
-                          unblockScroll={unblockScroll}
-                        // Pass the status here
-                        />
-                      </div>
-                    );
-                  } else if (file.filetype.startsWith("application/")) {
-                    return (
-                      <div style={{ position: "relative" }}>
-                        <DynamicDocument
-                          key={messageIndex}
-                          fileId={file.file_id}
-                          mimeType={file.filetype}
-                          position={position}
-                          timestamp={message.timestamp}
-                          fileName={file.filename}
-                          senderName={senderName}
-                          avatar={avatar}
-                          status={status} // Pass the status here
-                          type="file"
-                          blockScroll={blockScroll}
-                          unblockScroll={unblockScroll}
-                        />
-                      </div>
-                    );
-                  } else if (file.filetype.startsWith("audio/")) {
-                    return (
-                      <div style={{ position: "relative" }}>
-                        <DynamicAudio
-                          key={messageIndex}
-                          fileId={file.file_id}
-                          mimeType={file.filetype}
-                          position={position}
-                          timestamp={message.timestamp}
-                          fileName={file.filename}
-                          senderName={senderName}
-                          avatar={avatar}
-                          status={status}
-                          type="file"
-                          blockScroll={blockScroll}
-                          unblockScroll={unblockScroll}
-                        />
-                      </div>
-                    );
-                  }
-                }
-                return null;
-              }
-            })
-          )
+            return message.content ? (
+              senderId === userId ? (
+                <RightChatTextWidget
+                  key={message._id}
+                  message={message}
+                  selectedChat={selectedChat}
+                  user={user}
+                />
+              ) : (
+                <LeftChatTextWidget
+                  key={message._id}
+                  message={message}
+                  selectedChat={selectedChat}
+                  user={user}
+                />
+              )
+            ) : null;
+          })
         )}
-        <div ref={messagesEndRef} />
       </div>
-      {selectedMessage ? (
-        <ReplyInput
-          onSendReply={onSendReplyMessage}
-          onClose={() => setSelectedMessage(null)}
-        />
-      ) : (
-        <ChatInput
-          onSendMessage={handleSendMessage}
-          onSendImage={handleSendImage}
-          onSendDoc={handleSendDoc}
-          onSendVoice={handleSendVoice}
-          selectedUser={selectedUser}
-        />
+      {/* Typing Indicator (Moved to Bottom) */}
+
+      <div style={{ position: "relative", width: "100%" }}>
+        {typingUsers.length > 0 && (
+          <div className="typing-indicator">
+            <span className="dot"></span>
+            <span className="dot"></span>
+            <span className="dot"></span>
+          </div>
+        )}
+      </div>
+      {isNewMessage && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "80px",
+            right: "50px",
+            background: "#18273e",
+            borderRadius: "8px",
+            width: "30px",
+            height: "30px", // Increased height to accommodate the arrow and count
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            cursor: "pointer",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
+          }}
+          onClick={scrollToBottom}
+        >
+          {/* Arrow Icon */}
+          <div
+            style={{
+              color: "white",
+              fontSize: "20px", // Slightly larger size for better visibility
+              fontWeight: "bold",
+              padding: "5px", // Space between arrow and count
+            }}
+          >
+            <FaArrowDown color=" white" size={20} />
+          </div>
+        </div>
       )}
+      {/* Chat Input */}
+      <ChatInput selectedChat={selectedChat} user={user} />
     </div>
   );
 }

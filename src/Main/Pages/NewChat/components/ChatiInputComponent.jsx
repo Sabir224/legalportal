@@ -1,52 +1,74 @@
-// components/MessageInput.js
 import React, { useState, useEffect } from "react";
 import SocketService from "../../../../SocketService";
-const MessageInput = ({ chatId, userId }) => {
+
+const MessageInput = ({ chatId, userId, onMessageSent }) => {
   const [message, setMessage] = useState("");
   const [file, setFile] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
 
-  // Function to send a message
+  useEffect(() => {
+    let typingTimeout;
+
+    if (isTyping) {
+      SocketService.sendTyping(chatId, userId);
+
+      typingTimeout = setTimeout(() => {
+        SocketService.stopTyping(chatId, userId);
+        setIsTyping(false);
+      }, 3000);
+    }
+
+    return () => clearTimeout(typingTimeout);
+  }, [isTyping, chatId, userId]);
+
+  // useEffect(() => {
+  //   // Listen for typing event from other users
+  //   const handleUserTyping = ({
+  //     chatId: receivedChatId,
+  //     userId: typingUserId,
+  //   }) => {
+  //     if (receivedChatId === chatId && typingUserId !== userId) {
+  //       setTypingUsers((prev) => [...new Set([...prev, typingUserId])]); // Add unique users
+  //     }
+  //   };
+
+  //   const handleUserStopTyping = ({
+  //     chatId: receivedChatId,
+  //     userId: typingUserId,
+  //   }) => {
+  //     if (receivedChatId === chatId && typingUserId !== userId) {
+  //       setTypingUsers((prev) => prev.filter((id) => id !== typingUserId)); // Remove user from list
+  //     }
+  //   };
+
+  //   SocketService.onUserTyping(handleUserTyping);
+  //   SocketService.onUserStopTyping(handleUserStopTyping);
+  // }, [chatId, userId]);
+
+  const handleTyping = (e) => {
+    setMessage(e.target.value);
+
+    if (!isTyping) {
+      setIsTyping(true);
+    }
+  };
+
   const handleSendMessage = () => {
     if (message.trim() === "" && !file) return;
 
-    const messageData = {
+    SocketService.sendMessage({
       senderId: userId,
       chatId,
       content: message,
       messageType: file ? "file" : "text",
       file,
-    };
+    });
 
-    // Log to debug message sending
-    console.log("Sending message:", messageData);
-
-    SocketService.sendMessage(messageData); // Send message via socket
-    setMessage(""); // Clear the message input field
-    setFile(null); // Clear the file input
-  };
-
-  // Handle typing notifications
-  const handleTyping = () => {
-    SocketService.sendTyping(chatId, userId);
-  };
-
-  // Handle stop typing notifications
-  const handleStopTyping = () => {
+    // Stop typing when message is sent
     SocketService.stopTyping(chatId, userId);
-  };
-
-  // Effect to handle typing and stop typing notifications
-  useEffect(() => {
-    if (message.trim()) {
-      handleTyping(); // Notify that the user is typing
-    } else {
-      handleStopTyping(); // Stop typing notification
-    }
-  }, [message]); // Run the effect when message changes
-
-  // Handle file selection
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
+    setIsTyping(false);
+    setMessage("");
+    setFile(null);
   };
 
   return (
@@ -54,11 +76,13 @@ const MessageInput = ({ chatId, userId }) => {
       <input
         type="text"
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={handleTyping}
         placeholder="Type a message..."
       />
-      <input type="file" onChange={handleFileChange} />
+      <input type="file" onChange={(e) => setFile(e.target.files[0])} />
       <button onClick={handleSendMessage}>Send</button>
+
+      {/* Display typing indicator if someone else is typing */}
     </div>
   );
 };

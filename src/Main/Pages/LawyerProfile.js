@@ -36,12 +36,11 @@ const LawyerProfile = () => {
   const [responseData, setResponseData] = useState(null);
   const [popupmessage, setpopupmessage] = useState();
   const [popupcolor, setpopupcolor] = useState("popup");
-  const [email, setEmail] = useState("raheemakbar999@gmail.com");
+  const [email, setEmail] = useState("awslegalconsultancy2@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
 
   const storedEmail = sessionStorage.getItem("Email");
 
-  
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
     subject
   )}&body=${encodeURIComponent("")}`;
@@ -94,9 +93,9 @@ const LawyerProfile = () => {
       const response = await axios.get(
         `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
       );
-       // API endpoint
+      // API endpoint
       setClientDetails(response.data);
-      console.log("clint data ",response.data)
+      console.log("clint data ", response.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -279,7 +278,6 @@ const LawyerProfile = () => {
     };
     console.log("Sending mail...");
 
-
     try {
       const response = await fetch(`${ApiEndPoint}send-mail`, {
         method: "POST",
@@ -303,9 +301,7 @@ const LawyerProfile = () => {
           setIsPopupVisible(false);
         }, 3000);
         throw new Error(`HTTP error! status: ${response.status}`);
-      }else{
-
-        
+      } else {
         const data = await response.json();
         console.log("Mail sent successfully:", data);
         setResponseData(data);
@@ -313,8 +309,8 @@ const LawyerProfile = () => {
         setpopupcolor("popupconfirm");
         setpopupmessage(
           isPopupVisible
-          ? "Meeting Schedule mail is send"
-          : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+            ? "Meeting Schedule mail is send"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -656,8 +652,9 @@ const LawyerProfile = () => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
-                    }`}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -740,8 +737,8 @@ const LawyerProfile = () => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                          ? "#d2a85a" // Golden when selected
-                          : "#16213e", // Default background
+                        ? "#d2a85a" // Golden when selected
+                        : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                     }}

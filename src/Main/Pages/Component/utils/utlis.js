@@ -2,7 +2,7 @@ import { jwtDecode } from "jwt-decode";
 import user from "../assets/icons/user.png";
 import { Modal } from "react-bootstrap";
 import { DateTime } from "luxon";
-import React from "react";
+import React, { useEffect, useState } from "react";
 export const icons = {
   user: user,
 };
@@ -45,25 +45,44 @@ export const splitSenderName = (fullName) => {
 };
 
 export const formatTimestamp = (timestamp) => {
-  // Parse the timestamp using fromFormat
-  const date = DateTime.fromFormat(timestamp, "yyyy-MM-dd HH:mm:ss", {
-    zone: "UTC",
-  }).setZone("Asia/Dubai");
+  // Parse ISO timestamp and convert to Dubai timezone
+  const date = DateTime.fromISO(timestamp, { zone: "utc" }).setZone(
+    "Asia/Dubai"
+  );
   const now = DateTime.now().setZone("Asia/Dubai");
   const isToday = date.hasSame(now, "day");
+  const isLessThan24Hours = now.diff(date, "hours").hours < 24;
 
   if (isToday) {
-    return date.toFormat("hh:mm a");
-  } else if (now.diff(date, "hours").hours < 24) {
-    // Less than 24 hours
-    return date.toFormat("hh:mm a");
+    return date.toFormat("hh:mm a"); // Example: "02:55 PM"
+  } else if (isLessThan24Hours) {
+    return date.toFormat("hh:mm a"); // Example: "02:55 PM"
   } else {
-    // More than 24 hours
-    return date.toFormat("MMM dd");
+    return date.toFormat("MMM dd, hh:mm a"); // Example: "Feb 19, 02:55 PM"
   }
 };
-export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
-//export const ApiEndPoint = "http://localhost:5001/api/";
+
+export const useMediaQuery = (query) => {
+  const [matches, setMatches] = useState(window.matchMedia(query).matches);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(query);
+    const handler = (event) => setMatches(event.matches);
+
+    // ✅ Use `addEventListener` instead of `addListener`
+    mediaQuery.addEventListener("change", handler);
+
+    return () => {
+      // ✅ Use `removeEventListener` instead of `removeListener`
+      mediaQuery.removeEventListener("change", handler);
+    };
+  }, [query]);
+
+  return matches;
+};
+
+//export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
+export const ApiEndPoint = "http://localhost:5001/api/";
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
   let currentTime;

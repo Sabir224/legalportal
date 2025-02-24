@@ -22,15 +22,10 @@ import { green } from "@mui/material/colors";
 import FileViewer from "react-file-viewer";
 import { FaFilePdf } from "react-icons/fa";
 import { FaEllipsis } from "react-icons/fa6";
+import SocketService from "../../../../SocketService";
 // import SendMessageModal from "../../../Main page/SendTemplateViaChat";
 
-const ChatInput = ({
-  onSendMessage,
-  onSendImage,
-  onSendDoc,
-  onSendVoice,
-  selectedUser,
-}) => {
+export default function ChatInput({ selectedChat, user }) {
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
@@ -58,34 +53,51 @@ const ChatInput = ({
     })
   );
 
-  useEffect(() => {
-   
-  }, [showSuccessMessage, popupMessage, isMessageSending]);
-  const checkSession = async () => {
-   
-  };
-  const handleSendMessage = async () => {
-    try {
-      const isExpired = await checkSession(); // Await the result of checkSession
-      if (isExpired) {
-        openModal();
-        return;
-      }
-      if (message.trim()) {
-        setMessageSending(true); // Indicate message is being sent
-        setShowSuccessMessage(true); // Show success message
-        onSendMessage(message); // Call the send message function
-        setMessage(""); // Clear the message input field
+  const [file, setFile] = useState(null);
+  const [isTyping, setIsTyping] = useState(false);
 
-        // Add a delay before setting 'setMessageSending' to false
-        setTimeout(() => {
-          setMessageSending(false); // Hide the sending indicator after 2 seconds
-        }, 2000);
-      }
-    } catch (error) {
-      console.error("Error in handleSendMessage:", error);
+  useEffect(() => {
+    let typingTimeout;
+
+    if (isTyping) {
+      SocketService.sendTyping(selectedChat._id, user._id);
+
+      typingTimeout = setTimeout(() => {
+        SocketService.stopTyping(selectedChat._id, user._id);
+        setIsTyping(false);
+      }, 3000);
+    }
+
+    return () => clearTimeout(typingTimeout);
+  }, [isTyping, selectedChat._id, user._id]);
+  const handleTyping = (e) => {
+    setMessage(e.target.value);
+
+    if (!isTyping) {
+      setIsTyping(true);
     }
   };
+
+  const handleSendMessage = () => {
+    if (message.trim() === "" && !file) return;
+
+    SocketService.sendMessage({
+      senderId: user._id,
+      chatId: selectedChat._id,
+      content: message,
+      messageType: file ? "file" : "text",
+      file,
+    });
+
+    // Stop typing when message is sent
+    SocketService.stopTyping(selectedChat._id, user._id);
+    setIsTyping(false);
+    setMessage("");
+    setFile(null);
+  };
+  useEffect(() => {}, [showSuccessMessage, popupMessage, isMessageSending]);
+
+  const checkSession = async () => {};
 
   const handleEmojiClick = (event, emojiObject) => {
     setMessage((prevMessage) => prevMessage + emojiObject.emoji);
@@ -174,7 +186,6 @@ const ChatInput = ({
       return;
     }
     if (audioBlob) {
-      onSendVoice(audioBlob);
       setAudioBlob(null);
       setAudioUrl(null);
     }
@@ -193,9 +204,7 @@ const ChatInput = ({
     }
     if (previewFile) {
       if (previewFile.type.startsWith("image/")) {
-        onSendImage(previewFile, previewCaption);
       } else {
-        onSendDoc(previewFile, previewCaption);
       }
       setPreviewFile(null);
       setPreviewCaption("");
@@ -288,7 +297,7 @@ const ChatInput = ({
         <input
           type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
+          onChange={(e) => handleTyping(e)}
           placeholder="Type a message"
           className="text-input"
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
@@ -442,10 +451,8 @@ const ChatInput = ({
           </div>
         </Modal>
       )}
-     
+
       {/* <ToastContainer /> */}
     </div>
   );
-};
-
-export default ChatInput;
+}

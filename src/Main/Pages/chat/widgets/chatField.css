@@ -1,0 +1,39 @@
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 15px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  background-color: gray;
+  border-radius: 50%;
+  animation: wave 1.5s infinite ease-in-out;
+}
+
+.dot:nth-child(1) {
+  animation-delay: 0s;
+}
+.dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes wave {
+  0% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-5px); /* Move up like a wave */
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.3;
+  }
+}

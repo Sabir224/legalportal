@@ -20,6 +20,7 @@ import Chat from "./Pages/chat/Chat";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
+import ChatBody from "./Pages/NewMessanger/Component/chatBody/ChatBody";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const Dashboard = () => {
     } else if (screen === 2) {
       setCurrentScreen(<LawyerProfile />);
     } else if (screen === 3) {
-      setCurrentScreen(<ChatVat />);
+      setCurrentScreen(<Chat />);
     }
     if (screen === 4) {
       setCurrentScreen(<UserProfile />);

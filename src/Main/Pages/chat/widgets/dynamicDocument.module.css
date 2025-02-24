@@ -10,7 +10,6 @@
 }
 
 .chat-message-right {
- 
   flex-direction: row-reverse;
 }
 
@@ -114,8 +113,7 @@
   right: 5px;
   font-size: 0.8em;
   color: black;
- 
+
   padding: 2px 5px;
   border-radius: 3px;
 }
-

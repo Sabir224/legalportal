@@ -33,9 +33,7 @@ function ChatVat() {
     }
   }, [storedEmail]); //Only re-run if storedEmail changes
 
-  useEffect(() => {
-    SocketService.connect(userData._id);
-  }, [userData._id]);
+  useEffect(() => {}, [userData._id]);
 
   return (
     <div className="App">

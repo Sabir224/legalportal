@@ -142,28 +142,28 @@
 
 // export default RenderStatusIcon;
 
+import React, { useState, useRef, useEffect } from "react";
+import { BsCheck2, BsCheck2All, BsClock } from "react-icons/bs";
+import { FaWindowClose, FaExclamationCircle } from "react-icons/fa";
 
-
-
-
-import React, { useState, useRef, useEffect } from 'react';
-import { BsCheck2, BsCheck2All, BsClock } from 'react-icons/bs';
-import { FaWindowClose, FaExclamationCircle } from 'react-icons/fa';
-
-const RenderStatusIcon = ({ status, message, id, type }) => {
+const RenderStatusIcon = ({ status }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
-  const [popupPosition, setPopupPosition] = useState({ top: 0, left: '70%', direction: 'down' });
+  const [popupPosition, setPopupPosition] = useState({
+    top: 0,
+    left: "70%",
+    direction: "down",
+  });
   const iconRef = useRef(null);
   const popupRef = useRef(null);
 
   const blockScroll = () => {
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
   };
 
   const unblockScroll = () => {
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
+    document.body.style.overflow = "auto";
+    document.documentElement.style.overflow = "auto";
   };
 
   const handleIconClick = () => {
@@ -175,7 +175,7 @@ const RenderStatusIcon = ({ status, message, id, type }) => {
       setPopupPosition({
         top: isAboveMid ? rect.bottom : rect.top - 120,
         left: rect.left,
-        direction: isAboveMid ? 'down' : 'up',
+        direction: isAboveMid ? "down" : "up",
       });
     }
     blockScroll();
@@ -195,50 +195,80 @@ const RenderStatusIcon = ({ status, message, id, type }) => {
     };
 
     if (isPopupVisible) {
-      document.addEventListener('mousedown', handleClickOutside);
-      window.addEventListener('scroll', handleScroll, { passive: true });
+      document.addEventListener("mousedown", handleClickOutside);
+      window.addEventListener("scroll", handleScroll, { passive: true });
     } else {
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     }
 
     return () => {
       unblockScroll();
-      document.removeEventListener('mousedown', handleClickOutside);
-      window.removeEventListener('scroll', handleScroll);
+      document.removeEventListener("mousedown", handleClickOutside);
+      window.removeEventListener("scroll", handleScroll);
     };
   }, [isPopupVisible]);
 
   const handleClickOutside = (event) => {
-    if (popupRef.current && !popupRef.current.contains(event.target) && !iconRef.current.contains(event.target)) {
+    if (
+      popupRef.current &&
+      !popupRef.current.contains(event.target) &&
+      !iconRef.current.contains(event.target)
+    ) {
       handleClosePopup();
     }
   };
 
-  const handleResendMessage = () => {
-    console.log(`Resending ${type} message with ID: ${id} and Text: ${message}`);
-    setTimeout(() => {
-      alert(`Message of type "${type}" resent successfully!`);
-      handleClosePopup();
-    });
-  };
-
   // Helper function to truncate the message if it has more than 10 words
-  const getTruncatedMessage = () => {
-    const words = message.split(' ');
-    return words.length > 20 ? words.slice(0, 20).join(' ') + '...' : message;
-  };
 
-  const iconStyle = { fontSize: '17px', verticalAlign: 'bottom', cursor: 'pointer' };
+  const iconStyle = {
+    verticalAlign: "bottom",
+    cursor: "pointer",
+    marginBottom: "3px",
+  };
 
   return (
     <div>
-      <div ref={iconRef} onClick={handleIconClick} style={{ display: 'inline-block' }}>
-        {status === 'sent' && <BsCheck2 style={{ ...iconStyle, color: '#A6A6A6' }} title="Sent" />}
-        {status === 'delivered' && <BsCheck2All style={{ ...iconStyle, color: '#A6A6A6' }} title="Delivered" />}
-        {status === 'read' && <BsCheck2All style={{ ...iconStyle, color: '#34B7F1' }} title="Read" />}
-        {status === 'failed' && <FaExclamationCircle style={{ ...iconStyle, color: 'red' }} title="Failed" />}
-        {status === 'pending' && <BsClock style={{ ...iconStyle, color: '#A6A6A6' }} title="Pending" />}
+      <div
+        ref={iconRef}
+        onClick={handleIconClick}
+        style={{ display: "inline-block" }}
+      >
+        {status === "sent" && (
+          <BsCheck2
+            size={11}
+            style={{ ...iconStyle, color: "#A6A6A6" }}
+            title="Sent"
+          />
+        )}
+        {status === "delivered" && (
+          <BsCheck2All
+            size={11}
+            style={{ ...iconStyle, color: "#A6A6A6" }}
+            title="Delivered"
+          />
+        )}
+        {status === "read" && (
+          <BsCheck2All
+            size={12}
+            style={{ ...iconStyle, color: "#34B7F1" }}
+            title="Read"
+          />
+        )}
+        {status === "failed" && (
+          <FaExclamationCircle
+            size={12}
+            style={{ ...iconStyle, color: "red" }}
+            title="Failed"
+          />
+        )}
+        {status === "pending" && (
+          <BsClock
+            size={11}
+            style={{ ...iconStyle, color: "#A6A6A6" }}
+            title="Pending"
+          />
+        )}
       </div>
 
       {/* {isPopupVisible && (
@@ -315,7 +345,6 @@ const RenderStatusIcon = ({ status, message, id, type }) => {
           </div>
         </div>
       )} */}
-
     </div>
   );
 };

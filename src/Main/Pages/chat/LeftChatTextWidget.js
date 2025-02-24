@@ -5,23 +5,9 @@ import RenderStatusIcon from "./widgets/renderMessageStatus";
 import { FaChevronDown, FaChevronUp, FaReply } from "react-icons/fa";
 import { formatTimestamp, splitSenderName } from "../Component/utils/utlis";
 
-export default function LeftChatTextWidget({
-  Name,
-  time,
-  message,
-  botImage,
-  status,
-  id,
-  profilePic,
-  type,
-  blockScroll,
-  unblockScroll,
-  onMessageClick,
-  reply_to,
-  color_code,
-}) {
+export default function LeftChatTextWidget({ message, selectedChat, user }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const date = new Date(time);
+  const date = new Date(message.createdAt);
 
   const timeDate = date.toLocaleTimeString("en-US", {
     hour: "numeric",
@@ -37,7 +23,7 @@ export default function LeftChatTextWidget({
 
   // Handle message click (trigger action in the parent component)
   const handleMessageClick = (action) => {
-    onMessageClick({ id, action, message });
+    // onMessageClick({ id, action, message });
     setIsDropdownOpen(false); // Close the dropdown when replying
   };
 
@@ -63,52 +49,9 @@ export default function LeftChatTextWidget({
   }, []);
 
   return (
-    <div className={`${leftChatStyle["chat-message-left"]} pb-4 d-flex`}>
-      <center>
-        <div className={styles[`avatar-left p2`]}>
-          {profilePic ? (
-            <img
-              alt="User"
-              src={
-                profilePic ||
-                "https://bootdey.com/img/Content/avatar/avatar1.png"
-              }
-              className="rounded-circle"
-              width={30}
-              height={30}
-            />
-          ) : (
-            <div
-              style={{
-                backgroundColor: color_code,
-                textAlign: "center",
-                color: "#FFF",
-                fontSize: "10px",
-                borderRadius: "50px",
-                height: "30px",
-                width: "30px",
-                display: "flex", // Use flexbox for centering
-                alignItems: "center", // Vertically center
-                justifyContent: "center", // Horizontally center
-              }}
-            >
-              {!profilePic && Name && Name.length > 0
-                ? Name.split(" ")
-                    .map((n) => n[0])
-                    .join("")
-                : ""}
-            </div>
-          )}
-          <div className="text-center text-wrap sender-name">
-            {splitSenderName(Name)}
-            <br />
-            {formatTimestamp(time)}
-          </div>
-        </div>
-      </center>
-
+    <div className={`${leftChatStyle["chat-message-left"]} pb-3 d-flex`}>
       <div
-        className="flex-shrink-1 bg-light rounded pt-3 px-2 position-relative"
+        className="flex-shrink-1 bg-light rounded pt-1 px-2  position-relative"
         style={{
           wordBreak: "break-word",
           whiteSpace: "pre-wrap",
@@ -116,40 +59,32 @@ export default function LeftChatTextWidget({
           minWidth: "20%",
           paddingTop: "8px",
           textAlign: "left",
+          marginLeft: "5px",
+          fontSize: "13px",
         }}
       >
         {/* Reply Preview */}
-        {reply_to && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              borderLeft: "4px solid #25D366", // WhatsApp green
-              paddingLeft: "10px",
-              marginBottom: "10px",
-              backgroundColor: "#f9f9f9", // Light background for reply
-              borderRadius: "5px",
-            }}
-          >
-            <span
-              style={{
-                color: "#555", // Subtle text color
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              {reply_to} {/* Only the replied message */}
-            </span>
-          </div>
-        )}
 
         {/* Main Message */}
         <div
+          className=""
           style={{ cursor: "pointer" }}
           onClick={() => handleMessageClick("reply")}
         >
-          {message}
+          <div className={styles[`avatar-left p2`]}>
+            <img
+              alt="User"
+              src={
+                message.sender.ProfilePicture
+                  ? message.sender.ProfilePicture
+                  : "https://bootdey.com/img/Content/avatar/avatar1.png"
+              }
+              className="rounded-circle"
+              width={20}
+              height={20}
+            />
+          </div>
+          {message.content}
         </div>
 
         {/* Dropdown Toggle */}
@@ -206,11 +141,13 @@ export default function LeftChatTextWidget({
 
         {/* Status Icon */}
         <div
+          className="d-flex p-0 m-0 gap-1 justify-content-end text-secondary"
           style={{
-            marginBottom: "10px",
-            marginLeft: "90%",
+            fontSize: "10px",
           }}
-        ></div>
+        >
+          <p className="p-0 m-0">{formatTimestamp(message.createdAt)}</p>
+        </div>
       </div>
     </div>
   );
