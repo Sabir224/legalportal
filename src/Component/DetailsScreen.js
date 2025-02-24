@@ -1,684 +1,877 @@
-import React, { useState } from "react";
+// import React, { useEffect, useState } from "react";
+// import "react-calendar/dist/Calendar.css";
+// import DatePicker from "react-datepicker";
+// import "react-datepicker/dist/react-datepicker.css";
 
-const data = {
+// const DetailsScreen = () => {
+//   const [currentDate, setCurrentDate] = useState(new Date());
+//   const [selectedDate, setSelectedDate] = useState(null);
+//   const [selectedTime, setSelectedTime] = useState(null);
+//   const [appointmentDetails, setAppointmentDetails] = useState({ availableSlots: [] });
+//   const [newTime, setNewTime] = useState(null);
 
-  "_id": "67a2117fa70023929b4c23b9",
-  "FKCaseId": "678cda1990e050e0b9020cbb",
-  "Parties": [
-    {
-      "heading": "Party Heading Example",
-      "Parties_header": [
-        {
-          "PartyNumber": "12345",
-          "PartyName": "John Doe",
-          "TitleInCase": "Plaintiff",
-          "TitleAfterJudgment": "Winner",
-          "_id": "67a2117fa70023929b4c23bb"
-        }
-      ],
-      "Parties_body": [
-        {
-          "Legal_Consultants": {
-            "Legal_Consultants_header": [
-              {
-                "Name": "Jane Smith",
-                "Date_of_disconnection": "",
-                "City": "New York",
-                "Address": "123 Main St",
-                "Tel": "123-456-7890",
-                "Fax": "123-456-7891",
-                "Email": "jane@example.com",
-                "_id": "67a2117fa70023929b4c23bd"
-              }
-            ]
-          },
-          "PartyNumber": "12345",
-          "PartyName": "John Doe",
-          "TitleInCase": "Plaintiff",
-          "TitleAfterJudgment": "Winner",
-          "Agents_or_LegalConsultants": "Some Agent",
-          "_id": "67a2117fa70023929b4c23bc"
-        },
-        {
-          "Legal_Consultants": {
-            "Legal_Consultants_header": []
-          },
-          "PartyNumber": "12345",
-          "PartyName": "John Doe",
-          "TitleInCase": "Plaintiff",
-          "TitleAfterJudgment": "Winner",
-          "Agents_or_LegalConsultants": "Some Agent",
-          "_id": "67a2117fa70023929b4c23be"
-        }
-      ],
-      "_id": "67a2117fa70023929b4c23ba"
+//   useEffect(() => {
+//     // Load existing appointments from local storage (optional)
+//     const storedAppointments = JSON.parse(localStorage.getItem("appointments"));
+//     if (storedAppointments) {
+//       setAppointmentDetails(storedAppointments);
+//     }
+//   }, []);
+
+//   useEffect(() => {
+//     // Save updated slots to local storage (optional)
+//     localStorage.setItem("appointments", JSON.stringify(appointmentDetails));
+//   }, [appointmentDetails]);
+
+//   const availableSlotsMap = appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+//     const dateStr = new Date(slot.date).toDateString();
+//     acc[dateStr] = slot.slots;
+//     return acc;
+//   }, {}) || {};
+
+//   const handleDateClick = (date) => {
+//     setSelectedDate(date);
+//     setSelectedTime(null); // Reset time selection when date changes
+//   };
+
+//   const handleTimeSelect = (time) => {
+//     setSelectedTime(time);
+//   };
+
+//   const handleAddTimeSlot = () => {
+//     if (selectedDate && newTime) {
+//       const formattedTime = newTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      
+//       const newSlot = {
+//         date: selectedDate.toDateString(),
+//         slots: [{ startTime: formattedTime, endTime: "", isBooked: false }]
+//       };
+
+//       setAppointmentDetails((prevDetails) => {
+//         const updatedSlots = [...prevDetails.availableSlots];
+//         const existingSlotIndex = updatedSlots.findIndex(slot => slot.date === newSlot.date);
+        
+//         if (existingSlotIndex > -1) {
+//           // Prevent duplicate time slot
+//           const slotExists = updatedSlots[existingSlotIndex].slots.some(slot => slot.startTime === formattedTime);
+//           if (!slotExists) {
+//             updatedSlots[existingSlotIndex].slots.push(newSlot.slots[0]);
+//           }
+//         } else {
+//           updatedSlots.push(newSlot);
+//         }
+        
+//         return { availableSlots: updatedSlots };
+//       });
+
+//       setNewTime(null);
+//     } else {
+//       alert("Please select a date and time");
+//     }
+//   };
+
+//   return (
+//     <div className="container">
+//       <h2>Available Slots</h2>
+//       <div>
+//         <h3>
+//           {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+//         </h3>
+//         <input
+//           type="date"
+//           onChange={(e) => handleDateClick(new Date(e.target.value))}
+//         />
+//       </div>
+
+//       {selectedDate && (
+//         <div>
+//           <h5>Available Times:</h5>
+//           {availableSlotsMap[selectedDate.toDateString()]?.map((slot, index) => (
+//             <button
+//               key={index}
+//               onClick={() => handleTimeSelect(slot.startTime)}
+//               disabled={slot.isBooked}
+//             >
+//               {slot.startTime} {slot.isBooked ? "(Booked)" : ""}
+//             </button>
+//           ))}
+//         </div>
+//       )}
+
+//       {selectedDate && (
+//         <div>
+//           <h5>Add New Slot</h5>
+//           <DatePicker
+//             selected={newTime}
+//             onChange={(time) => setNewTime(time)}
+//             showTimeSelect
+//             showTimeSelectOnly
+//             timeIntervals={30}
+//             timeCaption="Time"
+//             dateFormat="h:mm aa"
+//           />
+//           <button onClick={handleAddTimeSlot}>Add Slot</button>
+//         </div>
+//       )}
+//     </div>
+//   );
+// };
+
+// export default DetailsScreen;
+
+
+
+
+
+
+import React, { useEffect, useRef, useState } from "react";
+import { Modal, Nav, Tab } from "react-bootstrap";
+import { BsPerson, BsStackOverflow } from "react-icons/bs";
+import Contactprofile from "../../../src/pages/components/images/Asset 70mdpi.png";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css"; // Import phone input styles
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+//import { useAuth } from "../Auth/AuthContext"; // Import your authentication context
+import Warning, { ApiEndPoint } from "../components/utils/utlis";
+import loginStyle from "../ContactForm/contact.module.css";
+import defaultProfilePic from "../components/assets/icons/person.png";
+import { MdOutlineAttachEmail } from "react-icons/md";
+import { GrContactInfo } from "react-icons/gr";
+import ExcelUploadPopup from "./dropzonComponent";
+import ExcelUploadPopup2 from "./dropzonComponent2";
+import { FaCamera, FaEdit, FaLock } from "react-icons/fa";
+
+const ContactForm = ({ onClose }) => {
+  // const { login } = useAuth();
+  const [showWarning, setShowWarning] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [username, setUserName] = useState();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+
+  const handleCloseWarning = () => setShowWarning(false);
+  const [profilePicBase64, setProfilePicBase64] = useState(null);
+  const fileInputRef = useRef(null);
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result.split(",")[1];
+        console.log("Base64:", base64String);
+        setProfilePicBase64(base64String);
+      };
+      reader.readAsDataURL(file);
     }
-  ],
-  "Exhibits": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Detailed Description",
-      "Session Date",
-      "Attachment Date",
-      "Party Name",
-      "Attachment"
-    ],
-    "body": [
-      {
-        "Party_Name": {
-          "submitter": {
-            "PartyName": "بوشبيش اوميش شارما اوميش تشوكيدوت شارما",
-            "PartyType": "Summoner",
-            "_id": "67a2117fa70023929b4c23c1"
-          }
-        },
-        "Detailed_Description": "34538 / 2025",
-        "Session_Date": "",
-        "Attachment_Date": "28-01-2025 14:48:52",
-        "Attachment": "Details",
-        "_id": "67a2117fa70023929b4c23c0"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23bf"
-  },
-  "Documents": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Detailed Description",
-      "Session Date",
-      "Attachment Date",
-      "Party Name",
-      "Attachment"
-    ],
-    "body": [
-      {
-        "Party_Name": {
-          "submitter": {
-            "PartyName": "بوشبيش اوميش شارما اوميش تشوكيدوت شارما",
-            "PartyType": "Summoner",
-            "_id": "67a2117fa70023929b4c23c4"
-          }
-        },
-        "Detailed_Description": "34538 / 2025  - صورة عن جواز السفر أو اثبات الهوية",
-        "Session_Date": "",
-        "Attachment_Date": "29-01-2025 02:53:00",
-        "Attachment": "",
-        "_id": "67a2117fa70023929b4c23c3"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23c2"
-  },
-  "Notices": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Notice number",
-      "Notice Type",
-      "Registration date",
-      "Notice Party",
-      "Notice Party Description"
-    ],
-    "body": [
-      {
-        "Notice_number": "N-2025-001",
-        "Notice_Type": "Legal Notice",
-        "Registration_date": "2025-01-30",
-        "Notice_Party": "John Doe",
-        "Notice_Party_Description": "Plaintiff in the case",
-        "_id": "67a2117fa70023929b4c23c6"
-      },
-      {
-        "Notice_number": "N-2025-002",
-        "Notice_Type": "Hearing Notice",
-        "Registration_date": "2025-01-31",
-        "Notice_Party": "Jane Smith",
-        "Notice_Party_Description": "Defendant in the case",
-        "_id": "67a2117fa70023929b4c23c7"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23c5"
-  },
-  "PublishedNotices": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Notice Number",
-      "Insertion Date",
-      "Notice Type",
-      "Journal Name",
-      "Journal Number",
-      "Journal Issue Date"
-    ],
-    "body": [
-      {
-        "Notice_Number": "PN-2025-001",
-        "Insertion_Date": "2025-02-01",
-        "Notice_Type": "Public Announcement",
-        "Journal_Name": "Official Gazette",
-        "Journal_Number": "78",
-        "Journal_Issue_Date": "2025-02-02",
-        "_id": "67a2117fa70023929b4c23c9"
-      },
-      {
-        "Notice_Number": "PN-2025-002",
-        "Insertion_Date": "2025-02-05",
-        "Notice_Type": "Court Order",
-        "Journal_Name": "Legal News",
-        "Journal_Number": "15",
-        "Journal_Issue_Date": "2025-02-06",
-        "_id": "67a2117fa70023929b4c23ca"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23c8"
-  },
-  "Petitions": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Petition Number",
-      "Subject",
-      "Petition Date",
-      "Petition Details",
-      "Applicant"
-    ],
-    "body": [
-      {
-        "Petition_Number": "P-001",
-        "_id": "67a2117fa70023929b4c23cc"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23cb"
-  },
-  "Effsah_Platform_Orders": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Request Number",
-      "Case Number",
-      "Service Name",
-      "Request Date",
-      "Judge Name",
-      "Request Status"
-    ],
-    "body": [
-      {
-        "Request_Number": "R-001",
-        "_id": "67a2117fa70023929b4c23ce"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23cd"
-  },
-  "Experience_Reports": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Decision Number",
-      "Expert Name",
-      "Mission Ascription Date",
-      "Expected Submission Date",
-      "Actual Submission Date"
-    ],
-    "body": [
-      {
-        "Decision_Number": "EXP-001",
-        "_id": "67a2117fa70023929b4c23d0"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23cf"
-  },
-  "Public_Prosecution_Reports": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Petition Number",
-      "Subject",
-      "Petition Date",
-      "Petition Details",
-      "Applicant"
-    ],
-    "body": [
-      {
-        "Petition_Number": "PP-2025-001",
-        "_id": "67a2117fa70023929b4c23d2"
-      },
-      {
-        "Petition_Number": "PP-2025-002",
-        "_id": "67a2117fa70023929b4c23d3"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23d1"
-  },
-  "Social_Researcher_Reports": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Petition Number",
-      "Subject",
-      "Petition Date",
-      "Petition Details",
-      "Applicant"
-    ],
-    "body": [
-      {
-        "Petition_Number": "SR-2025-001",
-        "_id": "67a2117fa70023929b4c23d5"
-      },
-      {
-        "Petition_Number": "SR-2025-002",
-        "_id": "67a2117fa70023929b4c23d6"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23d4"
-  },
-  "Related_Cases": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Case Number",
-      "Claimed Amount",
-      "Registration Date",
-      "Judgment Date",
-      "Case Status",
-      "Total Actual Fees Acquired"
-    ],
-    "body": [
-      {
-        "Case_Number": "RC-2025-001",
-        "_id": "67a2117fa70023929b4c23d8"
-      },
-      {
-        "Case_Number": "RC-2025-002",
-        "_id": "67a2117fa70023929b4c23d9"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23d7"
-  },
-  "Joined_Cases": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Case Number",
-      "Join Type",
-      "Join Date",
-      "Join End Date",
-      "Join Reason",
-      "Details"
-    ],
-    "body": [
-      {
-        "Case_Number": "JC-2025-001",
-        "_id": "67a2117fa70023929b4c23db"
-      },
-      {
-        "Case_Number": "JC-2025-002",
-        "_id": "67a2117fa70023929b4c23dc"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23da"
-  },
-  "Settlements_Legal_Reasoned_Decisions": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Settlement Decision Number",
-      "Settlement Number",
-      "Settlement Date",
-      "Detailed Settlement Type"
-    ],
-    "body": [
-      {
-        "Settlement_Decision_Number": "12345",
-        "Settlement_Number": "67890",
-        "Settlement_Date": "2025-01-15T00:00:00.000Z",
-        "Detailed_Settlement_Type": "Divorce Agreement",
-        "_id": "67a2117fa70023929b4c23de"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23dd"
-  },
-  "Related_Claims_And_SubClaims": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Case Number",
-      "Litigation Stage",
-      "Registration Date",
-      "Verdict Date"
-    ],
-    "body": [
-      {
-        "Case_Number": "56789",
-        "Litigation_Stage": "Appeal",
-        "Registration_Date": "2024-12-01T00:00:00.000Z",
-        "Verdict_Date": "2025-01-10T00:00:00.000Z",
-        "_id": "67a2117fa70023929b4c23e0"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23df"
-  },
-  "Arrest_Orders": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Order Number",
-      "Decision Date",
-      "Applicant Name",
-      "Party Name",
-      "Arrest Reason",
-      "Amount",
-      "Status",
-      "Refrain Date",
-      "Refrainer"
-    ],
-    "body": [
-      {
-        "Order_Number": "A12345",
-        "Decision_Date": "2025-02-01T00:00:00.000Z",
-        "Applicant_Name": "John Doe",
-        "Party_Name": "Jane Smith",
-        "Arrest_Reason": "Non-payment of alimony",
-        "Amount": 5000,
-        "Status": "Pending",
-        "Refrain_Date": null,
-        "Refrainer": "Court Order",
-        "_id": "67a2117fa70023929b4c23e2"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23e1"
-  },
-  "Detentions": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Order Number",
-      "Decision Abstract",
-      "Order Type",
-      "Order Date",
-      "Start Date",
-      "Actual Start Date"
-    ],
-    "body": [
-      {
-        "Order_Number": "D56789",
-        "Decision_Abstract": "Temporary Detention for Investigation",
-        "Order_Type": "Preventive Detention",
-        "Order_Date": "2025-02-10T00:00:00.000Z",
-        "Start_Date": "2025-02-15T00:00:00.000Z",
-        "Actual_Start_Date": "2025-02-16T00:00:00.000Z",
-        "_id": "67a2117fa70023929b4c23e4"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23e3"
-  },
-  "Bans": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Party",
-      "Type",
-      "Ban date",
-      "Current status"
-    ],
-    "body": [
-      {
-        "Party": "Jane Smith",
-        "Type": "Travel Ban",
-        "Ban_Date": "2025-01-20T00:00:00.000Z",
-        "Current_Status": "Active",
-        "_id": "67a2117fa70023929b4c23e6"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23e5"
-  },
-  "Seizures": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Applicant",
-      "Party Name",
-      "Decision Date",
-      "Claimed Amount",
-      "Seizure Status",
-      "Description"
-    ],
-    "body": [
-      {
-        "Applicant": "John Doe",
-        "Party_Name": "Jane Smith",
-        "Decision_Date": "2025-01-25T00:00:00.000Z",
-        "Claimed_Amount": 20000,
-        "Seizure_Status": "Executed",
-        "Description": "Bank account seizure",
-        "_id": "67a2117fa70023929b4c23e8"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23e7"
-  },
-  "Auctions": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Notice Number",
-      "Insertion Date",
-      "Notice Type",
-      "Applicant",
-      "Party",
-      "Notice Party Description"
-    ],
-    "body": [
-      {
-        "Notice_Number": "AU-1001",
-        "Insertion_Date": "2025-02-01",
-        "Notice_Type": "Public Auction",
-        "Applicant": "City Court",
-        "Party": "John Doe",
-        "Notice_Party_Description": "Auction for property liquidation",
-        "_id": "67a2117fa70023929b4c23ea"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23e9"
-  },
-  "Seized_Documents": {
-    "heading": "Seized Documents",
-    "header": [
-      "Document number",
-      "Party name",
-      "Type",
-      "Seizure date",
-      "Status",
-      "Description",
-      "Notes",
-      "Release date"
-    ],
-    "body": [
-      {
-        "Document_Number": "DOC-2025-001",
-        "Party_Name": "Jane Doe",
-        "Type": "Legal",
-        "Seizure_Date": "2025-02-02T00:00:00.000Z",
-        "Status": "Pending Review",
-        "Description": "Confiscated legal documents",
-        "Notes": "Under review by court",
-        "Release_Date": "2025-03-01T00:00:00.000Z",
-        "_id": "67a2117fa70023929b4c23ec"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23eb"
-  },
-  "Case_Letters": {
-    "heading": "Case Letters",
-    "header": [
-      "Letter No.",
-      "Letter Type",
-      "Letter Date",
-      "Addressee Name",
-      "Letter Body Text"
-    ],
-    "body": [
-      {
-        "Letter_No": "CL-2025-001",
-        "Letter_Type": "Summons",
-        "Letter_Date": "2025-02-01T00:00:00.000Z",
-        "Addressee_Name": "John Doe",
-        "Letter_Body_Text": "You are required to appear in court on the given date.",
-        "_id": "67a2117fa70023929b4c23ee"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23ed"
-  },
-  "Mr_Letters": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Letter type",
-      "Letter number",
-      "Letter date",
-      "Authority",
-      "Subject",
-      "Letter"
-    ],
-    "body": [
-      {
-        "Letter_Type": "Official Notice",
-        "Letter_Number": "MRL-2025-002",
-        "Letter_Date": "2025-02-02T00:00:00.000Z",
-        "Authority": "Legal Affairs",
-        "Subject": "Hearing Update",
-        "Letter": "Your case hearing is scheduled for next Monday.",
-        "_id": "67a2117fa70023929b4c23f0"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23ef"
-  },
-  "Payments": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Voucher number",
-      "Date",
-      "Value",
-      "Status",
-      "Countersign",
-      "Beneficiary",
-      "Payment type",
-      "Payment Method",
-      "Details"
-    ],
-    "body": [
-      {
-        "Voucher_Number": "PAY-2025-002",
-        "Date": "2025-02-03T00:00:00.000Z",
-        "Value": 2500,
-        "Status": "Processed",
-        "Countersign": "Treasury Dept.",
-        "Beneficiary": "Jane Smith",
-        "Payment_Type": "Compensation",
-        "Payment_Method": "Bank Transfer",
-        "Details": "Payment for case settlement.",
-        "_id": "67a2117fa70023929b4c23f2"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23f1"
-  },
-  "Deposit_Vouchers": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Year",
-      "Type",
-      "Amount"
-    ],
-    "body": [
-      {
-        "Year": 2025,
-        "Type": "Court Fees",
-        "Amount": 10000,
-        "_id": "67a2117fa70023929b4c23f4"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23f3"
-  },
-  "Claims": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Initial Claim Amount",
-      "Current Claim Amount",
-      "Balance Claim Amount",
-      "Claim Details"
-    ],
-    "body": [
-      {
-        "Initial_Claim_Amount": 50000,
-        "Current_Claim_Amount": 48000,
-        "Balance_Claim_Amount": 2000,
-        "Claim_Details": "Pending verification from legal department.",
-        "_id": "67a2117fa70023929b4c23f6"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23f5"
-  },
-  "Related_Case_Reg_Apps": {
-    "heading": "491 / 2025 / 73 Marital matters for non-Muslims",
-    "header": [
-      "Application Number",
-      "First submit Date",
-      "Application Status",
-      "Status Date",
-      "Case Number"
-    ],
-    "body": [
-      {
-        "Application_Number": "RCA-2025-002",
-        "First_Submit_Date": "2025-01-25T00:00:00.000Z",
-        "Application_Status": "Under Review",
-        "Status_Date": "2025-02-02T00:00:00.000Z",
-        "Case_Number": "CASE-2025-003",
-        "_id": "67a2117fa70023929b4c23f8"
-      }
-    ],
-    "_id": "67a2117fa70023929b4c23f7"
-  },
-  "__v": 0
+  };
+  const handleImageClick = () => {
+    fileInputRef.current.click(); // Trigger click on the hidden file input
+  };
 
-};
+  const handleNavigation = async (event) => {
+    event.preventDefault();
 
-const DetailsScreen = () => {
-  const [openSections, setOpenSections] = useState([]);
+    // Email validation regex pattern
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  const sections = Object.keys(data);
+    if (!emailPattern.test(email)) {
+      setErrorMessage("Please enter a valid email address.");
+      return;
+    }
 
-  const toggleSection = (section) => {
-    setOpenSections((prev) =>
-      prev.includes(section)
-        ? prev.filter((s) => s !== section)
-        : [...prev, section]
-    );
+    try {
+      const requestData = {
+        username: username,
+        email: email,
+        phoneNumber: phoneNumber,
+      };
+
+      if (profilePicBase64) {
+        requestData.profilePicBase64 = profilePicBase64;
+      }
+
+      const response = await axios.post(
+        `${ApiEndPoint}/addClient`,
+        requestData
+      );
+
+      if (response.status === 200) {
+        //alert("Contact Added successfully");
+        // Handle success scenario
+        onClose();
+      }
+    } catch (error) {
+      console.error("Error:", error.response.status);
+      if (error.response.status === 409) {
+        setErrorMessage("Contact Already Exists");
+        setShowWarning(true); // Show warning modal for user already exists
+      } else {
+        setErrorMessage("An error occurred. Please try again later.");
+        setShowWarning(true); // Show warning modal for other errors
+      }
+    }
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">Case Details</h1>
-      <div className="space-y-2">
-        {sections.map((section) => (
-          <button
-            key={section}
-            onClick={() => toggleSection(section)}
-            className="w-full bg-blue-500 text-white p-2 rounded-lg"
-          >
-            {section}
-          </button>
-        ))}
-      </div>
-
-      {openSections.map((section) => (
-        <div key={section} className="mt-4 p-4 border rounded-lg bg-gray-100">
-          <h2 className="text-xl font-semibold">{section}</h2>
-          <Details section={section} data={data[section]} />
+    <div>
+      <form className="Theme3">
+        <div className="mb-2 text-center avatar-container">
+          <label htmlFor="profilePicInput">
+            <img
+              src={
+                profilePicBase64
+                  ? `data:image/jpeg;base64,${profilePicBase64}`
+                  : defaultProfilePic
+              }
+              alt="Profile"
+              style={{
+                maxWidth: "80px",
+                maxHeight: "80px",
+                minWidth: "50px",
+                minHeight: "50px",
+                borderRadius: "50%",
+                border: "1px solid #18273e",
+                boxShadow: "#18273e 0px 2px 5px",
+              }}
+              className="avatar-img"
+              onClick={() => document.getElementById("profilePicInput").click()}
+            />
+          </label>
+          <input
+            type="file"
+            accept="image/*"
+            id="profilePicInput"
+            onChange={handleFileInputChange}
+            style={{ display: "none" }}
+          />
         </div>
-      ))}
+
+        <div className="text-start d-flex flex-column gap-3">
+          {/* Name Field */}
+          <div>
+            <label className="form-label font-weight-bold">
+              <p
+                className="ml-3 fw-bold"
+                style={{ marginLeft: "3px", fontSize: "1.05rem" }}
+              >
+                Name
+              </p>
+            </label>
+            <div
+              className="input-group bg-soft-light rounded-2"
+              style={{ marginTop: -8 }}
+            >
+              <span className="input-group-text">
+                <BsPerson />
+              </span>
+              <input
+                className={
+                  loginStyle["form-control-1"] + " form-control-md form-control"
+                }
+                value={username}
+                onChange={(e) => setUserName(e.target.value)}
+                id="Name"
+                name="username"
+                placeholder="Enter Name"
+                type="text"
+                title="Please Enter Client Name"
+                onFocus={(e) => (e.target.style.borderColor = "#18273e")}
+                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Email Field */}
+          <div className="text-start">
+            <label className="form-label font-weight-bold">
+              <p
+                className="fw-bold"
+                style={{ marginLeft: "3px", fontSize: "1.05rem" }}
+              >
+                Email
+              </p>
+            </label>
+            <div
+              className="input-group bg-soft-light rounded-2"
+              style={{ marginTop: -8 }}
+            >
+              <span className="input-group-text">
+                <MdOutlineAttachEmail />
+              </span>
+              <input
+                className={
+                  loginStyle["form-control-1"] + " form-control-md form-control"
+                }
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                id="Email"
+                name="email"
+                placeholder="Enter Email"
+                type="email"
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                title="Enter a valid email address"
+                onFocus={(e) => (e.target.style.borderColor = "#18273e")}
+                onBlur={(e) => (e.target.style.borderColor = "#ccc")}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Phone Number Field */}
+          <div className="text-start">
+            <label className="form-label" style={{ marginBottom: "-0.6rem" }}>
+              <p
+                className="fw-bold"
+                style={{ marginLeft: "3px", fontSize: "1.05rem" }}
+              >
+                WhatsApp Number
+              </p>
+            </label>
+            <div>
+              <PhoneInput
+                containerClass="form-control-md mb-1"
+                inputProps={{
+                  name: "phone",
+                  required: true,
+                  autoFocus: true,
+                  onFocus: (e) => (e.target.style.borderColor = "#18273e"),
+                  onBlur: (e) => (e.target.style.borderColor = "#ccc"),
+                }}
+                containerStyle={{
+                  borderRadius: "10px",
+                }}
+                enableSearch={true}
+                searchStyle={{
+                  width: "100%",
+                }}
+                disableSearchIcon={true}
+                inputStyle={{
+                  width: "100%",
+                  border: "1px solid",
+                  boxShadow: "none",
+                  height: "37px",
+                }}
+                buttonStyle={{}}
+                country={"ae"} // Set default country to UAE
+                value={phoneNumber}
+                onChange={(phone) => setPhoneNumber(phone)}
+              />
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="button-container d-flex justify-content-center">
+            {showWarning && (
+              <p
+                style={{ marginTop: -25 }}
+                className="text-danger fs-6 mt-0.1rem"
+              >
+                {errorMessage}
+              </p>
+            )}
+            <button
+              className={loginStyle["btn-color"] + " btn text-light"}
+              type="submit"
+              style={{
+                backgroundColor: "#18273e",
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "#18273e";
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "#d3b386";
+              }}
+              onClick={handleNavigation}
+            >
+              Add Contact
+            </button>
+          </div>
+        </div>
+      </form>
     </div>
   );
 };
 
-const Details = ({ section, data }) => {
-  if (Array.isArray(data)) {
-    return (
-      <ul className="list-disc pl-5">
-        {data.map((item, index) => (
-          <li key={index} className="mb-2">
-            {JSON.stringify(item, null, 2)}
-          </li>
-        ))}
-      </ul>
-    );
-  } else if (typeof data === "object") {
-    return (
-      <pre className="bg-white p-2 rounded-lg">{JSON.stringify(data, null, 2)}</pre>
-    );
-  } else {
-    return <p>No details available.</p>;
-  }
+export const UpdateForm = ({ user }) => {
+  const [showWarning, setShowWarning] = useState(false);
+  const [show, setShow] = useState(false);
+  const [username, setUserName] = useState(user.name);
+  const [phoneNumber, setPhoneNumber] = useState(user.phone);
+  const [email, setEmail] = useState(user.email);
+  const [pic, setPic] = useState(user.profilepic);
+  const [color_code, setcolor_code] = useState(user.color_code);
+  const handleCloseWarning = () => setShowWarning(false);
+  const [profilePicBase64, setProfilePicBase64] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const handleFileInputChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64StringWithMimeType = reader.result; // Includes MIME type and base64 string
+        setProfilePicBase64(base64StringWithMimeType);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  useEffect(() => {
+    setUserName(user.name);
+    setPhoneNumber(user.phone);
+    setEmail(user.email);
+    setcolor_code(user.color_code);
+    setProfilePicBase64(user.profilepic);
+
+    setIsEditing(false);
+    setShow(true);
+  }, [user]);
+  const handleSave = async () => {
+    await axios
+      .put(`${ApiEndPoint}/updateUser/${user.id}`, {
+        name: username,
+        email: email,
+        phone: phoneNumber,
+        color_code: color_code,
+        profilePic: profilePicBase64,
+      })
+      .then((response) => {
+        console.log(response.data.message); // Log success message from the backend
+        if (response.status === 200) {
+          setShow(false);
+          setProfilePicBase64(null);
+        }
+      })
+      .catch((error) => {
+        console.error(error); // Log any errors
+      });
+  };
+  const handleDelete = async () => {
+    await axios
+      .delete(`${ApiEndPoint}/deleteuser/${user.id}/${user.phone}`)
+
+      .then((response) => {
+        console.log(response.data.message); // Log success message from the backend
+        if (response.status === 200) {
+          setShow(null);
+          setProfilePicBase64(null);
+        }
+      })
+      .catch((error) => {
+        console.error(error); // Log any errors
+      });
+  };
+  const handleEdit = () => {
+    setIsEditing(!isEditing);
+  };
+  // const handleUpdate = async (event) => {
+  //   event.preventDefault();
+
+  //   // Email validation regex pattern
+  //   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  //   if (!emailPattern.test(email)) {
+  //     setErrorMessage("Please enter a valid email address.");
+  //     return;
+  //   }
+
+  //   try {
+  //     console.log(
+  //       "UserName:",
+  //       username,
+  //       "Email:",
+  //       email,
+  //       "phoneNumber:",
+  //       phoneNumber,
+  //       "image:",
+  //       profilePicBase64
+  //     );
+
+  //     const response = await axios.post(`${ApiEndPoint}/update`, {
+  //       username: username,
+  //       email: email,
+  //       phoneNumber: phoneNumber,
+  //       profilePicBase64: profilePicBase64,
+  //     });
+  //     console.log("USER Data:", response.data);
+  //     if (response.status === 200) {
+  //       console.log("USER success:", response);
+  //       // Handle success scenario
+  //     }
+  //   } catch (error) {
+  //     console.error("Error:", error.response.status);
+  //     if (error.response.status === 409) {
+  //       setErrorMessage("Client already exists.");
+  //       setShowWarning(true); // Show warning modal for user already exists
+  //     } else {
+  //       setErrorMessage("An error occurred. Please try again later.");
+  //       setShowWarning(true); // Show warning modal for other errors
+  //     }
+  //   }
+  // };
+  const containerStyle = {
+    position: "relative",
+    display: "inline-block", // Ensure the container fits around the content
+    width: "100px",
+    height: "100px",
+    marginTop: "20px",
+  };
+
+  const profilePicStyle = {
+    width: "100%",
+    height: "100%",
+    border: "1px solid #d3b386",
+    borderRadius: "50%",
+    boxShadow: "#85929e 0px 2px 5px",
+    backgroundImage: pic
+      ? `url(${profilePicBase64})`
+      : `url(${Contactprofile})`,
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
+    backgroundColor: "#fff", // Fallback background color
+    position: "relative",
+    overflow: "hidden", // Ensure the camera icon stays within the rounded area
+  };
+
+  const cameraOverlayStyle = {
+    display: "none", // Hide the overlay by default
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)", // Center the icon
+    color: "#d3b386", // Color for the icon
+    fontSize: "24px", // Adjust size as needed
+    width: "100%",
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
+    background: "rgba(0, 0, 0, 0.3)", // Optional: Semi-transparent background
+    zIndex: 1,
+  };
+  const handleMouseEnter = (e) => {
+    e.currentTarget.querySelector(".camera-overlay").style.display = "flex";
+  };
+
+  const handleMouseLeave = (e) => {
+    e.currentTarget.querySelector(".camera-overlay").style.display = "none";
+  };
+  const handleProfilePicClick = () => {
+    if (isEditing) {
+      document.getElementById("profilePicInput").click();
+    }
+  };
+  return (
+    <center style={{ width: "100%", height: "100%", position: "relative" }}>
+      {/* Close Button at the Top Level */}
+      {show && (
+        <button
+          title="Close"
+          onClick={() => setShow(false)}
+          style={{
+            position: "absolute",
+            top: "0px",
+            right: "10px",
+            background: "transparent",
+            border: "none",
+            fontSize: "1.5rem",
+            cursor: "pointer",
+            color: "#d3b386",
+          }}
+        >
+          &times;
+        </button>
+      )}
+
+      {show ? (
+        <div style={{ width: "50%", position: "relative" }}>
+          {/* Profile Picture */}
+          <div style={containerStyle}>
+            <div
+              className="profile-pic"
+              style={profilePicStyle}
+              onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}
+              onClick={handleProfilePicClick} // Trigger file input click
+            >
+              <div className="camera-overlay" style={cameraOverlayStyle}>
+                <FaCamera />
+              </div>
+            </div>
+
+            <input
+              type="file"
+              accept="image/*"
+              id="profilePicInput"
+              onChange={handleFileInputChange}
+              style={{ display: "none" }}
+            />
+          </div>
+          {/* Edit Icon */}
+          <div>
+            {isEditing ? (
+              <FaLock
+                onClick={handleEdit}
+                style={{
+                  cursor: "pointer",
+                  marginTop: "10px",
+                  color: "#d3b386",
+                }}
+              />
+            ) : (
+              <FaEdit
+                onClick={handleEdit}
+                style={{
+                  cursor: "pointer",
+                  marginTop: "10px",
+                  color: "#d3b386",
+                }}
+              />
+            )}
+          </div>
+
+          {/* Form Fields */}
+          <div className="text-start d-flex flex-column gap-3">
+            {/* Name Field */}
+            <div>
+              <label
+                className="form-label fw-bold"
+                style={{
+                  marginBottom: "10px",
+                  fontSize: "1rem",
+                  marginLeft: "3px",
+                }}
+              >
+                Name
+              </label>
+              <div
+                className="input-group bg-soft-light rounded-2"
+                style={{ marginTop: "-10px" }}
+              >
+                <span className="input-group-text">
+                  <BsPerson />
+                </span>
+                <input
+                  style={{
+                    borderColor: "#18273e", // Green border for unfocused state
+                    boxShadow: "none", // Remove default Bootstrap shadow on focus
+                  }}
+                  className="form-control-md form-control"
+                  value={username}
+                  onChange={(e) => setUserName(e.target.value)}
+                  id="Name"
+                  name="username"
+                  placeholder="Enter Name"
+                  type="text"
+                  title="Please Enter Client Name"
+                  required
+                  readOnly={!isEditing}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Email Field */}
+            <div>
+              <label
+                className="form-label fw-bold"
+                style={{
+                  marginBottom: "10px",
+                  fontSize: "1rem",
+                  marginLeft: "3px",
+                }}
+              >
+                Email
+              </label>
+              <div
+                className="input-group bg-soft-light rounded-2"
+                style={{ marginTop: "-10px" }}
+              >
+                <span className="input-group-text">
+                  <MdOutlineAttachEmail />
+                </span>
+                <input
+                  className="form-control-md form-control"
+                  value={email || ""}
+                  onChange={(e) => setEmail(e.target.value)}
+                  id="Email"
+                  name="email"
+                  placeholder="Enter Email"
+                  type="email"
+                  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                  title="Enter a valid email address"
+                  readOnly={!isEditing}
+                  style={{
+                    borderColor: "#18273e", // Green border for unfocused state
+                    boxShadow: "none", // Remove default Bootstrap shadow on focus
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* WhatsApp Number Field */}
+            <div>
+              <label
+                className="form-label fw-bold"
+                style={{
+                  marginBottom: "-10px",
+                  fontSize: "1rem",
+                  marginLeft: "3px",
+                }}
+              >
+                WhatsApp Number
+              </label>
+              <div>
+                <PhoneInput
+                  containerClass="form-control-md"
+                  inputProps={{
+                    name: "phone",
+                    onBlur: (e) => {
+                      e.target.style.borderColor = "#18273e";
+                      e.target.style.boxShadow = "none";
+                    },
+                    onFocus: (e) => {
+                      e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                    },
+                  }}
+                  containerStyle={{
+                    borderRadius: "10px",
+                  }}
+                  disableSearchIcon={true}
+                  inputStyle={{
+                    width: "100%",
+                    border: "1px solid #18273e",
+                    boxShadow: "none",
+                    height: "37px",
+                  }}
+                  country={"ae"}
+                  value={phoneNumber}
+                  onChange={(value) => setPhoneNumber(value)}
+                  disabled={!isEditing} // Toggle editability based on isEditing state
+                />
+              </div>
+            </div>
+
+            {/* Buttons */}
+            {isEditing && (
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  marginTop: "10px",
+                }}
+              >
+                <button
+                  onClick={handleSave}
+                  style={{
+                    width: "48%",
+                    color: "white",
+                    background: "#18273e",
+                    height: "40px",
+                    border: "none",
+                    borderRadius: "6px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Update
+                </button>
+                <button
+                  onClick={handleDelete}
+                  style={{
+                    width: "48%",
+                    color: "white",
+                    background: "#d3b386",
+                    height: "40px",
+                    border: "none",
+                    borderRadius: "10px",
+                    fontWeight: 500,
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="gap-3 text-center d-flex flex-column justify-content-center align-items-center h-100 w-100">
+          <GrContactInfo className="fs-1" />
+          <div>
+            <h4>Contact Detail</h4>
+            <p>Click any contact to view details</p>
+          </div>
+        </div>
+      )}
+    </center>
+  );
 };
 
-export default DetailsScreen;
+// Assuming ContactForm is in the same directory
+
+const ContactFormModal = ({ isOpen, onClose }) => {
+  const [activeTab, setActiveTab] = useState("contact");
+  const [showContactModal, setshowContactModal] = useState(false);
+  const [group, setGroup] = useState(false);
+  const closeContactModal = () => {
+    setshowContactModal(false);
+  };
+  const closeContactModal5 = () => {
+    setGroup(false);
+  };
+  return (
+    <Modal show={isOpen} onHide={onClose} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>
+          {activeTab === "contact" && "Add Contact"}
+          {activeTab === "conatctsUpload" && "Upload Contacts"}
+          {activeTab === "createbroadcast" && "Create Broadcast"}
+        </Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <Tab.Container activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+          <Nav variant="tabs" className="mb-2">
+            <Nav.Item>
+              <Nav.Link eventKey="contact">Add Contact</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="conatctsUpload">Upload Contacts</Nav.Link>
+            </Nav.Item>
+            <Nav.Item>
+              <Nav.Link eventKey="createbroadcast">Create Broadcast</Nav.Link>
+            </Nav.Item>
+          </Nav>
+
+          <Tab.Content>
+            <Tab.Pane eventKey="contact">
+              <ContactForm onClose={onClose} />
+            </Tab.Pane>
+            <Tab.Pane eventKey="conatctsUpload">
+              {/* conatctsUpload*/}
+              <ExcelUploadPopup />
+            </Tab.Pane>
+            <Tab.Pane eventKey="createbroadcast">
+              {/* createbroadcast */}
+              <ExcelUploadPopup2 />
+            </Tab.Pane>
+          </Tab.Content>
+        </Tab.Container>
+      </Modal.Body>
+    </Modal>
+  );
+};
+
+export default ContactFormModal;
+
+export { ContactForm };

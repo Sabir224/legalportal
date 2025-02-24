@@ -21,6 +21,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 import ChatBody from "./Pages/NewMessanger/Component/chatBody/ChatBody";
+import ClientAppointment from "./Pages/ClientAppointment";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -35,11 +36,13 @@ const Dashboard = () => {
     } else if (screen === 1) {
       setCurrentScreen(<Case_details />);
     } else if (screen === 2) {
-      setCurrentScreen(<LawyerProfile />);
+      setCurrentScreen(<ClientAppointment />);
     } else if (screen === 3) {
       setCurrentScreen(<Chat />);
-    }
-    if (screen === 4) {
+      setCurrentScreen(<ChatVat />);
+    } else if (screen === 5) {
+      setCurrentScreen(<LawyerProfile />);
+    } else if (screen === 4) {
       setCurrentScreen(<UserProfile />);
     }
   }, [screen]);
@@ -170,7 +173,14 @@ const Dashboard = () => {
         >
           <h2 className="m-0">Case</h2>
           <div id="notification-profile">
-            <button className="btn me-2">🔔</button>
+            <button
+              className="btn me-2"
+              onClick={() => {
+                handlescreen2(5);
+              }}
+            >
+              🔔
+            </button>
             <button
               className="btn"
               onClick={() => {

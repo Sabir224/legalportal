@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BsPerson, BsLock } from "react-icons/bs";
-import Logo from "../Pages/Images/group.png";
-import ilustration from "../Pages/Images/CHAT.png";
+import Logo from "../Pages/Images/logo.png";
+import ilustration from "../Pages/Images/as.png";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
@@ -43,6 +43,7 @@ const SignIn = () => {
       //      localStorage.setItem("token", data.token);
       alert("Login successful!");
       sessionStorage.setItem("Email", data.user.Email);
+      sessionStorage.setItem("User", data.user);
       // Redirect or update UI after login
       navigate("/Dashboards", {
         replace: true,
