@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Dashboard.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -22,6 +22,11 @@ import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 import ChatBody from "./Pages/NewMessanger/Component/chatBody/ChatBody";
 import ClientAppointment from "./Pages/ClientAppointment";
+import { BsChevronRight } from "react-icons/bs";
+import UserListWidget from "./Pages/chat/widgets/UserListWidget";
+import SocketService from "../SocketService";
+import axios from "axios";
+import { ApiEndPoint } from "./Pages/Component/utils/utlis";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -29,7 +34,13 @@ const Dashboard = () => {
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const dispatch = useDispatch();
-
+  const [isSheetOpen, setSheetOpen] = useState(false);
+  const sheetRef = useRef(null);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const storedEmail = sessionStorage.getItem("Email");
+  const [loading, setLoading] = useState(true);
+  const hasFetched = useRef(false); // Ref to track if data has been fetched
   useEffect(() => {
     if (screen === 0) {
       setCurrentScreen(<BasicCase />);
@@ -39,13 +50,61 @@ const Dashboard = () => {
       setCurrentScreen(<ClientAppointment />);
     } else if (screen === 3) {
       setCurrentScreen(<Chat />);
-      setCurrentScreen(<ChatVat />);
     } else if (screen === 5) {
       setCurrentScreen(<LawyerProfile />);
     } else if (screen === 4) {
       setCurrentScreen(<UserProfile />);
     }
   }, [screen]);
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isSheetOpen &&
+        sheetRef.current &&
+        !sheetRef.current.contains(event.target)
+      ) {
+        setSheetOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isSheetOpen]);
+  useEffect(() => {
+    if (storedEmail && !hasFetched.current) {
+      const fetchClientDetails = async () => {
+        try {
+          setLoading(true);
+          const response = await axios.get(
+            `${ApiEndPoint}/getUserDetail/${storedEmail}`
+          );
+          setUserData(response.data);
+
+          // ✅ Check if socket is already connected before reconnecting
+          if (!SocketService.socket?.connected) {
+            console.log("🔌 Connecting to socket...");
+            SocketService.connect(response.data._id);
+          } else {
+            console.log("⚡ Socket already connected");
+          }
+        } catch (err) {
+          console.error("Error fetching client details:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchClientDetails();
+      hasFetched.current = true;
+    }
+
+    return () => {
+      if (SocketService.socket?.connected) {
+        console.log("🛑 Disconnecting socket...");
+        SocketService.socket.disconnect();
+      }
+    };
+  }, [storedEmail]);
 
   const data = [
     { status: "Active", name: "ABC", number: "1234" },
@@ -171,7 +230,25 @@ const Dashboard = () => {
             color: "white",
           }}
         >
-          <h2 className="m-0">Case</h2>
+          <div className="d-flex align-items-center justify-content-between p-3 position-relative">
+            {/* Case Title */}
+            <h3 className="m-0">
+              {screen === 3
+                ? "Chat"
+                : screen === 0
+                ? "Master List"
+                : screen === 1
+                ? "Case Details"
+                : screen === 2
+                ? "Appoointmen"
+                : screen === 4
+                ? "Profile"
+                : screen === 5
+                ? "Profile"
+                : ""}
+            </h3>
+          </div>
+
           <div id="notification-profile">
             <button
               className="btn me-2"

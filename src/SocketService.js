@@ -45,12 +45,12 @@ const connect = (userId) => {
 
   console.log("Received userId:", userId);
 
-  // Ensure the socket is not already connected
   if (!socket.connected) {
     socket.connect();
 
     socket.on("connect", () => {
       console.log("✅ Socket connected successfully.");
+      socket.emit("connectUser", { userId });
     });
 
     socket.on("disconnect", () => {
@@ -60,6 +60,8 @@ const connect = (userId) => {
     socket.on("connect_error", (err) => {
       console.error("❌ Connection Error:", err);
     });
+  } else {
+    socket.emit("connectUser", { userId });
   }
 };
 
@@ -136,12 +138,16 @@ const markAsRead = (chatId, userId) => {
   if (socket.connected) {
     console.log("markAsRead", chatId, userId);
     socket.emit("markAsRead", { chatId, userId });
+  } else {
+    console.log("markAsRead: Not connected yet ");
   }
 };
 const markAsDelivered = (userId) => {
   if (socket.connected) {
     console.log("markAsDelivered", userId);
     socket.emit("markAsDelivered", { userId });
+  } else {
+    console.log("markAsDelivered: Not connected yet ");
   }
 };
 const onMessageRead = (callback) => {
@@ -149,8 +155,21 @@ const onMessageRead = (callback) => {
   socket.on("messagesRead", callback);
 };
 const onMessageDelivered = (callback) => {
-  socket.off("messagesDelivered"); // Remove previous listener
-  socket.on("messagesDelivered", callback);
+  if (!socket) {
+    console.warn("⚠ Socket is not connected yet!");
+    return;
+  }
+
+  console.log("🎧 Listening for 'messagesDelivered' event...");
+
+  // ✅ Remove previous listener before adding a new one
+  socket.off("messagesDelivered");
+  socket.on("messagesDelivered", (data) => {
+    console.log("📨 Received messagesDelivered event:", data);
+    if (typeof callback === "function") {
+      callback(data);
+    }
+  });
 };
 // Export functions
 export default {

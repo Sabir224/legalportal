@@ -302,3 +302,27 @@ body {
     padding: 10px;
   }
 } */
+/* Dropdown-style sheet */
+.dropdown-sheet {
+  position: absolute;
+  top: 30px; /* Adjust distance below the icon */
+
+  left: 0;
+  background: white;
+  width: 250px;
+  padding: 15px;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1002;
+}
+
+/* Close button */
+.close-btn {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+}

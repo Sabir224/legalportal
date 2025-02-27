@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import rightChatstyle from "./Chat.module.css";
 import styles from "./widgets/dynamicDocument.module.css";
 import RenderStatusIcon from "./widgets/renderMessageStatus";
-
+import "../../../style/PortalTheme.css";
 import { FaChevronDown, FaChevronUp, FaReply } from "react-icons/fa";
 import { formatTimestamp, splitSenderName } from "../Component/utils/utlis";
 
@@ -56,11 +56,11 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
   }, []);
 
   return (
-    <div className={`${rightChatstyle["chat-message-right"]} pb-4 d-flex`}>
+    <div className={`${rightChatstyle["chat-message-right"]} pb-1 d-flex`}>
       <center></center>
 
       <div
-        className="flex-shrink-1 bg-light rounded  px-2 position-relative"
+        className="flex-shrink-1  rounded  px-2 position-relative main-color simple-text"
         style={{
           wordBreak: "break-word",
           whiteSpace: "pre-wrap",
@@ -78,7 +78,7 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
           style={{ cursor: "pointer" }}
           onClick={() => handleMessageClick("reply")}
         >
-          <div className={styles[`avatar-right d-flex`]}>
+          {/* <div className={styles[`avatar-right d-flex`]}>
             <img
               alt="Admin"
               src={
@@ -96,7 +96,7 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
             >
               You
             </div>
-          </div>
+          </div> */}
           <div
             className=""
             style={{
@@ -109,23 +109,6 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
         </div>
 
         {/* Dropdown Toggle */}
-        <div
-          id="dropdown-button" // Add an id to the dropdown button
-          style={{
-            position: "absolute",
-            left: "-30px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "pointer",
-          }}
-          onClick={toggleDropdown} // Pass event to toggleDropdown
-        >
-          {isDropdownOpen ? (
-            <FaChevronUp size={10} />
-          ) : (
-            <FaChevronDown size={10} />
-          )}
-        </div>
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (

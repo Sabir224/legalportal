@@ -32,31 +32,32 @@ export default function Chat() {
     if (storedEmail && !hasFetched.current) {
       const fetchClientDetails = async () => {
         try {
+          setLoading(true);
           const response = await axios.get(
             `${ApiEndPoint}/getUserDetail/${storedEmail}`
           );
-          console.log("Fetched UserData:", response.data);
           setUserData(response.data);
-          // if (response.data?._id) {
-          //   SocketService.markAsDelivered(response.data._id);
-          // }
         } catch (err) {
           console.error("Error fetching client details:", err);
         } finally {
-          setLoading(false); // Stop loading once the fetch is done
+          setLoading(false);
         }
       };
 
       fetchClientDetails();
-
       hasFetched.current = true;
     }
+
+    return () => {
+      if (SocketService.socket?.connected) {
+        console.log("🛑 Disconnecting socket...");
+        SocketService.socket.disconnect();
+      }
+    };
   }, [storedEmail]);
-  useEffect(() => {
-    if (userData?._id) {
-      SocketService.markAsDelivered(userData._id);
-    }
-  }, [userData]);
+
+  // ✅ Depend only on userData._id to avoid unnecessary re-renders
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -255,7 +256,7 @@ export default function Chat() {
     >
       {/* Sidebar - User List */}
       <div
-        className="border-end d-block justify-content-center cursor-pointer p-1 user-list"
+        className="border-end d-block  justify-content-center cursor-pointer p-1 user-list"
         style={{
           width: isCompact ? "60px" : "20%", // Shrink to 80px when compact
           minWidth: isCompact ? "60px" : "auto",
@@ -267,7 +268,7 @@ export default function Chat() {
           transition: "width 0.3s ease-in-out", // Smooth transition
         }}
       >
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between  align-items-center">
           <input
             type="search"
             className="form-control p-2 my-1 rounded"

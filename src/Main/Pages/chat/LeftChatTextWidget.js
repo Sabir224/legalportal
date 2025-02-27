@@ -49,7 +49,7 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
   }, []);
 
   return (
-    <div className={`${leftChatStyle["chat-message-left"]} pb-3 d-flex`}>
+    <div className={`${leftChatStyle["chat-message-left"]} pb-1 d-flex`}>
       <div
         className="flex-shrink-1 bg-light rounded pt-1 px-2  position-relative"
         style={{
@@ -71,7 +71,7 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
           style={{ cursor: "pointer" }}
           onClick={() => handleMessageClick("reply")}
         >
-          <div className={styles[`avatar-left p2`]}>
+          {/* <div className={styles[`avatar-left p2`]}>
             <img
               alt="User"
               src={
@@ -83,28 +83,11 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
               width={20}
               height={20}
             />
-          </div>
+          </div> */}
           {message.content}
         </div>
 
         {/* Dropdown Toggle */}
-        <div
-          id="dropdown-button-left" // Add an id to the dropdown button for easy target reference
-          style={{
-            position: "absolute",
-            right: "-30px", // Position for left chat
-            top: "50%",
-            transform: "translateY(-50%)",
-            cursor: "pointer",
-          }}
-          onClick={toggleDropdown} // Pass event to toggleDropdown
-        >
-          {isDropdownOpen ? (
-            <FaChevronUp size={10} />
-          ) : (
-            <FaChevronDown size={10} />
-          )}
-        </div>
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (

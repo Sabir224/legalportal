@@ -34,7 +34,7 @@ export default function ChatField({ selectedChat, user }) {
   const [loading, setLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]); // Store typing users
   const [isAtBottom, setIsAtBottom] = useState(false);
-  console.log("UserData", user);
+  // console.log("UserData", user);
   const chatContainerRef = useRef(null);
   const [isNewMessage, setNewMessage] = useState(false);
   // ✅ Function to check if the scroll is at the bottom
@@ -55,6 +55,26 @@ export default function ChatField({ selectedChat, user }) {
     });
     setNewMessage(false);
   };
+  let count = 0;
+  // function trackUserScroll() {
+  //   const chatContainer = document.getElementById("chat-container");
+  //   if (!chatContainer) return;
+
+  //   chatContainer.addEventListener("scroll", () => {
+  //     const isAtBottom =
+  //       chatContainer.scrollHeight - chatContainer.scrollTop ===
+  //       chatContainer.clientHeight;
+
+  //     setIsAtBottom(isAtBottom);
+
+  //     if (isAtBottom) {
+  //       const chatId = selectedChat._id;
+  //       console.log("📤 Marking Messages as Read...", count + 1);
+
+  //       SocketService.markAsRead(chatId, user._id);
+  //     }
+  //   });
+  // }
 
   // useEffect(() => {
   //   console.log("Typing Users:", typingUsers);
@@ -71,97 +91,138 @@ export default function ChatField({ selectedChat, user }) {
     if (!selectedChat) return;
 
     const chatId = selectedChat._id;
-    console.log("SelectedChat:", selectedChat);
 
-    const fetchMessages = async () => {
+    async function initializeChat() {
+      console.log(`🔗 Joining chat: ${chatId}`);
+      await SocketService.joinChat(chatId, user._id);
+
+      fetchMessages(); // Fetch messages after joining
+      subscribeToEvents(); // Subscribe only after joining
+    }
+
+    async function fetchMessages() {
       setLoading(true);
       try {
+        console.log("📥 Fetching Messages...");
         const { data } = await axios.get(
           `http://localhost:5001/api/chats/${chatId}/messages`
         );
         setMessages(data);
         setLoading(false);
 
-        // ✅ Emit "markAsRead" event to backend
+        console.log("📤 Marking Messages as Read...");
         SocketService.markAsRead(chatId, user._id);
-        // ✅ Ensure scrolls after messages load
+
         setTimeout(() => scrollToBottom(false), 100);
+        setIsAtBottom(true);
+        setNewMessage(false);
       } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error("❌ Error fetching messages:", error);
       }
-    };
+    }
 
-    fetchMessages();
-    SocketService.connect(user._id);
-    SocketService.joinChat(selectedChat._id, user._id);
+    function subscribeToEvents() {
+      const handleNewMessage = (newMessage) => {
+        if (!newMessage || newMessage.chat !== chatId) return;
 
-    const handleNewMessage = (newMessage) => {
-      if (newMessage.chat === chatId) {
-        const isAtBottom = isScrollAtBottom();
-        setIsAtBottom(isAtBottom);
-        setNewMessage(isNewMessage);
+        const atBottom = isScrollAtBottom();
+        setIsAtBottom(atBottom);
+
+        // ✅ Only mark messages as Delivered & Read if the sender is NOT the current user
+        if (newMessage.sender._id !== user._id) {
+          console.log("📤 Marking Messages as Delivered...");
+          SocketService.markAsDelivered(user._id);
+
+          console.log("📤 Marking Messages as Read...");
+          SocketService.markAsRead(chatId, user._id);
+
+          setNewMessage(true);
+        }
+
+        // ✅ Add message to state only if it's not a duplicate
         setMessages((prevMessages) => {
           const isDuplicate = prevMessages.some(
             (msg) => msg._id === newMessage._id
           );
           return isDuplicate ? prevMessages : [...prevMessages, newMessage];
         });
-      }
-    };
 
-    const handleUserTyping = ({
-      chatId: receivedChatId,
-      userId: typingUserId,
-    }) => {
-      if (receivedChatId === chatId && typingUserId !== user._id) {
-        setTypingUsers((prev) => [...new Set([...prev, typingUserId])]);
-      }
-    };
+        // ✅ Scroll to bottom only if the user is at the bottom or the message was sent by the user
+        if (atBottom || newMessage.sender._id === user._id) {
+          setTimeout(() => scrollToBottom(true), 100);
+        }
+      };
 
-    const handleUserStopTyping = ({
-      chatId: receivedChatId,
-      userId: typingUserId,
-    }) => {
-      if (receivedChatId === chatId && typingUserId !== user?._id) {
-        setTypingUsers((prev) => prev.filter((id) => id !== typingUserId));
-      }
-    };
-    const handleMessagesRead = ({ chatId: receivedChatId, userId }) => {
-      if (receivedChatId === chatId && userId !== user._id) {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg.sender !== user._id ? { ...msg, status: "read" } : msg
-          )
-        );
-      }
-    };
-    const handleMessagesDelivered = ({ userId }) => {
-      if (userId !== user._id) {
-        setMessages((prevMessages) =>
-          prevMessages.map((msg) =>
-            msg.sender !== user._id &&
-            msg.status !== "read" &&
-            msg.status !== "delivered"
-              ? { ...msg, status: "delivered" }
-              : msg
-          )
-        );
-      }
-    };
+      const handleUserTyping = ({
+        chatId: receivedChatId,
+        userId: typingUserId,
+      }) => {
+        if (receivedChatId === chatId && typingUserId !== user._id) {
+          setTypingUsers((prev) => [...new Set([...prev, typingUserId])]);
+        }
+      };
 
-    // ✅ Add event listeners
-    SocketService.onNewMessage(handleNewMessage);
-    SocketService.onUserTyping(handleUserTyping);
-    SocketService.onUserStopTyping(handleUserStopTyping);
-    SocketService.onMessageRead(handleMessagesRead);
-    SocketService.onMessageDelivered(handleMessagesDelivered);
+      const handleUserStopTyping = ({
+        chatId: receivedChatId,
+        userId: typingUserId,
+      }) => {
+        if (receivedChatId === chatId && typingUserId !== user._id) {
+          setTypingUsers((prev) => prev.filter((id) => id !== typingUserId));
+        }
+      };
+      const handleMessagesRead = ({ chatId: receivedChatId, userId }) => {
+        if (receivedChatId === chatId && userId !== user._id) {
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) =>
+              msg.sender !== user._id
+                ? { ...msg, status: "read", isRead: true }
+                : msg
+            )
+          );
+        }
+      };
+      const handleMessagesDelivered = ({ userId }) => {
+        if (userId !== user._id) {
+          setMessages((prevMessages) =>
+            prevMessages.map((msg) =>
+              msg.sender !== user._id &&
+              msg.status !== "delivered" &&
+              msg.status !== "read"
+                ? { ...msg, status: "delivered" }
+                : msg
+            )
+          );
+          console.log("🔔 Messages marked as delivered for:", userId);
+        }
+      };
+
+      SocketService.socket.off("userTyping", handleUserTyping);
+      SocketService.socket.off("userStopTyping", handleUserStopTyping);
+      SocketService.socket.off("newMessage", handleNewMessage);
+      SocketService.socket.off("messagesRead", handleMessagesRead);
+      SocketService.socket.off("messagesDelivered", handleMessagesDelivered);
+
+      // Add new event listeners
+      SocketService.onUserTyping(handleUserTyping);
+      SocketService.onUserStopTyping(handleUserStopTyping);
+      SocketService.onNewMessage(handleNewMessage);
+      SocketService.onMessageRead(handleMessagesRead);
+      SocketService.onMessageDelivered(handleMessagesDelivered);
+
+      return () => {
+        // Remove event listeners when chat changes
+        SocketService.socket.off("userTyping", handleUserTyping);
+        SocketService.socket.off("userStopTyping", handleUserStopTyping);
+        SocketService.socket.off("newMessage", handleNewMessage);
+        SocketService.socket.off("messagesRead", handleMessagesRead);
+        SocketService.socket.off("messagesDelivered", handleMessagesDelivered);
+      };
+    }
+
+    initializeChat();
 
     return () => {
-      // 🧹 Cleanup on unmount
-      SocketService?.socket?.off("newMessage", handleNewMessage);
-      SocketService?.socket?.off("userTyping", handleUserTyping);
-      SocketService?.socket?.off("userStopTyping", handleUserStopTyping);
-      SocketService?.socket?.off("messagesRead", handleMessagesRead);
+      console.log("🧹 Cleaning up chat listeners");
     };
   }, [selectedChat, user._id]);
 
@@ -184,7 +245,7 @@ export default function ChatField({ selectedChat, user }) {
         <div
           className={`${
             isDesktop ? "col-lg-9" : isTablet ? "col-md-8" : "col-sm-12"
-          } d-none d-md-block`}
+          } d-block`}
         >
           <div
             className="text-center d-flex flex-column justify-content-center align-items-center h-100"
@@ -279,7 +340,6 @@ export default function ChatField({ selectedChat, user }) {
               typeof message.sender === "object" && message.sender._id
                 ? message.sender._id
                 : String(message.sender);
-
             const userId = String(user._id);
 
             return message.content ? (

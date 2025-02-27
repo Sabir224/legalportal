@@ -264,7 +264,7 @@ export default function ChatInput({ selectedChat, user }) {
     >
       <div className="input-container">
         {/* selcti image */}
-        <img
+        {/* <img
           src={Imag}
           height={25}
           width={25}
@@ -277,7 +277,7 @@ export default function ChatInput({ selectedChat, user }) {
           onChange={handleImageUpload}
           style={{ display: "none" }}
           accept="image/*"
-        />
+        /> */}
         {/* select docs */}
         <img
           src={Clip}
@@ -302,7 +302,7 @@ export default function ChatInput({ selectedChat, user }) {
           className="text-input"
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
         />
-        {isRecording ? (
+        {/* {isRecording ? (
           <FaStop
             className="icon"
             style={{ color: "red" }}
@@ -316,7 +316,7 @@ export default function ChatInput({ selectedChat, user }) {
             className="icon"
             onClick={startRecording}
           />
-        )}
+        )} */}
         {isMessageSending ? (
           <FaSpinner
             className="spinner"
