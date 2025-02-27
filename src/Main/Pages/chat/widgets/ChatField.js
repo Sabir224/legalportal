@@ -18,7 +18,11 @@ import DynamicAudio from "./dynamicAudio";
 import { useMediaQuery } from "react-responsive";
 import DropdownSheet from "./DropdownSheet";
 import ReplyInput from "./ReplyChatInput";
-import { base64ToUrl, mondayLogoImage } from "../../Component/utils/utlis";
+import {
+  ApiEndPoint,
+  base64ToUrl,
+  mondayLogoImage,
+} from "../../Component/utils/utlis";
 import SocketService from "../../../../SocketService";
 import { FaArrowDown } from "react-icons/fa";
 
@@ -105,7 +109,7 @@ export default function ChatField({ selectedChat, user }) {
       try {
         console.log("📥 Fetching Messages...");
         const { data } = await axios.get(
-          `http://localhost:5001/api/chats/${chatId}/messages`
+          `${ApiEndPoint}chats/${chatId}/messages`
         );
         setMessages(data);
         setLoading(false);
