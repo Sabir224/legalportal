@@ -10,10 +10,12 @@ import { ApiEndPoint } from "../Component/utils/utlis";
 import { useMediaQuery } from "react-responsive";
 import { Socket } from "socket.io-client";
 import SocketService from "../../../SocketService";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Offcanvas } from "bootstrap/dist/js/bootstrap.bundle.min";
 
 export default function Chat() {
   //const Users = useSelector((state) => state.Data.usersdetail);
-  const isCompact = useMediaQuery({ maxWidth: 768 });
+
   const [users, setUsers] = useState([]);
   const [selectUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -245,10 +247,44 @@ export default function Chat() {
   //     </div>
   //   </div>
   // );
+  const isCompact = useMediaQuery({ maxWidth: 768 });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isCompact); // Toggle state
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+  // Sync Bootstrap Offcanvas with React state
+  useEffect(() => {
+    const sidebarElement = document.getElementById("sidebarMenu");
+
+    if (sidebarElement) {
+      const offcanvasInstance = Offcanvas.getOrCreateInstance(sidebarElement);
+
+      // Show or hide sidebar based on state
+      if (isSidebarOpen) {
+        offcanvasInstance.show();
+      } else {
+        offcanvasInstance.hide();
+      }
+
+      // Handle sidebar close event
+      const handleSidebarClose = () => setIsSidebarOpen(false);
+      sidebarElement.addEventListener(
+        "hidden.bs.offcanvas",
+        handleSidebarClose
+      );
+
+      return () => {
+        sidebarElement.removeEventListener(
+          "hidden.bs.offcanvas",
+          handleSidebarClose
+        );
+      };
+    }
+  }, [isSidebarOpen]);
   return (
     <div
-      className="p-0 m-0 d-flex"
+      className="p-0 m-0 d-flex position-relative"
       style={{
         height: "85vh",
         width: "100%",
@@ -256,19 +292,35 @@ export default function Chat() {
     >
       {/* Sidebar - User List */}
       <div
-        className="border-end d-block  justify-content-center cursor-pointer p-1 user-list"
+        className={`offcanvas-lg offcanvas-start ${
+          isSidebarOpen ? "show" : ""
+        }`}
+        id="sidebarMenu"
+        tabIndex="-1"
+        aria-labelledby="sidebarMenuLabel"
         style={{
-          width: isCompact ? "60px" : "20%", // Shrink to 80px when compact
-          minWidth: isCompact ? "60px" : "auto",
-          maxHeight: "90vh",
-          overflowY: "auto",
+          width: "250px",
           backgroundColor: "#fff",
           borderRadius: "10px",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          transition: "width 0.3s ease-in-out", // Smooth transition
+          transition: "transform 0.3s ease-in-out",
+          zIndex: 1050, // Ensure sidebar is on top
         }}
       >
-        <div className="d-flex justify-content-between  align-items-center">
+        <div className="offcanvas-header">
+          <h5 className="offcanvas-title" id="sidebarMenuLabel">
+            User List
+          </h5>
+          <button
+            type="button"
+            className="btn-close"
+            aria-label="Close"
+            onClick={() => setIsSidebarOpen(false)} // ✅ Close manually
+          ></button>
+        </div>
+
+        {/* Search Input */}
+        <div className="offcanvas-body d-flex flex-column">
           <input
             type="search"
             className="form-control p-2 my-1 rounded"
@@ -276,37 +328,52 @@ export default function Chat() {
             onChange={handleSearchChange}
             value={searchQuery}
           />
-        </div>
-        <div
-          style={{
-            paddingTop: "10px",
-            paddingBottom: "20px",
-            fontSize: "1.1rem",
-            maxHeight: "calc(82vh - 70px)",
-            overflowY: "auto",
-          }}
-        >
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <UserListWidget
-              setSelectedChat={setSelectedChat}
-              userData={userData}
-            />
-          )}
+          <div
+            className="mt-3 flex-grow-1"
+            style={{
+              fontSize: "1.1rem",
+              overflowY: "auto",
+              maxHeight: "calc(82vh - 70px)",
+            }}
+          >
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <UserListWidget
+                setSelectedChat={setSelectedChat}
+                userData={userData}
+              />
+            )}
+          </div>
         </div>
       </div>
 
+      {/* Sidebar Toggle Button (Only Visible When Sidebar is Closed) */}
+      {!isSidebarOpen && (
+        <button
+          className="position-absolute btn btn-light shadow-sm d-lg-none"
+          style={{
+            top: "0%", // Move it slightly higher
+            left: "0px",
+            transition: "left 0.3s ease-in-out, top 0.3s ease-in-out",
+            borderRadius: "10px 0px 0 0",
+            padding: "5px 10px",
+            zIndex: 1100, // Ensure it's on top
+            background: "#c0a262",
+          }}
+          onClick={toggleSidebar}
+        >
+          <FaChevronRight color="white" />
+        </button>
+      )}
+
       {/* Chat Section */}
       <div
-        className={`d-flex flex-column justify-content-center align-items-center h-100 ${
-          isCompact ? "w-100" : "w-100"
-        }`}
+        className="d-flex flex-column justify-content-center align-items-center h-100 w-100"
         style={{
           backgroundColor: "#fff",
           borderRadius: "10px",
           boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          margin: isCompact ? "0" : "0 10px",
         }}
       >
         {loading ? (
