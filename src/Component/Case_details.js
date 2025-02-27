@@ -320,7 +320,7 @@ function Case_details() {
       {
         id: "Parties",
         title: "Parties Details",
-        content: <PartiesDetails caseData={caseData} />
+        content: <PartiesDetails caseData={caseData} />,
       },
       {
         id: "Exhibits",
@@ -351,107 +351,149 @@ function Case_details() {
       {
         id: "effsahPlatformOrders",
         title: "Effsah Platform Orders Details",
-        content: <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />,
+        content: (
+          <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />
+        ),
       },
       {
         id: "experienceReports",
         title: "Experience Reports Details",
-        content: <ExperienceReports data={caseData.Experience_Reports} />
+        content: <ExperienceReports data={caseData.Experience_Reports} />,
       },
       {
         id: "publicProsecutionReports",
         title: "Public Prosecution Reports Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Public_Prosecution_Reports"} />
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Public_Prosecution_Reports"}
+          />
+        ),
       },
       {
         id: "socialResearcherReports",
         title: "Social Researcher Reports Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Social_Researcher_Reports"} />
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Social_Researcher_Reports"}
+          />
+        ),
       },
       {
         id: "relatedCases",
         title: "Related Cases Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />
+        ),
       },
       {
         id: "joinedCases",
         title: "Joined Cases Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />
+        ),
       },
 
       {
         id: "Settlements_Legal_Reasoned_Decisions",
         title: "Settlements & Legal Reasoned Decisions",
-        content: <SubCaseDetails caseData={caseData} reportType={"Settlements_Legal_Reasoned_Decisions"} />
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Settlements_Legal_Reasoned_Decisions"}
+          />
+        ),
       },
       {
         id: "Related_Claims_And_SubClaims",
         title: "Related Claims And SubClaims",
-        content: <SubCaseDetails caseData={caseData} reportType={"Related_Claims_And_SubClaims"} />
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Related_Claims_And_SubClaims"}
+          />
+        ),
       },
       {
         id: "Arrest_Orders",
         title: "Arrest Orders",
-        content: <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />
+        ),
       },
       {
         id: "Detentions",
         title: "Detentions",
-        content: <SubCaseDetails caseData={caseData} reportType={"Detentions"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Detentions"} />
+        ),
       },
       {
         id: "Bans",
         title: "Bans",
-        content: <SubCaseDetails caseData={caseData} reportType={"Bans"} />
+        content: <SubCaseDetails caseData={caseData} reportType={"Bans"} />,
       },
       {
         id: "Seizures",
         title: "Seizures",
-        content: <SubCaseDetails caseData={caseData} reportType={"Seizures"} />
+        content: <SubCaseDetails caseData={caseData} reportType={"Seizures"} />,
       },
       {
         id: "auctions",
         title: "Auctions",
-        content: <SubCaseDetails caseData={caseData} reportType={"Auctions"} />
+        content: <SubCaseDetails caseData={caseData} reportType={"Auctions"} />,
       },
       {
         id: "seizedDocuments",
         title: "Seized Documents",
-        content: <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />
+        ),
       },
       {
         id: "caseLetters",
         title: "Case Letters",
-        content: <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />
+        ),
       },
       {
         id: "mrletters",
         title: "Mr Letters",
-        content: <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />
+        ),
       },
       {
         id: "payments",
         title: "Payments",
-        content: <SubCaseDetails caseData={caseData} reportType={"Payments"} />
+        content: <SubCaseDetails caseData={caseData} reportType={"Payments"} />,
       },
       {
         id: "depositvouchers",
         title: "Deposit Vouchers",
-        content: <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />
+        ),
       },
       {
         id: "claims",
         title: "Claims",
-        content: <SubCaseDetails caseData={caseData} reportType={"Claims"} />
+        content: <SubCaseDetails caseData={caseData} reportType={"Claims"} />,
       },
       {
         id: "relatedcaseregapps",
         title: "Related Case Reg Apps",
-        content: <SubCaseDetails caseData={caseData} reportType={"Related_Case_Reg_Apps"} />
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Related_Case_Reg_Apps"}
+          />
+        ),
       },
     ];
   };
-
 
   const scrollRef = useRef(null);
 
@@ -652,8 +694,12 @@ function Case_details() {
                   <table className=" table-fixed w-100">
                     <tbody>
                       <tr className="bg-gray-100 ">
-                        <td className=" px-1 py-2 font-bold w-1/7">Case Number :</td>
-                        <td className=" px-1 py-2 w-1/7">{global.CaseId.CaseNumber}</td>
+                        <td className=" px-1 py-2 font-bold w-1/7">
+                          Case Number :
+                        </td>
+                        <td className=" px-1 py-2 w-1/7">
+                          {global.CaseId.CaseNumber}
+                        </td>
                       </tr>
                       <tr>
                         <td className=" px-1 py-2 font-bold">Status :</td>
@@ -696,16 +742,28 @@ function Case_details() {
                   <table className="table-auto border-collapse w-100">
                     <tbody>
                       <tr className="bg-gray-100">
-                        <td className=" px-1 py-2 font-bold">Claimed Amount :</td>
-                        <td className=" px-1 py-2">{caseData?.ClaimedAmount}</td>
+                        <td className=" px-1 py-2 font-bold">
+                          Claimed Amount :
+                        </td>
+                        <td className=" px-1 py-2">
+                          {caseData?.ClaimedAmount}
+                        </td>
                       </tr>
                       <tr>
-                        <td className=" px-1 py-2 font-bold">Litigation Stage :</td>
-                        <td className=" px-1 py-2">{caseData?.LitigationStage}</td>
+                        <td className=" px-1 py-2 font-bold">
+                          Litigation Stage :
+                        </td>
+                        <td className=" px-1 py-2">
+                          {caseData?.LitigationStage}
+                        </td>
                       </tr>
                       <tr className="bg-gray-100">
-                        <td className=" px-1 py-2 font-bold">Total Claimed Amount :</td>
-                        <td className=" px-1 py-2">{caseData?.TotalClaimedAmount}</td>
+                        <td className=" px-1 py-2 font-bold">
+                          Total Claimed Amount :
+                        </td>
+                        <td className=" px-1 py-2">
+                          {caseData?.TotalClaimedAmount}
+                        </td>
                       </tr>
                       <tr>
                         <td className=" px-1 py-2 font-bold">Case Balance :</td>
@@ -747,29 +805,58 @@ function Case_details() {
                     <table className="table-auto border-collapse border border-gray-300  w-100">
                       <tbody>
                         <tr className="bg-gray-100">
-                          <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">Request Date</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.RequestDate ? caseData.RequestDate.split('T')[0] : ""}</td>
+                          <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
+                            Request Date
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.RequestDate
+                              ? caseData.RequestDate.split("T")[0]
+                              : ""}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">eSubmit Date</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.ESubmitDate ? caseData.ESubmitDate.split('T')[0] : ""}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            eSubmit Date
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.ESubmitDate
+                              ? caseData.ESubmitDate.split("T")[0]
+                              : ""}
+                          </td>
                         </tr>
                         <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Start Preparation Date</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.StartPreparationDate ? caseData.StartPreparationDate.split('T')[0] : ""}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Start Preparation Date
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.StartPreparationDate
+                              ? caseData.StartPreparationDate.split("T")[0]
+                              : ""}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Next Session Date</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.NextSessionDate ? caseData.NextSessionDate.split('T')[0] : ""}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Next Session Date
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.NextSessionDate
+                              ? caseData.NextSessionDate.split("T")[0]
+                              : ""}
+                          </td>
                         </tr>
                         <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Last Session Date</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.LastSessionDate ? caseData.LastSessionDate.split('T')[0] : ""}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Last Session Date
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.LastSessionDate
+                              ? caseData.LastSessionDate.split("T")[0]
+                              : ""}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-
                 </div>
               </div>
 
@@ -798,11 +885,10 @@ function Case_details() {
                   className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
                   style={{ fontSize: 12, overflow: "hidden" }}
                 >
-                  {caseData.LastDecisions}
+                  {caseData?.LastDecisions}
                 </div>
                 {/* ))} */}
               </div>
-
 
               <div
                 className="grid-item datatextcolor col-11"
@@ -816,7 +902,10 @@ function Case_details() {
                 >
                   {/* <div style={{width:50}}> */}
                   <div>
-                    <img src={require(`../Main/Pages/Component/Casedetails/Icons/others.png`)} style={{ height: "30px" }} />
+                    <img
+                      src={require(`../Main/Pages/Component/Casedetails/Icons/others.png`)}
+                      style={{ height: "30px" }}
+                    />
                   </div>
                   <div style={{ fontSize: 20 }}>Others Details</div>
                   {/* </div> */}
@@ -837,28 +926,52 @@ function Case_details() {
                           <td className="border border-gray-300 px-1 py-2">{caseData?.Status}</td>
                         </tr> */}
                         <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Ascription Description</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.AscriptionDescription}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Ascription Description
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.AscriptionDescription}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Request Number</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.RequestNumber}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Request Number
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.RequestNumber}
+                          </td>
                         </tr>
                         <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Case Current Details</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.CaseCurrentDetails}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Case Current Details
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.CaseCurrentDetails}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Root Case Number</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.RootCaseNumber}</td>
+                          <td className="border border-gray-300 px-1 py-2 font-bold">
+                            Root Case Number
+                          </td>
+                          <td className="border border-gray-300 px-1 py-2">
+                            {caseData?.RootCaseNumber}
+                          </td>
                         </tr>
                         <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1  font-bold">Root Decision</td>
-                          <td className="border border-gray-300 px-1 ">{caseData?.RootDecision}</td>
+                          <td className="border border-gray-300 px-1  font-bold">
+                            Root Decision
+                          </td>
+                          <td className="border border-gray-300 px-1 ">
+                            {caseData?.RootDecision}
+                          </td>
                         </tr>
                         <tr>
-                          <td className="border border-gray-300 px-1  font-bold">Litigation Stage</td>
-                          <td className="border border-gray-300 px-1 ">{caseData?.LitigationStage}</td>
+                          <td className="border border-gray-300 px-1  font-bold">
+                            Litigation Stage
+                          </td>
+                          <td className="border border-gray-300 px-1 ">
+                            {caseData?.LitigationStage}
+                          </td>
                         </tr>
                       </tbody>
                     </table>
@@ -883,7 +996,10 @@ function Case_details() {
                       >
                         <div className="gap-3 d-flex" style={{ gap: "10px" }}>
                           <div>
-                            <img src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)} style={{ height: "30px" }} />
+                            <img
+                              src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)}
+                              style={{ height: "30px" }}
+                            />
                           </div>
                           <div style={{ marginTop: 6, fontSize: 21 }}>
                             {section.title}
@@ -907,7 +1023,7 @@ function Case_details() {
         </div>
         {/* </div> */}
       </div>
-    </div >
+    </div>
   );
 }
 

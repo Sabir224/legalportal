@@ -38,19 +38,24 @@ const BasicCase = () => {
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
 
-    // Function to fetch cases
-    const fetchCases = async () => {
-        try {
-            const response = await axios.get(`${ApiEndPoint}getcase`); // API endpoint
-            // console.log("data of case",response.data.data); // Assuming the API returns data in the `data` field
-            setData(response.data.data)
-            setLoading(false);
-        } catch (err) {
-            setError(err.message);
-            setLoading(false);
-        }
-    };
+  // Function to fetch cases
+  const fetchCases = async () => {
+    try {
+      const response = await axios.get(`${ApiEndPoint}getcase`); // API endpoint
+      console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
+      setData(response.data.data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
 
+  const handleEdit = (index, value) => {
+    const updatedData = [...data];
+    updatedData[index].notes = value;
+    setData(updatedData);
+  };
   // Fetch cases on component mount
 
   const handleViewDetails = () => {
@@ -141,65 +146,63 @@ const BasicCase = () => {
   };
   // Function to fetch and parse the Excel file
   const loadExcelFile = async () => {
-      try {
-          // Fetch the file from a predefined location
-          const response = await fetch(filepath);
-          if (!response.ok) {
-              throw new Error("Failed to fetch the Excel file");
-          }
-
-          // Read the file as a binary blob
-          const blob = await response.blob();
-
-          // Use FileReader to convert blob to binary string
-          const reader = new FileReader();
-          reader.onload = (e) => {
-              try {
-                  const binaryData = e.target.result;
-
-                  // Parse the binary data using xlsx
-                  const workbook = XLSX.read(binaryData, { type: "binary" });
-
-                  // Get the first sheet
-                  const sheetName = workbook.SheetNames[0];
-                  const worksheet = workbook.Sheets[sheetName];
-
-                  // Convert the sheet to JSON
-                  const jsonData = XLSX.utils.sheet_to_json(worksheet);
-
-                  // Filter only the required columns
-                  const filteredData = jsonData.map((row) => {
-                      const filteredRow = {};
-                      requiredColumns.forEach((column) => {
-                          filteredRow[column] = row[column] || null; // Use null for missing columns
-                      });
-                      return filteredRow;
-                  });
-
-                  // Update state
-                  console.log("data is =", filteredData)
-                  // setData(filteredData);
-                  filteredData.forEach(element => {
-                      handleSaveInCase(element)
-
-                  });
-
-              } catch (parseError) {
-                  setError("Error parsing the Excel file.");
-                  console.error(parseError);
-              }
-          };
-
-          reader.onerror = (err) => {
-              setError("Error reading the Excel file.");
-              console.error(err);
-          };
-
-          reader.readAsBinaryString(blob);
-      } catch (err) {
-          setError(err.message || "An error occurred while loading the file.");
-          console.error(err);
+    try {
+      // Fetch the file from a predefined location
+      const response = await fetch(filepath);
+      if (!response.ok) {
+        throw new Error("Failed to fetch the Excel file");
       }
+
+      // Read the file as a binary blob
+      const blob = await response.blob();
+
+      // Use FileReader to convert blob to binary string
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const binaryData = e.target.result;
+
+          // Parse the binary data using xlsx
+          const workbook = XLSX.read(binaryData, { type: "binary" });
+
+          // Get the first sheet
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+
+          // Convert the sheet to JSON
+          const jsonData = XLSX.utils.sheet_to_json(worksheet);
+
+          // Filter only the required columns
+          const filteredData = jsonData.map((row) => {
+            const filteredRow = {};
+            requiredColumns.forEach((column) => {
+              filteredRow[column] = row[column] || null; // Use null for missing columns
+            });
+            return filteredRow;
+          });
+
+          // Update state
+          console.log("data is =", filteredData);
+          // setData(filteredData);
+          filteredData.forEach((element) => {
+            handleSaveInCase(element);
+          });
+        } catch (parseError) {
+          setError("Error parsing the Excel file.");
+          console.error(parseError);
+        }
+      };
+
+      reader.onerror = (err) => {
+        setError("Error reading the Excel file.");
+        console.error(err);
+      };
+
+      reader.readAsBinaryString(blob);
+    } catch (err) {
+      setError(err.message || "An error occurred while loading the file.");
+      console.error(err);
+    }
   };
 
   // Load the file automatically when the component mounts
@@ -215,18 +218,19 @@ const BasicCase = () => {
       <div className="card mb-3 shadow">
         <div
           className="card-header d-flex justify-content-between align-items-center"
-          style={{
-            height: "8vh",
-          }}
+          style={{ height: "8vh" }}
         >
           {/* First Column */}
-          <span className="col-4 text-start">Status</span>
+          <span className="col-3 text-start">Status</span>
 
           {/* Second Column */}
-          <span className="col-3 text-start">Case Number</span>
+          <span className="col-2 text-start">Case Number</span>
 
           {/* Third Column */}
-          <span className="col-5 text-start">Name</span>
+          <span className="col-3 text-start">Case Type</span>
+
+          {/* Fourth Column (Editable) */}
+          <span className="col-3 text-start">Purpose</span>
         </div>
 
         <div className="card-list p-0">
@@ -235,10 +239,14 @@ const BasicCase = () => {
               <div
                 className="d-flex justify-content-between align-items-center p-3 border-bottom"
                 style={{ cursor: "pointer" }}
-                onClick={() => handleClick(1, item)}
+                onClick={(e) => {
+                  if (e.target.tagName !== "INPUT") {
+                    handleClick(1, item);
+                  }
+                }}
               >
                 {/* First Column */}
-                <span className="col-4 d-flex align-items-center text-start text-wrap">
+                <span className="col-3 d-flex align-items-center text-start text-wrap">
                   <span
                     className={`me-2 rounded-circle ${
                       item.Status.toLowerCase() === "case filed"
@@ -255,14 +263,23 @@ const BasicCase = () => {
                 </span>
 
                 {/* Second Column */}
-                <span className="col-3 d-flex align-items-center text-start text-wrap">
+                <span className="col-2 d-flex align-items-center text-start text-wrap">
                   {item["CaseNumber"]}
                 </span>
 
                 {/* Third Column */}
-                <span className="col-5 d-flex align-items-center text-start text-wrap">
+                <span className="col-3 d-flex align-items-center text-start text-wrap">
                   {item["Name"]}
                 </span>
+
+                {/* Fourth Column (Editable) */}
+                <input
+                  className="col-3 w-4"
+                  type="text"
+                  value={item.notes || ""}
+                  onChange={(e) => handleEdit(index, e.target.value)}
+                  onClick={(e) => e.stopPropagation()} // Prevent handleClick from triggering
+                />
               </div>
             </div>
           ))}

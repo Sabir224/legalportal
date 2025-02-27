@@ -1,0 +1,141 @@
+.btn-color {
+  color: white;
+  background-color: #a66cff;
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  border: none;
+  /* --bs-btn-color: #fff;
+    --bs-btn-bg: goldenrod
+    --bs-btn-border-color: #0d6efd;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #0b5ed7;
+    --bs-btn-hover-border-color: #0a58ca;
+    --bs-btn-focus-shadow-rgb: 49,132,253;
+    --bs-btn-active-color: #fff;
+    --bs-btn-active-bg: #0a58ca;
+    --bs-btn-active-border-color: #0a53be;
+    --bs-btn-active-shadow: 
+    --bs-btn-disabled-color: #fff;
+    --bs-btn-disabled-bg: #0d6efd;
+    --bs-btn-disabled-border-color: #0d6efd; */
+}
+.btn-color:hover {
+  background-color: #a66cff;
+}
+.inputField {
+  color: black;
+  font-weight: 400;
+  border-color: #18273e;
+}
+
+.cardcontainer {
+  padding-top: 20px;
+}
+.signin-card {
+  width: 90%;
+  min-height: 500px;
+  padding-top: 20px;
+
+  margin-top: 40px;
+}
+.logo {
+  height: 55px;
+  width: 150px;
+
+  position: absolute;
+  left: 3%;
+  top: 28vh;
+}
+
+.formContainer {
+  margin-top: 2.5%;
+}
+.form-control-1:focus {
+  border-color: #18273e;
+  box-shadow: none; /* Change to your desired color */
+}
+
+.login-form-1 {
+  padding: 5%;
+  background: #ffffff;
+  box-shadow: 0 5px 8px 0 rgba(14, 0, 0, 0.2), 0 9px 26px 0 rgba(0, 0, 0, 0.19);
+
+  background-size: cover;
+  background-repeat: no-repeat;
+  min-height: 50vh;
+}
+.login-form-2 {
+  padding: 5%;
+  background: #ffffff;
+  box-shadow: 0 5px 8px 0 rgba(14, 0, 0, 0.2), 0 9px 26px 0 rgba(0, 0, 0, 0.19);
+  min-height: 50vh;
+}
+
+.login-container form {
+  padding: 10%;
+}
+.btnSubmit {
+  width: 50%;
+  border-radius: 1rem;
+  padding: 1.5%;
+  border: none;
+  cursor: pointer;
+}
+
+.login-form-2 .ForgetPwd {
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+}
+.login-form-1 .ForgetPwd {
+  color: #0062cc;
+  font-weight: 600;
+  text-decoration: none;
+}
+.containerFluid {
+  height: 80vh;
+  margin-top: 6%;
+  margin-left: 10px;
+  margin-right: 10px;
+  max-width: 98.5%;
+}
+
+@media (max-width: 768px) {
+  .containerFluid {
+    margin-top: 0;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .logo {
+    height: 55px;
+    width: 150px;
+
+    position: absolute;
+    left: 20px;
+    top: 3%;
+  }
+}
+
+/* Large devices (laptops/desktops, 1201px and up) */
+
+/* Ensure uniform icon sizes */
+.input-group-text {
+  font-size: 20px;
+}
+.icons {
+  background-color: goldenrod;
+  color: white;
+}
+.text-center {
+  font-weight: 500;
+  font-size: 25px;
+}
+/* .rowContainer{
+    margin-top: 7%;
+  }
+  @media (max-width: 500px) {
+    .rowContainer {
+      margin: 0;
+    }
+  } */
+/* *********************************************contact form style sheet**************************************** */
+/* Define CSS variables */

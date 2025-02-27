@@ -7,6 +7,7 @@ import {
   faHome,
   faMessage,
   faPowerOff,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import Case_details from "../Component/Case_details";
@@ -174,13 +175,7 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
-            {
-              icon: faCalendar,
-              label: "Calendar",
-              action: () => handlescreen2(2),
-            },
-            { icon: faWhatsapp, label: "WhatsApp" },
-            { icon: faFacebook, label: "Facebook" },
+
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ].map((item, index) => (
             <div
@@ -198,7 +193,8 @@ const Dashboard = () => {
                   className="d-inline-block text-truncate"
                   style={{
                     fontSize: "16px",
-                    lineHeight: "1",
+                    // height: "auto",
+                    // lineHeight: "1",
                     maxWidth: "150px",
                   }}
                 >
@@ -256,7 +252,12 @@ const Dashboard = () => {
                 handlescreen2(5);
               }}
             >
-              🔔
+              <FontAwesomeIcon
+                icon={faUser}
+                size="1x"
+                color="white"
+                className=""
+              />
             </button>
             <button
               className="btn"

@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { ApiEndPoint } from "./Component/utils/utlis";
+import backgroundImage from "../Pages/Images/bg.jpg";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -58,33 +59,47 @@ const SignIn = () => {
   return (
     <div
       style={{
-        height: "calc(100vh - 40px)", // Adjust height to account for the margin
-        width: "calc(100vw - 40px)", // Adjust width to account for the margin
+        backgroundImage: `url(${backgroundImage})`, // Set background image
+        backgroundSize: "100%", // Cover entire div
+        height: "100vh",
+        backgroundPosition: "center", // Center the image
+        backgroundRepeat: "no-repeat",
         display: "flex",
         justifyContent: "center",
-        alignItems: "center",
-        margin: "20px", // Space around the container
-        boxShadow: "0 0 14px rgba(0, 0, 0, 0.2)",
-        backgroundColor: isTabletOrSmaller ? "#f3ebe9" : "white",
+        alignItems: "center", // Prevent tiling
       }}
     >
-      <Container
-        fluid
+      <div
         style={{
-          width: isTabletOrSmaller ? "90%" : "100%",
-          height: "100%",
-          margin: "0 auto",
-          backgroundColor: "white",
-          borderRadius: "10px",
+          height: "95vh", // Adjust height to account for the margin
+          width: "95vw", // Adjust width to account for the margin
+
+          // margin: "20px", // Space around the container
           boxShadow: "0 0 14px rgba(0, 0, 0, 0.2)",
-          padding: isTabletOrSmaller ? "20px" : "0px",
-          overflow: "hidden", // Prevent inner scrolling
-          display: "flex",
-          flexDirection: "column",
+          backgroundColor: isTabletOrSmaller ? "#f3ebe9" : "white",
+          backgroundImage: `url(${backgroundImage})`, // Set background image
+          backgroundSize: "cover", // Cover entire div
+          backgroundPosition: "center", // Center the image
+          backgroundRepeat: "no-repeat", // Prevent tiling
         }}
       >
-        <Row style={{ height: "100%" }}>
-          {!isTabletOrSmaller && (
+        <Container
+          fluid
+          style={{
+            width: isTabletOrSmaller ? "90%" : "100%",
+            height: "100%",
+            margin: "0 auto",
+            backgroundColor: "white",
+            borderRadius: "10px",
+            boxShadow: "0 0 14px rgba(0, 0, 0, 0.2)",
+            padding: isTabletOrSmaller ? "20px" : "0px",
+            overflow: "hidden", // Prevent inner scrolling
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Row style={{ height: "100%", justifyContent: "center" }}>
+            {/* {!isTabletOrSmaller && (
             <Col
               sm={12}
               md={6}
@@ -129,98 +144,101 @@ const SignIn = () => {
                 </div>
               </div>
             </Col>
-          )}
-          <Col
-            sm={12}
-            md={isTabletOrSmaller ? 12 : 6}
-            className={`d-flex flex-column justify-content-center ${
-              isTabletOrSmaller ? "text-center" : ""
-            }`}
-          >
-            <div className="d-flex justify-content-center mb-3">
-              <img
-                src={Logo}
-                alt="Logo"
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  objectFit: "contain",
-                  marginBottom: "20px",
-                }}
-              />
-            </div>
-            <div
-              className="text-center mb-3"
-              style={{
-                letterSpacing: 1,
-                fontSize: 24,
-                color: "#18273e",
-              }}
+          )} */}
+            <Col
+              sm={12}
+              md={isTabletOrSmaller ? 12 : 6}
+              className={`d-flex flex-column justify-content-center ${
+                isTabletOrSmaller ? "text-center" : ""
+              }`}
             >
-              Sign In
-            </div>
-            <Form>
-              <Form.Group className="mb-3 text-start">
-                <Form.Label style={{ color: "grey" }}>Email</Form.Label>
-                <div className="input-group">
-                  <span className="input-group-text m-2">
-                    <BsPerson color="#18273e" />
-                  </span>
-                  <Form.Control
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    id="email"
-                    placeholder="Enter Email"
-                    type="text"
-                    className="form-control-lg m-2"
-                  />
-                </div>
-              </Form.Group>
-              <Form.Group className="mb-3 text-start">
-                <Form.Label style={{ color: "grey" }}>Password</Form.Label>
-                <div className="input-group">
-                  <span className="input-group-text m-2">
-                    <BsLock color="#18273e" />
-                  </span>
-                  <Form.Control
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    id="password"
-                    placeholder="Enter Password"
-                    type="password"
-                    className="form-control-lg m-2"
-                  />
-                </div>
-              </Form.Group>
-              <div style={{ textAlign: "center" }}>
-                <Button
-                  className="btn btn-primary mt-3 border border-none"
-                  onClick={handleNavigation}
+              <div className="d-flex justify-content-center mb-3">
+                <img
+                  src={Logo}
+                  alt="Logo"
                   style={{
-                    backgroundColor: "#18273e",
-                    width: "150px",
-                    borderRadius: "6px",
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "contain",
+                    marginBottom: "20px",
                   }}
-                  onMouseEnter={(e) => {
-                    e.target.style.backgroundColor = "#d4af37";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.backgroundColor = "#18273e";
-                  }}
-                >
-                  Sign in
-                </Button>
+                />
               </div>
-            </Form>
-            {errorMessage && <p className="text-danger mt-2">{errorMessage}</p>}
-            <div className="mt-3 text-center">
-              <Link className="text-muted font-size-13" to="/ForgetPassword">
-                Forgot password?
-              </Link>
-            </div>
-          </Col>
-        </Row>
-      </Container>
+              <div
+                className="text-center mb-3"
+                style={{
+                  letterSpacing: 1,
+                  fontSize: 24,
+                  color: "#18273e",
+                }}
+              >
+                Sign In
+              </div>
+              <Form>
+                <Form.Group className="mb-3 text-start">
+                  <Form.Label style={{ color: "grey" }}>Email</Form.Label>
+                  <div className="input-group">
+                    <span className="input-group-text m-2">
+                      <BsPerson color="#18273e" />
+                    </span>
+                    <Form.Control
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      id="email"
+                      placeholder="Enter Email"
+                      type="text"
+                      className="form-control-lg m-2"
+                    />
+                  </div>
+                </Form.Group>
+                <Form.Group className="mb-3 text-start">
+                  <Form.Label style={{ color: "grey" }}>Password</Form.Label>
+                  <div className="input-group">
+                    <span className="input-group-text m-2">
+                      <BsLock color="#18273e" />
+                    </span>
+                    <Form.Control
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      id="password"
+                      placeholder="Enter Password"
+                      type="password"
+                      className="form-control-lg m-2"
+                    />
+                  </div>
+                </Form.Group>
+                <div style={{ textAlign: "center" }}>
+                  <Button
+                    className="btn btn-primary mt-3 border border-none"
+                    onClick={handleNavigation}
+                    style={{
+                      backgroundColor: "#18273e",
+                      width: "150px",
+                      borderRadius: "6px",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.backgroundColor = "#d4af37";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.backgroundColor = "#18273e";
+                    }}
+                  >
+                    Sign in
+                  </Button>
+                </div>
+              </Form>
+              {errorMessage && (
+                <p className="text-danger mt-2">{errorMessage}</p>
+              )}
+              <div className="mt-3 text-center">
+                <Link className="text-muted font-size-13" to="/ForgetPassword">
+                  Forgot password?
+                </Link>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </div>
     </div>
   );
 };

@@ -8,6 +8,8 @@ import axios from "axios";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAddressCard,
+  faArrowLeft,
+  faArrowRight,
   faCalendar,
   faCheck,
   faHome,
@@ -36,8 +38,9 @@ const ClientAppointment = () => {
   const [responseData, setResponseData] = useState(null);
   const [popupmessage, setpopupmessage] = useState();
   const [popupcolor, setpopupcolor] = useState("popup");
-  const [email, setEmail] = useState("awslegalconsultancy2@gmail.com");
+  const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
+  const [ClientMessage, setClientMessage] = useState("");
 
   const storedEmail = sessionStorage.getItem("Email");
 
@@ -69,18 +72,33 @@ const ClientAppointment = () => {
     try {
       const response = await axios.get(
         `${ApiEndPoint}appointments/67a2275aa70023929b5a3d3e`
-      ); // API endpoint
-      console.log("msdasda", response.data[0]);
-      setAppoinmentDetails(response.data[0]);
-      data = response.data[0];
+      );
+
+      if (!response.data || response.data.length === 0) {
+        throw new Error("No appointment data found");
+      }
+
+      let temp = { ...response.data[0] }; // Clone to avoid mutation issues
+
+      response.data.forEach((element) => {
+        if (element.availableSlots) {
+          temp.availableSlots = [
+            ...(temp.availableSlots || []),
+            ...element.availableSlots,
+          ];
+        }
+      });
+
+      setAppoinmentDetails(temp);
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
+
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails?Email=wissam@awsyounus.com`
+        `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
@@ -94,7 +112,9 @@ const ClientAppointment = () => {
         `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
       );
       // API endpoint
+      // API endpoint
       setClientDetails(response.data);
+      console.log("clint data ", response.data);
       console.log("clint data ", response.data);
       setLoading(false);
     } catch (err) {
@@ -249,7 +269,8 @@ const ClientAppointment = () => {
     setIsLoading(true); // Show loader
     try {
       await handleSchedule(); // Call the function to send the email
-      setIsEmailSent(true); // Set email sent confirmation
+      setIsEmailSent(true);
+      setClientMessage(""); // Set email sent confirmation
       setTimeout(() => {
         setIsPopupVisible(false); // Close popup after showing confirmation
         setIsEmailSent(false); // Reset confirmation state after a delay
@@ -260,6 +281,16 @@ const ClientAppointment = () => {
     } finally {
       setIsLoading(false); // Hide loader
     }
+  };
+
+  const convertTo12HourFormat = (timeString) => {
+    let [hours, minutes] = timeString.split(":");
+    hours = parseInt(hours, 10);
+    const ampm = hours >= 12 ? "PM" : "AM";
+
+    hours = hours % 12 || 12; // Convert 0 to 12 for AM, and 13-23 to 1-11
+
+    return `${hours}:${minutes} ${ampm}`; // Returns HH:MM AM/PM format
   };
 
   const handleSchedule = async () => {
@@ -273,7 +304,7 @@ const ClientAppointment = () => {
       to: email,
       subject: subject,
       client: ClientDetails,
-      text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} `,
+      text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} <br>  Client Message: <p><br> ${ClientMessage}</p>`,
       html: null,
     };
     console.log("Sending mail...");
@@ -309,6 +340,8 @@ const ClientAppointment = () => {
         setpopupcolor("popupconfirm");
         setpopupmessage(
           isPopupVisible
+            ? "Meeting Schedule mail is send"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
             ? "Meeting Schedule mail is send"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
@@ -406,7 +439,7 @@ const ClientAppointment = () => {
       >
         <div className="profile-section">
           <div className="d-flex flex-row">
-            <div
+            {/* <div
               className="client-picture mb-3"
               style={{
                 border: "2px solid #d4af37",
@@ -425,9 +458,50 @@ const ClientAppointment = () => {
                 className="rounded-circle"
                 style={{ fontSize: "48px" }} // Adjust the size of the icon
               />
-            </div>
+            </div> */}
+            <img
+              style={{
+                border: "2px solid #d4af37",
+                textAlign: "center",
+                padding: "3px",
+                borderRadius: "50%", // Use 50% for a perfect circle
+                width: "100px",
+                height: "100px",
+                display: "flex", // Use flexbox for centering
+                alignItems: "center", // Vertically center the icon
+                justifyContent: "center", // Horizontally center the icon
+              }}
+              src={
+                user?.ProfilePicture ? (
+                  `${user?.ProfilePicture}`
+                ) : (
+                  <div
+                    className="client-picture mb-3"
+                    style={{
+                      border: "2px solid #d4af37",
+                      textAlign: "center",
+                      padding: "3px",
+                      borderRadius: "50%", // Use 50% for a perfect circle
+                      width: "100px",
+                      height: "100px",
+                      display: "flex", // Use flexbox for centering
+                      alignItems: "center", // Vertically center the icon
+                      justifyContent: "center", // Horizontally center the icon
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faUserCircle}
+                      className="rounded-circle"
+                      style={{ fontSize: "48px" }} // Adjust the size of the icon
+                    />
+                  </div>
+                )
+              }
+              alt="Profile"
+              className="avatar-img"
+            />
             <div className="d-flex flex-column justify-content-center p-2">
-              <h2>{user.UserName}</h2>
+              <h2 style={{ color: " #d4af37" }}>{user.UserName}</h2>
               <p>{lawyerDetails.Position}</p>
             </div>
           </div>
@@ -488,6 +562,13 @@ const ClientAppointment = () => {
                 {!isLoading && !isEmailSent && (
                   <>
                     <h3>{popupmessage}</h3>
+                    <input
+                      className="col-3 w-10 m-2"
+                      type="text"
+                      placeholder="Text Message (Optional)"
+                      value={ClientMessage}
+                      onChange={(e) => setClientMessage(e.target.value)}
+                    />
                     {isPopupVisiblecancel && (
                       <div className="popup-actions d-flex justify-content-center">
                         <button className="confirm-btn" onClick={handleConfirm}>
@@ -532,7 +613,7 @@ const ClientAppointment = () => {
           className="d-flex "
           style={{ marginBottom: "2px", justifyContent: "space-between" }}
         >
-          <div>
+          <div style={{ color: " #d4af37" }}>
             <h2>Available Slots</h2>
           </div>
         </div>
@@ -545,14 +626,14 @@ const ClientAppointment = () => {
           }}
         >
           <button className="calender-button" onClick={prevMonth}>
-            Prev
+            <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
           </button>
           <h3>
             {currentDate.toLocaleString("default", { month: "long" })}{" "}
             {currentDate.getFullYear()}
           </h3>
           <button onClick={nextMonth} className="calender-button">
-            Next
+            <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
           </button>
         </div>
 
@@ -670,7 +751,8 @@ const ClientAppointment = () => {
                     // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
                     textAlign: "center",
                     lineHeight: "40px",
-                    height: "40px", // Ensure consistent height
+                    height: "40px",
+                    fontSize: 12, // Ensure consistent height
                   }}
                 >
                   {date.getDate()}
@@ -722,7 +804,7 @@ const ClientAppointment = () => {
 
         <div>
           <div>
-            <h5>Available Times:</h5>
+            <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
               {selectedDate ? (
                 availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
@@ -741,6 +823,7 @@ const ClientAppointment = () => {
                         : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
+                      fontSize: 12,
                     }}
                     disabled={slot.isBooked}
                     onMouseEnter={(e) => {
@@ -754,7 +837,8 @@ const ClientAppointment = () => {
                       }
                     }}
                   >
-                    {slot.startTime} - {slot.endTime}
+                    {convertTo12HourFormat(slot.startTime)} -{" "}
+                    {convertTo12HourFormat(slot.endTime)}
                   </button>
                 ))
               ) : (
