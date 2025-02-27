@@ -351,12 +351,11 @@ export default function Chat() {
       {/* Sidebar Toggle Button (Only Visible When Sidebar is Closed) */}
       {!isSidebarOpen && (
         <button
-          className="position-absolute btn btn-light shadow-sm d-lg-none"
+          className="position-absolute top-50 translate-middle-y btn btn-light shadow-sm d-lg-none"
           style={{
-            top: "0%", // Move it slightly higher
             left: "0px",
-            transition: "left 0.3s ease-in-out, top 0.3s ease-in-out",
-            borderRadius: "10px 0px 0 0",
+            transition: "left 0.3s ease-in-out",
+            borderRadius: "6px",
             padding: "5px 10px",
             zIndex: 1100, // Ensure it's on top
             background: "#c0a262",
