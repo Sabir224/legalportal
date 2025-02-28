@@ -228,7 +228,7 @@ export default function ChatField({ selectedChat, user }) {
     return () => {
       console.log("🧹 Cleaning up chat listeners");
     };
-  }, [selectedChat, user._id]);
+  }, [selectedChat, user?._id]);
 
   if (!selectedChat && user?._id) {
     return (
@@ -249,7 +249,7 @@ export default function ChatField({ selectedChat, user }) {
         <div
           className={`${
             isDesktop ? "col-lg-9" : isTablet ? "col-md-8" : "col-sm-12"
-          } d-block`}
+          } `}
         >
           <div
             className="text-center d-flex flex-column justify-content-center align-items-center h-100"

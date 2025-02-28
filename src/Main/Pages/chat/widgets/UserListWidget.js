@@ -48,14 +48,14 @@ export default function UserListWidget({ setSelectedChat, userData }) {
     const loadUsers = async () => {
       const fetchedUsers = await fetchUsersForChat();
       setUsers(fetchedUsers);
-      if (userData._id) {
+      if (userData?._id) {
         console.log("🔌 Connecting to socket...");
-        SocketService.connect(userData._id);
+        SocketService.connect(userData?._id);
 
         // Ensure socket is fully connected before marking messages as delivered
         SocketService.socket?.on("connect", () => {
           console.log("✅ Socket Connected! Joining chat...");
-          SocketService.markAsDelivered(userData._id);
+          SocketService.markAsDelivered(userData?._id);
         });
       }
     };
@@ -77,7 +77,7 @@ export default function UserListWidget({ setSelectedChat, userData }) {
       // ✅ Cleanup the event listener when component unmounts or userData changes
       SocketService.socket?.off("newMessage", handleNewMessage);
     };
-  }, [userData._id]);
+  }, [userData?._id]);
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {
@@ -106,60 +106,61 @@ export default function UserListWidget({ setSelectedChat, userData }) {
   };
 
   return (
-    <div>
-      {users.map((user) => (
-        <div
-          key={user._id}
-          className="d-flex d-block align-items-center"
-          onClick={() => handleUserClick(user.Email)}
-          style={{
-            cursor: "pointer",
-            padding: "5px",
-            transition: "all 0.3s ease",
-          }}
-        >
-          {/* Profile Picture */}
+    <>
+      {users
+        ?.filter((user) => user && user._id)
+        .map((user) => (
           <div
-            className="rounded-circle"
+            key={user._id}
+            className="d-flex d-block align-items-center"
+            onClick={() => handleUserClick(user.Email)}
             style={{
-              backgroundImage: user.ProfilePicture
-                ? `url(${user.ProfilePicture})`
-                : `url(${Contactprofile})`,
-              backgroundSize: "cover",
-              backgroundRepeat: "no-repeat",
-              width: isCompact ? "30px" : "30px",
-              height: isCompact ? "30px" : "30px",
-              marginRight: isCompact ? "5px" : "10px",
-              border: `1px solid #d3b386`,
+              cursor: "pointer",
+              padding: "5px",
               transition: "all 0.3s ease",
             }}
-          />
-
-          {/* User Name - Hide when width is ≤ 80px */}
-          <div
-            className="flex-grow-1"
-            style={{
-              fontSize: "14px",
-              display: "flex",
-              alignItems: "center",
-            }}
           >
-            <span className="username">
-              {user.UserName &&
-                user.UserName.length > 0 &&
-                (user.UserName.includes(" ")
-                  ? `${
-                      user.UserName.split(" ")[0].length > 10
-                        ? user.UserName.split(" ")[0].slice(0, 10) + "..."
-                        : user.UserName.split(" ")[0]
-                    } ${user.UserName.split(" ")[1]?.[0] || ""}`
-                  : user.UserName.length > 10
-                  ? user.UserName.slice(0, 10) + "..."
-                  : user.UserName)}
-            </span>
+            {/* Profile Picture */}
+            <div
+              className="rounded-circle"
+              style={{
+                backgroundImage: user.ProfilePicture
+                  ? `url(${user.ProfilePicture})`
+                  : `url(${Contactprofile})`,
+                backgroundSize: "cover",
+                backgroundRepeat: "no-repeat",
+                width: "30px",
+                height: "30px",
+                marginRight: isCompact ? "5px" : "10px",
+                border: "1px solid #d3b386",
+                transition: "all 0.3s ease",
+              }}
+            />
+
+            {/* User Name */}
+            <div
+              className="flex-grow-1"
+              style={{
+                fontSize: "14px",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <span className="username">
+                {user.UserName &&
+                  (user.UserName.includes(" ")
+                    ? `${
+                        user.UserName.split(" ")[0].length > 10
+                          ? user.UserName.split(" ")[0].slice(0, 10) + "..."
+                          : user.UserName.split(" ")[0]
+                      } ${user.UserName.split(" ")[1]?.[0] || ""}`
+                    : user.UserName.length > 10
+                    ? user.UserName.slice(0, 10) + "..."
+                    : user.UserName)}
+              </span>
+            </div>
           </div>
-        </div>
-      ))}
-    </div>
+        ))}
+    </>
   );
 }
