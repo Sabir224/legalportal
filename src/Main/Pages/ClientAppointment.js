@@ -244,7 +244,7 @@ const ClientAppointment = () => {
     setpopupmessage(
       `${subject} on ${new Intl.DateTimeFormat("en-US", options).format(
         selectedDate
-      )} at ${selectedTime}?`
+      )} at ${convertTo12HourFormat(selectedTime)}?`
     );
 
     setpopupcolor("popup");
@@ -297,14 +297,31 @@ const ClientAppointment = () => {
     // if (selectedDate && selectedTime) {
     // setpopupmessage(`${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${selectedTime} ?`)
 
+
     const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
       selectedDate
     );
+    let mailmsg = {
+      ClientDetails: ClientDetails.user,
+      selectedTime: convertTo12HourFormat(selectedTime),
+      formattedDate: formattedDate,
+      ClientMessage: ClientMessage,
+    }
     const requestBody = {
       to: email,
       subject: subject,
       client: ClientDetails,
-      text: ` Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} <br>  Client Message: <p><br> ${ClientMessage}</p>`,
+      mailmsg: mailmsg,
+      text:
+        `
+         <strong>Client Message:</strong>
+          <p>${ClientMessage}</p>
+        Please note that <strong>${ClientDetails.user.UserName}</strong> has scheduled a meeting with you at
+        <strong>${convertTo12HourFormat(selectedTime)}</strong> on <strong>${formattedDate}</strong>.
+
+      `
+      ,
+      // `Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} <br>   <p><br> Client Message:${ClientMessage}</p>`,
       html: null,
     };
     console.log("Sending mail...");
@@ -342,8 +359,8 @@ const ClientAppointment = () => {
           isPopupVisible
             ? "Meeting Schedule mail is send"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-            ? "Meeting Schedule mail is send"
-            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+              ? "Meeting Schedule mail is send"
+              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -561,13 +578,21 @@ const ClientAppointment = () => {
               <div className={popupcolor}>
                 {!isLoading && !isEmailSent && (
                   <>
-                    <h3>{popupmessage}</h3>
+                    <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "5px" }}>
+                      {popupmessage}
+                    </h3>
                     <input
-                      className="col-3 w-10 m-2"
                       type="text"
                       placeholder="Text Message (Optional)"
                       value={ClientMessage}
                       onChange={(e) => setClientMessage(e.target.value)}
+                      style={{
+                        width: "90%",
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        borderRadius: "6px",
+                        margin: "10px 0",
+                      }}
                     />
                     {isPopupVisiblecancel && (
                       <div className="popup-actions d-flex justify-content-center">
@@ -733,9 +758,8 @@ const ClientAppointment = () => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${
-                    isAvailableDate ? "availableDate" : ""
-                  }`}
+                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
+                    }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -819,8 +843,8 @@ const ClientAppointment = () => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                        ? "#d2a85a" // Golden when selected
-                        : "#16213e", // Default background
+                          ? "#d2a85a" // Golden when selected
+                          : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                       fontSize: 12,

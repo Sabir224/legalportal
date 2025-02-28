@@ -236,7 +236,7 @@ const Dashboard = () => {
                 : screen === 1
                 ? "Case Details"
                 : screen === 2
-                ? "Appoointmen"
+                ? "Appointment"
                 : screen === 4
                 ? "Profile"
                 : screen === 5

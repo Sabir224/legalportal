@@ -37,6 +37,7 @@ import {
   FaChair,
   FaInfoCircle,
   FaMailBulk,
+  FaPen,
 } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 
@@ -809,7 +810,12 @@ const LawyerProfile = () => {
                         color: " #d4af37",
                       }}
                     >
-                      <BsPersonCircle />
+
+                      <img
+                        src={require(`../../../src/Component/Images/Profile.png`)}
+                        style={{ height: "20px" }}
+                      />
+
                     </span>
                     <input
                       className={
@@ -868,7 +874,10 @@ const LawyerProfile = () => {
                         color: " #d4af37",
                       }}
                     >
-                      <FaMailBulk />
+                      <img
+                        src={require(`../../../src/Component/Images/Email.png`)}
+                        style={{ height: "13px" }}
+                      />
                     </span>
                     <input
                       className={
@@ -915,7 +924,7 @@ const LawyerProfile = () => {
                   </label>
                   <div
                     className="input-group bg-soft-light rounded-2"
-                    style={{ marginTop: -8 }}
+                    style={{ marginTop: -9 }}
                   >
                     <span
                       className="input-group-text"
@@ -925,7 +934,10 @@ const LawyerProfile = () => {
                         color: " #d4af37",
                       }}
                     >
-                      <FaChair />
+                      <img
+                        src={require(`../../../src/Component/Images/Profession.png`)}
+                        style={{ height: "13px" }}
+                      />
                     </span>
                     <input
                       className={
@@ -1044,7 +1056,10 @@ const LawyerProfile = () => {
                       color: " #d4af37",
                     }}
                   >
-                    <BsInfoCircle />
+                    <img
+                      src={require(`../../../src/Component/Images/Bio.png`)}
+                      style={{ height: "20px" }}
+                    />
                   </span>
                   <textarea
                     className={
@@ -1097,7 +1112,10 @@ const LawyerProfile = () => {
                       color: " #d4af37",
                     }}
                   >
-                    <FaAddressCard />
+                    <img
+                      src={require(`../../../src/Component/Images/Address.png`)}
+                      style={{ height: "20px" }}
+                    />
                   </span>
                   <textarea
                     className={
@@ -1180,7 +1198,7 @@ const LawyerProfile = () => {
           </form>
         ) : (
           <div className="profile-section">
-            <div className="d-flex flex-row">
+            <div className="d-flex flex-row align-items-center m-0">
               {/* <div style={containerStyle}> */}
               {/* <div
                                     className="profile-pic"
@@ -1200,7 +1218,7 @@ const LawyerProfile = () => {
                 style={{
                   border: "2px solid #d4af37",
                   textAlign: "center",
-                  padding: "3px",
+                  padding:"3px",
                   borderRadius: "50%", // Use 50% for a perfect circle
                   width: "100px",
                   height: "100px",
@@ -1225,17 +1243,17 @@ const LawyerProfile = () => {
                             /> */}
               {/* </div> */}
 
-              <div className="d-flex flex-column justify-content-center p-2 gap-2">
-                <div className="d-flex align-items-center p-2 gap-2">
+              <div className="d-flex flex-column justify-content-center gap-2">
+                <div className="d-flex align-items-center p-2 gap-1 m-0">
                   <div>
                     <h2 style={{ color: "#d4af37" }}>{user?.UserName}</h2>
-                    <p>{lawyerDetails?.Position}</p>
+                    <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
                   </div>
                   <button
-                    className="btn-update "
+                    className="btn-update"
                     onClick={() => handleEdting(!isEditing)}
                   >
-                    <BsPen />
+                    <FaPen />
                   </button>
                 </div>
               </div>
