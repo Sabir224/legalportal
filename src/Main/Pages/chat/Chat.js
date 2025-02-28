@@ -5,15 +5,22 @@ import ChatField from "./widgets/ChatField";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArchive, faComments } from "@fortawesome/free-solid-svg-icons";
+import {
+  faArchive,
+  faBars,
+  faComments,
+  faMessage,
+} from "@fortawesome/free-solid-svg-icons";
 import { ApiEndPoint } from "../Component/utils/utlis";
 import { useMediaQuery } from "react-responsive";
 import { Socket } from "socket.io-client";
 import SocketService from "../../../SocketService";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { Offcanvas } from "bootstrap/dist/js/bootstrap.bundle.min";
 
 export default function Chat() {
   //const Users = useSelector((state) => state.Data.usersdetail);
-  const isCompact = useMediaQuery({ maxWidth: 768 });
+
   const [users, setUsers] = useState([]);
   const [selectUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -25,6 +32,7 @@ export default function Chat() {
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
+  const [showUserList, setShowUserList] = useState(false);
   // console.log("StoredEmail:", storedEmail);
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   // Connect to the socket when the app loads
@@ -245,76 +253,128 @@ export default function Chat() {
   //     </div>
   //   </div>
   // );
+  const isCompact = useMediaQuery({ maxWidth: 768 });
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isCompact); // Toggle state
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen((prev) => !prev);
+  };
+  // Sync Bootstrap Offcanvas with React state
+  useEffect(() => {
+    const sidebarElement = document.getElementById("sidebarMenu");
+
+    if (sidebarElement) {
+      const offcanvasInstance = Offcanvas.getOrCreateInstance(sidebarElement);
+
+      // Show or hide sidebar based on state
+      if (isSidebarOpen) {
+        offcanvasInstance.show();
+      } else {
+        offcanvasInstance.hide();
+      }
+
+      // Handle sidebar close event
+      const handleSidebarClose = () => setIsSidebarOpen(false);
+      sidebarElement.addEventListener(
+        "hidden.bs.offcanvas",
+        handleSidebarClose
+      );
+
+      return () => {
+        sidebarElement.removeEventListener(
+          "hidden.bs.offcanvas",
+          handleSidebarClose
+        );
+      };
+    }
+  }, [isSidebarOpen]);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  // Update isMobile state on screen resize
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
   return (
     <div
-      className="p-0 m-0 d-flex"
+      className="p-0 m-0 d-flex position-relative"
       style={{
         height: "85vh",
         width: "100%",
+        backgroundColor: "#fff",
+        borderRadius: "10px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Sidebar - User List */}
-      <div
-        className="border-end d-block  justify-content-center cursor-pointer p-1 user-list"
-        style={{
-          width: isCompact ? "60px" : "20%", // Shrink to 80px when compact
-          minWidth: isCompact ? "60px" : "auto",
-          maxHeight: "90vh",
-          overflowY: "auto",
-          backgroundColor: "#fff",
-          borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          transition: "width 0.3s ease-in-out", // Smooth transition
-        }}
-      >
-        <div className="d-flex justify-content-between  align-items-center">
-          <input
-            type="search"
-            className="form-control p-2 my-1 rounded"
-            placeholder="Search User"
-            onChange={handleSearchChange}
-            value={searchQuery}
-          />
-        </div>
+      {/* Small Screen Mini Sidebar */}
+      {isMobile && selectedChat && (
         <div
+          className="position-absolute left-0 h-100 d-flex flex-column justify-content-start align-items-center"
           style={{
-            paddingTop: "10px",
-            paddingBottom: "20px",
-            fontSize: "1.1rem",
-            maxHeight: "calc(82vh - 70px)",
-            overflowY: "auto",
+            width: "50px",
+            top: "0",
+            borderRadius: "10px 0 0 10px",
+            boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
+            paddingTop: "10px", // Space from the top
           }}
         >
-          {loading ? (
-            <p>Loading...</p>
-          ) : (
-            <UserListWidget
-              setSelectedChat={setSelectedChat}
-              userData={userData}
-            />
-          )}
+          <button
+            className="btn btn-light shadow-sm"
+            style={{
+              background: "#c0a262",
+            }}
+            onClick={() => {
+              setSelectedChat(null); // Hide chat
+              setShowUserList(true); // Show user list
+            }}
+          >
+            <FontAwesomeIcon icon={faBars} color="#fff" />
+          </button>
         </div>
-      </div>
+      )}
+
+      {/* User List Widget (Always visible on large screens, toggles on small screens) */}
+      {(showUserList || !isMobile) && (
+        <div
+          className="d-flex flex-column p-3"
+          style={{
+            width: isMobile ? "100%" : "30%",
+            height: "100%",
+            backgroundColor: "#fff",
+            borderRadius: "10px",
+            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          }}
+        >
+          <input
+            type="search"
+            className="form-control p-2 my-2 rounded"
+            placeholder="Search User"
+          />
+          <UserListWidget
+            setSelectedChat={(chat) => {
+              setSelectedChat(chat);
+              if (isMobile) setShowUserList(false); // Hide user list on small screens
+            }}
+            userData={userData}
+          />
+        </div>
+      )}
 
       {/* Chat Section */}
-      <div
-        className={`d-flex flex-column justify-content-center align-items-center h-100 ${
-          isCompact ? "w-100" : "w-100"
-        }`}
-        style={{
-          backgroundColor: "#fff",
-          borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          margin: isCompact ? "0" : "0 10px",
-        }}
-      >
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
+      {selectedChat && (
+        <div
+          className="d-flex flex-column"
+          style={{
+            flex: 1,
+            height: "100%",
+            padding: "15px",
+            marginLeft: isMobile ? "50px" : "0px", // Fix overlapping
+          }}
+        >
           <ChatField selectedChat={selectedChat} user={userData} />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

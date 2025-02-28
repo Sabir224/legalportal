@@ -155,7 +155,7 @@ const Dashboard = () => {
             borderRadius: "50%",
             width: "20px",
             height: "20px",
-            zIndex: 1100,
+            zIndex: 1010,
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
           }}
         >
