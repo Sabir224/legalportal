@@ -186,6 +186,29 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 1000; /* Ensures it's above other content */
+  pointer-events: auto; /* Allows interaction within the popup */
+}
+
+.popup-overlay.hidden {
+  display: none; /* Hide overlay when not needed */
+}
+
+.popup-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  z-index: 1001; /* Ensure popup is above overlay */
+  pointer-events: auto; /* Allows interaction */
+}
+
+body.popup-active {
+  overflow: hidden; /* Prevents scrolling while popup is open */
+  pointer-events: none; /* Disables clicks on background content */
+}
+
+body.popup-active .popup-overlay {
+  pointer-events: auto; /* Re-enables clicks only within the popup */
 }
 
 .btn-update {
