@@ -69,9 +69,25 @@ const ClientAppointment = () => {
   }, []);
 
   const fetchLawyerDetails = async () => {
+   
+   let lawyerid
     try {
       const response = await axios.get(
-        `${ApiEndPoint}appointments/67a2275aa70023929b5a3d3e`
+        `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
+      ); // API endpoint
+      setUser(response.data.user);
+      setLawyersDetails(response.data.lawyerDetails);
+      lawyerid=response.data.lawyerDetails?._id
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+
+
+    try {
+      const response = await axios.get(
+        `${ApiEndPoint}appointments/${lawyerid}`
       );
 
       if (!response.data || response.data.length === 0) {
@@ -96,17 +112,7 @@ const ClientAppointment = () => {
       setLoading(false);
     }
 
-    try {
-      const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
-      ); // API endpoint
-      setUser(response.data.user);
-      setLawyersDetails(response.data.lawyerDetails);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+   
     try {
       const response = await axios.get(
         `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
@@ -519,7 +525,7 @@ const ClientAppointment = () => {
             />
             <div className="d-flex flex-column justify-content-center p-2">
               <h2 style={{ color: " #d4af37" }}>{user.UserName}</h2>
-              <p>{lawyerDetails.Position}</p>
+              <p style={{ color: "#d4af37" }}>{lawyerDetails.Position}</p>
             </div>
           </div>
 

@@ -89,10 +89,13 @@ const LawyerProfile = () => {
   const [appointmentDetails, setAppointmentDetails] = useState({
     availableSlots: [],
   });
+  const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
   const [newTime, setNewTime] = useState(null);
   const [newStartTime, setNewStartTime] = useState(null);
   const [newEndTime, setNewEndTime] = useState(null);
   const [Updatedetails, setUpdatedetails] = useState();
+  const [deleteslot, setdeleteslot] = useState();
+  const [updatespecifcslot, setupdateslot] = useState();
 
   const [pic, setPic] = useState();
   const [profilePicBase64, setProfilePicBase64] = useState(null);
@@ -107,6 +110,13 @@ const LawyerProfile = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectfile, setselectfile] = useState("");
+
+  const [message, setMessage] = useState("");
+  const showMessage = (msg) => {
+    setMessage(msg);
+    setTimeout(() => setMessage(""), 5000);
+    // ✅ Hide message after 5 seconds
+  };
 
   const hanldeEdit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
@@ -161,6 +171,12 @@ const LawyerProfile = () => {
 
   const availableSlotsMap =
     appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      acc[dateStr] = slot.slots;
+      return acc;
+    }, {}) || {};
+  const ExistSlotsMap =
+    DatabaseappointmentDetails?.availableSlots?.reduce((acc, slot) => {
       const dateStr = new Date(slot.date).toDateString();
       acc[dateStr] = slot.slots;
       return acc;
@@ -229,8 +245,9 @@ const LawyerProfile = () => {
 
     return slots;
   };
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-  const handleAddTimeSlot = () => {
+  const handleAddTimeSlot = async () => {
     if (selectedDate && newStartTime && newEndTime) {
       const formatTime = (date) =>
         date.toLocaleTimeString([], {
@@ -240,20 +257,21 @@ const LawyerProfile = () => {
         });
 
       if (newEndTime <= newStartTime) {
-        alert("End time must be after start time!");
+        //alert("End time must be after start time!");
         return;
       }
 
-      const newSlots = generateMultipleTimeSlots(newStartTime, newEndTime);
+      const newSlots = await generateMultipleTimeSlots(newStartTime, newEndTime);
 
-      setAppointmentDetails((prevDetails) => {
+      // Use a Promise to wait for state update
+      let updatedAppointmentDetails;
+      await setAppointmentDetails((prevDetails) => {
         const updatedSlots = [...prevDetails.availableSlots];
         const existingSlotIndex = updatedSlots.findIndex(
           (slot) => slot.date === selectedDate.toDateString()
         );
 
         if (existingSlotIndex > -1) {
-          // Merge new slots into existing date's slots, ensuring no duplicates
           const existingSlots = updatedSlots[existingSlotIndex].slots;
           newSlots.forEach((newSlot) => {
             const slotExists = existingSlots.some(
@@ -270,94 +288,191 @@ const LawyerProfile = () => {
           });
         }
 
-        return { availableSlots: updatedSlots };
+        updatedAppointmentDetails = { availableSlots: updatedSlots };
+        return updatedAppointmentDetails;
       });
+
+      // Ensure state update before proceeding
+      await sleep(1000);
 
       setNewStartTime(null);
       setNewEndTime(null);
+
+      const formatDate = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
+        const day = String(date.getDate()).padStart(2, "0"); // Ensure 2-digit day
+        return `${year}-${month}-${day}`;
+      };
+
+      console.log("Updated Appointment Details:", updatedAppointmentDetails);
+
+      // Use the updated appointment details instead of the outdated state
+      const formattedSlots = {
+        availableSlots: updatedAppointmentDetails.availableSlots.map((slot) => ({
+          date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
+          slots: slot.slots.map((slotTime) => ({
+            startTime: convertTo24HourFormat(slotTime.startTime),
+            endTime: convertTo24HourFormat(slotTime.endTime),
+            isBooked: slotTime.isBooked,
+          })),
+        })),
+      };
+
+      console.log("Formatted Slots for API:", formattedSlots);
+
+      try {
+        const response = await axios.post(
+          `${ApiEndPoint}appointment/6799cd3a1aa12d0a863a32e0/add-availability`,
+          formattedSlots,
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Post Appointment Data:", response.data);
+        showMessage(response.data.message)
+        fetchLawyerDetails();
+        setAppointmentDetails({ availableSlots: [] });
+      } catch (error) {
+        console.error(
+          "Error adding availability:",
+          error.response?.data || error.message
+        );
+        throw error;
+      }
     } else {
       alert("Please select a date, start time, and end time");
     }
   };
 
-  const handleUpdateTimeSlot = () => {
-    if (!newStartTime || !newEndTime || editingSlotIndex === null) {
-      if (!window.alertTriggered) {
-        window.alertTriggered = true;
-        alert("Please select a valid start and end time.");
-        setTimeout(() => {
-          window.alertTriggered = false;
-        }, 500);
+
+  const updateSlot = async () => {
+    // slot update when is note
+    let start = new Date(newStartTime)
+    let end = new Date(newEndTime)
+    const lawyerId = lawyerDetails._id
+    const updatedSlot = {
+      startTime: start.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      endTime: end.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }),
+      isBooked: false
+    };
+    let slot = updatespecifcslot._id
+    // console.log("updatedSlot =", updatedSlot)
+    // console.log("updatespecifcslot", slot)
+    try {
+      const response = await fetch(`http://localhost:5001/api/appointments/${lawyerId}/${slot}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(updatedSlot)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update slot");
       }
-      return;
+      fetchLawyerDetails();
+      setEditingSlotIndex(null);
+      setNewStartTime(null);
+      setNewEndTime(null);
+      setSelectedTime(null)
+      showMessage(data.message)
+      console.log("Slot updated successfully:", data);
+    } catch (error) {
+      console.error("Error updating slot:", error.message);
     }
-
-    let slotUpdated = false; // Flag to track if a slot was updated
-
-    const selectedDateStr = selectedDate.toDateString();
-    const selectedDateSlots = appointmentDetails.availableSlots.find(
-      (slot) => slot.date === selectedDateStr
-    );
-
-    if (!selectedDateSlots) return appointmentDetails;
-
-    const newStartFormatted = newStartTime.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-    const newEndFormatted = newEndTime.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
-
-    const slotExists = selectedDateSlots.slots.some(
-      (slot, index) =>
-        index !== editingSlotIndex &&
-        slot.startTime === newStartFormatted &&
-        slot.endTime === newEndFormatted
-    );
-
-    if (slotExists) {
-      if (!window.alertTriggered) {
-        window.alertTriggered = true;
-        alert("This time slot already exists! Update not allowed.");
-        setTimeout(() => {
-          window.alertTriggered = false;
-        }, 500);
-      }
-      return appointmentDetails;
-    }
-
-    setAppointmentDetails((prevDetails) => {
-      const updatedSlots = [...prevDetails.availableSlots];
-
-      // Update slot
-      selectedDateSlots.slots[editingSlotIndex] = {
-        startTime: newStartFormatted,
-        endTime: newEndFormatted,
-        isBooked: false,
-      };
-
-      selectedDateSlots.slots.sort(
-        (a, b) =>
-          new Date(`1970/01/01 ${a.startTime}`) -
-          new Date(`1970/01/01 ${b.startTime}`)
-      );
-
-      slotUpdated = true; // Set flag to true when update is successful
-      return { availableSlots: updatedSlots };
-    });
-
-    if (slotUpdated) {
-      setTimeout(() => alert("Time slot updated successfully!"), 100); // Show success alert
-    }
-
-    setEditingSlotIndex(null);
-    setNewStartTime(null);
-    setNewEndTime(null);
   };
+
+  // const handleUpdateTimeSlot = () => {
+  //   if (!newStartTime || !newEndTime || editingSlotIndex === null) {
+  //     if (!window.alertTriggered) {
+  //       window.alertTriggered = true;
+  //       alert("Please select a valid start and end time.");
+  //       setTimeout(() => {
+  //         window.alertTriggered = false;
+  //       }, 500);
+  //     }
+  //     return;
+  //   }
+
+  //   let slotUpdated = false; // Flag to track if a slot was updated
+
+  //   const selectedDateStr = selectedDate.toDateString();
+  //   const selectedDateSlots = appointmentDetails.availableSlots.find(
+  //     (slot) => slot.date === selectedDateStr
+  //   );
+
+  //   if (!selectedDateSlots) return appointmentDetails;
+
+  //   const newStartFormatted = newStartTime.toLocaleTimeString([], {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: true,
+  //   });
+  //   const newEndFormatted = newEndTime.toLocaleTimeString([], {
+  //     hour: "2-digit",
+  //     minute: "2-digit",
+  //     hour12: true,
+  //   });
+
+  //   const slotExists = selectedDateSlots.slots.some(
+  //     (slot, index) =>
+  //       index !== editingSlotIndex &&
+  //       slot.startTime === newStartFormatted &&
+  //       slot.endTime === newEndFormatted
+  //   );
+
+  //   if (slotExists) {
+  //     if (!window.alertTriggered) {
+  //       window.alertTriggered = true;
+  //       alert("This time slot already exists! Update not allowed.");
+  //       setTimeout(() => {
+  //         window.alertTriggered = false;
+  //       }, 500);
+  //     }
+  //     return appointmentDetails;
+  //   }
+
+  //   setAppointmentDetails((prevDetails) => {
+  //     const updatedSlots = [...prevDetails.availableSlots];
+
+  //     // Update slot
+  //     selectedDateSlots.slots[editingSlotIndex] = {
+  //       startTime: newStartFormatted,
+  //       endTime: newEndFormatted,
+  //       isBooked: false,
+  //     };
+
+  //     selectedDateSlots.slots.sort(
+  //       (a, b) =>
+  //         new Date(`1970/01/01 ${a.startTime}`) -
+  //         new Date(`1970/01/01 ${b.startTime}`)
+  //     );
+
+  //     slotUpdated = true; // Set flag to true when update is successful
+  //     return { availableSlots: updatedSlots };
+  //   });
+
+  //   if (slotUpdated) {
+  //     setTimeout(() => alert("Time slot updated successfully!"), 100); // Show success alert
+  //   }
+
+  //   setEditingSlotIndex(null);
+  //   setNewStartTime(null);
+  //   setNewEndTime(null);
+  // };
 
   useEffect(() => {
     fetchLawyerDetails();
@@ -372,21 +487,80 @@ const LawyerProfile = () => {
     //     .catch((error) => console.error("Error fetching image:", error));
   }, []);
 
+  const convertTo12HourFormat = (time) => {
+    let [hours, minutes] = time.split(":").map(Number);
+    let period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 to 12 for AM times
+    return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
   const fetchLawyerDetails = async () => {
+    let lawyerId = ''
     try {
       const response = await axios.get(
         `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
-      setLawyersDetails(response.data.lawyerDetails);
-      console.log("lawyers data ", response.data);
+      await setLawyersDetails(response.data.lawyerDetails);
+      lawyerId = response.data.lawyerDetails._id
+      console.log("lawyers data ", response.data, lawyerId);
 
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
+
+
     try {
+      console.log("lawyer id", lawyerDetails)
+      const response = await axios.get(
+        `${ApiEndPoint}appointments/${lawyerId}`
+      );
+
+      if (!response.data || response.data.length === 0) {
+        throw new Error("No appointment data found");
+      }
+
+      let temp = {
+        FkLawyerId: response.data[0].FkLawyerId,
+        availableSlots: {},
+      };
+
+      response.data.forEach((element) => {
+        if (element.availableSlots) {
+          element.availableSlots.forEach((slot) => {
+            if (!temp.availableSlots[slot.date]) {
+              temp.availableSlots[slot.date] = [];
+            }
+
+            temp.availableSlots[slot.date] = [
+              ...temp.availableSlots[slot.date],
+              ...slot.slots.map((s) => ({
+                startTime: convertTo12HourFormat(s.startTime),
+                endTime: convertTo12HourFormat(s.endTime),
+                isBooked: s.isBooked,
+                _id: s._id,
+              })),
+            ];
+          });
+        }
+      });
+
+      // Convert the object into an array format for consistency
+      temp.availableSlots = Object.entries(temp.availableSlots).map(
+        ([date, slots]) => ({
+          date,
+          slots,
+        })
+      );
+
+      console.log("Formatted Appointment Details", temp);
+      setDataAppointmentDetails(temp);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    } try {
       const response = await axios.get(
         `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
       );
@@ -492,17 +666,16 @@ const LawyerProfile = () => {
     setSelectedTime(time);
   };
 
-  const handleOpenPopup = () => {
-    // setpopupmessage(
-    //     `${subject} on ${new Intl.DateTimeFormat("en-US", options).format(
-    //         selectedDate
-    //     )} at ${selectedTime}?`
-    // );
-    // setpopupcolor("popup");
-    // setisPopupVisiblecancel(true);
-    // setTimeout(() => {
-    //     setIsPopupVisible(true);
-    // }, 500);
+  const handleOpenPopup = (item) => {
+    setpopupmessage(
+      `Are you sure that you want to delete the slot of ${item.startTime} - ${item.endTime}?`
+    );
+    setdeleteslot(item)
+    setpopupcolor("popup");
+    setisPopupVisiblecancel(true);
+    setTimeout(() => {
+      setIsPopupVisible(true);
+    }, 500);
   };
 
   const handleClosePopup = () => {
@@ -514,77 +687,182 @@ const LawyerProfile = () => {
 
   const handleConfirm = async () => {
     setIsLoading(true); // Show loader
+
     try {
-      await handleSchedule(); // Call the function to send the email
+      await handleDelete(lawyerDetails._id, deleteslot._id); // Call the function to send the email
       setIsEmailSent(true); // Set email sent confirmation
       setTimeout(() => {
         setIsPopupVisible(false); // Close popup after showing confirmation
         setIsEmailSent(false); // Reset confirmation state after a delay
-      }, 8000);
+      }, 1000);
     } catch (error) {
-      console.error("Failed to send email:", error);
-      setpopupmessage("Failed to send email. Please try again.");
+      console.error("Failed to Delete:", error);
+      setpopupmessage("Failed to delete slot Please try again.");
     } finally {
       setIsLoading(false); // Hide loader
     }
   };
+  const convertTo24HourFormat = (timeString) => {
+    const [time, modifier] = timeString.split(" ");
+    let [hours, minutes] = time.split(":");
 
-  const handleSchedule = async () => {
-    console.log("show appointment", appointmentDetails);
+    if (modifier === "PM" && hours !== "12") {
+      hours = String(Number(hours) + 12);
+    } else if (modifier === "AM" && hours === "12") {
+      hours = "00";
+    }
 
-    const formatDate = (date) => {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
-      const day = String(date.getDate()).padStart(2, "0"); // Ensure 2-digit day
-      return `${year}-${month}-${day}`;
-    };
-    const convertTo24HourFormat = (timeString) => {
-      const [time, modifier] = timeString.split(" ");
-      let [hours, minutes] = time.split(":");
+    return `${hours}:${minutes}`; // Returns HH:MM format
+  };
 
-      if (modifier === "PM" && hours !== "12") {
-        hours = String(Number(hours) + 12);
-      } else if (modifier === "AM" && hours === "12") {
-        hours = "00";
-      }
 
-      return `${hours}:${minutes}`; // Returns HH:MM format
-    };
-
-    const formattedSlots = {
-      availableSlots: appointmentDetails.availableSlots.map((slot) => ({
-        date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
-        slots: slot.slots.map((slotTime) => ({
-          startTime: convertTo24HourFormat(slotTime.startTime),
-          endTime: convertTo24HourFormat(slotTime.endTime),
-          isBooked: slotTime.isBooked,
-        })),
-      })),
-    };
-
-    // Function to convert 12-hour time to 24-hour format
-
-    console.log("formattedSlots :", formattedSlots);
-
+  const handleDelete = async (lawyerId, slotId) => {
+    console.log(lawyerId, "         ", slotId)
     try {
-      const response = await axios.post(
-        `${ApiEndPoint}appointment/67a2275aa70023929b5a3d3e/add-availability`,
-        formattedSlots,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      const response = await axios.delete(
+        `http://localhost:5001/api/delete-slot/${lawyerId}/${slotId}`
       );
-      console.log("Post Appoinmtent Data :", response.data);
+
+
+      if (!response.ok) {
+        setisPopupVisiblecancel(false);
+        setpopupcolor("popupconfirm");
+        setpopupmessage(
+          isPopupVisible
+            ? `Slot is  not deleted ${response.status}`
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+        );
+        setTimeout(() => {
+          setIsPopupVisible(false);
+        }, 3000);
+      } else {
+        const data = await response.json();
+        console.log("Delete successfully:", data);
+        setResponseData(data);
+        setisPopupVisiblecancel(false);
+        setpopupcolor("popupconfirm");
+        setpopupmessage(
+          isPopupVisible
+            ? "Delete successfully"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+              ? "Delete successfully"
+              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+        );
+        setTimeout(() => {
+          setIsPopupVisible(false);
+        }, 3000);
+        // Assuming setResponseData is a state updater
+        console.log("Delete successfully:", data);
+      }
+      console.log("Slot deleted successfully:", response.data);
+      fetchLawyerDetails()
+      return response.data;
     } catch (error) {
-      console.error(
-        "Error adding availability:",
-        error.response?.data || error.message
-      );
+      console.error("Error deleting slot:", error.response?.data || error.message);
       throw error;
     }
+    // try {
+    //   const response = await fetch(`${ApiEndPoint}send-mail`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify(requestBody),
+    //   });
+
+    //   console.log("Response received");
+
+    //   if (!response.ok) {
+    //     setisPopupVisiblecancel(false);
+    //     setpopupcolor("popupconfirm");
+    //     setpopupmessage(
+    //       isPopupVisible
+    //         ? `Meeting Schedule mail not end ${response.status}`
+    //         : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+    //     );
+    //     setTimeout(() => {
+    //       setIsPopupVisible(false);
+    //     }, 3000);
+    //     throw new Error(`HTTP error! status: ${response.status}`);
+    //   } else {
+    //     const data = await response.json();
+    //     console.log("Mail sent successfully:", data);
+    //     setResponseData(data);
+    //     setisPopupVisiblecancel(false);
+    //     setpopupcolor("popupconfirm");
+    //     setpopupmessage(
+    //       isPopupVisible
+    //         ? "Meeting Schedule mail is send"
+    //         : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+    //           ? "Meeting Schedule mail is send"
+    //           : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+    //     );
+    //     setTimeout(() => {
+    //       setIsPopupVisible(false);
+    //     }, 3000);
+    //     // Assuming setResponseData is a state updater
+    //     console.log("Mail sent successfully:", data);
+    //   }
+    // } catch (error) {
+    //   console.error("Error in POST request:", error.message || error);
+    // }
+
+    // alert(`Meeting scheduled on  ${selectedDate.day} at ${selectedTime}`);
+    // } else {
+    //   alert("Please select both a day and time to schedule a meeting.");
+    // }
   };
+
+  // const handleSchedule = async () => {
+  //   const formatDate = (date) => {
+  //     const year = date.getFullYear();
+  //     const month = String(date.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
+  //     const day = String(date.getDate()).padStart(2, "0"); // Ensure 2-digit day
+  //     return `${year}-${month}-${day}`;
+  //   };
+
+  //   console.log("show appointment", appointmentDetails);
+  //   const formattedSlots = {
+  //     availableSlots: appointmentDetails.availableSlots.map((slot) => ({
+  //       date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
+  //       slots: slot.slots.map((slotTime) => ({
+  //         startTime: convertTo24HourFormat(slotTime.startTime),
+  //         endTime: convertTo24HourFormat(slotTime.endTime),
+  //         isBooked: slotTime.isBooked,
+  //       })),
+  //     })),
+  //   };
+
+  //   // Function to convert 12-hour time to 24-hour format
+
+  //   console.log("formattedSlots :", formattedSlots);
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${ApiEndPoint}appointment/67a2275aa70023929b5a3d3e/add-availability`,
+  //       formattedSlots,
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+  //     console.log("Post Appoinmtent Data :", response.data);
+  //     fetchLawyerDetails()
+  //     setAppointmentDetails({
+  //       availableSlots: [],
+  //     })
+  //   } catch (error) {
+  //     console.error(
+  //       "Error adding availability:",
+  //       error.response?.data || error.message
+  //     );
+  //     throw error;
+  //   }
+  // };
+
+
+
   const handleEdting = async (value) => {
     let temp = {
       user: user,
@@ -650,6 +928,7 @@ const LawyerProfile = () => {
     }
   };
 
+
   // const handleFileInputChange = (event) => {
   //     const file = event.target.files[0];
   //     if (file) {
@@ -669,6 +948,7 @@ const LawyerProfile = () => {
       document.getElementById("profilePicUpdate").click();
     }
   };
+
 
   const containerStyle = {
     position: "relative",
@@ -722,6 +1002,17 @@ const LawyerProfile = () => {
       acc[dateStr] = { isAvailable: true, hasBookedSlot };
       return acc;
     }, {}) || {};
+
+  const handleRemoveSlot = (slotId) => {
+    setAppointmentDetails((prevDetails) => {
+      const updatedSlots = prevDetails.availableSlots.map((daySlot) => ({
+        ...daySlot,
+        slots: daySlot.slots.filter((slot) => slot._id !== slotId),
+      }));
+      return { availableSlots: updatedSlots };
+    });
+  };
+
 
   return (
     <div
@@ -1218,7 +1509,7 @@ const LawyerProfile = () => {
                 style={{
                   border: "2px solid #d4af37",
                   textAlign: "center",
-                  padding:"3px",
+                  padding: "3px",
                   borderRadius: "50%", // Use 50% for a perfect circle
                   width: "100px",
                   height: "100px",
@@ -1314,9 +1605,12 @@ const LawyerProfile = () => {
               <div className={popupcolor}>
                 {!isLoading && !isEmailSent && (
                   <>
-                    <h3>{popupmessage}</h3>
+                    <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "5px" }}>
+                      {popupmessage}
+                    </h3>
+
                     {isPopupVisiblecancel && (
-                      <div className="popup-actions d-flex justify-content-center">
+                      <div className="popup-actions d-flex justify-content-center gap-3 mt-3">
                         <button className="confirm-btn" onClick={handleConfirm}>
                           Yes
                         </button>
@@ -1332,7 +1626,7 @@ const LawyerProfile = () => {
                 )}
                 {isLoading && (
                   <div className="loading-indicator">
-                    <p>Sending...</p>
+                    <p>Deleting...</p>
                     <div className="spinner"></div>{" "}
                     {/* You can style a spinner here */}
                   </div>
@@ -1448,7 +1742,94 @@ const LawyerProfile = () => {
         {selectedDate && (
           <div>
             <h5 style={{ color: " #d4af37" }}>Existing Slots:</h5>
-            {availableSlotsMap[selectedDate.toDateString()]?.map(
+            <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+              {ExistSlotsMap[selectedDate.toDateString()]?.map((slot, index) => (
+                <div key={slot._id} style={{ position: "relative", display: "inline-block" }}>
+                  <button
+                    onClick={() => {
+                      setNewStartTime(
+                        new Date(
+                          `${selectedDate.toDateString()} ${slot.startTime}`
+                        )
+                      );
+                      setNewEndTime(
+                        new Date(`${selectedDate.toDateString()} ${slot.endTime}`)
+                      );
+                      setEditingSlotIndex(index);
+                      handleTimeClick(slot.startTime)
+                      setupdateslot(slot)
+                    }}
+                    className="time-button"
+                    style={{
+                      padding: "5px 10px",
+                      borderRadius: "5px",
+                      border: "1px solid #d4af37",
+                      background: slot.isBooked
+                        ? "green" // Green if booked
+                        : selectedTime === slot.startTime
+                          ? "#d2a85a" // Golden when selected
+                          : "#16213e", // Default background
+                      color: "white",
+                      cursor: slot.isBooked ? "not-allowed" : "pointer",
+                      fontSize: 12,
+                      position: "relative",
+                    }}
+                    disabled={slot.isBooked}
+                    onMouseEnter={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#c0a262"; // Hover background (light golden)
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#16213e"; // Reset to default
+                      }
+                    }}
+                  >
+                    {slot.startTime} - {slot.endTime}
+                  </button>
+
+                  {/* Close Icon (❌) */}
+                  {!slot.isBooked && (
+                    <span
+                      onClick={() => handleOpenPopup(slot)}
+                      style={{
+                        position: "absolute",
+                        top: "-8px",
+                        right: "-8px",
+                        background: "#18273e",
+                        // border:"2px solid #c0a262",
+                        color: "white",
+                        borderRadius: "50%",
+                        width: "18px",
+                        height: "18px",
+                        display: "flex",
+                        justifyContent: "center",
+                        padding: '2px',
+                        alignItems: "center",
+                        fontSize: "12px",
+                        cursor: "pointer",
+                        fontWeight: "bold",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = "#c0a262"; // Hover background (light golden)
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = "#16213e"; // Reset to default
+                        }
+                      }}
+                    >
+                      ❌
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* {availableSlotsMap[selectedDate.toDateString()]?.map(
               (slot, index) => (
                 <button
                   key={index}
@@ -1469,28 +1850,20 @@ const LawyerProfile = () => {
                   {slot.isBooked ? "(Booked)" : ""}
                 </button>
               )
-            )}
+            )} */}
           </div>
         )}
 
         {selectedDate && (
-          <div>
-            <h5 style={{ color: " #d4af37" }}>
+          <div style={{ position: "relative" }}>
+            <h5 style={{ color: "#d4af37" }}>
               {editingSlotIndex !== null ? "Edit Slot" : "Add New Slot"}
             </h5>
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+
               {/* Start Time Picker */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <label
-                  className="simple-text"
-                  style={{ marginBottom: "5px", textAlign: "center" }}
-                >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" }}>
                   Start Time:
                 </label>
                 <DatePicker
@@ -1502,21 +1875,41 @@ const LawyerProfile = () => {
                   timeCaption="Start Time"
                   dateFormat="h:mm aa"
                   className="small-datepicker"
+                  id="start-time-picker"
+                  style={{
+                    border: message ? "2px solid red" : "1px solid #ccc",
+                    transition: "border 0.3s ease-in-out",
+                  }}
+                // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
                 />
+
+                {/* ✅ Message appears just below the DatePicker */}
+                {message && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "110%", // Slightly below the DatePicker
+                      left: "50%",
+                      // transform: "translateX(-50%)",
+                      backgroundColor: "rgba(255, 0, 0, 0.9)",
+                      color: "white",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+                      zIndex: 9999,
+                      minWidth: "20vw",
+                      marginTop: "5px",
+                    }}
+                  >
+                    {message}
+                  </div>
+                )}
               </div>
 
               {/* End Time Picker */}
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-              >
-                <label
-                  className="simple-text"
-                  style={{ marginBottom: "5px", textAlign: "center" }}
-                >
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" }}>
                   End Time:
                 </label>
                 <DatePicker
@@ -1528,17 +1921,13 @@ const LawyerProfile = () => {
                   timeCaption="End Time"
                   dateFormat="h:mm aa"
                   className="small-datepicker"
-                  disabled={editingSlotIndex}
+                  disabled={editingSlotIndex !== null}
                 />
               </div>
 
               {/* Add or Update Button */}
               <button
-                onClick={
-                  editingSlotIndex !== null
-                    ? handleUpdateTimeSlot
-                    : handleAddTimeSlot
-                }
+                onClick={editingSlotIndex !== null ? updateSlot : handleAddTimeSlot}
                 style={{
                   height: "30px",
                   borderRadius: 6,
@@ -1552,10 +1941,13 @@ const LawyerProfile = () => {
             </div>
           </div>
         )}
+
+
+
       </div>
       {/* <ContactFormModal isOpen={isEditing} onClose={(value) => handleEdting(value)} updateData={Updatedetails} /> */}
 
-      <div style={{ textAlign: "center" }}>
+      {/* <div style={{ textAlign: "center" }}>
         <button
           className="schedule-button"
           style={{
@@ -1567,7 +1959,7 @@ const LawyerProfile = () => {
         >
           Save Schedule
         </button>
-      </div>
+      </div> */}
       {/* </div> */}
     </div>
   );
