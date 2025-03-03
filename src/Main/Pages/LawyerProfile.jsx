@@ -323,7 +323,7 @@ const LawyerProfile = () => {
 
       try {
         const response = await axios.post(
-          `${ApiEndPoint}appointment/6799cd3a1aa12d0a863a32e0/add-availability`,
+          `${ApiEndPoint}appointment/${lawyerDetails._id}/add-availability`,
           formattedSlots,
           {
             headers: {
@@ -370,7 +370,7 @@ const LawyerProfile = () => {
     // console.log("updatedSlot =", updatedSlot)
     // console.log("updatespecifcslot", slot)
     try {
-      const response = await fetch(`http://localhost:5001/api/appointments/${lawyerId}/${slot}`, {
+      const response = await fetch(`${ApiEndPoint}appointments/${lawyerId}/${slot}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json"
@@ -720,7 +720,7 @@ const LawyerProfile = () => {
     console.log(lawyerId, "         ", slotId)
     try {
       const response = await axios.delete(
-        `http://localhost:5001/api/delete-slot/${lawyerId}/${slotId}`
+        `${ApiEndPoint}delete-slot/${lawyerId}/${slotId}`
       );
 
 
