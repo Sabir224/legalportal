@@ -37,24 +37,40 @@ export default function Chat() {
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   // Connect to the socket when the app loads
   useEffect(() => {
-    if (storedEmail && !hasFetched.current) {
-      const fetchClientDetails = async () => {
-        try {
-          setLoading(true);
-          const response = await axios.get(
-            `${ApiEndPoint}/getUserDetail/${storedEmail}`
-          );
-          setUserData(response.data);
-        } catch (err) {
-          console.error("Error fetching client details:", err);
-        } finally {
-          setLoading(false);
-        }
-      };
+    if (!storedEmail || hasFetched.current) return;
 
-      fetchClientDetails();
-      hasFetched.current = true;
-    }
+    const fetchClientDetails = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(
+          `${ApiEndPoint}/getUserDetail/${storedEmail}`
+        );
+        setUserData(response.data);
+
+        if (response.data?._id) {
+          // Only connect if the socket is NOT already connected
+          if (!SocketService.socket || !SocketService.socket.connected) {
+            console.log("🔌 Connecting to socket...");
+            SocketService.connect(response.data?._id);
+          }
+
+          // Mark messages as delivered only once when connected
+          SocketService.socket?.once("connect", () => {
+            console.log(
+              "✅ Socket Connected! Marking messages as delivered..."
+            );
+            SocketService.markAsDelivered(response.data?._id);
+          });
+        }
+      } catch (err) {
+        console.error("Error fetching client details:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientDetails();
+    hasFetched.current = true; // Prevent multiple calls
 
     return () => {
       if (SocketService.socket?.connected) {
@@ -308,25 +324,26 @@ export default function Chat() {
       }}
     >
       {/* Small Screen Mini Sidebar */}
-      {isMobile && selectedChat && (
+      {isMobile && (
         <div
-          className="position-absolute left-0 h-100 d-flex flex-column justify-content-start align-items-center"
+          className="position-absolute d-flex flex-column align-items-center"
           style={{
             width: "50px",
-            top: "0",
+            height: "100%",
+            top: 0,
+            left: 0,
             borderRadius: "10px 0 0 10px",
             boxShadow: "2px 0 5px rgba(0, 0, 0, 0.1)",
-            paddingTop: "10px", // Space from the top
+            paddingTop: "10px",
+            background: "#fff",
           }}
         >
           <button
             className="btn btn-light shadow-sm"
-            style={{
-              background: "#c0a262",
-            }}
+            style={{ background: "#c0a262" }}
             onClick={() => {
-              setSelectedChat(null); // Hide chat
-              setShowUserList(true); // Show user list
+              setSelectedChat(null);
+              setShowUserList(true);
             }}
           >
             <FontAwesomeIcon icon={faBars} color="#fff" />
@@ -334,16 +351,18 @@ export default function Chat() {
         </div>
       )}
 
-      {/* User List Widget (Always visible on large screens, toggles on small screens) */}
+      {/* User List Widget */}
       {(showUserList || !isMobile) && (
         <div
           className="d-flex flex-column p-3"
           style={{
-            width: isMobile ? "100%" : "30%",
+            width: isMobile ? "100%" : "200px", // Fixed width on large screens
             height: "100%",
             backgroundColor: "#fff",
             borderRadius: "10px",
             boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+            marginLeft: isMobile ? "70px" : "10px", // Added space from the sidebar
+            transition: "margin-left 0.3s ease-in-out",
           }}
         >
           <input
@@ -354,7 +373,7 @@ export default function Chat() {
           <UserListWidget
             setSelectedChat={(chat) => {
               setSelectedChat(chat);
-              if (isMobile) setShowUserList(false); // Hide user list on small screens
+              if (isMobile) setShowUserList(false);
             }}
             userData={userData}
           />
@@ -362,14 +381,13 @@ export default function Chat() {
       )}
 
       {/* Chat Section */}
-      {selectedChat && (
+      {!showUserList && (
         <div
-          className="d-flex flex-column"
+          className="d-flex flex-column flex-grow-1"
           style={{
-            flex: 1,
             height: "100%",
             padding: "15px",
-            marginLeft: isMobile ? "50px" : "0px", // Fix overlapping
+            marginLeft: isMobile ? "50px" : "10px", // Ensuring space from sidebar
           }}
         >
           <ChatField selectedChat={selectedChat} user={userData} />

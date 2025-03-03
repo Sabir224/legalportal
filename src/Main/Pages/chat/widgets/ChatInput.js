@@ -69,7 +69,7 @@ export default function ChatInput({ selectedChat, user }) {
     }
 
     return () => clearTimeout(typingTimeout);
-  }, [isTyping, selectedChat._id, user._id]);
+  }, [isTyping, selectedChat?._id, user?._id]);
   const handleTyping = (e) => {
     setMessage(e.target.value);
 

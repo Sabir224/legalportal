@@ -1,8 +1,9 @@
+/* eslint-disable import/no-anonymous-default-export */
 // services/SocketService.js
 import { io } from "socket.io-client";
 
-const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
-//const ApiBase = "http://localhost:5001"; // Use this for local testing
+// const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
+const ApiBase = "http://localhost:5001"; // Use this for local testing
 
 const socket = io(ApiBase, {
   transports: ["websocket"], // Force WebSocket connection
@@ -151,27 +152,23 @@ const markAsDelivered = (userId) => {
   }
 };
 const onMessageRead = (callback) => {
-  socket.off("messagesRead"); // Remove previous listener
-  socket.on("messagesRead", callback);
+  socket.off("messagesRead");
+  socket.on("messagesRead", (data) => {
+    console.log("📩 Received messagesRead event:", data);
+    callback(data);
+  });
 };
+
 const onMessageDelivered = (callback) => {
-  if (!socket) {
-    console.warn("⚠ Socket is not connected yet!");
-    return;
-  }
-
-  console.log("🎧 Listening for 'messagesDelivered' event...");
-
-  // ✅ Remove previous listener before adding a new one
   socket.off("messagesDelivered");
   socket.on("messagesDelivered", (data) => {
     console.log("📨 Received messagesDelivered event:", data);
-    if (typeof callback === "function") {
-      callback(data);
-    }
+    callback(data);
   });
 };
+
 // Export functions
+
 export default {
   socket,
   connect,

@@ -115,7 +115,7 @@ export default function ChatField({ selectedChat, user }) {
         setLoading(false);
 
         console.log("📤 Marking Messages as Read...");
-        SocketService.markAsRead(chatId, user._id);
+        SocketService.markAsRead(chatId, user?._id);
 
         setTimeout(() => scrollToBottom(false), 100);
         setIsAtBottom(true);
@@ -135,10 +135,10 @@ export default function ChatField({ selectedChat, user }) {
         // ✅ Only mark messages as Delivered & Read if the sender is NOT the current user
         if (newMessage.sender._id !== user._id) {
           console.log("📤 Marking Messages as Delivered...");
-          SocketService.markAsDelivered(user._id);
+          SocketService.markAsDelivered(user?._id);
 
           console.log("📤 Marking Messages as Read...");
-          SocketService.markAsRead(chatId, user._id);
+          SocketService.markAsRead(chatId, user?._id);
 
           setNewMessage(true);
         }
@@ -222,72 +222,12 @@ export default function ChatField({ selectedChat, user }) {
         SocketService.socket.off("messagesDelivered", handleMessagesDelivered);
       };
     }
-
     initializeChat();
-
-    return () => {
-      console.log("🧹 Cleaning up chat listeners");
-    };
   }, [selectedChat, user?._id]);
 
-  if (!selectedChat && user?._id) {
-    return (
-      <div
-        className={`${chatstyle["no-user-selected"]} d-flex justify-content-center align-items-center`}
-        style={{
-          height: "100%",
-          width: "100%",
-          maxWidth: "100%",
-          maxHeight: "100%",
-          background: "white",
-          borderRadius: "10px",
-          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-          overflow: "hidden",
-          padding: isTablet ? "1rem" : "2rem",
-        }}
-      >
-        <div
-          className={`${
-            isDesktop ? "col-lg-9" : isTablet ? "col-md-8" : "col-sm-12"
-          } `}
-        >
-          <div
-            className="text-center d-flex flex-column justify-content-center align-items-center h-100"
-            style={{
-              padding: isTablet ? "1rem" : "2rem",
-            }}
-          >
-            <SiGooglemessages
-              className={`fs-${isDesktop ? 1 : isTablet ? 2 : 3}`}
-            />
-            <div>
-              <h4
-                style={{
-                  fontSize: isDesktop
-                    ? "1.5rem"
-                    : isTablet
-                    ? "1.25rem"
-                    : "1rem",
-                }}
-              >
-                Conversation detail
-              </h4>
-              <p
-                style={{
-                  fontSize: isDesktop ? "1rem" : isTablet ? "0.9rem" : "0.8rem",
-                }}
-              >
-                Select a contact to view conversation
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
+  return selectedChat ? (
     <div
+      className="border-start"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -301,7 +241,7 @@ export default function ChatField({ selectedChat, user }) {
     >
       {/* Chat Header */}
       <div
-        className="chatfield border-bottom d-block"
+        className="border-bottom d-block"
         style={{
           position: "sticky",
           top: 0,
@@ -311,7 +251,7 @@ export default function ChatField({ selectedChat, user }) {
         }}
       >
         <div className="d-flex align-items-center">
-          <div className="pl-3 row container-fluid d-flex flex-grow-1">
+          <div className="px-3 row container-fluid d-flex flex-grow-1">
             <ChatHeader
               isUserTyping={typingUsers}
               selectedChat={selectedChat}
@@ -324,14 +264,12 @@ export default function ChatField({ selectedChat, user }) {
       {/* Chat Messages */}
       <div
         ref={chatContainerRef}
-        className="pl-5 py-4 mb-2 chat-messages"
+        className="chat-messages flex-grow-1 overflow-auto px-3 py-3"
         style={{
-          height: "calc(100vh - 150px)", // Adjusted height to accommodate typing indicator
-          flexGrow: 1,
+          height: "calc(100vh - 180px)", // Adjusted for responsiveness
+          maxHeight: "100%",
           width: "100%",
           maxWidth: "100%",
-          overflowX: "hidden",
-          overflowY: "auto",
         }}
       >
         {loading ? (
@@ -366,51 +304,49 @@ export default function ChatField({ selectedChat, user }) {
           })
         )}
       </div>
-      {/* Typing Indicator (Moved to Bottom) */}
 
+      {/* Typing Indicator */}
       <div style={{ position: "relative", width: "100%" }}>
         {typingUsers.length > 0 && (
-          <div className="typing-indicator">
+          <div className="typing-indicator d-flex justify-content-center">
             <span className="dot"></span>
             <span className="dot"></span>
             <span className="dot"></span>
           </div>
         )}
       </div>
+
+      {/* New Message Notification */}
       {isNewMessage && (
         <div
+          className="position-fixed d-flex flex-column align-items-center justify-content-center"
           style={{
-            position: "fixed",
             bottom: "80px",
             right: "50px",
             background: "#18273e",
             borderRadius: "8px",
-            width: "30px",
-            height: "30px", // Increased height to accommodate the arrow and count
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
+            width: "40px",
+            height: "40px",
             cursor: "pointer",
             boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.2)",
           }}
           onClick={scrollToBottom}
         >
-          {/* Arrow Icon */}
-          <div
-            style={{
-              color: "white",
-              fontSize: "20px", // Slightly larger size for better visibility
-              fontWeight: "bold",
-              padding: "5px", // Space between arrow and count
-            }}
-          >
-            <FaArrowDown color=" white" size={20} />
-          </div>
+          <FaArrowDown color="white" size={20} />
         </div>
       )}
+
       {/* Chat Input */}
-      <ChatInput selectedChat={selectedChat} user={user} />
+      <div className="w-100">
+        <ChatInput selectedChat={selectedChat} user={user} />
+      </div>
+    </div>
+  ) : (
+    // Show Empty Screen when no chat is selected
+    <div className="d-flex flex-column flex-grow-1 align-items-center justify-content-center text-center">
+      <SiGooglemessages size={50} color="#888" />
+      <h4>Conversation Detail</h4>
+      <p>Select a contact to view the conversation</p>
     </div>
   );
 }

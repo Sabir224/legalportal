@@ -256,7 +256,7 @@ const UserProfile = (props) => {
     });
 
     try {
-      const response = await axios.post(`${ApiEndPoint}/upload`, formData, {
+      const response = await axios.post(`${ApiEndPoint}upload`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -309,11 +309,28 @@ const UserProfile = (props) => {
         body: JSON.stringify({ Email: storedEmail }), // Sending email in request body
       });
 
+      // Log the raw response before processing
+      console.log("Raw Response:", response);
+
       if (!response.ok) {
-        throw new Error("Failed to fetch the file");
+        const errorText = await response.text(); // Get the error response if available
+        throw new Error(`Failed to fetch the file: ${errorText}`);
       }
 
+      // Log the JSON response before downloading (if applicable)
+      const jsonResponse = await response.json();
+      console.log("Download Response JSON:", jsonResponse);
+
+      // Check if the response contains a signed URL instead of a file blob
+      if (jsonResponse.downloadUrl) {
+        console.log("Signed URL received:", jsonResponse.downloadUrl);
+        window.open(jsonResponse.downloadUrl, "_blank");
+        return;
+      }
+
+      // Validate content type
       const contentType = response.headers.get("Content-Type");
+      console.log("Content-Type:", contentType);
       if (
         !contentType ||
         (!contentType.startsWith("application/") &&
@@ -322,17 +339,21 @@ const UserProfile = (props) => {
         throw new Error("Invalid content type: " + contentType);
       }
 
+      // Process the file blob
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
+      console.log("Blob Data:", blob);
 
+      // Create a URL and trigger download
+      const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = fileName || "downloaded_file"; // Default filename if none is provided
       document.body.appendChild(a);
       a.click();
-
       document.body.removeChild(a);
-      setTimeout(() => window.URL.revokeObjectURL(url), 100); // Ensures proper cleanup
+
+      // Cleanup
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
     } catch (error) {
       console.error("Error downloading file:", error);
     }

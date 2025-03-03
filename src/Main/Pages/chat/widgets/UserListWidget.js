@@ -48,36 +48,11 @@ export default function UserListWidget({ setSelectedChat, userData }) {
     const loadUsers = async () => {
       const fetchedUsers = await fetchUsersForChat();
       setUsers(fetchedUsers);
-      if (userData?._id) {
-        console.log("🔌 Connecting to socket...");
-        SocketService.connect(userData?._id);
-
-        // Ensure socket is fully connected before marking messages as delivered
-        SocketService.socket?.on("connect", () => {
-          console.log("✅ Socket Connected! Joining chat...");
-          SocketService.markAsDelivered(userData?._id);
-        });
-      }
     };
+    if (!userData?._id) {
+    }
     loadUsers();
-    const handleNewMessage = (newMessage) => {
-      if (!newMessage) return;
-      console.log("📩 New message received:", newMessage);
-
-      // ✅ Only mark messages as Delivered if the sender is NOT the current user
-      if (newMessage.sender._id !== userData._id) {
-        console.log("📤 Marking Messages as Delivered...");
-        SocketService.markAsDelivered(userData._id);
-      }
-      // ✅ Using a stable reference for event listeners
-      SocketService.socket?.off("newMessage"); // Remove all previous listeners
-      SocketService.socket?.on("newMessage", handleNewMessage);
-    };
-    return () => {
-      // ✅ Cleanup the event listener when component unmounts or userData changes
-      SocketService.socket?.off("newMessage", handleNewMessage);
-    };
-  }, [userData?._id]);
+  }, []);
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {
