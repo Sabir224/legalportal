@@ -258,10 +258,7 @@ export default function ChatInput({ selectedChat, user }) {
   };
 
   return (
-    <div
-      className="chat-input border-top"
-      style={{ backgroundColor: "transparent" }}
-    >
+    <div className="chat-input p-1" style={{ backgroundColor: "transparent" }}>
       <div className="input-container">
         {/* selcti image */}
         {/* <img

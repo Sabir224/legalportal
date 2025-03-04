@@ -2,7 +2,6 @@
 
 .chat-input {
   width: 100%;
-  padding: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -27,7 +26,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 015 , 0, 0.5);
+  background-color: rgba(0, 015, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -45,7 +44,7 @@
 }
 
 .popup-container button {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: #fff;
   border: none;
   padding: 10px 20px;
@@ -102,15 +101,13 @@
   /* right: 12%; */
   background-color: #fff;
   border: 1px solid #ccc;
-  border-radius: 8px; 
+  border-radius: 8px;
   padding: 20px;
   display: flex;
   align-items: center;
-  
 }
-.preview-buttons{
+.preview-buttons {
   margin-top: 20px;
-
 }
 
 .preview-container img {
@@ -119,18 +116,17 @@
   /* height: 100px;
   width: 120px; */
   margin-right: 15px;
-  bottom: 20%
+  bottom: 20%;
 }
 
 .preview-file {
-  margin:0px;
+  margin: 0px;
 
   padding: 5px;
   border: 1px solid #ccc;
   border-radius: 5px;
   /* margin-right: 10px; */
   bottom: 20%;
-  
 }
 
 .send-button,

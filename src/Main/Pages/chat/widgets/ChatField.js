@@ -31,13 +31,15 @@ const scrollToBottom = (ref) => {
     ref.current.scrollTop = ref.current.scrollHeight;
   }
 };
-export default function ChatField({ selectedChat, user }) {
+export default function ChatField({ selectedChat, user, setSelectedChat }) {
   const isDesktop = useMediaQuery({ minWidth: 992 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 991 });
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]); // Store typing users
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isUserScrollingDown, setIsUserScrollingDown] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
   // console.log("UserData", user);
   const chatContainerRef = useRef(null);
   const [isNewMessage, setNewMessage] = useState(false);
@@ -59,6 +61,27 @@ export default function ChatField({ selectedChat, user }) {
     });
     setNewMessage(false);
   };
+  useEffect(() => {
+    const handleScroll = () => {
+      if (!chatContainerRef.current) return;
+      const isAtBottom = isScrollAtBottom();
+
+      if (isAtBottom) {
+        setNewMessage(false);
+      }
+    };
+
+    const chatContainer = chatContainerRef.current;
+    if (chatContainer) {
+      chatContainer.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (chatContainer) {
+        chatContainer.removeEventListener("scroll", handleScroll);
+      }
+    };
+  }, [lastScrollTop]);
   let count = 0;
   // function trackUserScroll() {
   //   const chatContainer = document.getElementById("chat-container");
@@ -227,7 +250,6 @@ export default function ChatField({ selectedChat, user }) {
 
   return selectedChat ? (
     <div
-      className="border-start"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -236,12 +258,12 @@ export default function ChatField({ selectedChat, user }) {
         width: "100%",
         maxWidth: "100%",
         overflow: "hidden",
-        gap: "10px",
+        gap: "3px",
       }}
     >
       {/* Chat Header */}
       <div
-        className="border-bottom d-block"
+        className="d-block"
         style={{
           position: "sticky",
           top: 0,
@@ -256,6 +278,7 @@ export default function ChatField({ selectedChat, user }) {
               isUserTyping={typingUsers}
               selectedChat={selectedChat}
               user={user}
+              setSelectedChat={setSelectedChat}
             />
           </div>
         </div>
@@ -263,67 +286,83 @@ export default function ChatField({ selectedChat, user }) {
 
       {/* Chat Messages */}
       <div
-        ref={chatContainerRef}
-        className="chat-messages flex-grow-1 overflow-auto px-3 py-3"
+        className="chat-messages m-0 flex-grow-1 border overflow-hidden-auto px-2 position-relative d-flex flex-column justify-content-end"
         style={{
-          height: "calc(100vh - 180px)", // Adjusted for responsiveness
+          height: "100%",
           maxHeight: "100%",
           width: "100%",
           maxWidth: "100%",
+
+          overflow: "hidden",
         }}
       >
-        {loading ? (
-          <div className={`${chatstyle["loading-indicator"]}`}>
-            <div className={`${chatstyle["spinner"]}`}></div>
-          </div>
-        ) : (
-          messages.map((message) => {
-            const senderId =
-              typeof message.sender === "object" && message.sender._id
-                ? message.sender._id
-                : String(message.sender);
-            const userId = String(user._id);
+        <div
+          ref={chatContainerRef}
+          className="d-flex flex-column p-0 m-0"
+          style={{ overflowY: "auto", flexGrow: 1 }}
+        >
+          {loading ? (
+            <div className={`${chatstyle["loading-indicator"]}`}>
+              <div className={`${chatstyle["spinner"]}`}></div>
+            </div>
+          ) : (
+            messages.map((message) => {
+              const senderId =
+                typeof message.sender === "object" && message.sender._id
+                  ? message.sender._id
+                  : String(message.sender);
+              const userId = String(user._id);
 
-            return message.content ? (
-              senderId === userId ? (
-                <RightChatTextWidget
-                  key={message._id}
-                  message={message}
-                  selectedChat={selectedChat}
-                  user={user}
-                />
-              ) : (
-                <LeftChatTextWidget
-                  key={message._id}
-                  message={message}
-                  selectedChat={selectedChat}
-                  user={user}
-                />
-              )
-            ) : null;
-          })
-        )}
-      </div>
+              return message.content ? (
+                senderId === userId ? (
+                  <RightChatTextWidget
+                    key={message._id}
+                    message={message}
+                    selectedChat={selectedChat}
+                    user={user}
+                  />
+                ) : (
+                  <LeftChatTextWidget
+                    key={message._id}
+                    message={message}
+                    selectedChat={selectedChat}
+                    user={user}
+                  />
+                )
+              ) : null;
+            })
+          )}
+        </div>
 
-      {/* Typing Indicator */}
-      <div style={{ position: "relative", width: "100%" }}>
-        {typingUsers.length > 0 && (
-          <div className="typing-indicator d-flex justify-content-center">
-            <span className="dot"></span>
-            <span className="dot"></span>
-            <span className="dot"></span>
-          </div>
-        )}
+        {/* Typing Indicator (Always at Bottom) */}
+        <div
+          className="typing-indicator d-flex align-items-center"
+          style={{
+            position: "absolute",
+            bottom: "-5px", // Moves it downward
+            left: "10px", // Adjust if needed
+            background: "white",
+
+            borderRadius: "10px",
+            zIndex: 10,
+            minHeight: "30px",
+            visibility: typingUsers.length > 0 ? "visible" : "hidden",
+          }}
+        >
+          <span className="dot"></span>
+          <span className="dot"></span>
+          <span className="dot"></span>
+        </div>
       </div>
 
       {/* New Message Notification */}
       {isNewMessage && (
         <div
-          className="position-fixed d-flex flex-column align-items-center justify-content-center"
+          className="main-second-bgcolor position-fixed d-flex flex-column align-items-center justify-content-center"
           style={{
-            bottom: "80px",
+            bottom: "15%",
             right: "50px",
-            background: "#18273e",
+
             borderRadius: "8px",
             width: "40px",
             height: "40px",

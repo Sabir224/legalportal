@@ -57,99 +57,48 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
 
   return (
     <div className={`${rightChatstyle["chat-message-right"]} pb-1 d-flex`}>
-      <center></center>
-
       <div
-        className="flex-shrink-1  rounded  px-2 position-relative main-color simple-text"
+        className="flex-shrink-1 rounded px-2 position-relative main-bgcolor simple-text"
         style={{
           wordBreak: "break-word",
           whiteSpace: "pre-wrap",
           maxWidth: "70%",
-          minWidth: "20%",
-
+          minWidth: "100px",
           textAlign: "right",
           marginRight: "5px",
         }}
       >
-        {/* Reply Preview */}
-
         {/* Main Message */}
         <div
           style={{ cursor: "pointer" }}
           onClick={() => handleMessageClick("reply")}
         >
-          {/* <div className={styles[`avatar-right d-flex`]}>
-            <img
-              alt="Admin"
-              src={
-                message.sender.ProfilePicture
-                  ? message.sender.ProfilePicture
-                  : "https://bootdey.com/img/Content/avatar/avatar1.png"
-              }
-              className="rounded-circle"
-              width={20}
-              height={20}
-            />
-            <div
-              className="text-wrap text-secondary"
-              style={{ fontSize: "10px" }}
-            >
-              You
-            </div>
-          </div> */}
           <div
             className=""
             style={{
               textAlign: "left",
               fontSize: "13px",
+              minWidth: "20%",
             }}
           >
             {message.content}
           </div>
-        </div>
 
-        {/* Dropdown Toggle */}
-
-        {/* Dropdown Menu */}
-        {isDropdownOpen && (
+          {/* Timestamp and Status Icon inside the message content */}
           <div
-            id="dropdown-menu" // Add an id to the dropdown menu
+            className="d-flex p-0 m-0 gap-1 justify-content-end text-secondary"
             style={{
-              position: "absolute",
-              left: "-160px",
-              top: "35px",
-              background: "white",
-              borderRadius: "8px",
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              padding: "10px",
-              zIndex: "1000",
-              width: "150px",
+              fontSize: "10px",
+              whiteSpace: "nowrap",
+              display: "flex",
+              justifyContent: "flex-end",
+              alignItems: "center",
+              width: "100%",
             }}
           >
-            <ul style={{ listStyleType: "none", padding: "0", margin: "0" }}>
-              <li
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "8px 10px",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleMessageClick("Reply")}
-              >
-                <FaReply size={16} />
-                <span style={{ marginLeft: "10px" }}>Reply</span>
-              </li>
-            </ul>
+            <p className="p-0 m-0">{formatTimestamp(message.createdAt)}</p>
+            <RenderStatusIcon status={message.status} message={message} />
           </div>
-        )}
-        <div
-          className="d-flex p-0 m-0 gap-1 justify-content-end text-secondary"
-          style={{
-            fontSize: "10px",
-          }}
-        >
-          <p className="p-0 m-0">{formatTimestamp(message.createdAt)}</p>
-          <RenderStatusIcon status={message.status} message={message} />
         </div>
       </div>
     </div>

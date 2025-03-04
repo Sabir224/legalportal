@@ -15,13 +15,14 @@ import {
   faUndo,
 } from "@fortawesome/free-solid-svg-icons";
 import SocketService from "../../../../SocketService";
+import { FaArrowLeft } from "react-icons/fa";
 
 const dropdownData = {
   firstStage: ["Option 1", "Option 2", "Option 3"],
   secondStage: ["Option A", "Option B", "Option C"],
 };
 
-export default function ChatHeader({ selectedChat, user }) {
+export default function ChatHeader({ selectedChat, user, setSelectedChat }) {
   const [isHumanActive, setIsHumanActive] = useState(false);
   const [isClientSessionExpired, setClientSession] = useState(false);
 
@@ -31,15 +32,9 @@ export default function ChatHeader({ selectedChat, user }) {
   const [isArchived, setArchived] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]);
 
-  // The empty dependency array ensures this only runs once on mount
-
-  // Function to allow children to trigger updates
-
-  // Re-run the effect when the `phone` prop changes
-
   return (
     <div
-      className="py-0 px-0  d-block mt-1 mb-1"
+      className="py-0 px-0 d-block mt-1 mb-1 mt-1"
       style={{
         maxHeight: "9vh",
         width: "100%",
@@ -50,10 +45,23 @@ export default function ChatHeader({ selectedChat, user }) {
         className="d-flex align-items-center"
         style={{ height: "100%", marginLeft: "10px", marginRight: "10px" }}
       >
-        <div
-          className="position-relative"
-          style={{ marginLeft: "5px", marginRight: "10px" }}
-        >
+        {/* Back Arrow */}
+        <div className="me-2 d-lg-none">
+          {" "}
+          {/* Added margin to separate from image */}
+          <FaArrowLeft
+            className="main-color"
+            size={20}
+            onClick={() => {
+              setSelectedChat(null);
+
+              SocketService.socket.disconnect();
+            }}
+          />
+        </div>
+
+        {/* Profile Image */}
+        <div className="position-relative" style={{ marginRight: "10px" }}>
           <div
             className="rounded-circle d-flex justify-content-center align-items-center"
             style={{
@@ -62,11 +70,11 @@ export default function ChatHeader({ selectedChat, user }) {
                   ?.filter(
                     (participant) =>
                       String(participant._id) !== String(user._id)
-                  ) // Exclude current user
+                  )
                   .find(
                     (participant) =>
                       participant.ProfilePicture || participant.AvatarColor
-                  ); // Find first non-null ProfilePicture or AvatarColor
+                  );
 
                 return participant?.ProfilePicture
                   ? `url(${participant.ProfilePicture})`
@@ -84,7 +92,7 @@ export default function ChatHeader({ selectedChat, user }) {
                   ?.filter(
                     (participant) =>
                       String(participant._id) !== String(user._id)
-                  ) // Exclude current user
+                  )
                   .find((participant) => participant.AvatarColor)
                   ?.AvatarColor || "black",
             }}
@@ -103,18 +111,19 @@ export default function ChatHeader({ selectedChat, user }) {
                   ?.filter(
                     (participant) =>
                       String(participant._id) !== String(user._id)
-                  ) // Exclude current user
-                  .find((participant) => participant.UserName); // Find first participant with a UserName
+                  )
+                  .find((participant) => participant.UserName);
 
                 return participant?.UserName
                   ? participant.UserName.split(" ")
                       .map((word) => word[0])
                       .join("")
-                  : "N"; // Default to "N" (or anything you prefer)
+                  : "N";
               })()}
             </div>
           </div>
         </div>
+
         {/* Name and phone */}
         <div className="flex-grow-1 d-flex flex-column align-items-start pl-2">
           <strong className="text-start w-100">
@@ -122,14 +131,13 @@ export default function ChatHeader({ selectedChat, user }) {
               ...new Set(
                 selectedChat?.participants
                   ?.filter((participant) => {
-                    return String(participant._id) !== String(user._id); // Ensure correct type
+                    return String(participant._id) !== String(user._id);
                   })
-                  .map((participant) => participant.UserName) // Extract names
+                  .map((participant) => participant.UserName)
               ),
             ].join(", ") || "Name"}
           </strong>
         </div>
-        {/* Chat menu buttons */}
       </div>
     </div>
   );

@@ -64,6 +64,8 @@ export default function UserListWidget({ setSelectedChat, userData }) {
       const newChat = await createChat([storedEmail, selectedUserEmail]); // If no chat, create a new one
       setSelectedChat(newChat); // Set the new chat as selected
     }
+    // const newChat = await createChat([storedEmail, selectedUserEmail]); // If no chat, create a new one
+    // setSelectedChat(newChat); // Set the new chat as selected
   };
 
   // Create a new chat between two users
