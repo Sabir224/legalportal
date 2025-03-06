@@ -6,7 +6,11 @@ import { ApiEndPoint } from "../../Component/utils/utlis";
 import axios from "axios";
 import { useMediaQuery } from "react-responsive";
 import SocketService from "../../../../SocketService";
-export default function UserListWidget({ setSelectedChat, userData }) {
+export default function UserListWidget({
+  setSelectedChat,
+  userData,
+  searchQuery,
+}) {
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
 
@@ -81,63 +85,65 @@ export default function UserListWidget({ setSelectedChat, userData }) {
       return null;
     }
   };
+  const searchedUsers = users.filter((user) => {
+    if (!searchQuery) return true; // If no search query, return all users
+
+    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+
+    // Use empty string as a fallback to prevent undefined errors
+    return (user.UserName?.toLowerCase() || "").includes(lowerCaseSearchQuery);
+  });
 
   return (
     <>
-      {users
-        ?.filter((user) => user && user._id)
-        .map((user) => (
+      {searchedUsers.map((user) => (
+        <div
+          key={user._id}
+          className="d-flex d-block align-items-center"
+          onClick={() => handleUserClick(user.Email)}
+          style={{
+            cursor: "pointer",
+            padding: "5px",
+            transition: "all 0.3s ease",
+          }}
+        >
+          {/* Profile Picture */}
           <div
-            key={user._id}
-            className="d-flex d-block align-items-center"
-            onClick={() => handleUserClick(user.Email)}
+            className="rounded-circle"
             style={{
-              cursor: "pointer",
-              padding: "5px",
+              backgroundImage: user.ProfilePicture
+                ? `url(${user.ProfilePicture})`
+                : `url(${Contactprofile})`,
+              backgroundSize: "cover",
+              backgroundRepeat: "no-repeat",
+              width: "30px",
+              height: "30px",
+              marginRight: isCompact ? "5px" : "10px",
+              border: "1px solid #d3b386",
               transition: "all 0.3s ease",
             }}
-          >
-            {/* Profile Picture */}
-            <div
-              className="rounded-circle"
-              style={{
-                backgroundImage: user.ProfilePicture
-                  ? `url(${user.ProfilePicture})`
-                  : `url(${Contactprofile})`,
-                backgroundSize: "cover",
-                backgroundRepeat: "no-repeat",
-                width: "30px",
-                height: "30px",
-                marginRight: isCompact ? "5px" : "10px",
-                border: "1px solid #d3b386",
-                transition: "all 0.3s ease",
-              }}
-            />
+          />
 
-            {/* User Name */}
-            <div
-              className="flex-grow-1"
-              style={{
-                fontSize: "14px",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              <span className="username">
-                {user.UserName &&
-                  (user.UserName.includes(" ")
-                    ? `${
-                        user.UserName.split(" ")[0].length > 10
-                          ? user.UserName.split(" ")[0].slice(0, 10) + "..."
-                          : user.UserName.split(" ")[0]
-                      } ${user.UserName.split(" ")[1]?.[0] || ""}`
-                    : user.UserName.length > 10
-                    ? user.UserName.slice(0, 10) + "..."
-                    : user.UserName)}
-              </span>
-            </div>
+          {/* User Name */}
+          <div
+            className="flex-grow-1"
+            style={{ fontSize: "14px", display: "flex", alignItems: "center" }}
+          >
+            <span className="username">
+              {user.UserName &&
+                (user.UserName.includes(" ")
+                  ? `${
+                      user.UserName.split(" ")[0].length > 10
+                        ? user.UserName.split(" ")[0].slice(0, 10) + "..."
+                        : user.UserName.split(" ")[0]
+                    } ${user.UserName.split(" ")[1]?.[0] || ""}`
+                  : user.UserName.length > 10
+                  ? user.UserName.slice(0, 10) + "..."
+                  : user.UserName)}
+            </span>
           </div>
-        ))}
+        </div>
+      ))}
     </>
   );
 }

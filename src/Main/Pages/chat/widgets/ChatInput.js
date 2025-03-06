@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import { FaStop, FaSpinner, FaEllipsisV } from "react-icons/fa";
+import { FaSpinner } from "react-icons/fa";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faFilePdf,
@@ -8,23 +8,15 @@ import {
   faFilePowerpoint,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFileAlt } from "@fortawesome/free-regular-svg-icons";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-import Imag from "../../Component/images/gallery.png";
 import Clip from "../../Component/images/attachment.png";
 import Send from "../../Component/images/send.png";
-import Mic from "../../Component/images/mic.png";
 import vmsg from "vmsg";
 import Modal from "react-modal";
 import "../../chat/widgets/chatinputs.css";
-import { green } from "@mui/material/colors";
-import FileViewer from "react-file-viewer";
-import { FaFilePdf } from "react-icons/fa";
-import { FaEllipsis } from "react-icons/fa6";
 import SocketService from "../../../../SocketService";
+import { ApiEndPoint } from "../../Component/utils/utlis";
 // import SendMessageModal from "../../../Main page/SendTemplateViaChat";
-
 export default function ChatInput({ selectedChat, user }) {
   const [message, setMessage] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -124,24 +116,69 @@ export default function ChatInput({ selectedChat, user }) {
     }
   };
 
+  // 🔹 Function to handle file selection (Preview)
   const handleDocUpload = async (e) => {
-    const isExpired = await checkSession(); // Await the result of checkSession
-    if (isExpired) {
-      openModal();
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 🔹 Validate file size (Max: 15MB)
+    if (file.size > 15 * 1024 * 1024) {
+      setPopupMessage("Document must be less than 15MB");
+      e.target.value = null; // Reset file input
       return;
     }
-    const file = e.target.files[0];
-    if (file) {
-      if (file.size > 15 * 1024 * 1024) {
-        setPopupMessage("Document must be less than 15MB");
-        e.target.value = null; // Reset the file input field
-        return;
+
+    // 🔹 Extract file extension
+    const fileExtension = file.name.split(".").pop().toLowerCase();
+    setFileType(fileExtension);
+
+    // 🔹 Generate a preview (PDF, images, etc.)
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewFilePath(previewUrl);
+    setPreviewFile(file);
+
+    e.target.value = null; // Reset file input field
+  };
+
+  // 🔹 Function to handle file upload & send via socket
+  const handleFileUpload = async () => {
+    if (!previewFile) return;
+
+    try {
+      // 🔹 Prepare file for upload
+      const formData = new FormData();
+      formData.append("file", previewFile);
+
+      // 🔹 Upload file to S3 via API
+      const response = await fetch(`${ApiEndPoint}/uploadFile`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to upload file: ${response.statusText}`);
       }
-      const fileExtension = file.name.split(".").pop().toLowerCase();
-      setFileType(fileExtension);
-      setPreviewFilePath(URL.createObjectURL(file));
-      setPreviewFile(file);
-      e.target.value = null; // Reset the file input field
+
+      const { fileUrl } = await response.json(); // Extract file URL from response
+      if (!fileUrl) throw new Error("File URL is missing from API response");
+
+      // 🔹 Send file metadata via Socket.IO
+      await SocketService.sendFile({
+        senderId: user?._id, // Ensure user ID is correct
+        chatId: selectedChat?._id, // Use the correct chat ID
+        file: {
+          name: previewFile.name,
+          type: previewFile.type,
+          url: fileUrl, // The uploaded S3 file URL
+        },
+        messageType: "file",
+      });
+
+      console.log("✅ File sent via socket successfully!");
+      setPreviewFile(null); // Clear preview after sending
+      setPreviewFilePath(null);
+    } catch (error) {
+      console.error("❌ Error handling file upload:", error);
     }
   };
 
@@ -288,7 +325,7 @@ export default function ChatInput({ selectedChat, user }) {
           ref={fileInputRef}
           onChange={handleDocUpload}
           style={{ display: "none" }}
-          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.jpg,.jpeg,.png,.gif,.bmp,.svg"
         />
 
         <input
@@ -404,7 +441,7 @@ export default function ChatInput({ selectedChat, user }) {
           <hr />
           <div className="preview-buttons">
             <button
-              onClick={handleSendPreviewFile}
+              onClick={handleFileUpload}
               style={{
                 backgroundColor: "#25D366",
                 color: "white",

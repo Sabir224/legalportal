@@ -68,13 +68,38 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
           marginRight: "5px",
         }}
       >
+        {/* User Info */}
+        <div className="d-flex align-items-center justify-content-end pt-1">
+          <div
+            className="text-secondary fw-normal d-sm-block d-none d-md-inline me-2"
+            style={{
+              fontSize: "12px",
+            }}
+          >
+            {message.sender._id === user._id
+              ? "You"
+              : message.sender.UserName.split(" ")[0]}
+          </div>
+
+          <img
+            alt="User"
+            src={
+              message.sender.ProfilePicture
+                ? message.sender.ProfilePicture
+                : "https://bootdey.com/img/Content/avatar/avatar1.png"
+            }
+            className="rounded-circle"
+            width={20}
+            height={20}
+          />
+        </div>
+
         {/* Main Message */}
         <div
           style={{ cursor: "pointer" }}
           onClick={() => handleMessageClick("reply")}
         >
           <div
-            className=""
             style={{
               textAlign: "left",
               fontSize: "13px",

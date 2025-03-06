@@ -64,22 +64,29 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
         }}
       >
         {/* User Info */}
-        <div className="d-flex align-items-center">
-          <img
-            alt="User"
-            src={
-              message.sender.ProfilePicture
-                ? message.sender.ProfilePicture
-                : "https://bootdey.com/img/Content/avatar/avatar1.png"
-            }
-            className="rounded-circle"
-            width={20}
-            height={20}
-          />
-          <div className="ms-2 text-secondary fw-normal fs-6 d-sm-block d-none d-md-inline">
-            {message.sender.UserName.split(" ")[0]}
+        {user.Role === "client" && (
+          <div className="d-flex align-items-center">
+            <img
+              alt="User"
+              src={
+                message.sender.ProfilePicture
+                  ? message.sender.ProfilePicture
+                  : "https://bootdey.com/img/Content/avatar/avatar1.png"
+              }
+              className="rounded-circle"
+              width={20}
+              height={20}
+            />
+            <div
+              className="ms-2 text-secondary fw-normal  d-sm-block d-none d-md-inline"
+              style={{
+                fontSize: "12px",
+              }}
+            >
+              {message.sender.UserName.split(" ")[0]}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Main Message */}
         <div

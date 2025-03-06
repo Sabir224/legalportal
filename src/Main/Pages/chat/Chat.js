@@ -53,7 +53,6 @@ export default function Chat() {
             console.log("🔌 Connecting to socket...");
             SocketService.connect(response.data?._id);
           }
-
           // Mark messages as delivered only once when connected
           SocketService.socket?.once("connect", () => {
             console.log(
@@ -85,25 +84,25 @@ export default function Chat() {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
-  const searchedUsers = users.filter((user) => {
-    const lowerCaseSearchQuery = searchQuery.toLowerCase();
+  // const searchedUsers = users.filter((user) => {
+  //   const lowerCaseSearchQuery = searchQuery.toLowerCase();
 
-    const matchesName =
-      user.name && typeof user.name === "string"
-        ? user.name.toLowerCase().includes(lowerCaseSearchQuery)
-        : false;
+  //   const matchesName =
+  //     user.name && typeof user.name === "string"
+  //       ? user.name.toLowerCase().includes(lowerCaseSearchQuery)
+  //       : false;
 
-    const matchesPhone =
-      user.phone && typeof user.phone === "string"
-        ? user.phone.toLowerCase().includes(lowerCaseSearchQuery)
-        : false;
+  //   const matchesPhone =
+  //     user.phone && typeof user.phone === "string"
+  //       ? user.phone.toLowerCase().includes(lowerCaseSearchQuery)
+  //       : false;
 
-    return matchesName || matchesPhone;
-  });
-  // Filter users based on search query
-  const filteredUsers = searchedUsers.filter((user) =>
-    showArchived ? user.isArchive : !user.isArchive
-  );
+  //   return matchesName || matchesPhone;
+  // });
+  // // Filter users based on search query
+  // const filteredUsers = searchedUsers.filter((user) =>
+  //   showArchived ? user.isArchive : !user.isArchive
+  // );
   const isCompact = useMediaQuery({ maxWidth: 768 });
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isCompact); // Toggle state
 
@@ -178,7 +177,7 @@ export default function Chat() {
           </div>
         ) : (
           <div
-            className="d-flex flex-column p-3"
+            className="d-flex flex-column p-3 "
             style={{
               width: "100%",
               height: "82vh",
@@ -196,10 +195,13 @@ export default function Chat() {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-            <UserListWidget
-              setSelectedChat={(chat) => setSelectedChat(chat)}
-              userData={userData}
-            />
+            <div className="d-flex flex-column p-3 overflow-y-auto">
+              <UserListWidget
+                setSelectedChat={(chat) => setSelectedChat(chat)}
+                userData={userData}
+                searchQuery={searchQuery}
+              />
+            </div>
           </div>
         )
       ) : (
@@ -207,7 +209,7 @@ export default function Chat() {
         <>
           {/* User List Widget */}
           <div
-            className="d-flex flex-column p-3"
+            className="d-flex flex-column p-3 auto"
             style={{
               width: "200px",
               height: "82vh",
@@ -225,10 +227,13 @@ export default function Chat() {
               value={searchQuery}
               onChange={handleSearchChange}
             />
-            <UserListWidget
-              setSelectedChat={(chat) => setSelectedChat(chat)}
-              userData={userData}
-            />
+            <div className="d-flex flex-column p-3 overflow-y-auto">
+              <UserListWidget
+                setSelectedChat={(chat) => setSelectedChat(chat)}
+                userData={userData}
+                searchQuery={searchQuery}
+              />
+            </div>
           </div>
 
           {/* Chat Section */}
