@@ -21,6 +21,17 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import { ApiEndPoint } from "./Component/utils/utlis";
+import {
+  Button,
+  Card,
+  Col,
+  Modal,
+  Row,
+  Spinner,
+  Tab,
+  Tabs,
+} from "react-bootstrap";
+import { BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = () => {
@@ -69,15 +80,15 @@ const ClientAppointment = () => {
   }, []);
 
   const fetchLawyerDetails = async () => {
-   
-   let lawyerid
+
+    let lawyerid
     try {
       const response = await axios.get(
         `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
-      lawyerid=response.data.lawyerDetails?._id
+      lawyerid = response.data.lawyerDetails?._id
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -112,7 +123,7 @@ const ClientAppointment = () => {
       setLoading(false);
     }
 
-   
+
     try {
       const response = await axios.get(
         `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
@@ -446,19 +457,23 @@ const ClientAppointment = () => {
 
   return (
     <div
-      className="border rounded row gap-5 justify-content-center ms-1 mb-3 mt-2"
+      className="border rounded row gap-5 justify-content-center ms-1 mt-2"
       style={{
         width: "100%",
-        maxHeight: "83vh",
+        height: "85vh",
         overflowY: "auto",
-        padding: 10,
+        // padding: 10,
         boxShadow: "5px 5px 5px gray",
       }}
     >
       {/* <div className="row gap-5 justify-content-center "  > */}
       <div
         className="slots-section col-5 mt-3"
-        style={{ boxShadow: "5px 5px 5px gray" }}
+        style={{
+          boxShadow: "5px 5px 5px gray",
+          overflowY: "auto",
+          maxHeight: "500px"
+        }}
       >
         <div className="profile-section">
           <div className="d-flex flex-row">
@@ -566,7 +581,7 @@ const ClientAppointment = () => {
                 color="white"
                 className="m-2"
               />
-              <p style={{ height: 50, fontSize: 12 }} className="ms-2 m-1 ">
+              <p style={{ height: 50 }} className="ms-2 m-1 ">
                 {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
                 {lawyerDetails.Address}
               </p>
@@ -576,7 +591,11 @@ const ClientAppointment = () => {
       </div>
       <div
         className="slots-section col-5  mt-3"
-        style={{ boxShadow: "5px 5px 5px gray" }}
+        style={{
+          boxShadow: "5px 5px 5px gray",
+          overflowY: "auto",
+          maxHeight: "500px"
+        }}
       >
         <div>
           {isPopupVisible && (
@@ -587,19 +606,21 @@ const ClientAppointment = () => {
                     <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "5px" }}>
                       {popupmessage}
                     </h3>
-                    <input
-                      type="text"
+                    <textarea
                       placeholder="Text Message (Optional)"
                       value={ClientMessage}
                       onChange={(e) => setClientMessage(e.target.value)}
                       style={{
                         width: "90%",
+                        minHeight: "100px", // Adjust height as needed
                         padding: "8px",
                         border: "1px solid #ddd",
                         borderRadius: "6px",
                         margin: "10px 0",
+                        resize: "vertical", // Allows resizing if needed
                       }}
-                    />
+                    ></textarea>
+
                     {isPopupVisiblecancel && (
                       <div className="popup-actions d-flex justify-content-center">
                         <button className="confirm-btn" onClick={handleConfirm}>
@@ -858,7 +879,7 @@ const ClientAppointment = () => {
                     disabled={slot.isBooked}
                     onMouseEnter={(e) => {
                       if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = "#d4af37"; // Hover background (light golden)
+                        e.target.style.background = "#d2a85a"; // Hover background (light golden)
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -879,22 +900,69 @@ const ClientAppointment = () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <div style={{ textAlign: "center" }}>
-        <button
-          className="schedule-button"
-          style={{
-            boxShadow: "5px 5px 5px gray",
-            border: "2px solid #d4af37",
-            borderRadius: "6px",
+        {selectedTime && (
+          <div style={{
+            position: "fixed",
+            bottom: "70px",
+            right: "110px",
+            zIndex: 1000,
+            width: 60,
+            height: 60,
+            boxShadow: "5px 5px 5px black",
+            borderRadius: "50%",
+            border: "1px solid #d2a85a",
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: " #16213e",
+
           }}
-          onClick={handleOpenPopup}
-        >
-          Schedule Meeting
-        </button>
+
+            onMouseEnter={(e) => {
+              e.target.style.background = "#d2a85a"; // Hover background (light golden)
+
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.background = "#16213e"; // Reset to default
+            }}
+            onClick={() => handleOpenPopup()}
+          >
+            {/* <Button
+
+              variant="primary"
+              style={{
+                // width: 'auto',
+                boxShadow: "5px 5px 5px black",
+                border: "1px solid #d2a85a",
+                backgroundColor: " #16213e",
+                 
+                // display: "flex",
+                // alignItems: "center",
+                // justifyContent: "center",
+                
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "#d2a85a"; // Hover background (light golden)
+
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "#16213e"; // Reset to default
+              }}
+              onClick={() => handleOpenPopup()}
+            > */}
+            <BsSendFill style={{
+              //  padding: "15px 20px", 
+
+            }} color='white'
+
+
+            />
+            {/* </Button> */}
+          </div>
+        )}
+
       </div>
-      {/* </div> */}
     </div>
   );
 };

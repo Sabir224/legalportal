@@ -82,6 +82,7 @@ const LawyerProfile = () => {
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
   const [selectedDate, setSelectedDate] = useState();
   const [editingSlotIndex, setEditingSlotIndex] = useState(null);
+  const [bgcolor, setbgcolor] = useState("green");
 
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
   let data;
@@ -112,9 +113,12 @@ const LawyerProfile = () => {
   const [selectfile, setselectfile] = useState("");
 
   const [message, setMessage] = useState("");
+  const [isAddedorUpdated, setIsAddedorUpdated] = useState(false);
+  const [IsAddpop, setIsAddpop] = useState(false);
   const showMessage = (msg) => {
     setMessage(msg);
-    setTimeout(() => setMessage(""), 5000);
+    setTimeout(() => setMessage(""), 2000);
+    setTimeout(() => setbgcolor(''), 2000);
     // ✅ Hide message after 5 seconds
   };
 
@@ -332,7 +336,23 @@ const LawyerProfile = () => {
           }
         );
         console.log("Post Appointment Data:", response.data);
-        showMessage(response.data.message)
+        setError(null)
+        if (response.data?.errorCode === 400) {
+          setbgcolor("red")
+          showMessage(response.data.message)
+        } else {
+          setbgcolor("green")
+          await setIsAddpop(true)
+          setpopupcolor("popupconfirm");
+          await setIsAddedorUpdated(true); // Set email sent confirmation
+          setTimeout(() => {
+            setpopupcolor("popup");
+            setIsAddpop(false)
+            // Close popup after showing confirmation
+            setIsAddedorUpdated(false); // Reset confirmation state after a delay
+          }, 2000);
+        }
+        // console.log("response : ",response)
         fetchLawyerDetails();
         setAppointmentDetails({ availableSlots: [] });
       } catch (error) {
@@ -340,7 +360,8 @@ const LawyerProfile = () => {
           "Error adding availability:",
           error.response?.data || error.message
         );
-        throw error;
+        setError(error.message)
+        // throw error;
       }
     } else {
       alert("Please select a date, start time, and end time");
@@ -383,12 +404,28 @@ const LawyerProfile = () => {
       if (!response.ok) {
         throw new Error(data.message || "Failed to update slot");
       }
+
+      if (data?.errorCode === 400) {
+        setbgcolor("red")
+        showMessage(data.message)
+      } else {
+        setbgcolor("green")
+        await setIsAddpop(true)
+        setpopupcolor("popupconfirm");
+        await setIsAddedorUpdated(true); // Set email sent confirmation
+        setTimeout(() => {
+          setpopupcolor("popup");
+          setIsAddpop(false)
+          // Close popup after showing confirmation
+          setIsAddedorUpdated(false); // Reset confirmation state after a delay
+        }, 2000);
+      }
+
       fetchLawyerDetails();
       setEditingSlotIndex(null);
       setNewStartTime(null);
       setNewEndTime(null);
       setSelectedTime(null)
-      showMessage(data.message)
       console.log("Slot updated successfully:", data);
     } catch (error) {
       console.error("Error updating slot:", error.message);
@@ -1482,7 +1519,7 @@ const LawyerProfile = () => {
                   }}
                   onClick={handleCancel}
                 >
-                  cancel
+                  Cancel
                 </button>
               </div>
             </div>
@@ -1490,6 +1527,8 @@ const LawyerProfile = () => {
         ) : (
           <div className="profile-section">
             <div className="d-flex flex-row align-items-center m-0">
+
+
               {/* <div style={containerStyle}> */}
               {/* <div
                                     className="profile-pic"
@@ -1536,8 +1575,8 @@ const LawyerProfile = () => {
 
               <div className="d-flex flex-column justify-content-center gap-2">
                 <div className="d-flex align-items-center p-2 gap-1 m-0">
-                  <div>
-                    <h2 style={{ color: "#d4af37" }}>{user?.UserName}</h2>
+                  <div style={{ width: "250px" }}>
+                    <h3 style={{ color: "#d4af37", }}>{user?.UserName}</h3>
                     <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
                   </div>
                   <button
@@ -1553,9 +1592,9 @@ const LawyerProfile = () => {
             <div className="lawyer-details mt-1">
               <div
                 className="d-flex"
-                style={{ width: "auto", height: "55%", overflowY: "auto" }}
+                style={{ width: "auto", height: "55%", overflowY: "auto", }}
               >
-                <p>{lawyerDetails.Bio}</p>
+                <p style={{}}>{lawyerDetails.Bio}</p>
               </div>
               <div className="d-flex">
                 <FontAwesomeIcon
@@ -1586,7 +1625,7 @@ const LawyerProfile = () => {
                   color="white"
                   className="m-2 "
                 />
-                <p style={{ height: 50, fontSize: 12 }} className="ms-2 m-1 ">
+                <p style={{ height: 50, }} className="ms-2 m-1 ">
                   {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
                   {lawyerDetails?.Address}
                 </p>
@@ -1654,7 +1693,7 @@ const LawyerProfile = () => {
           style={{ marginBottom: "2px", justifyContent: "space-between" }}
         >
           <div style={{ color: " #d4af37" }}>
-            <h2>Available Slots</h2>
+            {/* <h2>Available Slots</h2> */}
           </div>
         </div>
 
@@ -1737,6 +1776,50 @@ const LawyerProfile = () => {
               {date ? date.getDate() : ""}
             </div>
           ))}
+
+
+
+        </div>
+        {message && (
+          <div className="popup-overlay">
+
+            <div
+              className="confirmation"
+              style={{
+              
+                backgroundColor: bgcolor,
+                color: "white",
+                padding: "30px",
+                borderRadius: "8px",
+                textAlign: "center",
+                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+                
+              }}
+            >
+              {message}
+            </div>
+          </div>
+        )}
+        <div>
+          {IsAddpop && (
+            <div className="popup-overlay">
+              <div className={popupcolor}>
+
+                {isAddedorUpdated && (
+                  <div className="confirmation">
+                    <FontAwesomeIcon
+                      icon={faCheck}
+                      size="3x"
+                      color="white"
+                      className="m-2"
+                    />
+
+                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
 
         {selectedDate && (
@@ -1859,11 +1942,34 @@ const LawyerProfile = () => {
             <h5 style={{ color: "#d4af37" }}>
               {editingSlotIndex !== null ? "Edit Slot" : "Add New Slot"}
             </h5>
+            {/* {error ? (
+              <div
+                style={{
+                  backgroundColor: "rgba(255, 0, 0, 0.9)",
+                  color: "white",
+
+                }}
+              >
+                {message}
+              </div>
+            ) :
+              (
+                <div
+                  style={{
+                    backgroundColor: "rgba(255, 0, 0, 0.9)",
+                    color: "white",
+
+                  }}
+                >
+                  {message}
+                </div>
+              )
+            } */}
             <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
               {/* Start Time Picker */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" }}>
+                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" ,fontSize:12 }}>
                   Start Time:
                 </label>
                 <DatePicker
@@ -1884,32 +1990,12 @@ const LawyerProfile = () => {
                 />
 
                 {/* ✅ Message appears just below the DatePicker */}
-                {message && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      top: "110%", // Slightly below the DatePicker
-                      left: "50%",
-                      // transform: "translateX(-50%)",
-                      backgroundColor: "rgba(255, 0, 0, 0.9)",
-                      color: "white",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      textAlign: "center",
-                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
-                      zIndex: 9999,
-                      minWidth: "20vw",
-                      marginTop: "5px",
-                    }}
-                  >
-                    {message}
-                  </div>
-                )}
+
               </div>
 
               {/* End Time Picker */}
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" }}>
+                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" ,fontSize:12 }}>
                   End Time:
                 </label>
                 <DatePicker
@@ -1922,6 +2008,12 @@ const LawyerProfile = () => {
                   dateFormat="h:mm aa"
                   className="small-datepicker"
                   disabled={editingSlotIndex !== null}
+                  minTime={
+                    newStartTime
+                      ? new Date(newStartTime.getTime() + 15 * 60000)  // ✅ Ensures End Time starts AFTER Start Time
+                      : new Date()
+                  }
+                  maxTime={new Date().setHours(23, 45)}
                 />
               </div>
 

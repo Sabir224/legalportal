@@ -178,7 +178,7 @@ const SignIn = () => {
                 <Form.Group className="mb-3 text-start">
                   <Form.Label style={{ color: "grey" }}>Email</Form.Label>
                   <div className="input-group">
-                    <span className="input-group-text m-2">
+                    <span className="input-group-text ">
                       <BsPerson color="#18273e" />
                     </span>
                     <Form.Control
@@ -187,14 +187,14 @@ const SignIn = () => {
                       id="email"
                       placeholder="Enter Email"
                       type="text"
-                      className="form-control-lg m-2"
+                      className="form-control-lg "
                     />
                   </div>
                 </Form.Group>
                 <Form.Group className="mb-3 text-start">
                   <Form.Label style={{ color: "grey" }}>Password</Form.Label>
                   <div className="input-group">
-                    <span className="input-group-text m-2">
+                    <span className="input-group-text ">
                       <BsLock color="#18273e" />
                     </span>
                     <Form.Control
@@ -203,7 +203,7 @@ const SignIn = () => {
                       id="password"
                       placeholder="Enter Password"
                       type="password"
-                      className="form-control-lg m-2"
+                      className="form-control-lg "
                     />
                   </div>
                 </Form.Group>
@@ -230,8 +230,8 @@ const SignIn = () => {
               {errorMessage && (
                 <p className="text-danger mt-2">{errorMessage}</p>
               )}
-              <div className="mt-3 text-center">
-                <Link className="text-muted font-size-13" to="/ForgetPassword">
+              <div className="mt-3 text-center" style={{fontSize: 24}}>
+                <Link className="text-muted" to="/forget-password">
                   Forgot password?
                 </Link>
               </div>
