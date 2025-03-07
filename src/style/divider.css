@@ -1,0 +1,50 @@
+.chat-container {
+  position: relative;
+  overflow-y: auto;
+  height: 100%;
+}
+
+.sticky-date {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 5px;
+  left: 49.53%;
+  transform: translateX(-50%) translateY(0);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  z-index: 100;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.4s ease-in-out, transform 0.4s ease-in-out,
+    visibility 0.4s ease-in-out;
+}
+
+.sticky-date.hide {
+  opacity: 0;
+  transform: translateX(-50%) translateY(-10px); /* Moves up slightly */
+  visibility: hidden;
+}
+
+.date-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #888;
+  position: relative;
+}
+
+.date-divider span {
+  color: white; /* Text color */
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}

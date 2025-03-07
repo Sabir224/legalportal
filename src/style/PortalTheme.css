@@ -14,8 +14,12 @@
 }
 
 .main-color {
+  color: #18273e !important;
+}
+
+.main-bgcolor {
   background-color: #18273e !important;
 }
-.main-second-color {
+.main-second-bgcolor {
   background-color: #c0a262 !important;
 }

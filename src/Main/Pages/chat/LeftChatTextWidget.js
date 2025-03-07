@@ -51,27 +51,21 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
   return (
     <div className={`${leftChatStyle["chat-message-left"]} pb-1 d-flex`}>
       <div
-        className="flex-shrink-1 bg-light rounded pt-1 px-2  position-relative"
+        className="flex-shrink-1 bg-light rounded pt-1 px-2 position-relative"
         style={{
           wordBreak: "break-word",
           whiteSpace: "pre-wrap",
-          maxWidth: "70%",
-          minWidth: "20%",
-          paddingTop: "8px",
+          maxWidth: "80%", // Increase for responsiveness
+          minWidth: "100px",
+          padding: "8px",
           textAlign: "left",
           marginLeft: "5px",
-          fontSize: "13px",
+          fontSize: "0.9rem", // Scales better on small screens
         }}
       >
-        {/* Reply Preview */}
-
-        {/* Main Message */}
-        <div
-          className=""
-          style={{ cursor: "pointer" }}
-          onClick={() => handleMessageClick("reply")}
-        >
-          {/* <div className={styles[`avatar-left p2`]}>
+        {/* User Info */}
+        {user.Role === "client" && (
+          <div className="d-flex align-items-center">
             <img
               alt="User"
               src={
@@ -83,50 +77,33 @@ export default function LeftChatTextWidget({ message, selectedChat, user }) {
               width={20}
               height={20}
             />
-          </div> */}
-          {message.content}
-        </div>
-
-        {/* Dropdown Toggle */}
-
-        {/* Dropdown Menu */}
-        {isDropdownOpen && (
-          <div
-            id="dropdown-menu-left" // Add an id to the dropdown menu
-            style={{
-              position: "absolute",
-              right: "-160px", // Position for left chat
-              top: "35px",
-              background: "white",
-              borderRadius: "8px",
-              boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-              padding: "10px",
-              zIndex: "1000",
-              width: "150px",
-            }}
-          >
-            <ul style={{ listStyleType: "none", padding: "0", margin: "0" }}>
-              <li
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "8px 10px",
-                  cursor: "pointer",
-                }}
-                onClick={() => handleMessageClick("Reply")}
-              >
-                <FaReply size={16} />
-                <span style={{ marginLeft: "10px" }}>Reply</span>
-              </li>
-            </ul>
+            <div
+              className="ms-2 text-secondary fw-normal  d-sm-block d-none d-md-inline"
+              style={{
+                fontSize: "12px",
+              }}
+            >
+              {message.sender.UserName.split(" ")[0]}
+            </div>
           </div>
         )}
 
-        {/* Status Icon */}
+        {/* Main Message */}
+        <div
+          className="mt-1"
+          style={{ cursor: "pointer", minWidth: "20%" }}
+          onClick={() => handleMessageClick("reply")}
+        >
+          {message.content}
+        </div>
+
+        {/* Status & Timestamp */}
         <div
           className="d-flex p-0 m-0 gap-1 justify-content-end text-secondary"
           style={{
             fontSize: "10px",
+            whiteSpace: "nowrap",
+            width: "100%",
           }}
         >
           <p className="p-0 m-0">{formatTimestamp(message.createdAt)}</p>

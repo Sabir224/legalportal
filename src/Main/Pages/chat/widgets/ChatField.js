@@ -18,9 +18,12 @@ import DynamicAudio from "./dynamicAudio";
 import { useMediaQuery } from "react-responsive";
 import DropdownSheet from "./DropdownSheet";
 import ReplyInput from "./ReplyChatInput";
+import { format, parseISO } from "date-fns";
+import "../../../../style/divider.css";
 import {
   ApiEndPoint,
   base64ToUrl,
+  formatMessageDate,
   mondayLogoImage,
 } from "../../Component/utils/utlis";
 import SocketService from "../../../../SocketService";
@@ -31,13 +34,17 @@ const scrollToBottom = (ref) => {
     ref.current.scrollTop = ref.current.scrollHeight;
   }
 };
-export default function ChatField({ selectedChat, user }) {
+export default function ChatField({ selectedChat, user, setSelectedChat }) {
   const isDesktop = useMediaQuery({ minWidth: 992 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 991 });
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [typingUsers, setTypingUsers] = useState([]); // Store typing users
   const [isAtBottom, setIsAtBottom] = useState(false);
+  const [isUserScrollingDown, setIsUserScrollingDown] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
+  const displayedDates = new Set(); // Track unique dates
+  const [visibleDate, setVisibleDate] = useState(null);
   // console.log("UserData", user);
   const chatContainerRef = useRef(null);
   const [isNewMessage, setNewMessage] = useState(false);
@@ -59,37 +66,78 @@ export default function ChatField({ selectedChat, user }) {
     });
     setNewMessage(false);
   };
-  let count = 0;
-  // function trackUserScroll() {
-  //   const chatContainer = document.getElementById("chat-container");
-  //   if (!chatContainer) return;
-
-  //   chatContainer.addEventListener("scroll", () => {
-  //     const isAtBottom =
-  //       chatContainer.scrollHeight - chatContainer.scrollTop ===
-  //       chatContainer.clientHeight;
-
-  //     setIsAtBottom(isAtBottom);
+  // useEffect(() => {
+  //   const handleScroll = () => {
+  //     if (!chatContainerRef.current) return;
+  //     const isAtBottom = isScrollAtBottom();
 
   //     if (isAtBottom) {
-  //       const chatId = selectedChat._id;
-  //       console.log("📤 Marking Messages as Read...", count + 1);
-
-  //       SocketService.markAsRead(chatId, user._id);
+  //       setNewMessage(false);
   //     }
-  //   });
-  // }
+  //   };
 
-  // useEffect(() => {
-  //   console.log("Typing Users:", typingUsers);
-  // }, [typingUsers]); // Runs whenever typingUsers updates
-  // useEffect(() => {
-  //   if (isScrollAtBottom()) {
-  //     scrollToBottom();
-  //   } else {
-  //     setNewMessage(true); // Show arrow if not at bottom
+  //   const chatContainer = chatContainerRef.current;
+  //   if (chatContainer) {
+  //     chatContainer.addEventListener("scroll", handleScroll);
   //   }
-  // }, [messages]);
+
+  //   return () => {
+  //     if (chatContainer) {
+  //       chatContainer.removeEventListener("scroll", handleScroll);
+  //     }
+  //   };
+  // }, [lastScrollTop]);
+  let count = 0;
+  useEffect(() => {
+    let scrollTimeout;
+
+    const handleScroll = () => {
+      if (!chatContainerRef.current) return;
+      const chatContainer = chatContainerRef.current;
+      const messageDivs = chatContainer.querySelectorAll(".message-item");
+
+      const isAtBottom =
+        chatContainer.scrollHeight - chatContainer.scrollTop ===
+        chatContainer.clientHeight;
+
+      if (isAtBottom) {
+        setNewMessage(false);
+        setVisibleDate(null); // Hide date when at bottom
+        return;
+      }
+
+      let topDate = null;
+      for (let div of messageDivs) {
+        const rect = div.getBoundingClientRect();
+        const containerRect = chatContainer.getBoundingClientRect();
+
+        if (rect.top >= containerRect.top + 10) {
+          // Find first visible message
+          topDate = div.getAttribute("data-date");
+          break;
+        }
+      }
+
+      setVisibleDate(topDate);
+
+      // Hide date after scrolling stops (e.g., 2s delay)
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        setVisibleDate(null);
+      }, 2000);
+    };
+
+    if (chatContainerRef.current) {
+      chatContainerRef.current.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (chatContainerRef.current) {
+        chatContainerRef.current.removeEventListener("scroll", handleScroll);
+      }
+      clearTimeout(scrollTimeout);
+    };
+  }, [messages, lastScrollTop]);
 
   useEffect(() => {
     if (!selectedChat) return;
@@ -162,7 +210,19 @@ export default function ChatField({ selectedChat, user }) {
         userId: typingUserId,
       }) => {
         if (receivedChatId === chatId && typingUserId !== user._id) {
-          setTypingUsers((prev) => [...new Set([...prev, typingUserId])]);
+          // Get typing user details from selectedChat participants
+          const typingUser = selectedChat?.participants?.find(
+            (u) => u._id === typingUserId
+          );
+
+          if (typingUser) {
+            setTypingUsers((prev) => {
+              if (!prev.some((u) => u._id === typingUser._id)) {
+                return [...prev, typingUser]; // Add unique user
+              }
+              return prev; // Return unchanged if already exists
+            });
+          }
         }
       };
 
@@ -171,9 +231,10 @@ export default function ChatField({ selectedChat, user }) {
         userId: typingUserId,
       }) => {
         if (receivedChatId === chatId && typingUserId !== user._id) {
-          setTypingUsers((prev) => prev.filter((id) => id !== typingUserId));
+          setTypingUsers((prev) => prev.filter((u) => u._id !== typingUserId));
         }
       };
+
       const handleMessagesRead = ({ chatId: receivedChatId, userId }) => {
         if (receivedChatId === chatId && userId !== user._id) {
           setMessages((prevMessages) =>
@@ -227,7 +288,6 @@ export default function ChatField({ selectedChat, user }) {
 
   return selectedChat ? (
     <div
-      className="border-start"
       style={{
         display: "flex",
         flexDirection: "column",
@@ -236,12 +296,12 @@ export default function ChatField({ selectedChat, user }) {
         width: "100%",
         maxWidth: "100%",
         overflow: "hidden",
-        gap: "10px",
+        gap: "3px",
       }}
     >
       {/* Chat Header */}
       <div
-        className="border-bottom d-block"
+        className="d-block"
         style={{
           position: "sticky",
           top: 0,
@@ -256,6 +316,7 @@ export default function ChatField({ selectedChat, user }) {
               isUserTyping={typingUsers}
               selectedChat={selectedChat}
               user={user}
+              setSelectedChat={setSelectedChat}
             />
           </div>
         </div>
@@ -263,67 +324,135 @@ export default function ChatField({ selectedChat, user }) {
 
       {/* Chat Messages */}
       <div
-        ref={chatContainerRef}
-        className="chat-messages flex-grow-1 overflow-auto px-3 py-3"
+        className="chat-messages m-0 flex-grow-1 border overflow-hidden-auto px-2 position-relative d-flex flex-column justify-content-end"
         style={{
-          height: "calc(100vh - 180px)", // Adjusted for responsiveness
+          height: "100%",
           maxHeight: "100%",
           width: "100%",
           maxWidth: "100%",
+
+          overflow: "hidden",
         }}
       >
-        {loading ? (
-          <div className={`${chatstyle["loading-indicator"]}`}>
-            <div className={`${chatstyle["spinner"]}`}></div>
-          </div>
-        ) : (
-          messages.map((message) => {
-            const senderId =
-              typeof message.sender === "object" && message.sender._id
-                ? message.sender._id
-                : String(message.sender);
-            const userId = String(user._id);
-
-            return message.content ? (
-              senderId === userId ? (
-                <RightChatTextWidget
-                  key={message._id}
-                  message={message}
-                  selectedChat={selectedChat}
-                  user={user}
-                />
-              ) : (
-                <LeftChatTextWidget
-                  key={message._id}
-                  message={message}
-                  selectedChat={selectedChat}
-                  user={user}
-                />
-              )
-            ) : null;
-          })
-        )}
-      </div>
-
-      {/* Typing Indicator */}
-      <div style={{ position: "relative", width: "100%" }}>
-        {typingUsers.length > 0 && (
-          <div className="typing-indicator d-flex justify-content-center">
-            <span className="dot"></span>
-            <span className="dot"></span>
-            <span className="dot"></span>
+        {/* Sticky Date Bubble */}
+        {visibleDate && (
+          <div className="sticky-date main-bgcolor">
+            <span>{visibleDate}</span>
           </div>
         )}
+
+        {/* Chat Container */}
+        <div
+          ref={chatContainerRef}
+          className="d-flex flex-column p-0 m-0"
+          style={{ overflowY: "auto", flexGrow: 1, position: "relative" }}
+        >
+          {loading ? (
+            <div className={`${chatstyle["loading-indicator"]}`}>
+              <div className={`${chatstyle["spinner"]}`}></div>
+            </div>
+          ) : (
+            messages.map((message) => {
+              const senderRole =
+                typeof message.sender === "object" && message.sender.Role
+                  ? message.sender.Role
+                  : String(message.sender);
+
+              const formattedDate = formatMessageDate(message.createdAt);
+              const messageDate = format(
+                parseISO(message.createdAt),
+                "yyyy-MM-dd"
+              );
+
+              const showDateDivider = !displayedDates.has(messageDate);
+              displayedDates.add(messageDate);
+
+              const userId = String(user._id);
+              const isClient = user.Role === "client";
+              const isSenderClient = senderRole === "client";
+              const isOwnMessage = String(message.sender._id) === userId;
+
+              return (
+                <React.Fragment key={message._id}>
+                  {showDateDivider && (
+                    <div className="date-divider">
+                      <span className="main-bgcolor">{formattedDate}</span>
+                    </div>
+                  )}
+
+                  <div className="message-item" data-date={formattedDate}>
+                    {message.messageType === "file" ? (
+                      <DynamicDocument message={message} user={user} />
+                    ) : message.content ? (
+                      isOwnMessage ? (
+                        <RightChatTextWidget
+                          key={message._id}
+                          message={message}
+                          selectedChat={selectedChat}
+                          user={user}
+                        />
+                      ) : isClient || isSenderClient ? (
+                        <LeftChatTextWidget
+                          key={message._id}
+                          message={message}
+                          selectedChat={selectedChat}
+                          user={user}
+                        />
+                      ) : (
+                        <RightChatTextWidget
+                          key={message._id}
+                          message={message}
+                          selectedChat={selectedChat}
+                          user={user}
+                        />
+                      )
+                    ) : null}
+                  </div>
+                </React.Fragment>
+              );
+            })
+          )}
+        </div>
+
+        {/* Typing Indicator (Always at Bottom) */}
+        <div
+          className="typing-indicator d-flex align-items-center"
+          style={{
+            position: "absolute",
+            bottom: "-3px",
+            left: "10px",
+            background: "white",
+            borderRadius: "10px",
+            zIndex: 10,
+            minHeight: "20px",
+            padding: "5px 10px",
+            visibility: typingUsers.length > 0 ? "visible" : "hidden",
+          }}
+        >
+          {typingUsers.length > 0 && (
+            <span
+              style={{ fontSize: "12px", marginRight: "8px", color: "#555" }}
+            >
+              {typingUsers.map((u) => u.UserName.split(" ")[0]).join(", ")}{" "}
+              {typingUsers.length > 1 ? "are" : "is"} typing
+            </span>
+          )}
+
+          {/* Typing animation */}
+          <span className="dot" style={{ width: "4px", height: "4px" }}></span>
+          <span className="dot" style={{ width: "4px", height: "4px" }}></span>
+          <span className="dot" style={{ width: "4px", height: "4px" }}></span>
+        </div>
       </div>
 
       {/* New Message Notification */}
       {isNewMessage && (
         <div
-          className="position-fixed d-flex flex-column align-items-center justify-content-center"
+          className="main-second-bgcolor position-fixed d-flex flex-column align-items-center justify-content-center"
           style={{
-            bottom: "80px",
+            bottom: "15%",
             right: "50px",
-            background: "#18273e",
+
             borderRadius: "8px",
             width: "40px",
             height: "40px",

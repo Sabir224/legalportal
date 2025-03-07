@@ -2,7 +2,7 @@
 // services/SocketService.js
 import { io } from "socket.io-client";
 
-// const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
+//const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
 const ApiBase = "http://localhost:5001"; // Use this for local testing
 
 const socket = io(ApiBase, {
