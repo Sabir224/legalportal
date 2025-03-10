@@ -6,6 +6,10 @@ import {
   faFileWord,
   faFileExcel,
   faFilePowerpoint,
+  faTimes,
+  faCloudUploadAlt,
+  faMessage,
+  faPaperPlane,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFileAlt } from "@fortawesome/free-regular-svg-icons";
 import "react-toastify/dist/ReactToastify.css";
@@ -16,6 +20,14 @@ import Modal from "react-modal";
 import "../../chat/widgets/chatinputs.css";
 import SocketService from "../../../../SocketService";
 import { ApiEndPoint } from "../../Component/utils/utlis";
+import * as pdfjs from "pdfjs-dist";
+import "pdfjs-dist/build/pdf.worker.entry";
+
+import { Document, Page } from "react-pdf";
+pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  "pdfjs-dist/build/pdf.worker.min.js",
+  import.meta.url
+).toString();
 // import SendMessageModal from "../../../Main page/SendTemplateViaChat";
 export default function ChatInput({ selectedChat, user }) {
   const [message, setMessage] = useState("");
@@ -104,8 +116,8 @@ export default function ChatInput({ selectedChat, user }) {
     }
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setPopupMessage("Image must be less than 5MB");
+      if (file.size > 20 * 1024 * 1024) {
+        setPopupMessage("Image must be less than 20MB");
         e.target.value = null; // Reset the file input field
         return;
       }
@@ -132,12 +144,50 @@ export default function ChatInput({ selectedChat, user }) {
     const fileExtension = file.name.split(".").pop().toLowerCase();
     setFileType(fileExtension);
 
-    // 🔹 Generate a preview (PDF, images, etc.)
+    // 🔹 Generate a preview URL
     const previewUrl = URL.createObjectURL(file);
-    setPreviewFilePath(previewUrl);
-    setPreviewFile(file);
+
+    // 🔹 Handle different file types
+    if (fileExtension === "pdf") {
+      generatePdfThumbnail(file);
+    } else if (file.type.startsWith("image/")) {
+      setPreviewFilePath(previewUrl);
+      setPreviewFile(file);
+    } else if (
+      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExtension)
+    ) {
+      setPreviewFilePath("/path/to/document-icon.png"); // Set a generic document preview icon
+      setPreviewFile(file);
+    } else {
+      setPreviewFile(null);
+      setPopupMessage("Unsupported file type");
+    }
 
     e.target.value = null; // Reset file input field
+  };
+
+  // 🔹 Function to generate PDF thumbnail
+  const generatePdfThumbnail = async (file) => {
+    try {
+      const fileUrl = URL.createObjectURL(file);
+      const pdf = await pdfjs.getDocument(fileUrl).promise;
+      const page = await pdf.getPage(1);
+      const scale = 0.5;
+      const viewport = page.getViewport({ scale });
+
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("2d");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      await page.render({ canvasContext: context, viewport }).promise;
+      const thumbnailUrl = canvas.toDataURL();
+
+      setPreviewFilePath(thumbnailUrl);
+      setPreviewFile({ name: file.name, type: "image/png" });
+    } catch (error) {
+      setPopupMessage("Error generating PDF preview");
+    }
   };
 
   // 🔹 Function to handle file upload & send via socket
@@ -295,24 +345,12 @@ export default function ChatInput({ selectedChat, user }) {
   };
 
   return (
-    <div className="chat-input p-1" style={{ backgroundColor: "transparent" }}>
+    <div
+      className="chat-input p-1 position-relative"
+      style={{ backgroundColor: "transparent" }}
+    >
       <div className="input-container">
-        {/* selcti image */}
-        {/* <img
-          src={Imag}
-          height={25}
-          width={25}
-          className="icon"
-          onClick={() => docInputRef.current.click()}
-        />
-        <input
-          type="file"
-          ref={docInputRef}
-          onChange={handleImageUpload}
-          style={{ display: "none" }}
-          accept="image/*"
-        /> */}
-        {/* select docs */}
+        {/* Clip Button for File Selection */}
         <img
           src={Clip}
           height={25}
@@ -336,21 +374,7 @@ export default function ChatInput({ selectedChat, user }) {
           className="text-input"
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
         />
-        {/* {isRecording ? (
-          <FaStop
-            className="icon"
-            style={{ color: "red" }}
-            onClick={stopRecording}
-          />
-        ) : (
-          <img
-            src={Mic}
-            height={25}
-            width={25}
-            className="icon"
-            onClick={startRecording}
-          />
-        )} */}
+
         {isMessageSending ? (
           <FaSpinner
             className="spinner"
@@ -358,7 +382,7 @@ export default function ChatInput({ selectedChat, user }) {
               color: "#25D366",
               fontSize: "25px",
               animation: "spin 1s linear infinite",
-            }} // Add animation and color
+            }}
           />
         ) : (
           <img
@@ -371,101 +395,87 @@ export default function ChatInput({ selectedChat, user }) {
         )}
       </div>
 
-      {audioUrl && (
-        <div className="preview-container pr-7">
-          <audio controls src={audioUrl} />
-          <div className="preview-buttons">
-            <button onClick={handleSendAudio} className="btn btn-success">
-              Send
-            </button>
-            <button onClick={handleCancelAudio} className="btn btn-danger ml-1">
-              Cancel
-            </button>
-          </div>
-        </div>
-      )}
+      {/* File Preview (Centered & Responsive) */}
       {previewFile && (
         <div
-          className="preview-container pr-7"
+          className="file-preview-container position-absolute p-2 border rounded shadow-sm bg-white"
           style={{
-            flexDirection: "column",
-            maxWidth: "100%",
-            marginBottom: "70px",
+            bottom: "110%", // Keeps it slightly above the button
+            left: "50%", // Centers it to the button
+            transform: "translateX(-50%)", // Ensures perfect centering
+            width: "40%", // Fixed size for better layout
+            maxWidth: "50%",
+
+            zIndex: 1050, // Ensures it appears on top
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
           }}
         >
-          {previewFile.type.startsWith("image/") ? (
-            <div style={{ borderWidth: "2px", borderColor: "black" }}>
+          {/* File Preview Box */}
+          <div
+            className="border p-2 d-flex justify-content-center align-items-center"
+            style={{
+              width: "100%",
+              height: "250px",
+              maxHeight: "25%",
+              backgroundColor: "#f8f9fa", // Light gray background for contrast
+            }}
+          >
+            {previewFile.type.startsWith("image/") ? (
               <img
                 src={previewFilePath}
                 alt="file preview"
-                style={{
-                  width: "100%",
-                  height: "auto",
-                  padding: "10px",
-                  maxWidth: "300px", // Limit the width for tablet view
-                }}
+                className="img-fluid"
+                style={{ maxHeight: "100%", maxWidth: "100%" }}
               />
-            </div>
-          ) : (
-            <div>
-              {fileType === "pdf" ? (
-                <div
-                  style={{ width: "100%", height: "auto", maxWidth: "300px" }}
-                >
-                  <embed
-                    src={`${previewFilePath}#toolbar=0&navpanes=0&page=1&scrollbar=0&view=FitH`}
-                    type="application/pdf"
-                    width="100%"
-                    height="100%"
-                    style={{ border: "none", overflow: "hidden" }}
-                  />
-                </div>
-              ) : (
-                <div
-                  style={{ width: "100%", height: "auto", maxWidth: "300px" }}
-                >
-                  <div className="fileviewer">
-                    <FontAwesomeIcon
-                      icon={getFileIcon(previewFile)}
-                      size="10x"
-                      color="gray"
-                    />
-                  </div>
-                  <div className="fileviewertitle">
-                    <p>{previewFile.name}</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          <hr />
-          <div className="preview-buttons">
+            ) : fileType === "pdf" ? (
+              <Document file={previewFilePath}>
+                <Page pageNumber={1} width={100} />
+              </Document>
+            ) : (
+              <FontAwesomeIcon icon={faFileAlt} size="3x" color="gray" />
+            )}
+          </div>
+          {/* File Info */}
+          <div className="text-center mt-2 d-flex flex-column align-items-center">
+            {/* File Name */}
+            <p
+              className="mb-1 fw-bold text-truncate text-center"
+              style={{ maxWidth: "150px" }}
+            >
+              {previewFile.name}
+            </p>
+
+            {/* File Details (Size & Type) */}
+            <p className="text-muted small">
+              {fileType.toUpperCase()} Document
+            </p>
+          </div>
+
+          {/* Buttons */}
+          <div className="d-flex justify-content-center gap-2 mt-2">
+            {/* Cancel Button */}
             <button
+              className="btn btn-outline-danger d-flex align-items-center justify-content-center"
+              onClick={() => setPreviewFile(null)}
+              style={{ width: "35px", height: "35px", borderRadius: "50%" }}
+            >
+              <FontAwesomeIcon icon={faTimes} />
+            </button>
+
+            {/* Upload Button */}
+            <button
+              className="btn btn-outline-success upload-btn d-flex align-items-center justify-content-center"
               onClick={handleFileUpload}
               style={{
-                backgroundColor: "#25D366",
-                color: "white",
-                border: "none",
-                padding: "8px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
+                width: "35px",
+                height: "35px",
+                borderRadius: "50%",
+                transition: "0.3s",
               }}
             >
-              Send
-            </button>
-            <button
-              onClick={() => setPreviewFile(null)}
-              style={{
-                backgroundColor: "rgb(255, 118, 64)",
-                color: "white",
-                border: "none",
-                padding: "8px 12px",
-                borderRadius: "6px",
-                cursor: "pointer",
-                marginLeft: "10px",
-              }}
-            >
-              Close
+              <FontAwesomeIcon icon={faPaperPlane} />
             </button>
           </div>
         </div>
@@ -485,8 +495,6 @@ export default function ChatInput({ selectedChat, user }) {
           </div>
         </Modal>
       )}
-
-      {/* <ToastContainer /> */}
     </div>
   );
 }
