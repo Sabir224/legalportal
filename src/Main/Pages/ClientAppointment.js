@@ -31,7 +31,7 @@ import {
   Tab,
   Tabs,
 } from "react-bootstrap";
-import { BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
+import { BsCalendar, BsCalendar2, BsCalendar2Plus, BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = () => {
@@ -915,16 +915,16 @@ const ClientAppointment = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: " #16213e",
+            backgroundColor: " #d2a85a",
 
           }}
 
             onMouseEnter={(e) => {
-              e.target.style.background = "#d2a85a"; // Hover background (light golden)
+              e.target.style.background = "#16213e"; // Reset to default
 
             }}
             onMouseLeave={(e) => {
-              e.target.style.background = "#16213e"; // Reset to default
+              e.target.style.background = "#d2a85a"; // Hover background (light golden)
             }}
             onClick={() => handleOpenPopup()}
           >
@@ -951,7 +951,7 @@ const ClientAppointment = () => {
               }}
               onClick={() => handleOpenPopup()}
             > */}
-            <BsSendFill style={{
+            <BsCalendar2Plus style={{
               //  padding: "15px 20px", 
 
             }} color='white'
