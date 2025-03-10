@@ -17,10 +17,11 @@ const DynamicDocument = ({ message, user }) => {
 
   if (messageType !== "file" || !file || !file.url) return null;
 
-  const handleDownload = () => {
+  const handleDownload = (event) => {
+    event.stopPropagation(); // Prevents event bubbling issues
     const link = document.createElement("a");
     link.href = file.url;
-    link.download = file.name;
+    link.download = file.name || "download"; // Ensures a valid file name
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -38,14 +39,15 @@ const DynamicDocument = ({ message, user }) => {
   const isOwnMessage = String(message.sender._id) === userId;
   const isMessageOnLeft = isClient || isSenderClient;
   const getFileIcon = (fileType) => {
-    if (!fileType) return <FaFileAlt className="file-icon text-secondary" />;
+    if (!fileType)
+      return <FaFileAlt size={30} className="file-icon text-secondary" />;
     if (fileType.includes("pdf"))
-      return <FaFilePdf className="file-icon text-danger" />;
+      return <FaFilePdf size={30} className="file-icon text-danger" />;
     if (fileType.includes("word") || fileType.includes("msword"))
-      return <FaFileWord className="file-icon text-primary" />;
+      return <FaFileWord size={30} className="file-icon text-primary" />;
     if (fileType.includes("spreadsheet") || fileType.includes("excel"))
-      return <FaFileExcel className="file-icon text-success" />;
-    return <FaFileAlt className="file-icon text-secondary" />;
+      return <FaFileExcel size={30} className="file-icon text-success" />;
+    return <FaFileAlt size={30} className="file-icon text-secondary" />;
   };
 
   return (
@@ -91,7 +93,7 @@ const DynamicDocument = ({ message, user }) => {
             />
           )}
           <div
-            className="text-secondary fw-normal d-sm-block d-none d-md-inline me-2"
+            className="text-secondary fw-normal d-sm-block d-none d-md-inline m-1 me-2"
             style={{ fontSize: "12px" }}
           >
             {isOwnMessage ? "You" : sender.UserName.split(" ")[0]}
@@ -122,35 +124,46 @@ const DynamicDocument = ({ message, user }) => {
                 alt={file.name}
                 className="img-fluid rounded"
                 style={{
-                  width: "150px",
-                  height: "150px",
-                  objectFit: "contain", // Ensures full image is visible without cropping
+                  width: "100px",
+                  height: "100px",
+                  objectFit: "contain",
+                  transition: "filter 0.3s ease",
+                  filter: hovered ? "brightness(0.6)" : "brightness(1)",
                 }}
               />
-              <div className="w-100 d-flex p-0 m-0 justify-content-end mb-1">
-                <FaDownload
-                  color={isOwnMessage ? "white" : "black"}
-                  onClick={handleDownload}
+              {hovered && (
+                <div
+                  className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
                   style={{
-                    cursor: "pointer",
-                    transition: "color 0.3s ease",
+                    backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay
+                    borderRadius: "8px",
                   }}
-                  onMouseEnter={(e) =>
-                    (e.target.style.color = isOwnMessage ? "#ddd" : "#555")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.target.style.color = isOwnMessage ? "white" : "black")
-                  }
-                />
-              </div>
+                >
+                  <FaDownload
+                    color="white"
+                    onClick={(event) => handleDownload(event)}
+                    style={{
+                      cursor: "pointer",
+                      fontSize: "26px",
+                    }}
+                  />
+                </div>
+              )}
             </div>
           ) : (
-            <div className="d-flex flex-column align-items-center position-relative p-0 m-0 border rounded">
-              <div className="d-flex align-items-center w-100">
-                <div className="me-2">{getFileIcon(file.type)}</div>
+            <div
+              className="d-flex flex-column align-items-center position-relative p-0 m-0"
+              onMouseEnter={() => setHovered(true)}
+              onMouseLeave={() => setHovered(false)}
+            >
+              <div className="d-flex align-items-center w-100 position-relative">
+                {/* File Icon */}
+                <div className="me-2 p-1 position-relative">
+                  {getFileIcon(file.type)}
+                </div>
                 <div className="flex-grow-1">
                   <span
-                    className="fw-bold d-inline-block"
+                    className="fw-bold d-inline-block p-2"
                     style={{
                       fontSize: "12px",
                       maxWidth: "120px",
@@ -163,18 +176,31 @@ const DynamicDocument = ({ message, user }) => {
                     {file.name}
                   </span>
                 </div>
-              </div>
-              <div className="w-100 d-flex justify-content-end mt-1">
-                <FaDownload
-                  color={`${isOwnMessage ? "white" : "black"}`}
-                  onClick={handleDownload}
-                />
+                {hovered && (
+                  <div
+                    className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+                    style={{
+                      backgroundColor: "rgba(0, 0, 0, 0.5)", // Dark overlay
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <FaDownload
+                      color="white"
+                      onClick={(event) => handleDownload(event)}
+                      style={{
+                        cursor: "pointer",
+                        fontSize: "26px",
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
 
         {/* Timestamp */}
+        {/* Timestamp and Status Icon */}
         <div
           className="d-flex p-0 m-0 gap-1 justify-content-end text-secondary"
           style={{
@@ -187,7 +213,11 @@ const DynamicDocument = ({ message, user }) => {
           }}
         >
           <p className="p-0 m-0">{formatTimestamp(message.createdAt)}</p>
-          <RenderStatusIcon status={message.status} message={message} />
+          <div className="me-2">
+            {" "}
+            {/* Adds right margin */}
+            <RenderStatusIcon status={message.status} message={message} />
+          </div>
         </div>
       </div>
     </div>

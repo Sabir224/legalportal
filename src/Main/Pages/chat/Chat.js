@@ -157,146 +157,56 @@ export default function Chat() {
         boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
       }}
     >
-      {/* Small Screen View */}
-      {isMobile ? (
-        selectedChat ? (
-          <div
-            className="d-flex flex-column flex-grow-1"
-            style={{
-              height: "100%",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-
-              borderRadius: "10px",
-            }}
-          >
-            <ChatField
-              selectedChat={selectedChat}
-              user={userData}
-              setSelectedChat={setSelectedChat}
-            />
-          </div>
-        ) : (
-          <div
-            className="d-flex flex-column p-3 "
-            style={{
-              width: "100%",
-              height: "82vh",
-              backgroundColor: "#fff",
-              borderRadius: "10px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              margin: "10px",
-              transition: "margin-left 0.3s ease-in-out",
-            }}
-          >
-            <input
-              type="search"
-              className="form-control p-2 my-2 rounded"
-              placeholder="Search User"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            <div className="d-flex flex-column p-3 overflow-y-auto">
-              <UserListWidget
-                setSelectedChat={(chat) => setSelectedChat(chat)}
-                userData={userData}
-                searchQuery={searchQuery}
-              />
-            </div>
-          </div>
-        )
-      ) : (
-        // Large screen view
-        <>
-          {/* User List Widget */}
-          <div
-            className="d-flex flex-column p-3 auto"
-            style={{
-              width: "200px",
-              height: "82vh",
-              backgroundColor: "#fff",
-              borderRadius: "10px",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              margin: "10px",
-              transition: "margin-left 0.3s ease-in-out",
-            }}
-          >
-            <input
-              type="search"
-              className="form-control p-2 my-2 rounded"
-              placeholder="Search User"
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-            <div className="d-flex flex-column p-3 overflow-y-auto">
-              <UserListWidget
-                setSelectedChat={(chat) => setSelectedChat(chat)}
-                userData={userData}
-                searchQuery={searchQuery}
-              />
-            </div>
-          </div>
-
-          {/* Chat Section */}
-          <div
-            className="d-flex flex-column flex-grow-1"
-            style={{
-              height: "82vh",
-              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-              margin: "10px",
-              borderRadius: "10px",
-            }}
-          >
-            <ChatField
-              selectedChat={selectedChat}
-              user={userData}
-              setSelectedChat={setSelectedChat}
-            />
-          </div>
-        </>
-      )}
-
       {/* User List Widget */}
-      {/* {(showUserList || !isMobile) && (
-        <div
-          className="d-flex flex-column p-3"
-          style={{
-            width: isMobile ? "100%" : "200px", // Fixed width on large screens
-            height: "100%",
-            backgroundColor: "#fff",
-            borderRadius: "10px",
-            boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
-            marginLeft: isMobile ? "70px" : "10px", // Added space from the sidebar
-            transition: "margin-left 0.3s ease-in-out",
-          }}
-        >
-          <input
-            type="search"
-            className="form-control p-2 my-2 rounded"
-            placeholder="Search User"
-          />
+      <div
+        className={`d-flex flex-column p-3 ${
+          isMobile && selectedChat ? "d-none" : "d-block"
+        }`}
+        style={{
+          width: isMobile ? "100%" : "200px",
+          height: "82vh",
+          backgroundColor: "#fff",
+          borderRadius: "10px",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          margin: "10px",
+          transition: "margin-left 0.3s ease-in-out",
+        }}
+      >
+        <input
+          type="search"
+          className="form-control p-2 my-2 rounded"
+          placeholder="Search User"
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
+        <div className="d-flex flex-column p-3 overflow-y-auto">
           <UserListWidget
-            setSelectedChat={(chat) => {
-              setSelectedChat(chat);
-              if (isMobile) setShowUserList(false);
-            }}
+            setSelectedChat={(chat) => setSelectedChat(chat)}
             userData={userData}
+            searchQuery={searchQuery}
           />
         </div>
-      )} */}
+      </div>
 
       {/* Chat Section */}
-      {/* {!showUserList && (
-        <div
-          className="d-flex flex-column flex-grow-1"
-          style={{
-            height: "100%",
-            padding: "15px",
-            marginLeft: isMobile ? "50px" : "10px", // Ensuring space from sidebar
-          }}
-        >
-          <ChatField selectedChat={selectedChat} user={userData} />
-        </div>
-      )} */}
+      <div
+        className={`d-flex flex-column flex-grow-1 ${
+          isMobile && !selectedChat ? "d-none" : "d-block"
+        }`}
+        style={{
+          height: "82vh",
+          boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+          margin: "10px",
+          borderRadius: "10px",
+          transition: "opacity 0.3s ease-in-out",
+        }}
+      >
+        <ChatField
+          selectedChat={selectedChat}
+          user={userData}
+          setSelectedChat={setSelectedChat}
+        />
+      </div>
     </div>
   );
 }
