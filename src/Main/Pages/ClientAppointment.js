@@ -31,7 +31,14 @@ import {
   Tab,
   Tabs,
 } from "react-bootstrap";
-import { BsCalendar, BsCalendar2, BsCalendar2Plus, BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
+import {
+  BsCalendar,
+  BsCalendar2,
+  BsCalendar2Plus,
+  BsSend,
+  BsSendFill,
+  BsSendPlusFill,
+} from "react-icons/bs";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = () => {
@@ -81,21 +88,19 @@ const ClientAppointment = () => {
   }, []);
 
   const fetchLawyerDetails = async () => {
-
-    let lawyerid
+    let lawyerid;
     try {
       const response = await axios.get(
         `${ApiEndPoint}geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
-      lawyerid = response.data.lawyerDetails?._id
+      lawyerid = response.data.lawyerDetails?._id;
       setLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
     }
-
 
     try {
       const response = await axios.get(
@@ -123,7 +128,6 @@ const ClientAppointment = () => {
       setError(err.message);
       setLoading(false);
     }
-
 
     try {
       const response = await axios.get(
@@ -384,8 +388,7 @@ const ClientAppointment = () => {
       subject: subject,
       client: ClientDetails,
       mailmsg: mailmsg,
-      text:
-        `
+      text: `
          <strong>Client Message:</strong>
           <p>${ClientMessage}</p>
         Please note that <strong>${ClientDetails.user.UserName}</strong> has scheduled a meeting with you at
@@ -447,8 +450,8 @@ const ClientAppointment = () => {
           isPopupVisible
             ? "Meeting Schedule mail is send"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-              ? "Meeting Schedule mail is send"
-              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+            ? "Meeting Schedule mail is send"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -678,7 +681,13 @@ const ClientAppointment = () => {
               <div className={popupcolor}>
                 {!isLoading && !isEmailSent && (
                   <>
-                    <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "5px" }}>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        marginBottom: "5px",
+                      }}
+                    >
                       {popupmessage}
                     </h3>
                     <textarea
@@ -814,8 +823,9 @@ const ClientAppointment = () => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
-                    }`}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -860,8 +870,8 @@ const ClientAppointment = () => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                          ? "#d2a85a" // Golden when selected
-                          : "#16213e", // Default background
+                        ? "#d2a85a" // Golden when selected
+                        : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                       fontSize: 11,
@@ -893,26 +903,24 @@ const ClientAppointment = () => {
         </div>
 
         {selectedTime && (
-          <div style={{
-            position: "fixed",
-            bottom: "70px",
-            right: "110px",
-            zIndex: 1000,
-            width: 60,
-            height: 60,
-            boxShadow: "5px 5px 5px black",
-            borderRadius: "50%",
-            border: "1px solid #d2a85a",
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: " #d2a85a",
-
-          }}
-
+          <div
+            style={{
+              position: "fixed",
+              bottom: "70px",
+              right: "110px",
+              zIndex: 1000,
+              width: 60,
+              height: 60,
+              boxShadow: "5px 5px 5px black",
+              borderRadius: "50%",
+              border: "1px solid #d2a85a",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: " #d2a85a",
+            }}
             onMouseEnter={(e) => {
               e.target.style.background = "#16213e"; // Reset to default
-
             }}
             onMouseLeave={(e) => {
               e.target.style.background = "#d2a85a"; // Hover background (light golden)
@@ -942,17 +950,17 @@ const ClientAppointment = () => {
               }}
               onClick={() => handleOpenPopup()}
             > */}
-            <BsCalendar2Plus style={{
-              //  padding: "15px 20px", 
-
-            }} color='white'
-
-
+            <BsCalendar2Plus
+              style={
+                {
+                  //  padding: "15px 20px",
+                }
+              }
+              color="white"
             />
             {/* </Button> */}
           </div>
         )}
-
       </div>
     </div>
   );

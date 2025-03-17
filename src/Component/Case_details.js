@@ -535,7 +535,10 @@ function Case_details() {
   const fetchCases = async () => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getCaseDetail?FkCaseId?${global.CaseId._id}`
+        `${ApiEndPoint}getCaseDetail?FkCaseId?${global.CaseId._id}`,
+        {
+          withCredentials: true, // ✅ Sends cookies with the request
+        }
       ); // API endpoint
       // console.log("data of case", response.data.caseDetails);
       // Assuming the API returns data in the `data` field

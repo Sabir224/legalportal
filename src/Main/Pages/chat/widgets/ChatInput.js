@@ -414,12 +414,11 @@ export default function ChatInput({ selectedChat, user }) {
         >
           {/* File Preview Box */}
           <div
-            className="border p-2 d-flex justify-content-center align-items-center"
+            className="border p-2 d-flex justify-content-center align-items-center main-bgcolor"
             style={{
               width: "100%",
               height: "250px",
               maxHeight: "25%",
-              backgroundColor: "#f8f9fa", // Light gray background for contrast
             }}
           >
             {previewFile.type.startsWith("image/") ? (

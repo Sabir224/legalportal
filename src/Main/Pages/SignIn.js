@@ -9,6 +9,7 @@ import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
 import { ApiEndPoint } from "./Component/utils/utlis";
 import backgroundImage from "../Pages/Images/bg.jpg";
+import { useCookies } from "react-cookie";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -19,36 +20,42 @@ const SignIn = () => {
   const isTabletOrSmaller = useMediaQuery({ maxWidth: 992 });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [cookies, setCookie, removeCookie] = useCookies(["user"]);
 
   const handleNavigation = async (e) => {
-    console.log("Clicked on Button ");
+    console.log("Clicked on Button");
     e.preventDefault(); // Prevent page reload
     setError("");
     setLoading(true);
+
     try {
       const response = await fetch(`${ApiEndPoint}users/loginUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ Email: email, Password: password }),
+        credentials: "include",
       });
 
       const data = await response.json();
-      console.log("____data:", data);
 
       if (!response.ok) {
-        alert("Login Unsuccessful!");
         throw new Error(data.message || "Login failed");
       }
 
-      // Save token in localStorage
-      //      localStorage.setItem("token", data.token);
-      alert("Login successful!");
-      sessionStorage.setItem("Email", data.user.Email);
-      sessionStorage.setItem("User", data.user);
-      // Redirect or update UI after login
-      navigate("/Dashboards", {
-        replace: true,
-      });
+      if (data.token) {
+        setCookie("token", data.token, {
+          path: "/",
+          secure: false, // Set to `true` in production with HTTPS
+          sameSite: "lax",
+        });
+
+        console.log("Token stored in cookies:", data.token);
+
+        // Wait for token to be stored in cookies
+        setTimeout(() => {
+          navigate("/Dashboards", { replace: true });
+        }, 1000); // Small delay to ensure token is available before navigation
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -230,7 +237,7 @@ const SignIn = () => {
               {errorMessage && (
                 <p className="text-danger mt-2">{errorMessage}</p>
               )}
-              <div className="mt-3 text-center" style={{fontSize: 24}}>
+              <div className="mt-3 text-center" style={{ fontSize: 24 }}>
                 <Link className="text-muted" to="/forget-password">
                   Forgot password?
                 </Link>
