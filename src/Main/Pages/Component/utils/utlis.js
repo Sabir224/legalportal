@@ -6,6 +6,7 @@ import React, { useEffect, useState } from "react";
 
 import { toZonedTime, format, formatInTimeZone } from "date-fns-tz";
 import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
+import { useCookies } from "react-cookie";
 export const icons = {
   user: user,
 };
@@ -79,6 +80,7 @@ export const useMediaQuery = (query) => {
 
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
 export const ApiEndPoint = "http://localhost:5001/api/";
+
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
   let currentTime;
@@ -116,6 +118,33 @@ export default function Warning({ isOpen, onClose, erorMessage }) {
     </Modal>
   );
 }
+export const getCookie = (name) => {
+  const cookies = document.cookie.split("; ");
+  for (let cookie of cookies) {
+    const [cookieName, cookieValue] = cookie.split("=");
+    if (cookieName === name) {
+      return decodeURIComponent(cookieValue);
+    }
+  }
+  return null;
+};
+export const useDecodedToken = () => {
+  const [cookies] = useCookies(["token"]); // Get token from cookies
+  const token = cookies.token; // Extract the token
+
+  if (!token) {
+    console.error("No token found in cookies");
+    return null;
+  }
+
+  try {
+    const decoded = jwtDecode(token); // Decode the token
+    return decoded; // Returns { id, email, Role, iat, exp }
+  } catch (error) {
+    console.error("Error decoding token:", error);
+    return null;
+  }
+};
 
 export const formatMessageDate = (
   isoDate,

@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Dashboard.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBriefcase,
   faCalendar,
   faHome,
   faMessage,
@@ -27,7 +28,11 @@ import { BsChevronRight } from "react-icons/bs";
 import UserListWidget from "./Pages/chat/widgets/UserListWidget";
 import SocketService from "../SocketService";
 import axios from "axios";
-import { ApiEndPoint } from "./Pages/Component/utils/utlis";
+import { ApiEndPoint, useDecodedToken } from "./Pages/Component/utils/utlis";
+import AddCaseForm from "./Pages/cases/CaseForm";
+import CaseFilingForm from "./Pages/cases/CaseMatter";
+import { useCookies } from "react-cookie";
+import { jwtDecode } from "jwt-decode";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -41,22 +46,48 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
+  const [decodedToken, setDecodedToken] = useState(null);
   const hasFetched = useRef(false); // Ref to track if data has been fetched
+  const [cookies] = useCookies(["token"]);
+  // console.log("________", cookies.token);
+  // Get the decoded token
   useEffect(() => {
-    if (screen === 0) {
-      setCurrentScreen(<BasicCase />);
-    } else if (screen === 1) {
-      setCurrentScreen(<Case_details />);
-    } else if (screen === 2) {
-      setCurrentScreen(<ClientAppointment />);
-    } else if (screen === 3) {
-      setCurrentScreen(<Chat />);
-    } else if (screen === 5) {
-      setCurrentScreen(<LawyerProfile />);
-    } else if (screen === 4) {
-      setCurrentScreen(<UserProfile />);
+    if (cookies.token) {
+      try {
+        setDecodedToken(jwtDecode(cookies.token)); // Decode and store token
+      } catch (error) {
+        console.error("Invalid token:", error);
+      }
     }
-  }, [screen]);
+  }, [cookies.token]); // Decode token only when token changes
+  useEffect(() => {
+    switch (screen) {
+      case 0:
+        setCurrentScreen(<BasicCase token={decodedToken} />);
+        break;
+      case 1:
+        setCurrentScreen(<Case_details token={decodedToken} />);
+        break;
+      case 2:
+        setCurrentScreen(<ClientAppointment token={decodedToken} />);
+        break;
+      case 3:
+        setCurrentScreen(<Chat token={decodedToken} />);
+        break;
+      case 4:
+        setCurrentScreen(<UserProfile token={decodedToken} />);
+        break;
+      case 5:
+        setCurrentScreen(<LawyerProfile token={decodedToken} />);
+        break;
+      case 6:
+        setCurrentScreen(<CaseFilingForm token={decodedToken} />);
+        break;
+      default:
+        setCurrentScreen(<div>Invalid screen</div>);
+    }
+  }, [screen, decodedToken]); // Update screen when screen or token changes
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -71,20 +102,31 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSheetOpen]);
+
   useEffect(() => {
     if (storedEmail && !hasFetched.current) {
       const fetchClientDetails = async () => {
         try {
           setLoading(true);
-          const response = await axios.get(
-            `${ApiEndPoint}/getUserDetail/${storedEmail}`
+          const response = await fetch(
+            `${ApiEndPoint}getUserDetail/${storedEmail}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${cookies.token}`, // Manually send token
+              },
+            }
           );
-          setUserData(response.data);
+
+          console.log(response?.data); // ✅ Handle response data
+          setUserData(response?.data);
 
           // ✅ Check if socket is already connected before reconnecting
           if (!SocketService.socket?.connected) {
             console.log("🔌 Connecting to socket...");
-            SocketService.connect(response.data._id);
+            // console.log("UserData", response.data);
+            SocketService.connect(response?.data?._id);
           } else {
             console.log("⚡ Socket already connected");
           }
@@ -175,6 +217,11 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
+            // {
+            //   icon: faBriefcase,
+            //   label: "Add Case",
+            //   action: () => handlescreen2(6),
+            // },
 
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ].map((item, index) => (
@@ -246,27 +293,36 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            <button
-              className="btn me-2"
-              onClick={() => {
-                handlescreen2(5);
-              }}
-            >
-              <FontAwesomeIcon
-                icon={faUser}
-                size="1x"
-                color="white"
-                className=""
-              />
-            </button>
-            <button
-              className="btn"
-              onClick={() => {
-                handlescreen2(4);
-              }}
-            >
-              👤
-            </button>
+            {decodedToken?.Role === "lawyer" && (
+              <button
+                className="btn me-2"
+                onClick={() => {
+                  handlescreen2(5);
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUser}
+                  size="1x"
+                  color="white"
+                  className=""
+                />
+              </button>
+            )}
+            {decodedToken?.Role === "client" && (
+              <button
+                className="btn"
+                onClick={() => {
+                  handlescreen2(4);
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUser}
+                  size="1x"
+                  color="white"
+                  className=""
+                />
+              </button>
+            )}
           </div>
         </div>
 

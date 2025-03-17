@@ -18,7 +18,7 @@ import SocketService from "../../../SocketService";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { Offcanvas } from "bootstrap/dist/js/bootstrap.bundle.min";
 
-export default function Chat() {
+export default function Chat({ token }) {
   //const Users = useSelector((state) => state.Data.usersdetail);
 
   const [users, setUsers] = useState([]);
