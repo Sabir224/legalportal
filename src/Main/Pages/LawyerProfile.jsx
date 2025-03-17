@@ -35,9 +35,13 @@ import {
   FaAddressCard,
   FaBusinessTime,
   FaChair,
+  FaCheck,
+  FaCheckCircle,
   FaInfoCircle,
   FaMailBulk,
   FaPen,
+  FaPlus,
+  FaPlusCircle,
 } from "react-icons/fa";
 import PhoneInput from "react-phone-input-2";
 
@@ -52,6 +56,19 @@ import Contactprofile from "./Images/CHAT.png";
 import { FaCamera, FaEdit, FaLock } from "react-icons/fa";
 import ContactFormModal, { ContactForm } from "../../Component/ContactForm";
 import { BsPen } from "react-icons/bs";
+import ViewBookLawyerSlot from "./Component/ViewBookSlot";
+import {
+  Button,
+  Card,
+  Col,
+  Modal,
+  Row,
+  Spinner,
+  Tab,
+  Tabs,
+} from "react-bootstrap";
+import { BsCalendar, BsCalendar2, BsCalendar2Plus, BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
+
 
 const LawyerProfile = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -73,6 +90,8 @@ const LawyerProfile = () => {
 
   const storedEmail = sessionStorage.getItem("Email");
   const [isEditing, setIsEditing] = useState(false);
+  const [IsCalenderView, setCalenderView] = useState(false);
+  const [slotbookuserid, setslotbookuserid] = useState("");
 
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
     subject
@@ -90,6 +109,7 @@ const LawyerProfile = () => {
   const [appointmentDetails, setAppointmentDetails] = useState({
     availableSlots: [],
   });
+
   const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
   const [newTime, setNewTime] = useState(null);
   const [newStartTime, setNewStartTime] = useState(null);
@@ -111,10 +131,12 @@ const LawyerProfile = () => {
   const [showWarning, setShowWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectfile, setselectfile] = useState("");
+  const [activeTab, setActiveTab] = useState("addslot");
 
   const [message, setMessage] = useState("");
   const [isAddedorUpdated, setIsAddedorUpdated] = useState(false);
   const [IsAddpop, setIsAddpop] = useState(false);
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(""), 2000);
@@ -179,6 +201,7 @@ const LawyerProfile = () => {
       acc[dateStr] = slot.slots;
       return acc;
     }, {}) || {};
+
   const ExistSlotsMap =
     DatabaseappointmentDetails?.availableSlots?.reduce((acc, slot) => {
       const dateStr = new Date(slot.date).toDateString();
@@ -327,7 +350,7 @@ const LawyerProfile = () => {
 
       try {
         const response = await axios.post(
-          `${ApiEndPoint}appointment/${lawyerDetails._id}/add-availability`,
+          `${ApiEndPoint}appointment/${lawyerDetails?._id}/add-availability`,
           formattedSlots,
           {
             headers: {
@@ -373,7 +396,7 @@ const LawyerProfile = () => {
     // slot update when is note
     let start = new Date(newStartTime)
     let end = new Date(newEndTime)
-    const lawyerId = lawyerDetails._id
+    const lawyerId = lawyerDetails?._id
     const updatedSlot = {
       startTime: start.toLocaleTimeString([], {
         hour: "2-digit",
@@ -576,6 +599,8 @@ const LawyerProfile = () => {
                 startTime: convertTo12HourFormat(s.startTime),
                 endTime: convertTo12HourFormat(s.endTime),
                 isBooked: s.isBooked,
+                byBook: s.byBook,
+                meetingLink: s.meetingLink,
                 _id: s._id,
               })),
             ];
@@ -635,7 +660,6 @@ const LawyerProfile = () => {
     return dates;
   };
 
-  const calendarDates = generateCalendarDates();
   // Move to the previous month
   const prevMonth = () => {
     setSelectedDate();
@@ -702,6 +726,11 @@ const LawyerProfile = () => {
   const handleTimeClick = (time) => {
     setSelectedTime(time);
   };
+  const handleBookTimeClick = (slot) => {
+    setCalenderView(true);
+
+  };
+
 
   const handleOpenPopup = (item) => {
     setpopupmessage(
@@ -1051,19 +1080,42 @@ const LawyerProfile = () => {
   };
 
 
+
+
+
+
+
+  //  for Book slots
+
+
+
+
+  // Handle date selection
+
+
+  const BookDatesInfo =
+    appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked);
+      acc[dateStr] = { isAvailable: true, hasBookedSlot };
+      return acc;
+    }, {}) || {};
+
+
+  const calendarDates = generateCalendarDates();
   return (
     <div
-      className="border rounded row gap-5 justify-content-center ms-1 mb-3 mt-2"
+      className="border rounded row gap-5 justify-content-center ms-1 "
       style={{
         width: "100%",
-        maxHeight: "83vh",
-        overflowY: "auto",
-        padding: 10,
+        minHeight:'86vh',
+        // maxHeight: "83vh",
+        padding:20,
         boxShadow: "5px 5px 5px gray",
       }}
     >
       <div
-        className="slots-section col-5 mt-3"
+        className="slots-section col-5"
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
         {isEditing ? (
@@ -1634,8 +1686,10 @@ const LawyerProfile = () => {
           </div>
         )}
       </div>
+
+      
       <div
-        className="slots-section col-5  mt-3"
+        className="slots-section col-5  "
         style={{ boxShadow: "5px 5px 5px gray" }}
       >
         <div>
@@ -1688,231 +1742,266 @@ const LawyerProfile = () => {
         </div>
 
         {/* Month Selector */}
-        <div
-          className="d-flex "
-          style={{ marginBottom: "2px", justifyContent: "space-between" }}
-        >
-          <div style={{ color: " #d4af37" }}>
-            {/* <h2>Available Slots</h2> */}
-          </div>
-        </div>
 
-        <div
+
+
+
+
+
+
+        <Tabs
+          activeKey={activeTab}
+          onSelect={(k) => setActiveTab(k)}
+          className="mb-3 custom-tabs"
+          variant="primary"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+            color: "white",
+            
           }}
         >
-          <button className="calender-button simple-text" onClick={prevMonth}>
-            <FontAwesomeIcon icon={faArrowLeft} size="1x" />
-          </button>
-          <h3>
-            {currentDate.toLocaleString("default", { month: "long" })}{" "}
-            {currentDate.getFullYear()}
-          </h3>
-          <button onClick={nextMonth} className="simple-text calender-button">
-            <FontAwesomeIcon icon={faArrowRight} size="1x" />
-          </button>
-        </div>
-
-        {/* Days of the Week */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontWeight: "bold",
-            marginBottom: "5px",
-          }}
-        >
-          {daysOfWeek.map((day) => (
-            <div
-              key={day}
-              className="Calendarday"
-              style={{
-                border: "1px solid #d2a85a",
-                margin: 3,
-                width: "calc(100% / 7)",
-                textAlign: "center",
-              }}
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", flexWrap: "wrap" }}>
-          {calendarDates.map((date, index) => (
-            <div
-              key={index}
-              onClick={() => date && handleDateClick(date)} // Prevent clicks on empty dates
-              className={date ? "calendarDates" : ""}
-              style={{
-                border: date
-                  ? selectedDate?.getDate() === date?.getDate()
-                    ? "2px solid white"
-                    : "1px solid #001f3f"
-                  : "none",
-                borderRadius: date ? "5px" : "0px",
-                cursor: date ? "pointer" : "default",
-                background: date
-                  ? selectedDate?.getDate() === date?.getDate()
-                    ? "#d2a85a"
-                    : ""
-                  : "transparent", // ✅ Make empty slots transparent
-                color: date
-                  ? selectedDate?.getDate() === date?.getDate()
-                    ? "#001f3f"
-                    : "white"
-                  : "transparent", // ✅ Hide text for empty slots
-                width: "calc(100% / 7)",
-                height: "40px", // Set consistent height
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: 12,
-              }}
-            >
-              {date ? date.getDate() : ""}
-            </div>
-          ))}
+          <Tab
+            eventKey="addslot"
+            title={
+              <span
+                style={{
+                  background:
+                    activeTab === "addslot" ? "#d3b386" : "transparent",
+                  padding: "8px 12px",
+                  borderRadius: "5px",
+                  color: "white",
+                }}
+              >
+                Add Slots <FaPlusCircle color={activeTab === "addslot" ? "#18273e" : "white"} style={{ marginLeft: 10 }} />
+              </span>
+            }
+          >
+            <div style={{
+                boxShadow: "0px 0px 0px gray",
+                overflowY: "auto",
+                maxHeight: "400px",
+                overflowX:'hidden',
+                scrollbarWidth: "thin",
+                scrollbarColor: "#d2a85a #16213e",
+              }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <button className="calender-button simple-text" onClick={prevMonth}>
+                  <FontAwesomeIcon icon={faArrowLeft} size="1x" />
+                </button>
+                <h3>
+                  {currentDate.toLocaleString("default", { month: "long" })}{" "}
+                  {currentDate.getFullYear()}
+                </h3>
+                <button onClick={nextMonth} className="simple-text calender-button">
+                  <FontAwesomeIcon icon={faArrowRight} size="1x" />
+                </button>
+              </div>
 
 
+              {/* Days of the Week */}
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  fontWeight: "bold",
+                  marginBottom: "5px",
+                }}
+              >
+                {daysOfWeek.map((day) => (
+                  <div
+                    key={day}
+                    className="Calendarday"
+                    style={{
+                      border: "1px solid #d2a85a",
+                      margin: 3,
+                      width: "calc(100% / 7)",
+                      textAlign: "center",
+                    }}
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
 
-        </div>
-        {message && (
-          <div className="popup-overlay">
+              <div style={{ display: "flex", flexWrap: "wrap" }}>
+                {calendarDates.map((date, index) => (
+                  <div
+                    key={index}
+                    onClick={() => date && handleDateClick(date)} // Prevent clicks on empty dates
+                    className={date ? "calendarDates" : ""}
+                    style={{
+                      border: date
+                        ? selectedDate?.getDate() === date?.getDate()
+                          ? "2px solid white"
+                          : "1px solid #001f3f"
+                        : "none",
+                      borderRadius: date ? "5px" : "0px",
+                      cursor: date ? "pointer" : "default",
+                      background: date
+                        ? selectedDate?.getDate() === date?.getDate()
+                          ? "#d2a85a"
+                          : ""
+                        : "transparent", // ✅ Make empty slots transparent
+                      color: date
+                        ? selectedDate?.getDate() === date?.getDate()
+                          ? "#001f3f"
+                          : "white"
+                        : "transparent", // ✅ Hide text for empty slots
+                      width: "calc(100% / 7)",
+                      height: "40px", // Set consistent height
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 12,
+                    }}
+                  >
+                    {date ? date.getDate() : ""}
+                  </div>
+                ))}
 
-            <div
-              className="confirmation"
-              style={{
-              
-                backgroundColor: bgcolor,
-                color: "white",
-                padding: "30px",
-                borderRadius: "8px",
-                textAlign: "center",
-                boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
-                
-              }}
-            >
-              {message}
-            </div>
-          </div>
-        )}
-        <div>
-          {IsAddpop && (
-            <div className="popup-overlay">
-              <div className={popupcolor}>
 
-                {isAddedorUpdated && (
-                  <div className="confirmation">
-                    <FontAwesomeIcon
-                      icon={faCheck}
-                      size="3x"
-                      color="white"
-                      className="m-2"
-                    />
 
-                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+              </div>
+              {message && (
+                <div className="popup-overlay">
+
+                  <div
+                    className="confirmation"
+                    style={{
+
+                      backgroundColor: bgcolor,
+                      color: "white",
+                      padding: "30px",
+                      borderRadius: "8px",
+                      textAlign: "center",
+                      boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
+
+                    }}
+                  >
+                    {message}
+                  </div>
+                </div>
+              )}
+              <div>
+                {IsAddpop && (
+                  <div className="popup-overlay">
+                    <div className={popupcolor}>
+
+                      {isAddedorUpdated && (
+                        <div className="confirmation">
+                          <FontAwesomeIcon
+                            icon={faCheck}
+                            size="3x"
+                            color="white"
+                            className="m-2"
+                          />
+
+                          {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
-            </div>
-          )}
-        </div>
 
-        {selectedDate && (
-          <div>
-            <h5 style={{ color: " #d4af37" }}>Existing Slots:</h5>
-            <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
-              {ExistSlotsMap[selectedDate.toDateString()]?.map((slot, index) => (
-                <div key={slot._id} style={{ position: "relative", display: "inline-block" }}>
-                  <button
-                    onClick={() => {
-                      setNewStartTime(
-                        new Date(
-                          `${selectedDate.toDateString()} ${slot.startTime}`
-                        )
-                      );
-                      setNewEndTime(
-                        new Date(`${selectedDate.toDateString()} ${slot.endTime}`)
-                      );
-                      setEditingSlotIndex(index);
-                      handleTimeClick(slot.startTime)
-                      setupdateslot(slot)
-                    }}
-                    className="time-button"
-                    style={{
-                      padding: "5px 10px",
-                      borderRadius: "5px",
-                      border: "1px solid #d4af37",
-                      background: slot.isBooked
-                        ? "green" // Green if booked
-                        : selectedTime === slot.startTime
-                          ? "#d2a85a" // Golden when selected
-                          : "#16213e", // Default background
-                      color: "white",
-                      cursor: slot.isBooked ? "not-allowed" : "pointer",
-                      fontSize: 12,
-                      position: "relative",
-                    }}
-                    disabled={slot.isBooked}
-                    onMouseEnter={(e) => {
-                      if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = "#c0a262"; // Hover background (light golden)
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = "#16213e"; // Reset to default
-                      }
-                    }}
-                  >
-                    {slot.startTime} - {slot.endTime}
-                  </button>
+              {selectedDate && (
+                <div>
+                  <h5 style={{ color: " #d4af37" }}>Existing Slots:</h5>
+                  <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
+                    {ExistSlotsMap[selectedDate.toDateString()]?.map((slot, index) => (
+                      <div key={slot._id} style={{ position: "relative", display: "inline-block" }}>
+                        <button
+                          onClick={() => {
+                            setNewStartTime(
+                              new Date(
+                                `${selectedDate.toDateString()} ${slot.startTime}`
+                              )
+                            );
+                            setNewEndTime(
+                              new Date(`${selectedDate.toDateString()} ${slot.endTime}`)
+                            );
+                            setEditingSlotIndex(index);
+                            handleTimeClick(slot.startTime)
+                            setupdateslot(slot)
+                          }}
+                          className="time-button"
+                          style={{
+                            padding: "5px 10px",
+                            borderRadius: "5px",
+                            border: "1px solid #d4af37",
+                            background: slot.isBooked
+                              ? "green" // Green if booked
+                              : selectedTime === slot.startTime
+                                ? "#d2a85a" // Golden when selected
+                                : "#16213e", // Default background
+                            color: "white",
+                            cursor: slot.isBooked ? "not-allowed" : "pointer",
+                            fontSize: 11,
+                            position: "relative",
+                            width: 130,
+                          }}
+                          disabled={slot.isBooked}
+                          onMouseEnter={(e) => {
+                            if (!slot.isBooked && selectedTime !== slot.startTime) {
+                              e.target.style.background = "#c0a262"; // Hover background (light golden)
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!slot.isBooked && selectedTime !== slot.startTime) {
+                              e.target.style.background = "#16213e"; // Reset to default
+                            }
+                          }}
+                        >
+                          {slot.startTime} - {slot.endTime}
+                        </button>
 
-                  {/* Close Icon (❌) */}
-                  {!slot.isBooked && (
-                    <span
-                      onClick={() => handleOpenPopup(slot)}
-                      style={{
-                        position: "absolute",
-                        top: "-8px",
-                        right: "-8px",
-                        background: "#18273e",
-                        // border:"2px solid #c0a262",
-                        color: "white",
-                        borderRadius: "50%",
-                        width: "18px",
-                        height: "18px",
-                        display: "flex",
-                        justifyContent: "center",
-                        padding: '2px',
-                        alignItems: "center",
-                        fontSize: "12px",
-                        cursor: "pointer",
-                        fontWeight: "bold",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = "#c0a262"; // Hover background (light golden)
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = "#16213e"; // Reset to default
-                        }
-                      }}
-                    >
-                      ❌
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
+                        {/* Close Icon (❌) */}
+                        {!slot.isBooked && (
+                          <span
+                            onClick={() => handleOpenPopup(slot)}
+                            style={{
+                              position: "absolute",
+                              top: "-8px",
+                              right: "-8px",
+                              background: "#18273e",
+                              // border:"2px solid #c0a262",
+                              color: "white",
+                              borderRadius: "50%",
+                              width: "18px",
+                              height: "18px",
+                              display: "flex",
+                              justifyContent: "center",
+                              padding: '2px',
+                              alignItems: "center",
+                              fontSize: "12px",
+                              cursor: "pointer",
+                              fontWeight: "bold",
+                            }}
+                            onMouseEnter={(e) => {
+                              if (!slot.isBooked && selectedTime !== slot.startTime) {
+                                e.target.style.background = "#c0a262"; // Hover background (light golden)
+                              }
+                            }}
+                            onMouseLeave={(e) => {
+                              if (!slot.isBooked && selectedTime !== slot.startTime) {
+                                e.target.style.background = "#16213e"; // Reset to default
+                              }
+                            }}
+                          >
+                            ❌
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
 
-            {/* {availableSlotsMap[selectedDate.toDateString()]?.map(
+                  {/* {availableSlotsMap[selectedDate.toDateString()]?.map(
               (slot, index) => (
                 <button
                   key={index}
@@ -1934,15 +2023,15 @@ const LawyerProfile = () => {
                 </button>
               )
             )} */}
-          </div>
-        )}
+                </div>
+              )}
 
-        {selectedDate && (
-          <div style={{ position: "relative" }}>
-            <h5 style={{ color: "#d4af37" }}>
-              {editingSlotIndex !== null ? "Edit Slot" : "Add New Slot"}
-            </h5>
-            {/* {error ? (
+              {selectedDate && (
+                <div style={{ position: "relative" }}>
+                  <h5 style={{ color: "#d4af37" }}>
+                    {editingSlotIndex !== null ? "Edit Slot" : "Add New Slot"}
+                  </h5>
+                  {/* {error ? (
               <div
                 style={{
                   backgroundColor: "rgba(255, 0, 0, 0.9)",
@@ -1965,94 +2054,275 @@ const LawyerProfile = () => {
                 </div>
               )
             } */}
-            <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
 
-              {/* Start Time Picker */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" ,fontSize:12 }}>
-                  Start Time:
-                </label>
-                <DatePicker
-                  selected={newStartTime}
-                  onChange={handleStartTimeChange}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="Start Time"
-                  dateFormat="h:mm aa"
-                  className="small-datepicker"
-                  id="start-time-picker"
-                  style={{
-                    border: message ? "2px solid red" : "1px solid #ccc",
-                    transition: "border 0.3s ease-in-out",
-                  }}
-                // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
-                />
+                    {/* Start Time Picker */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                      <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center", fontSize: 12 }}>
+                        Start Time:
+                      </label>
+                      <DatePicker
+                        selected={newStartTime}
+                        onChange={handleStartTimeChange}
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="Start Time"
+                        dateFormat="h:mm aa"
+                        className="small-datepicker"
+                        id="start-time-picker"
+                        style={{
+                          border: message ? "2px solid red" : "1px solid #ccc",
+                          transition: "border 0.3s ease-in-out",
+                        }}
+                      // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
+                      />
 
-                {/* ✅ Message appears just below the DatePicker */}
+                      {/* ✅ Message appears just below the DatePicker */}
 
-              </div>
+                    </div>
 
-              {/* End Time Picker */}
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center" ,fontSize:12 }}>
-                  End Time:
-                </label>
-                <DatePicker
-                  selected={newEndTime}
-                  onChange={(time) => setNewEndTime(time)}
-                  showTimeSelect
-                  showTimeSelectOnly
-                  timeIntervals={15}
-                  timeCaption="End Time"
-                  dateFormat="h:mm aa"
-                  className="small-datepicker"
-                  disabled={editingSlotIndex !== null}
-                  minTime={
-                    newStartTime
-                      ? new Date(newStartTime.getTime() + 15 * 60000)  // ✅ Ensures End Time starts AFTER Start Time
-                      : new Date()
-                  }
-                  maxTime={new Date().setHours(23, 45)}
-                />
-              </div>
+                    {/* End Time Picker */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                      <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center", fontSize: 12 }}>
+                        End Time:
+                      </label>
+                      <DatePicker
+                        selected={newEndTime}
+                        onChange={(time) => setNewEndTime(time)}
+                        showTimeSelect
+                        showTimeSelectOnly
+                        timeIntervals={15}
+                        timeCaption="End Time"
+                        dateFormat="h:mm aa"
+                        className="small-datepicker"
+                        disabled={editingSlotIndex !== null}
+                        minTime={
+                          newStartTime
+                            ? new Date(newStartTime.getTime() + 15 * 60000)  // ✅ Ensures End Time starts AFTER Start Time
+                            : new Date()
+                        }
+                        maxTime={new Date().setHours(23, 45)}
+                      />
+                    </div>
 
-              {/* Add or Update Button */}
-              <button
-                onClick={editingSlotIndex !== null ? updateSlot : handleAddTimeSlot}
+                    {/* Add or Update Button */}
+                    <button
+                      onClick={editingSlotIndex !== null ? updateSlot : handleAddTimeSlot}
+                      style={{
+                        height: "30px",
+                        borderRadius: 6,
+                        alignSelf: "center",
+                        width: 80,
+                        marginTop: "25px",
+                      }}
+                    >
+                      {editingSlotIndex !== null ? "Update" : "Add"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+          </Tab>
+
+          <Tab
+            eventKey="ViewBookedSlot"
+            title={
+              <span
                 style={{
-                  height: "30px",
-                  borderRadius: 6,
-                  alignSelf: "center",
-                  width: 80,
-                  marginTop: "25px",
+                  background:
+                    activeTab === "ViewBookedSlot" ? "#d3b386" : "transparent",
+                  padding: "8px 12px",
+                  borderRadius: "5px",
+                  color: "white",
                 }}
               >
-                {editingSlotIndex !== null ? "Update" : "Add"}
-              </button>
+                Booked Slot <FaCheckCircle color={activeTab === "addslot" ? "white" : "green"} style={{ marginLeft: 10 }} />
+              </span>
+            }
+          >
+            {/* <div className=""
+              style={{
+                boxShadow: "0px 0px 0px gray",
+                overflowY: "auto",
+                maxHeight: "400px",
+                scrollbarWidth: "thin", // For Firefox
+                scrollbarColor: "#d2a85a #16213e"
+              }}>
+              <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+                {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+              </h3>
+
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {calendarDates.map((date, index) => {
+                  if (!date) return null; // Skip empty slots
+
+                  const slots = ExistSlotsMap[date.toDateString()] || [];
+                  const hasBookedSlot = slots.some((slot) => slot.isBooked);
+
+                  return (
+                    <div
+                      key={index}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "10px",
+                        background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
+                        borderRadius: "5px",
+                        color: "white",
+                        opacity: hasBookedSlot ? 1 : 0.5,
+                      }}
+                    >
+                   
+                      <div style={{ fontWeight: "bold", minWidth: "120px" }}>
+                        {date.toDateString()}
+                      </div>
+
+                      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                        {hasBookedSlot ? (
+                          slots.map((slot) =>
+                            slot.isBooked ? (
+                              <button
+                              key={slot._id}
+                              onClick={() => {
+                                setslotbookuserid(slot);
+                                setNewStartTime(new Date(`${date.toDateString()} ${slot.startTime}`));
+                                setNewEndTime(new Date(`${date.toDateString()} ${slot.endTime}`));
+                                setEditingSlotIndex(index);
+                                handleBookTimeClick(slot);
+                                handleTimeClick(slot.startTime);
+                                setupdateslot(slot);
+                                
+                                // Store both date and time to track the exact selected slot
+                                setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
+                              }}
+                              className="time-button"
+                              style={{
+                                padding: "5px 10px",
+                                borderRadius: "5px",
+                                border: "1px solid #d4af37",
+                                background:
+                                  selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime
+                                    ? "#d2a85a" // Only highlight the exact selected slot
+                                    : "green", // Default booked slot color
+                                color: "white",
+                                cursor: "pointer",
+                                width: 130,
+                                fontSize: "11px",
+                              }}
+                            >
+                              {slot.startTime} - {slot.endTime}
+                            </button>
+                            ) : null
+                          )
+                        ) : (
+                          <span style={{ color: "#999" }}>No Booked Slots</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-        )}
+ */}
+
+
+            <div
+              style={{
+                boxShadow: "0px 0px 0px gray",
+                overflowY: "auto",
+                maxHeight: "400px",
+                scrollbarWidth: "thin",
+                scrollbarColor: "#d2a85a #16213e",
+              }}
+            >
+              <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+                {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+              </h3>
+
+              {/* List View */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {calendarDates
+                  .map((d) => (d instanceof Date ? d : new Date(d))) // Ensure valid Date objects
+                  .filter((date) => {
+                    const slots = ExistSlotsMap[date.toDateString()] || [];
+                    return slots.some((slot) => slot.isBooked); // Only include dates with booked slots
+                  })
+                  .map((date, index) => {
+                    const slots = ExistSlotsMap[date.toDateString()] || [];
+
+                    return (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "10px",
+                          background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
+                          borderRadius: "5px",
+                          color: "white",
+                        }}
+                      >
+                        {/* Date Column */}
+                        <div style={{ fontWeight: "bold", minWidth: "120px" }}>{date.toDateString()}</div>
+
+                        {/* Slots Column */}
+                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                          {slots.map((slot) =>
+                            slot.isBooked ? (
+                              <button
+                                key={slot._id}
+                                onClick={() => {
+                                  setslotbookuserid(slot);
+                                  setNewStartTime(new Date(`${date.toDateString()} ${slot.startTime}`));
+                                  setNewEndTime(new Date(`${date.toDateString()} ${slot.endTime}`));
+                                  setEditingSlotIndex(index);
+                                  handleBookTimeClick(slot);
+                                  handleTimeClick(slot.startTime);
+                                  setupdateslot(slot);
+
+                                  // Store both date and time to track the exact selected slot
+                                  setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
+                                }}
+                                className="time-button"
+                                style={{
+                                  padding: "5px 10px",
+                                  borderRadius: "5px",
+                                  border: "1px solid #d4af37",
+                                  background:
+                                    selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime
+                                      ? "#d2a85a"
+                                      : "green",
+                                  color: "white",
+                                  cursor: "pointer",
+                                  width: 130,
+                                  fontSize: "11px",
+                                }}
+                              >
+                                {slot.startTime} - {slot.endTime}
+                              </button>
+                            ) : null
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
+
+
+          </Tab>
+        </Tabs>
 
 
 
       </div>
-      {/* <ContactFormModal isOpen={isEditing} onClose={(value) => handleEdting(value)} updateData={Updatedetails} /> */}
-
-      {/* <div style={{ textAlign: "center" }}>
-        <button
-          className="schedule-button"
-          style={{
-            boxShadow: "5px 5px 5px gray",
-            border: "2px solid #d4af37",
-            borderRadius: "6px",
-          }}
-          onClick={handleSchedule}
-        >
-          Save Schedule
-        </button>
-      </div> */}
-      {/* </div> */}
+      <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} />
     </div>
   );
 };

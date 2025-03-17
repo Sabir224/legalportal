@@ -39,6 +39,7 @@
   background-color: #16213e;
   color: white;
   border-radius: 8px;
+  max-height: '400px';
   padding: 20px;
   box-shadow: 0 4px 8px rgba(223, 218, 218, 0.1);
 }
@@ -105,6 +106,24 @@
 }
 
 .calender-button:hover {
+  background-color: #d2a85a;
+  /* Increase the width on hover */
+  transition: width 0.3s ease;
+}
+
+.calender-viewslot-button {
+  /* background-color: #16213e; */
+  background: none;
+  border: 1px solid #d4af37;
+  color: white;
+  padding: 5px 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 1ch;
+  width: 47%;
+}
+
+.calender-viewslot-button:hover {
   background-color: #d2a85a;
   /* Increase the width on hover */
   transition: width 0.3s ease;
