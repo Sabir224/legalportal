@@ -39,7 +39,7 @@ import { ApiEndPoint } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
 
-const UserProfile = (props) => {
+const UserProfile = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
   const [clientDetails, setClientDetails] = useState({});
@@ -363,7 +363,7 @@ const UserProfile = (props) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
+        `${ApiEndPoint}getClientDetails?Email=${token.email}`
       );
       setUsersDetails(response.data.user);
       setClientDetails(response.data.clientDetails); // Set the API response to state
