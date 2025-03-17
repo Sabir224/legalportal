@@ -363,7 +363,7 @@ const UserProfile = (props) => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
+        `${ApiEndPoint}getClientDetails?Email=${storedEmail}`
       );
       setUsersDetails(response.data.user);
       setClientDetails(response.data.clientDetails); // Set the API response to state

@@ -536,7 +536,7 @@ const LawyerProfile = () => {
 
   useEffect(() => {
     fetchLawyerDetails();
-  }, []);
+  }, [appointmentDetails,lawyerDetails]);
 
   const [imageUrl, setImageUrl] = useState("");
 
