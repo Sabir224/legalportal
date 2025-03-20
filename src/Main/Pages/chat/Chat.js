@@ -37,13 +37,13 @@ export default function Chat({ token }) {
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   // Connect to the socket when the app loads
   useEffect(() => {
-    if (!storedEmail || hasFetched.current) return;
+    if (!token.email || hasFetched.current) return;
 
     const fetchClientDetails = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${ApiEndPoint}/getUserDetail/${storedEmail}`
+          `${ApiEndPoint}/getUserDetail/${token.email}`
         );
         setUserData(response.data);
 
@@ -77,7 +77,7 @@ export default function Chat({ token }) {
         SocketService.socket.disconnect();
       }
     };
-  }, [storedEmail]);
+  }, [token.email]);
 
   // ✅ Depend only on userData._id to avoid unnecessary re-renders
 
@@ -182,7 +182,7 @@ export default function Chat({ token }) {
         <div className="d-flex flex-column p-3 overflow-y-auto">
           <UserListWidget
             setSelectedChat={(chat) => setSelectedChat(chat)}
-            userData={userData}
+            userData={token}
             searchQuery={searchQuery}
           />
         </div>
@@ -203,7 +203,7 @@ export default function Chat({ token }) {
       >
         <ChatField
           selectedChat={selectedChat}
-          user={userData}
+          user={token}
           setSelectedChat={setSelectedChat}
         />
       </div>

@@ -59,7 +59,6 @@ const ClientAppointment = () => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
   const [ClientMessage, setClientMessage] = useState("");
-  const [selectedslot, setslot] = useState("");
 
   const storedEmail = sessionStorage.getItem("Email");
 
@@ -71,13 +70,13 @@ const ClientAppointment = () => {
   const [isPopupVisiblecancel, setisPopupVisiblecancel] = useState(true);
   const [selectedDate, setSelectedDate] = useState();
   const [appointmentDetails, setAppoinmentDetails] = useState(null);
-  const [meetingLink, setmeetingLink] = useState(null);;
+
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
   let data;
   useEffect(() => {
     fetchLawyerDetails();
-  }, [appointmentDetails,lawyerDetails]);
-  
+  }, []);
+
   const [imageUrl, setImageUrl] = useState("");
 
   useEffect(() => {
@@ -91,7 +90,7 @@ const ClientAppointment = () => {
     let lawyerid;
     try {
       const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails/wissam@awsyounus.com`
+        `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
@@ -131,13 +130,13 @@ const ClientAppointment = () => {
 
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails?Email=${storedEmail}`
+        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
       );
       // API endpoint
       // API endpoint
       setClientDetails(response.data);
-      // console.log("clint data ", response.data);
-      // console.log("clint data ", response.data);
+      console.log("clint data ", response.data);
+      console.log("clint data ", response.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -258,8 +257,7 @@ const ClientAppointment = () => {
     setSelectedTime();
   };
 
-  const handleTimeClick = (time, slot) => {
-    setslot(slot)
+  const handleTimeClick = (time) => {
     setSelectedTime(time);
   };
 
@@ -289,11 +287,9 @@ const ClientAppointment = () => {
   const [isEmailSent, setIsEmailSent] = useState(false); // Email sent confirmation
 
   const handleConfirm = async () => {
-    setIsLoading(true);
-    // Show loader
+    setIsLoading(true); // Show loader
     try {
-      await handleSchedule();
-       // Call the function to send the email
+      await handleSchedule(); // Call the function to send the email
       setIsEmailSent(true);
       setClientMessage(""); // Set email sent confirmation
       setTimeout(() => {
@@ -308,8 +304,6 @@ const ClientAppointment = () => {
     }
   };
 
-
-
   const convertTo12HourFormat = (timeString) => {
     let [hours, minutes] = timeString.split(":");
     hours = parseInt(hours, 10);
@@ -323,66 +317,16 @@ const ClientAppointment = () => {
   const handleSchedule = async () => {
     // if (selectedDate && selectedTime) {
     // setpopupmessage(`${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${selectedTime} ?`)
-    const meetingDetails = {
-      summary: "Raheem Meeting",
-      startTime: "2025-03-12T17:05:00Z",
-      endTime: "2025-03-12T17:07:00Z",
-      timeZone: "UTC+05:00",
-    };
-
-
-    let meeting = null
-    console.log(`Meeting Created Request: ${JSON.stringify(meetingDetails)}`);
-
-    try {
-      const response = await fetch(`${ApiEndPoint}createmeeting`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(meetingDetails),
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
-      const responseData = await response.json(); // Parse JSON response
-      await setmeetingLink(responseData.googleMeetLink) // Extract Google Meet link
-      meeting = responseData.googleMeetLink
-      console.log(`Meeting Created: ${responseData.googleMeetLink}`);
-    } catch (error) {
-      console.error("Error creating meeting:", error.message);
-    }
-
-
-
-    const lawyerId = lawyerDetails._id
-
-
-    let slot = selectedslot._id
-    console.log("time ", slot)
-    // console.log("updatedSlot =", updatedSlot)
-    // console.log("updatespecifcslot", slot)
-    let updatedSlot = {
-      isBooked: true,
-      byBook: ClientDetails.user._id,
-      meetingLink: meeting
-    }
 
     const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
       selectedDate
     );
     let mailmsg = {
-      // ClientDetails: ClientDetails.user,
       ClientDetails: ClientDetails.user,
-      lawyerDetails:user,
       selectedTime: convertTo12HourFormat(selectedTime),
       formattedDate: formattedDate,
       ClientMessage: ClientMessage,
-      meetingLink: meeting
-
-    }
+    };
     const requestBody = {
       to: email,
       subject: subject,
@@ -391,10 +335,14 @@ const ClientAppointment = () => {
       text: `
          <strong>Client Message:</strong>
           <p>${ClientMessage}</p>
-        Please note that <strong>${ClientDetails.user.UserName}</strong> has scheduled a meeting with you at
-        <strong>${convertTo12HourFormat(selectedTime)}</strong> on <strong>${formattedDate}</strong>.
-      `
-      ,
+        Please note that <strong>${
+          ClientDetails.user.UserName
+        }</strong> has scheduled a meeting with you at
+        <strong>${convertTo12HourFormat(
+          selectedTime
+        )}</strong> on <strong>${formattedDate}</strong>.
+
+      `,
       // `Please note that ${ClientDetails.user.UserName}  has scheduled a meeting with you at ${selectedTime} on ${formattedDate} <br>   <p><br> Client Message:${ClientMessage}</p>`,
       html: null,
     };
@@ -424,23 +372,6 @@ const ClientAppointment = () => {
         }, 3000);
         throw new Error(`HTTP error! status: ${response.status}`);
       } else {
-          const responseupdate = await fetch(`${ApiEndPoint}Bookappointments/${lawyerId}/${slot}`, {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify(updatedSlot)
-          });
-
-          const update = await responseupdate.json();
-
-          if (!responseupdate.ok) {
-            throw new Error(data.message || "Failed to update slot");
-          }
-
-          await fetchLawyerDetails();
-          console.log("Slot updated successfully:", update);
-        
         const data = await response.json();
         console.log("Mail sent successfully:", data);
         setResponseData(data);
@@ -457,7 +388,7 @@ const ClientAppointment = () => {
           setIsPopupVisible(false);
         }, 3000);
         // Assuming setResponseData is a state updater
-
+        console.log("Mail sent successfully:", data);
       }
     } catch (error) {
       console.error("Error in POST request:", error.message || error);
@@ -547,8 +478,6 @@ const ClientAppointment = () => {
           boxShadow: "5px 5px 5px gray",
           overflowY: "auto",
           maxHeight: "500px",
-          scrollbarWidth: "thin", // For Firefox
-          scrollbarColor: "#d2a85a #16213e" 
         }}
       >
         <div className="profile-section">
@@ -671,8 +600,6 @@ const ClientAppointment = () => {
           boxShadow: "5px 5px 5px gray",
           overflowY: "auto",
           maxHeight: "500px",
-          scrollbarWidth: "thin", // For Firefox
-          scrollbarColor: "#d2a85a #16213e" 
         }}
       >
         <div>
@@ -798,7 +725,53 @@ const ClientAppointment = () => {
           ))}
         </div>
 
-      
+        {/* Calendar Grid */}
+        {/* <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {calendarDates.map((date, index) => (
+            <div
+              key={index}
+              onClick={() => handleDateClick(date)}
+              className={date ? "calendarDates" : "calendarEmpty"}
+              style={{
+
+                border: selectedDate?.getDate() === date?.getDate() ? '2px solid white' : '1px solid #001f3f',
+                borderRadius: '5px',
+                cursor: date ? 'pointer' : 'default',
+                background: selectedDate?.getDate() === date?.getDate() ? '#d2a85a' : '',
+                color: selectedDate?.getDate() === date?.getDate() ? '#001f3f' : 'white',
+              }}
+            >
+              {date ? date.getDate() : ''}
+            </div>
+          ))}
+        </div> */}
+
+        {/*        
+
+        <div>
+          <h5>Available Times:</h5>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            {timeSlots.map((time) => (
+              <button
+                key={time}
+                onClick={() => handleTimeClick(time)}
+                className="time-button"
+                disabled={!selectedDate}
+                style={{
+                  padding: '2px 10px',
+                  borderRadius: '5px',
+                  border: selectedTime === time ? '2px solid white' : '1px solid #d4af37',
+                  background: selectedTime === time ? '#d2a85a' : '',
+                  color: selectedTime == time ? '#16213e' : 'white',
+                  cursor: selectedDate ? 'pointer' : 'not-allowed',
+                }}
+              >
+                {time}
+              </button>
+            ))}
+          </div>
+        </div> */}
+
         <div>
           <div style={{ display: "flex", flexWrap: "wrap" }}>
             {calendarDates.map((date, index) => {
@@ -851,6 +824,45 @@ const ClientAppointment = () => {
             })}
           </div>
 
+          {/* <div>
+            <h5>Available Times:</h5>
+            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+              {timeSlots.map((time) => {
+                // Check if the time slot is booked
+                const isBookedSlot = selectedDate && data.availableSlots.some((slot) => {
+                  const dateStr = new Date(slot.date).toDateString();
+                  return (
+                    dateStr === selectedDate.toDateString() &&
+                    slot.slots.some((timeSlot) => timeSlot.startTime === time && timeSlot.isBooked)
+                  );
+                });
+
+                return (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeClick(time)}
+                    className="time-button"
+                    disabled={!selectedDate}
+                    style={{
+                      padding: '2px 10px',
+                      borderRadius: '5px',
+                      border: (selectedTime === time && isBookedSlot)? '2px solid white' : '1px solid #d4af37',
+                      background: isBookedSlot
+                        ? 'green' // Green for booked slots
+                        : selectedTime === time
+                          ? '#d2a85a' // Highlight selected slot
+                          : '',
+                      color: isBookedSlot ? 'white' : selectedTime === time ? '#16213e' : 'white',
+                      cursor: selectedDate ? 'pointer' : 'not-allowed',
+                    }}
+                  >
+                    {time}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+             */}
         </div>
 
         <div>
@@ -861,7 +873,7 @@ const ClientAppointment = () => {
                 availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
                   <button
                     key={slot._id}
-                    onClick={() => handleTimeClick(slot.startTime, slot)}
+                    onClick={() => handleTimeClick(slot.startTime)}
                     className="time-button"
                     style={{
                       padding: "5px 10px",
@@ -874,8 +886,7 @@ const ClientAppointment = () => {
                         : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
-                      fontSize: 11,
-                      width:130
+                      fontSize: 12,
                     }}
                     disabled={slot.isBooked}
                     onMouseEnter={(e) => {

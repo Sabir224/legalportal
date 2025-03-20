@@ -27,17 +27,6 @@ const DynamicDocument = ({ message, user }) => {
     document.body.removeChild(link);
   };
 
-  const isImage = file.type.startsWith("image/");
-
-  const senderRole =
-    typeof message.sender === "object" && message.sender.Role
-      ? message.sender.Role
-      : String(message.sender);
-  const userId = String(user._id);
-  const isClient = user.Role === "client";
-  const isSenderClient = senderRole === "client";
-  const isOwnMessage = String(message.sender._id) === userId;
-  const isMessageOnLeft = isClient || isSenderClient;
   const getFileIcon = (fileType) => {
     if (!fileType)
       return <FaFileAlt size={30} className="file-icon text-secondary" />;
@@ -49,7 +38,17 @@ const DynamicDocument = ({ message, user }) => {
       return <FaFileExcel size={30} className="file-icon text-success" />;
     return <FaFileAlt size={30} className="file-icon text-secondary" />;
   };
+  const isImage = file.type.startsWith("image/");
 
+  const senderRole =
+    typeof message.sender === "object" && message.sender.Role
+      ? message.sender.Role
+      : String(message.sender);
+  const userId = String(user._id);
+  const isClient = user.Role === "client";
+  const isSenderClient = senderRole === "client";
+  const isOwnMessage = String(message.sender._id) === userId;
+  const isMessageOnLeft = isClient || isSenderClient;
   return (
     <div
       className={`${
@@ -216,7 +215,9 @@ const DynamicDocument = ({ message, user }) => {
           <div className="me-2">
             {" "}
             {/* Adds right margin */}
-            <RenderStatusIcon status={message.status} message={message} />
+            {isOwnMessage && (
+              <RenderStatusIcon status={message.status} message={message} />
+            )}
           </div>
         </div>
       </div>

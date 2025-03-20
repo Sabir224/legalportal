@@ -6,6 +6,7 @@ import { ApiEndPoint } from "../../Component/utils/utlis";
 import axios from "axios";
 import { useMediaQuery } from "react-responsive";
 import SocketService from "../../../../SocketService";
+import { useCookies } from "react-cookie";
 export default function UserListWidget({
   setSelectedChat,
   userData,
@@ -16,11 +17,13 @@ export default function UserListWidget({
 
   const storedEmail = sessionStorage.getItem("Email");
   const isCompact = useMediaQuery({ maxWidth: 768 });
+  const [cookies] = useCookies(["token"]);
   // Fetch users list (not chats)
-  const fetchUsersForChat = async () => {
+
+  const fetchUsersForChat = async (email) => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getUsersForChat/${storedEmail}`
+        `${ApiEndPoint}getUsersForChat/${email}`
       );
       console.log("Users:", response.data);
       return response.data;
@@ -36,7 +39,7 @@ export default function UserListWidget({
       const response = await axios.post(
         `${ApiEndPoint}chats/checkIfChatExists`,
         {
-          participants: [storedEmail, selectedUserEmail], // Pass emails to the backend
+          participants: [userData?.email, selectedUserEmail], // Pass emails to the backend
         }
       );
       console.log("Chat Exists Response:", response.data);
@@ -50,13 +53,13 @@ export default function UserListWidget({
   // Fetch users and chats on initial load
   useEffect(() => {
     const loadUsers = async () => {
-      const fetchedUsers = await fetchUsersForChat();
+      console.log("userData", userData);
+      const fetchedUsers = await fetchUsersForChat(userData?.email);
       setUsers(fetchedUsers);
     };
-    if (!userData?._id) {
-    }
+
     loadUsers();
-  }, []);
+  }, [userData, userData?.email]);
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {

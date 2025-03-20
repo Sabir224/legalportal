@@ -112,7 +112,11 @@ const CaseAssignmentForm = ({ selectedCase }) => {
         {selectedUsers.length > 0 && (
           <div
             className="mt-4"
-            style={{ maxHeight: "340px", overflowY: "auto" }}
+            style={{
+              maxHeight: "340px",
+              overflowY: "auto",
+              paddingRight: "10px",
+            }}
           >
             <h5 style={{ color: "#c0a262" }}>Assigned Users</h5>
             {selectedUsers.map((user) => (
