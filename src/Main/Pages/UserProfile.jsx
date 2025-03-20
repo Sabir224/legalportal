@@ -21,6 +21,8 @@ import {
   faAddressCard,
   faCheckCircle,
   faSpinner,
+  faArrowRight,
+  faArrowLeft,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
@@ -38,6 +40,8 @@ import "../../style/userProfile.css";
 import { ApiEndPoint } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
+import { FaCalendar } from "react-icons/fa";
+import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 
 const UserProfile = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -53,6 +57,68 @@ const UserProfile = ({ token }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const storedEmail = sessionStorage.getItem("Email");
   // Function to categorize files
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
+  const [selectedDate, setSelectedDate] = useState();
+  const [slotbookuserid, setslotbookuserid] = useState("");
+  const [newStartTime, setNewStartTime] = useState(null);
+  const [newEndTime, setNewEndTime] = useState(null);
+  const [editingSlotIndex, setEditingSlotIndex] = useState(null);
+  const [updatespecifcslot, setupdateslot] = useState();
+  const [IsCalenderView, setCalenderView] = useState(false);
+
+  const [selectedSlot, setSelectedSlot] = useState(null);
+  const [selectedTime, setSelectedTime] = useState(null);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  const generateCalendarDates = () => {
+    const dates = [];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    // Get the first day of the month
+    const firstDay = new Date(year, month, 1).getDay();
+
+    // Get the number of days in the month
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    // Fill the first week with empty slots until the first day
+    for (let i = 0; i < firstDay; i++) {
+      dates.push(null);
+    }
+
+    // Add all the days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+      dates.push(new Date(year, month, day));
+    }
+
+    return dates;
+  };
+
+
+  const ExistSlotsMap =
+    DatabaseappointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      acc[dateStr] = slot.slots;
+      return acc;
+    }, {}) || {};
+  const calendarDates = generateCalendarDates();
 
   const onHide = () => {
     setShowUploadModal(false);
@@ -359,11 +425,17 @@ const UserProfile = ({ token }) => {
     }
   };
 
+  const convertTo12HourFormat = (time) => {
+    let [hours, minutes] = time.split(":").map(Number);
+    let period = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12; // Convert 0 to 12 for AM times
+    return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
   const fetchClientDetails = async () => {
     setLoading(true);
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails?Email=${token.email}`
+        `${ApiEndPoint}getClientDetails/${token.email}`
       );
       setUsersDetails(response.data.user);
       setClientDetails(response.data.clientDetails); // Set the API response to state
@@ -375,10 +447,92 @@ const UserProfile = ({ token }) => {
       console.error("Error fetching client details:", err);
       setLoading(false);
     }
+
+    try {
+      console.log("token =", token.id)
+      const response = await axios.get(
+        `${ApiEndPoint}GetClientBookAppointments/${token.id}`
+      );
+
+      if (!response.data || response.data.length === 0) {
+        throw new Error("No appointment data found");
+      }
+
+
+      console.log("Formatted Appointment Details");
+
+
+      let temp = {
+        FkLawyerId: response.data[0].FkLawyerId,
+        availableSlots: {},
+      };
+
+      response.data.forEach((element) => {
+        if (element.availableSlots) {
+          element.availableSlots.forEach((slot) => {
+            if (!temp.availableSlots[slot.date]) {
+              temp.availableSlots[slot.date] = [];
+            }
+
+            temp.availableSlots[slot.date] = [
+              ...temp.availableSlots[slot.date],
+              ...slot.slots.map((s) => ({
+                startTime: convertTo12HourFormat(s.startTime),
+                endTime: convertTo12HourFormat(s.endTime),
+                isBooked: s.isBooked,
+                byBook: s.byBook,
+                lawyerId: s.lawyerId,
+                meetingLink: s.meetingLink,
+                _id: s._id,
+              })),
+            ];
+          });
+        }
+      });
+
+      // Convert the object into an array format for consistency
+      temp.availableSlots = Object.entries(temp.availableSlots).map(
+        ([date, slots]) => ({
+          date,
+          slots,
+        })
+      );
+
+      console.log("Formatted Appointment Details", temp);
+      setDataAppointmentDetails(temp);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching client details:", err);
+      setLoading(false);
+    }
+  };
+
+  const handleBookTimeClick = (slot) => {
+    setCalenderView(true);
+  };
+
+
+  const handleTimeClick = (time) => {
+    setSelectedTime(time);
   };
   useEffect(() => {
     fetchClientDetails();
   }, []);
+
+  const prevMonth = () => {
+    setSelectedDate();
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+    );
+  };
+
+  // Move to the next month
+  const nextMonth = () => {
+    setSelectedDate();
+    setCurrentDate(
+      new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+    );
+  };
   return (
     <div
       className="card container-fluid justify-content-center mr-3 ml-3 p-0"
@@ -508,7 +662,7 @@ const UserProfile = ({ token }) => {
           <Tabs
             activeKey={activeTab}
             onSelect={(k) => setActiveTab(k)}
-            className="mb-3 custom-tabs"
+            className="mb-3"
             variant="primary"
             style={{
               borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
@@ -522,7 +676,7 @@ const UserProfile = ({ token }) => {
                   style={{
                     background:
                       activeTab === "documents" ? "#d3b386" : "transparent",
-                    padding: "8px 12px",
+                    padding: "8px 8px",
                     borderRadius: "5px",
                     color: "white",
                   }}
@@ -605,7 +759,7 @@ const UserProfile = ({ token }) => {
                   style={{
                     background:
                       activeTab === "media" ? "#d3b386" : "transparent",
-                    padding: "8px 12px",
+                    padding: "8px 8px",
                     borderRadius: "5px",
                     color: "white",
                   }}
@@ -681,6 +835,132 @@ const UserProfile = ({ token }) => {
                 ))}
               </Row>
             </Tab>
+
+            <Tab
+              eventKey="meeting"
+              title={
+                <span
+                  style={{
+                    background:
+                      activeTab === "meeting" ? "#d3b386" : "transparent",
+                    padding: "8px 8px",
+                    borderRadius: "5px",
+                    color: "white",
+                  }}
+                >
+                  Meeting Link <FaCalendar />
+                </span>
+              }
+
+            >
+              <Row
+                className="g-3"
+                style={{
+                  height: "50vh",
+                  overflow: "auto",
+                }}
+              >
+                <div
+                  style={{
+                    boxShadow: "0px 0px 0px gray",
+                    overflowY: "auto",
+                    maxHeight: "400px",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: "#d2a85a #16213e",
+                  }}
+                >
+
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      color:"white"
+                    }}
+                  >
+                    <button className="calender-button simple-text" onClick={prevMonth}>
+                      <FontAwesomeIcon icon={faArrowLeft} size="1x" />
+                    </button>
+                    <h3>
+                      {currentDate.toLocaleString("default", { month: "long" })}{" "}
+                      {currentDate.getFullYear()}
+                    </h3>
+                    <button onClick={nextMonth} className="simple-text calender-button">
+                      <FontAwesomeIcon icon={faArrowRight} size="1x" />
+                    </button>
+                  </div>
+                  {/* List View */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {calendarDates
+                      .map((d) => (d instanceof Date ? d : new Date(d))) // Ensure valid Date objects
+                      .filter((date) => {
+                        const slots = ExistSlotsMap[date.toDateString()] || [];
+                        return slots.some((slot) => slot.isBooked); // Only include dates with booked slots
+                      })
+                      .map((date, index) => {
+                        const slots = ExistSlotsMap[date.toDateString()] || [];
+
+                        return (
+                          <div
+                            key={index}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              padding: "5px",
+                              background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
+                              borderRadius: "5px",
+                              color: "white",
+                              gap: "10px", // Add gap between date and slots
+                            }}
+                          >
+                            {/* Date Column with fixed width and right margin for spacing */}
+                            <div style={{ fontWeight: "bold", maxWidth: "100px", flexShrink: 0, marginRight: "20px" }}>
+                              {date.toDateString()}
+                            </div>
+
+                            {/* Slots Column */}
+                            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexGrow: 1 }}>
+                              {slots.map((slot) =>
+                                slot.isBooked ? (
+                                  <button
+                                    key={slot._id}
+                                    onClick={() => {
+                                      setslotbookuserid(slot);
+                                      setNewStartTime(new Date(`${date.toDateString()} ${slot.startTime}`));
+                                      setNewEndTime(new Date(`${date.toDateString()} ${slot.endTime}`));
+                                      setEditingSlotIndex(index);
+                                      handleBookTimeClick(slot);
+                                      handleTimeClick(slot.startTime);
+                                      setupdateslot(slot);
+                                      setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
+                                    }}
+                                    className="time-button"
+                                    style={{
+                                      padding: "5px 10px",
+                                      borderRadius: "5px",
+                                      border: "1px solid #d4af37",
+                                      background:
+                                        selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime ? "#d2a85a" : "green",
+                                      color: "white",
+                                      cursor: "pointer",
+                                      width: 130,
+                                      fontSize: "11px",
+                                    }}
+                                  >
+                                    {slot.startTime} - {slot.endTime}
+                                  </button>
+                                ) : null
+                              )}
+                            </div>
+                          </div>
+
+                        );
+                      })}
+                  </div>
+                </div>
+              </Row>
+            </Tab>
           </Tabs>
           {/* Floating Upload Icon */}
           <div
@@ -721,6 +1001,9 @@ const UserProfile = ({ token }) => {
           errorMessage={errorMessage}
         />
       </Row>
+
+      <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} />
+
     </div>
   );
 };

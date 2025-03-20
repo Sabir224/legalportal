@@ -29,7 +29,7 @@ const SignIn = () => {
     setLoading(true);
 
     try {
-      const response = await fetch(`${ApiEndPoint}users/loginUser`, {
+      const response = await fetch(`${ApiEndPoint}loginUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ Email: email, Password: password }),
@@ -57,7 +57,7 @@ const SignIn = () => {
         }, 1000); // Small delay to ensure token is available before navigation
       }
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -155,9 +155,8 @@ const SignIn = () => {
             <Col
               sm={12}
               md={isTabletOrSmaller ? 12 : 6}
-              className={`d-flex flex-column justify-content-center ${
-                isTabletOrSmaller ? "text-center" : ""
-              }`}
+              className={`d-flex flex-column justify-content-center ${isTabletOrSmaller ? "text-center" : ""
+                }`}
             >
               <div className="d-flex justify-content-center mb-3">
                 <img
@@ -194,7 +193,9 @@ const SignIn = () => {
                       id="email"
                       placeholder="Enter Email"
                       type="text"
-                      className="form-control-lg "
+                      className={`form-control ${error ? "is-invalid" : ""}`}
+                      required
+                    // className="form-control-lg "
                     />
                   </div>
                 </Form.Group>
@@ -206,12 +207,15 @@ const SignIn = () => {
                     </span>
                     <Form.Control
                       value={password}
+                      className={`form-control ${error ? "is-invalid" : ""}`} // Add red border if error
                       onChange={(e) => setPassword(e.target.value)}
                       id="password"
                       placeholder="Enter Password"
                       type="password"
-                      className="form-control-lg "
+                      required
+                    // className="form-control-lg "
                     />
+                    <div className="invalid-feedback">{error}</div> {/* Error message like required */}
                   </div>
                 </Form.Group>
                 <div style={{ textAlign: "center" }}>

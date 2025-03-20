@@ -41,14 +41,14 @@ import {
 } from "react-icons/bs";
 // import { ApiEndPoint } from "../../utils/utils";
 
-const ClientAppointment = () => {
+const ClientAppointment = ({ token }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
   const [error, setError] = useState("");
   const [lawyerDetails, setLawyersDetails] = useState([]);
   const [ClientDetails, setClientDetails] = useState([]);
-  const [user, setUser] = useState([global.User]);
+  const [user, setUser] = useState();
 
   const [date, setdate] = useState(null);
   const [getDay, setDay] = useState(null);
@@ -76,7 +76,7 @@ const ClientAppointment = () => {
   let data;
   useEffect(() => {
     fetchLawyerDetails();
-  }, [appointmentDetails,lawyerDetails]);
+  }, []);
   
   const [imageUrl, setImageUrl] = useState("");
 
@@ -91,11 +91,11 @@ const ClientAppointment = () => {
     let lawyerid;
     try {
       const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails/wissam@awsyounus.com`
+        `${ApiEndPoint}geLawyerDetails/basil@aws-legalgroup.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
-      lawyerid = response.data.lawyerDetails?._id;
+      lawyerid = response.data.user?._id;
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -131,7 +131,7 @@ const ClientAppointment = () => {
 
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails?Email=${storedEmail}`
+        `${ApiEndPoint}getClientDetails/${token.email}`
       );
       // API endpoint
       // API endpoint
@@ -195,7 +195,7 @@ const ClientAppointment = () => {
   useEffect(() => {
     setUser(global.User);
 
-    console.log(" dfsd", global.User.UserName);
+    console.log(" dfsd", global.User?.UserName);
   }, []);
 
   const [formData, setFormData] = useState({
@@ -357,16 +357,16 @@ const ClientAppointment = () => {
 
 
 
-    const lawyerId = lawyerDetails._id
+    const lawyerId = user?._id
 
 
-    let slot = selectedslot._id
+    let slot = selectedslot?._id
     console.log("time ", slot)
     // console.log("updatedSlot =", updatedSlot)
     // console.log("updatespecifcslot", slot)
     let updatedSlot = {
       isBooked: true,
-      byBook: ClientDetails.user._id,
+      byBook: ClientDetails.user?._id,
       meetingLink: meeting
     }
 
@@ -391,7 +391,7 @@ const ClientAppointment = () => {
       text: `
          <strong>Client Message:</strong>
           <p>${ClientMessage}</p>
-        Please note that <strong>${ClientDetails.user.UserName}</strong> has scheduled a meeting with you at
+        Please note that <strong>${ClientDetails.user?.UserName}</strong> has scheduled a meeting with you at
         <strong>${convertTo12HourFormat(selectedTime)}</strong> on <strong>${formattedDate}</strong>.
       `
       ,
@@ -615,8 +615,8 @@ const ClientAppointment = () => {
               className="avatar-img"
             />
             <div className="d-flex flex-column justify-content-center p-2">
-              <h2 style={{ color: " #d4af37" }}>{user.UserName}</h2>
-              <p style={{ color: "#d4af37" }}>{lawyerDetails.Position}</p>
+              <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
+              <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
             </div>
           </div>
 
@@ -636,7 +636,7 @@ const ClientAppointment = () => {
               />
               <p className="ms-2 m-1">
                 <a href={mailtoLink} style={{ color: "white" }}>
-                  {user.Email}
+                  {user?.Email}
                 </a>
               </p>
             </div>
@@ -647,7 +647,7 @@ const ClientAppointment = () => {
                 color="white"
                 className="m-2"
               />
-              <p className="ms-2 m-1">{lawyerDetails.Contact}</p>
+              <p className="ms-2 m-1">{lawyerDetails?.Contact}</p>
             </div>
 
             <div className="d-flex">
@@ -659,7 +659,7 @@ const ClientAppointment = () => {
               />
               <p style={{ height: 50 }} className="ms-2 m-1 ">
                 {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
-                {lawyerDetails.Address}
+                {lawyerDetails?.Address}
               </p>
             </div>
           </div>

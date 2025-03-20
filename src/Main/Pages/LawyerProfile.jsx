@@ -70,7 +70,7 @@ import {
 import { BsCalendar, BsCalendar2, BsCalendar2Plus, BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
 
 
-const LawyerProfile = () => {
+const LawyerProfile = ({ token }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -164,7 +164,7 @@ const LawyerProfile = () => {
         { headers: { "Content-Type": "multipart/form-data" } } // Set content type
       );
 
-      alert("Lawyer details updated successfully!");
+      // alert("Lawyer details updated successfully!");
 
       if (typeof handleEdting === "function") {
         handleEdting(); // Ensure `handleEdting` is defined before calling it
@@ -173,7 +173,7 @@ const LawyerProfile = () => {
       console.log("Updated Data:", response.data);
     } catch (error) {
       console.error("Update failed:", error.response?.data || error);
-      alert("Failed to update lawyer details.");
+      //   alert("Failed to update lawyer details.");
     }
   };
 
@@ -350,7 +350,7 @@ const LawyerProfile = () => {
 
       try {
         const response = await axios.post(
-          `${ApiEndPoint}appointment/${lawyerDetails?._id}/add-availability`,
+          `${ApiEndPoint}appointment/${user?._id}/add-availability`,
           formattedSlots,
           {
             headers: {
@@ -387,7 +387,7 @@ const LawyerProfile = () => {
         // throw error;
       }
     } else {
-      alert("Please select a date, start time, and end time");
+      //  alert("Please select a date, start time, and end time");
     }
   };
 
@@ -396,7 +396,7 @@ const LawyerProfile = () => {
     // slot update when is note
     let start = new Date(newStartTime)
     let end = new Date(newEndTime)
-    const lawyerId = lawyerDetails?._id
+    const lawyerId = user?._id
     const updatedSlot = {
       startTime: start.toLocaleTimeString([], {
         hour: "2-digit",
@@ -536,7 +536,7 @@ const LawyerProfile = () => {
 
   useEffect(() => {
     fetchLawyerDetails();
-  }, [appointmentDetails,lawyerDetails]);
+  }, []);
 
   const [imageUrl, setImageUrl] = useState("");
 
@@ -557,11 +557,11 @@ const LawyerProfile = () => {
     let lawyerId = ''
     try {
       const response = await axios.get(
-        `${ApiEndPoint}users/geLawyerDetails/wissam@awsyounus.com`
+        `${ApiEndPoint}geLawyerDetails/${token.email}`
       ); // API endpoint
       setUser(response.data.user);
       await setLawyersDetails(response.data.lawyerDetails);
-      lawyerId = response.data.lawyerDetails._id
+      lawyerId = response.data?.user._id
       console.log("lawyers data ", response.data, lawyerId);
 
       setLoading(false);
@@ -569,6 +569,23 @@ const LawyerProfile = () => {
       setError(err.message);
       setLoading(false);
     }
+
+
+
+
+    try {
+      const response = await axios.get(
+        `${ApiEndPoint}getClientDetails?Email=${storedEmail}`
+      );
+      // API endpoint
+      setClientDetails(response.data);
+      console.log("clint data ", response.data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+
 
 
     try {
@@ -618,17 +635,6 @@ const LawyerProfile = () => {
 
       console.log("Formatted Appointment Details", temp);
       setDataAppointmentDetails(temp);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    } try {
-      const response = await axios.get(
-        `${ApiEndPoint}users/getClientDetails?Email=${storedEmail}`
-      );
-      // API endpoint
-      setClientDetails(response.data);
-      console.log("clint data ", response.data);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -728,7 +734,6 @@ const LawyerProfile = () => {
   };
   const handleBookTimeClick = (slot) => {
     setCalenderView(true);
-
   };
 
 
@@ -755,7 +760,7 @@ const LawyerProfile = () => {
     setIsLoading(true); // Show loader
 
     try {
-      await handleDelete(lawyerDetails._id, deleteslot._id); // Call the function to send the email
+      await handleDelete(user?._id, deleteslot._id); // Call the function to send the email
       setIsEmailSent(true); // Set email sent confirmation
       setTimeout(() => {
         setIsPopupVisible(false); // Close popup after showing confirmation
@@ -1108,9 +1113,9 @@ const LawyerProfile = () => {
       className="border rounded row gap-5 justify-content-center ms-1 "
       style={{
         width: "100%",
-        minHeight:'86vh',
+        minHeight: '86vh',
         // maxHeight: "83vh",
-        padding:20,
+        padding: 20,
         boxShadow: "5px 5px 5px gray",
       }}
     >
@@ -1687,7 +1692,7 @@ const LawyerProfile = () => {
         )}
       </div>
 
-      
+
       <div
         className="slots-section col-5  "
         style={{ boxShadow: "5px 5px 5px gray" }}
@@ -1755,11 +1760,14 @@ const LawyerProfile = () => {
           className="mb-3 custom-tabs"
           variant="primary"
           style={{
+            display: "flex",
+            justifyContent: "center", // Center horizontally
+            alignItems: "center", // Align items in center
             borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
             color: "white",
-            
           }}
         >
+
           <Tab
             eventKey="addslot"
             title={
@@ -1777,13 +1785,13 @@ const LawyerProfile = () => {
             }
           >
             <div style={{
-                boxShadow: "0px 0px 0px gray",
-                overflowY: "auto",
-                maxHeight: "400px",
-                overflowX:'hidden',
-                scrollbarWidth: "thin",
-                scrollbarColor: "#d2a85a #16213e",
-              }}>
+              boxShadow: "0px 0px 0px gray",
+              overflowY: "auto",
+              maxHeight: "400px",
+              overflowX: 'hidden',
+              scrollbarWidth: "thin",
+              scrollbarColor: "#d2a85a #16213e",
+            }}>
               <div
                 style={{
                   display: "flex",
@@ -2239,10 +2247,28 @@ const LawyerProfile = () => {
                 scrollbarColor: "#d2a85a #16213e",
               }}
             >
-              <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
+              {/* <h3 style={{ textAlign: "center", marginBottom: "10px" }}>
                 {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
-              </h3>
+              </h3> */}
 
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <button className="calender-button simple-text" onClick={prevMonth}>
+                  <FontAwesomeIcon icon={faArrowLeft} size="1x" />
+                </button>
+                <h3>
+                  {currentDate.toLocaleString("default", { month: "long" })}{" "}
+                  {currentDate.getFullYear()}
+                </h3>
+                <button onClick={nextMonth} className="simple-text calender-button">
+                  <FontAwesomeIcon icon={faArrowRight} size="1x" />
+                </button>
+              </div>
               {/* List View */}
               <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                 {calendarDates
@@ -2261,17 +2287,20 @@ const LawyerProfile = () => {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "space-between",
-                          padding: "10px",
+                          padding: "5px",
                           background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
                           borderRadius: "5px",
                           color: "white",
+                          gap: "10px", // Space between date and slots
                         }}
                       >
-                        {/* Date Column */}
-                        <div style={{ fontWeight: "bold", minWidth: "120px" }}>{date.toDateString()}</div>
+                        {/* Date Column with fixed width and spacing */}
+                        <div style={{ fontWeight: "bold", maxWidth: "100px", flexShrink: 0, marginRight: "20px" }}>
+                          {date.toDateString()}
+                        </div>
 
                         {/* Slots Column */}
-                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                        <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexGrow: 1 }}>
                           {slots.map((slot) =>
                             slot.isBooked ? (
                               <button
@@ -2284,8 +2313,6 @@ const LawyerProfile = () => {
                                   handleBookTimeClick(slot);
                                   handleTimeClick(slot.startTime);
                                   setupdateslot(slot);
-
-                                  // Store both date and time to track the exact selected slot
                                   setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
                                 }}
                                 className="time-button"
@@ -2294,9 +2321,7 @@ const LawyerProfile = () => {
                                   borderRadius: "5px",
                                   border: "1px solid #d4af37",
                                   background:
-                                    selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime
-                                      ? "#d2a85a"
-                                      : "green",
+                                    selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime ? "#d2a85a" : "green",
                                   color: "white",
                                   cursor: "pointer",
                                   width: 130,
@@ -2309,6 +2334,7 @@ const LawyerProfile = () => {
                           )}
                         </div>
                       </div>
+
                     );
                   })}
               </div>
@@ -2318,6 +2344,7 @@ const LawyerProfile = () => {
 
           </Tab>
         </Tabs>
+
 
 
 

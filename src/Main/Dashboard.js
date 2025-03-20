@@ -173,13 +173,14 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white bg-dark ${
+        className={`d-flex flex-column text-white  ${
           isCollapsed ? "col-1" : "col-2"
         } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
           borderRadius: "6px",
+          backgroundColor:"#18273e",
           transition: "all 0.3s ease",
           paddingTop: "10px",
         }}
@@ -193,7 +194,7 @@ const Dashboard = () => {
             right: "-10px",
             top: "10px",
             cursor: "pointer",
-            backgroundColor: "#d3b386",
+            backgroundColor: "#d4af37",
             borderRadius: "50%",
             width: "20px",
             height: "20px",

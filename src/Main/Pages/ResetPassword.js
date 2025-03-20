@@ -3,32 +3,64 @@ import { Container, Row, Col, Form, Button, Card } from "react-bootstrap";
 import { FaKey, FaLock } from "react-icons/fa";
 import "./ResetPassword.css";
 import logo from "../Pages/Images/logo.png";
+import { ApiEndPoint } from "./Component/utils/utlis";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 
 const ResetPassword = () => {
+
+
+
+  const navigate = useNavigate();
+
   const [otp, setOtp] = useState("");
   const [showPasswordFields, setShowPasswordFields] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [user, setUser] = useState(global.user);
+  const [email, setEmail] = useState(global.user.Email);
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState(null);
+  const [error, setError] = useState(null);
 
-  const correctOtp = "123456"; // Simulated correct OTP
 
   const handleOtpSubmit = (e) => {
     e.preventDefault();
-    if (otp === correctOtp) {
+    if (otp === user.otp) {
       setShowPasswordFields(true);
     } else {
-      alert("Invalid OTP. Please try again.");
+      setError("Please enter correct OTP");
     }
   };
 
-  const handlePasswordReset = (e) => {
+  const handlePasswordReset = async (e) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match!");
+      // alert("Passwords do not match!");
+      setError("Please enter correct OTP");
       return;
+    } else {
+      try {
+        e.preventDefault();
+        setLoading(true);
+        setMessage(null);
+        setError(null);
+        const response = await axios.put(
+          `${ApiEndPoint}updateUser/${email}/${newPassword}`
+        );
+
+        setMessage(response.data.message);
+        navigate("/", { replace: true });
+
+      } catch (err) {
+        setError(err.response?.data?.message || "Something went wrong");
+      } finally {
+        setLoading(false);
+      }
+      //alert("Password reset successfully!");
     }
-    alert("Password reset successfully!");
   };
 
   return (
@@ -69,8 +101,12 @@ const ResetPassword = () => {
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       required
-                      className="form-control-lg"
+                      // className="form-control-lg"
+                      className={`form-control ${error ? "is-invalid" : ""}`} // Add red border if error
+
                     />
+                    <div className="invalid-feedback">{error}</div>
+
                   </div>
                 </Form.Group>
 
@@ -87,7 +123,7 @@ const ResetPassword = () => {
                   <Form.Label className="form-label-reset" style={{ color: "grey" }}>New Password</Form.Label>
                   <div className="input-group">
                     <div className="input-group-text">
-                      <FaLock className="input-icon" />
+                      <FaLock />
                     </div>
                     <Form.Control
                       type="password"
@@ -116,8 +152,7 @@ const ResetPassword = () => {
                     />
                   </div>
                 </Form.Group>
-
-                <Button type="submit" variant="dark" className="custom-button">
+                <Button type="submit" variant="dark" className="custom-button-reset">
                   Reset Password
                 </Button>
               </Form>

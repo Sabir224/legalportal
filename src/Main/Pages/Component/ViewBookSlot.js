@@ -379,17 +379,21 @@ const ContactForm = ({ slotbookuserid }) => {
     const fetchClientDetails = async () => {
         setLoading(true);
         let mail = null
-        console.log(" enter api calling")
+        console.log(" enter api calling ", slotbookuserid)
+        let id = slotbookuserid?.lawyerId ? slotbookuserid?.lawyerId : slotbookuserid?.byBook
+        let fetchdata = slotbookuserid?.lawyerId ? "lawyerDetails" : "clientDetails"
+        console.log("id", id)
+        let apifuncation = slotbookuserid?.lawyerId ? "geLawyerDetails" : "getClientDetails"
         try {
             const response = await axios.get(
-                `${ApiEndPoint}getUserById/${slotbookuserid?.byBook}`
+                `${ApiEndPoint}getUserById/${id}`
             );
             await setUsersDetails(response.data);
             await setClientDetails(response.data); // Set the API response to state
-            console.log("Files Data:", response.data);
-            mail = response.data.Email;
-            setFiles(response.data.clientDetails.Files);
-
+            console.log("User  Data:", response.data);
+            mail = response.data?.Email;
+            setFiles(response.data?.clientDetails?.Files);
+            console.log("email", mail)
             setLoading(false);
         } catch (err) {
             console.error("Error fetching client details:", err);
@@ -399,12 +403,13 @@ const ContactForm = ({ slotbookuserid }) => {
 
         try {
             const response = await axios.get(
-                `${ApiEndPoint}/getClientDetails?Email=${mail}`
+                `${ApiEndPoint}${apifuncation}/${mail}`
             );
             // API endpoint
             // API endpoint
-            setClientDetails(response.data.clientDetails);
-            console.log("clint data! ", response.data);
+
+            console.log("client data! ", response.data);
+            setClientDetails(response.data[`${fetchdata}`]);
             setLoading(false);
         } catch (err) {
             setLoading(false);
@@ -440,7 +445,7 @@ const ContactForm = ({ slotbookuserid }) => {
 
 
                             <div className="ms-2 d-flex align-items-center" style={{ gap: "10px" }}>
-                                <h3>Client Name:</h3>
+                                <h3>{slotbookuserid?.lawyerId ? "Lawyer Name:" : "Client Name:"}</h3>
                                 <h3>
                                     {usersDetails?.UserName
                                         ? usersDetails.UserName.charAt(0).toUpperCase() + usersDetails.UserName.slice(1)
