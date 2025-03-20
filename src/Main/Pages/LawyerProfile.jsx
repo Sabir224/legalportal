@@ -67,8 +67,14 @@ import {
   Tab,
   Tabs,
 } from "react-bootstrap";
-import { BsCalendar, BsCalendar2, BsCalendar2Plus, BsSend, BsSendFill, BsSendPlusFill } from "react-icons/bs";
-
+import {
+  BsCalendar,
+  BsCalendar2,
+  BsCalendar2Plus,
+  BsSend,
+  BsSendFill,
+  BsSendPlusFill,
+} from "react-icons/bs";
 
 const LawyerProfile = ({ token }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -140,7 +146,7 @@ const LawyerProfile = ({ token }) => {
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(""), 2000);
-    setTimeout(() => setbgcolor(''), 2000);
+    setTimeout(() => setbgcolor(""), 2000);
     // ✅ Hide message after 5 seconds
   };
 
@@ -288,7 +294,10 @@ const LawyerProfile = ({ token }) => {
         return;
       }
 
-      const newSlots = await generateMultipleTimeSlots(newStartTime, newEndTime);
+      const newSlots = await generateMultipleTimeSlots(
+        newStartTime,
+        newEndTime
+      );
 
       // Use a Promise to wait for state update
       let updatedAppointmentDetails;
@@ -336,14 +345,16 @@ const LawyerProfile = ({ token }) => {
 
       // Use the updated appointment details instead of the outdated state
       const formattedSlots = {
-        availableSlots: updatedAppointmentDetails.availableSlots.map((slot) => ({
-          date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
-          slots: slot.slots.map((slotTime) => ({
-            startTime: convertTo24HourFormat(slotTime.startTime),
-            endTime: convertTo24HourFormat(slotTime.endTime),
-            isBooked: slotTime.isBooked,
-          })),
-        })),
+        availableSlots: updatedAppointmentDetails.availableSlots.map(
+          (slot) => ({
+            date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
+            slots: slot.slots.map((slotTime) => ({
+              startTime: convertTo24HourFormat(slotTime.startTime),
+              endTime: convertTo24HourFormat(slotTime.endTime),
+              isBooked: slotTime.isBooked,
+            })),
+          })
+        ),
       };
 
       console.log("Formatted Slots for API:", formattedSlots);
@@ -359,18 +370,18 @@ const LawyerProfile = ({ token }) => {
           }
         );
         console.log("Post Appointment Data:", response.data);
-        setError(null)
+        setError(null);
         if (response.data?.errorCode === 400) {
-          setbgcolor("red")
-          showMessage(response.data.message)
+          setbgcolor("red");
+          showMessage(response.data.message);
         } else {
-          setbgcolor("green")
-          await setIsAddpop(true)
+          setbgcolor("green");
+          await setIsAddpop(true);
           setpopupcolor("popupconfirm");
           await setIsAddedorUpdated(true); // Set email sent confirmation
           setTimeout(() => {
             setpopupcolor("popup");
-            setIsAddpop(false)
+            setIsAddpop(false);
             // Close popup after showing confirmation
             setIsAddedorUpdated(false); // Reset confirmation state after a delay
           }, 2000);
@@ -383,14 +394,13 @@ const LawyerProfile = ({ token }) => {
           "Error adding availability:",
           error.response?.data || error.message
         );
-        setError(error.message)
+        setError(error.message);
         // throw error;
       }
     } else {
       //  alert("Please select a date, start time, and end time");
     }
   };
-
 
   const updateSlot = async () => {
     // slot update when is note
@@ -408,19 +418,22 @@ const LawyerProfile = ({ token }) => {
         minute: "2-digit",
         hour12: false,
       }),
-      isBooked: false
+      isBooked: false,
     };
-    let slot = updatespecifcslot._id
+    let slot = updatespecifcslot._id;
     // console.log("updatedSlot =", updatedSlot)
     // console.log("updatespecifcslot", slot)
     try {
-      const response = await fetch(`${ApiEndPoint}appointments/${lawyerId}/${slot}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(updatedSlot)
-      });
+      const response = await fetch(
+        `${ApiEndPoint}appointments/${lawyerId}/${slot}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(updatedSlot),
+        }
+      );
 
       const data = await response.json();
 
@@ -429,16 +442,16 @@ const LawyerProfile = ({ token }) => {
       }
 
       if (data?.errorCode === 400) {
-        setbgcolor("red")
-        showMessage(data.message)
+        setbgcolor("red");
+        showMessage(data.message);
       } else {
-        setbgcolor("green")
-        await setIsAddpop(true)
+        setbgcolor("green");
+        await setIsAddpop(true);
         setpopupcolor("popupconfirm");
         await setIsAddedorUpdated(true); // Set email sent confirmation
         setTimeout(() => {
           setpopupcolor("popup");
-          setIsAddpop(false)
+          setIsAddpop(false);
           // Close popup after showing confirmation
           setIsAddedorUpdated(false); // Reset confirmation state after a delay
         }, 2000);
@@ -448,7 +461,7 @@ const LawyerProfile = ({ token }) => {
       setEditingSlotIndex(null);
       setNewStartTime(null);
       setNewEndTime(null);
-      setSelectedTime(null)
+      setSelectedTime(null);
       console.log("Slot updated successfully:", data);
     } catch (error) {
       console.error("Error updating slot:", error.message);
@@ -554,7 +567,7 @@ const LawyerProfile = ({ token }) => {
     return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
   };
   const fetchLawyerDetails = async () => {
-    let lawyerId = ''
+    let lawyerId = "";
     try {
       const response = await axios.get(
         `${ApiEndPoint}geLawyerDetails/${token.email}`
@@ -589,7 +602,7 @@ const LawyerProfile = ({ token }) => {
 
 
     try {
-      console.log("lawyer id", lawyerDetails)
+      console.log("lawyer id", lawyerDetails);
       const response = await axios.get(
         `${ApiEndPoint}appointments/${lawyerId}`
       );
@@ -736,12 +749,11 @@ const LawyerProfile = ({ token }) => {
     setCalenderView(true);
   };
 
-
   const handleOpenPopup = (item) => {
     setpopupmessage(
       `Are you sure that you want to delete the slot of ${item.startTime} - ${item.endTime}?`
     );
-    setdeleteslot(item)
+    setdeleteslot(item);
     setpopupcolor("popup");
     setisPopupVisiblecancel(true);
     setTimeout(() => {
@@ -786,14 +798,12 @@ const LawyerProfile = ({ token }) => {
     return `${hours}:${minutes}`; // Returns HH:MM format
   };
 
-
   const handleDelete = async (lawyerId, slotId) => {
-    console.log(lawyerId, "         ", slotId)
+    console.log(lawyerId, "         ", slotId);
     try {
       const response = await axios.delete(
         `${ApiEndPoint}delete-slot/${lawyerId}/${slotId}`
       );
-
 
       if (!response.ok) {
         setisPopupVisiblecancel(false);
@@ -816,8 +826,8 @@ const LawyerProfile = ({ token }) => {
           isPopupVisible
             ? "Delete successfully"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-              ? "Delete successfully"
-              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+            ? "Delete successfully"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -826,10 +836,13 @@ const LawyerProfile = ({ token }) => {
         console.log("Delete successfully:", data);
       }
       console.log("Slot deleted successfully:", response.data);
-      fetchLawyerDetails()
+      fetchLawyerDetails();
       return response.data;
     } catch (error) {
-      console.error("Error deleting slot:", error.response?.data || error.message);
+      console.error(
+        "Error deleting slot:",
+        error.response?.data || error.message
+      );
       throw error;
     }
     // try {
@@ -932,8 +945,6 @@ const LawyerProfile = ({ token }) => {
   //   }
   // };
 
-
-
   const handleEdting = async (value) => {
     let temp = {
       user: user,
@@ -999,7 +1010,6 @@ const LawyerProfile = ({ token }) => {
     }
   };
 
-
   // const handleFileInputChange = (event) => {
   //     const file = event.target.files[0];
   //     if (file) {
@@ -1019,7 +1029,6 @@ const LawyerProfile = ({ token }) => {
       document.getElementById("profilePicUpdate").click();
     }
   };
-
 
   const containerStyle = {
     position: "relative",
@@ -1084,19 +1093,9 @@ const LawyerProfile = ({ token }) => {
     });
   };
 
-
-
-
-
-
-
   //  for Book slots
 
-
-
-
   // Handle date selection
-
 
   const BookDatesInfo =
     appointmentDetails?.availableSlots?.reduce((acc, slot) => {
@@ -1106,7 +1105,6 @@ const LawyerProfile = ({ token }) => {
       return acc;
     }, {}) || {};
 
-
   const calendarDates = generateCalendarDates();
   return (
     <div
@@ -1115,6 +1113,7 @@ const LawyerProfile = ({ token }) => {
         width: "100%",
         minHeight: '86vh',
         // maxHeight: "83vh",
+        padding: 20,
         padding: 20,
         boxShadow: "5px 5px 5px gray",
       }}
@@ -1195,12 +1194,10 @@ const LawyerProfile = ({ token }) => {
                         color: " #d4af37",
                       }}
                     >
-
                       <img
                         src={require(`../../../src/Component/Images/Profile.png`)}
                         style={{ height: "20px" }}
                       />
-
                     </span>
                     <input
                       className={
@@ -1584,8 +1581,6 @@ const LawyerProfile = ({ token }) => {
         ) : (
           <div className="profile-section">
             <div className="d-flex flex-row align-items-center m-0">
-
-
               {/* <div style={containerStyle}> */}
               {/* <div
                                     className="profile-pic"
@@ -1633,8 +1628,10 @@ const LawyerProfile = ({ token }) => {
               <div className="d-flex flex-column justify-content-center gap-2">
                 <div className="d-flex align-items-center p-2 gap-1 m-0">
                   <div style={{ width: "250px" }}>
-                    <h3 style={{ color: "#d4af37", }}>{user?.UserName}</h3>
-                    <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
+                    <h3 style={{ color: "#d4af37" }}>{user?.UserName}</h3>
+                    <p style={{ color: "#d4af37" }}>
+                      {lawyerDetails?.Position}
+                    </p>
                   </div>
                   <button
                     className="btn-update"
@@ -1649,7 +1646,7 @@ const LawyerProfile = ({ token }) => {
             <div className="lawyer-details mt-1">
               <div
                 className="d-flex"
-                style={{ width: "auto", height: "55%", overflowY: "auto", }}
+                style={{ width: "auto", height: "55%", overflowY: "auto" }}
               >
                 <p style={{}}>{lawyerDetails.Bio}</p>
               </div>
@@ -1682,7 +1679,7 @@ const LawyerProfile = ({ token }) => {
                   color="white"
                   className="m-2 "
                 />
-                <p style={{ height: 50, }} className="ms-2 m-1 ">
+                <p style={{ height: 50 }} className="ms-2 m-1 ">
                   {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
                   {lawyerDetails?.Address}
                 </p>
@@ -1703,7 +1700,13 @@ const LawyerProfile = ({ token }) => {
               <div className={popupcolor}>
                 {!isLoading && !isEmailSent && (
                   <>
-                    <h3 style={{ fontSize: "18px", fontWeight: "bold", marginBottom: "5px" }}>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        marginBottom: "5px",
+                      }}
+                    >
                       {popupmessage}
                     </h3>
 
@@ -1748,12 +1751,6 @@ const LawyerProfile = ({ token }) => {
 
         {/* Month Selector */}
 
-
-
-
-
-
-
         <Tabs
           activeKey={activeTab}
           onSelect={(k) => setActiveTab(k)}
@@ -1780,7 +1777,11 @@ const LawyerProfile = ({ token }) => {
                   color: "white",
                 }}
               >
-                Add Slots <FaPlusCircle color={activeTab === "addslot" ? "#18273e" : "white"} style={{ marginLeft: 10 }} />
+                Add Slots{" "}
+                <FaPlusCircle
+                  color={activeTab === "addslot" ? "#18273e" : "white"}
+                  style={{ marginLeft: 10 }}
+                />
               </span>
             }
           >
@@ -1799,18 +1800,23 @@ const LawyerProfile = ({ token }) => {
                   alignItems: "center",
                 }}
               >
-                <button className="calender-button simple-text" onClick={prevMonth}>
+                <button
+                  className="calender-button simple-text"
+                  onClick={prevMonth}
+                >
                   <FontAwesomeIcon icon={faArrowLeft} size="1x" />
                 </button>
                 <h3>
                   {currentDate.toLocaleString("default", { month: "long" })}{" "}
                   {currentDate.getFullYear()}
                 </h3>
-                <button onClick={nextMonth} className="simple-text calender-button">
+                <button
+                  onClick={nextMonth}
+                  className="simple-text calender-button"
+                >
                   <FontAwesomeIcon icon={faArrowRight} size="1x" />
                 </button>
               </div>
-
 
               {/* Days of the Week */}
               <div
@@ -1872,24 +1878,18 @@ const LawyerProfile = ({ token }) => {
                     {date ? date.getDate() : ""}
                   </div>
                 ))}
-
-
-
               </div>
               {message && (
                 <div className="popup-overlay">
-
                   <div
                     className="confirmation"
                     style={{
-
                       backgroundColor: bgcolor,
                       color: "white",
                       padding: "30px",
                       borderRadius: "8px",
                       textAlign: "center",
                       boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.3)",
-
                     }}
                   >
                     {message}
@@ -1900,7 +1900,6 @@ const LawyerProfile = ({ token }) => {
                 {IsAddpop && (
                   <div className="popup-overlay">
                     <div className={popupcolor}>
-
                       {isAddedorUpdated && (
                         <div className="confirmation">
                           <FontAwesomeIcon
@@ -1921,92 +1920,120 @@ const LawyerProfile = ({ token }) => {
               {selectedDate && (
                 <div>
                   <h5 style={{ color: " #d4af37" }}>Existing Slots:</h5>
-                  <div style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}>
-                    {ExistSlotsMap[selectedDate.toDateString()]?.map((slot, index) => (
-                      <div key={slot._id} style={{ position: "relative", display: "inline-block" }}>
-                        <button
-                          onClick={() => {
-                            setNewStartTime(
-                              new Date(
-                                `${selectedDate.toDateString()} ${slot.startTime}`
-                              )
-                            );
-                            setNewEndTime(
-                              new Date(`${selectedDate.toDateString()} ${slot.endTime}`)
-                            );
-                            setEditingSlotIndex(index);
-                            handleTimeClick(slot.startTime)
-                            setupdateslot(slot)
-                          }}
-                          className="time-button"
+                  <div
+                    style={{ display: "flex", gap: "15px", flexWrap: "wrap" }}
+                  >
+                    {ExistSlotsMap[selectedDate.toDateString()]?.map(
+                      (slot, index) => (
+                        <div
+                          key={slot._id}
                           style={{
-                            padding: "5px 10px",
-                            borderRadius: "5px",
-                            border: "1px solid #d4af37",
-                            background: slot.isBooked
-                              ? "green" // Green if booked
-                              : selectedTime === slot.startTime
-                                ? "#d2a85a" // Golden when selected
-                                : "#16213e", // Default background
-                            color: "white",
-                            cursor: slot.isBooked ? "not-allowed" : "pointer",
-                            fontSize: 11,
                             position: "relative",
-                            width: 130,
-                          }}
-                          disabled={slot.isBooked}
-                          onMouseEnter={(e) => {
-                            if (!slot.isBooked && selectedTime !== slot.startTime) {
-                              e.target.style.background = "#c0a262"; // Hover background (light golden)
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!slot.isBooked && selectedTime !== slot.startTime) {
-                              e.target.style.background = "#16213e"; // Reset to default
-                            }
+                            display: "inline-block",
                           }}
                         >
-                          {slot.startTime} - {slot.endTime}
-                        </button>
-
-                        {/* Close Icon (❌) */}
-                        {!slot.isBooked && (
-                          <span
-                            onClick={() => handleOpenPopup(slot)}
-                            style={{
-                              position: "absolute",
-                              top: "-8px",
-                              right: "-8px",
-                              background: "#18273e",
-                              // border:"2px solid #c0a262",
-                              color: "white",
-                              borderRadius: "50%",
-                              width: "18px",
-                              height: "18px",
-                              display: "flex",
-                              justifyContent: "center",
-                              padding: '2px',
-                              alignItems: "center",
-                              fontSize: "12px",
-                              cursor: "pointer",
-                              fontWeight: "bold",
+                          <button
+                            onClick={() => {
+                              setNewStartTime(
+                                new Date(
+                                  `${selectedDate.toDateString()} ${
+                                    slot.startTime
+                                  }`
+                                )
+                              );
+                              setNewEndTime(
+                                new Date(
+                                  `${selectedDate.toDateString()} ${
+                                    slot.endTime
+                                  }`
+                                )
+                              );
+                              setEditingSlotIndex(index);
+                              handleTimeClick(slot.startTime);
+                              setupdateslot(slot);
                             }}
+                            className="time-button"
+                            style={{
+                              padding: "5px 10px",
+                              borderRadius: "5px",
+                              border: "1px solid #d4af37",
+                              background: slot.isBooked
+                                ? "green" // Green if booked
+                                : selectedTime === slot.startTime
+                                ? "#d2a85a" // Golden when selected
+                                : "#16213e", // Default background
+                              color: "white",
+                              cursor: slot.isBooked ? "not-allowed" : "pointer",
+                              fontSize: 11,
+                              position: "relative",
+                              width: 130,
+                            }}
+                            disabled={slot.isBooked}
                             onMouseEnter={(e) => {
-                              if (!slot.isBooked && selectedTime !== slot.startTime) {
+                              if (
+                                !slot.isBooked &&
+                                selectedTime !== slot.startTime
+                              ) {
                                 e.target.style.background = "#c0a262"; // Hover background (light golden)
                               }
                             }}
                             onMouseLeave={(e) => {
-                              if (!slot.isBooked && selectedTime !== slot.startTime) {
+                              if (
+                                !slot.isBooked &&
+                                selectedTime !== slot.startTime
+                              ) {
                                 e.target.style.background = "#16213e"; // Reset to default
                               }
                             }}
                           >
-                            ❌
-                          </span>
-                        )}
-                      </div>
-                    ))}
+                            {slot.startTime} - {slot.endTime}
+                          </button>
+
+                          {/* Close Icon (❌) */}
+                          {!slot.isBooked && (
+                            <span
+                              onClick={() => handleOpenPopup(slot)}
+                              style={{
+                                position: "absolute",
+                                top: "-8px",
+                                right: "-8px",
+                                background: "#18273e",
+                                // border:"2px solid #c0a262",
+                                color: "white",
+                                borderRadius: "50%",
+                                width: "18px",
+                                height: "18px",
+                                display: "flex",
+                                justifyContent: "center",
+                                padding: "2px",
+                                alignItems: "center",
+                                fontSize: "12px",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                              }}
+                              onMouseEnter={(e) => {
+                                if (
+                                  !slot.isBooked &&
+                                  selectedTime !== slot.startTime
+                                ) {
+                                  e.target.style.background = "#c0a262"; // Hover background (light golden)
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (
+                                  !slot.isBooked &&
+                                  selectedTime !== slot.startTime
+                                ) {
+                                  e.target.style.background = "#16213e"; // Reset to default
+                                }
+                              }}
+                            >
+                              ❌
+                            </span>
+                          )}
+                        </div>
+                      )
+                    )}
                   </div>
 
                   {/* {availableSlotsMap[selectedDate.toDateString()]?.map(
@@ -2062,11 +2089,30 @@ const LawyerProfile = ({ token }) => {
                 </div>
               )
             } */}
-                  <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "10px",
+                      alignItems: "center",
+                    }}
+                  >
                     {/* Start Time Picker */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
-                      <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center", fontSize: 12 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        position: "relative",
+                      }}
+                    >
+                      <label
+                        className="simple-text"
+                        style={{
+                          marginBottom: "5px",
+                          textAlign: "center",
+                          fontSize: 12,
+                        }}
+                      >
                         Start Time:
                       </label>
                       <DatePicker
@@ -2083,16 +2129,28 @@ const LawyerProfile = ({ token }) => {
                           border: message ? "2px solid red" : "1px solid #ccc",
                           transition: "border 0.3s ease-in-out",
                         }}
-                      // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
+                        // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
                       />
 
                       {/* ✅ Message appears just below the DatePicker */}
-
                     </div>
 
                     {/* End Time Picker */}
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
-                      <label className="simple-text" style={{ marginBottom: "5px", textAlign: "center", fontSize: 12 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                      }}
+                    >
+                      <label
+                        className="simple-text"
+                        style={{
+                          marginBottom: "5px",
+                          textAlign: "center",
+                          fontSize: 12,
+                        }}
+                      >
                         End Time:
                       </label>
                       <DatePicker
@@ -2107,7 +2165,7 @@ const LawyerProfile = ({ token }) => {
                         disabled={editingSlotIndex !== null}
                         minTime={
                           newStartTime
-                            ? new Date(newStartTime.getTime() + 15 * 60000)  // ✅ Ensures End Time starts AFTER Start Time
+                            ? new Date(newStartTime.getTime() + 15 * 60000) // ✅ Ensures End Time starts AFTER Start Time
                             : new Date()
                         }
                         maxTime={new Date().setHours(23, 45)}
@@ -2116,7 +2174,11 @@ const LawyerProfile = ({ token }) => {
 
                     {/* Add or Update Button */}
                     <button
-                      onClick={editingSlotIndex !== null ? updateSlot : handleAddTimeSlot}
+                      onClick={
+                        editingSlotIndex !== null
+                          ? updateSlot
+                          : handleAddTimeSlot
+                      }
                       style={{
                         height: "30px",
                         borderRadius: 6,
@@ -2131,7 +2193,6 @@ const LawyerProfile = ({ token }) => {
                 </div>
               )}
             </div>
-
           </Tab>
 
           <Tab
@@ -2146,7 +2207,11 @@ const LawyerProfile = ({ token }) => {
                   color: "white",
                 }}
               >
-                Booked Slot <FaCheckCircle color={activeTab === "addslot" ? "white" : "green"} style={{ marginLeft: 10 }} />
+                Booked Slot{" "}
+                <FaCheckCircle
+                  color={activeTab === "addslot" ? "white" : "green"}
+                  style={{ marginLeft: 10 }}
+                />
               </span>
             }
           >
@@ -2237,7 +2302,6 @@ const LawyerProfile = ({ token }) => {
             </div>
  */}
 
-
             <div
               style={{
                 boxShadow: "0px 0px 0px gray",
@@ -2270,7 +2334,13 @@ const LawyerProfile = ({ token }) => {
                 </button>
               </div>
               {/* List View */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "10px",
+                }}
+              >
                 {calendarDates
                   .map((d) => (d instanceof Date ? d : new Date(d))) // Ensure valid Date objects
                   .filter((date) => {
@@ -2307,8 +2377,16 @@ const LawyerProfile = ({ token }) => {
                                 key={slot._id}
                                 onClick={() => {
                                   setslotbookuserid(slot);
-                                  setNewStartTime(new Date(`${date.toDateString()} ${slot.startTime}`));
-                                  setNewEndTime(new Date(`${date.toDateString()} ${slot.endTime}`));
+                                  setNewStartTime(
+                                    new Date(
+                                      `${date.toDateString()} ${slot.startTime}`
+                                    )
+                                  );
+                                  setNewEndTime(
+                                    new Date(
+                                      `${date.toDateString()} ${slot.endTime}`
+                                    )
+                                  );
                                   setEditingSlotIndex(index);
                                   handleBookTimeClick(slot);
                                   handleTimeClick(slot.startTime);
@@ -2339,9 +2417,6 @@ const LawyerProfile = ({ token }) => {
                   })}
               </div>
             </div>
-
-
-
           </Tab>
         </Tabs>
 
@@ -2349,7 +2424,11 @@ const LawyerProfile = ({ token }) => {
 
 
       </div>
-      <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} />
+      <ViewBookLawyerSlot
+        isOpen={IsCalenderView}
+        onClose={(value) => setCalenderView(value)}
+        slotbookuserid={slotbookuserid}
+      />
     </div>
   );
 };

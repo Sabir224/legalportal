@@ -339,7 +339,7 @@ body {
 
 /* Handle (the draggable part of the scrollbar) */
 ::-webkit-scrollbar-thumb {
-  background: #18273e; /* Change this to your preferred color */
+  background: #a07d4f; /* Change this to your preferred color */
   border-radius: 10px;
 }
 

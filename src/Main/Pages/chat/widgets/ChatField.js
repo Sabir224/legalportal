@@ -87,13 +87,12 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
   //     }
   //   };
   // }, [lastScrollTop]);
-  let count = 0;
   useEffect(() => {
     let scrollTimeout;
+    const chatContainer = chatContainerRef.current; // Store the ref value
 
     const handleScroll = () => {
-      if (!chatContainerRef.current) return;
-      const chatContainer = chatContainerRef.current;
+      if (!chatContainer) return;
       const messageDivs = chatContainer.querySelectorAll(".message-item");
 
       const isAtBottom =
@@ -127,17 +126,17 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
       }, 2000);
     };
 
-    if (chatContainerRef.current) {
-      chatContainerRef.current.addEventListener("scroll", handleScroll);
+    if (chatContainer) {
+      chatContainer.addEventListener("scroll", handleScroll);
     }
 
     return () => {
-      if (chatContainerRef.current) {
-        chatContainerRef.current.removeEventListener("scroll", handleScroll);
+      if (chatContainer) {
+        chatContainer.removeEventListener("scroll", handleScroll);
       }
       clearTimeout(scrollTimeout);
     };
-  }, [messages, lastScrollTop]);
+  }, [messages, lastScrollTop]); // Keep dependencies the same
 
   useEffect(() => {
     if (!selectedChat) return;
@@ -209,7 +208,8 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
         chatId: receivedChatId,
         userId: typingUserId,
       }) => {
-        if (receivedChatId === chatId && typingUserId !== user._id) {
+        console.log("TYpingUSers:", typingUserId);
+        if (receivedChatId === chatId && typingUserId !== user?._id) {
           // Get typing user details from selectedChat participants
           const typingUser = selectedChat?.participants?.find(
             (u) => u._id === typingUserId
@@ -230,7 +230,7 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
         chatId: receivedChatId,
         userId: typingUserId,
       }) => {
-        if (receivedChatId === chatId && typingUserId !== user._id) {
+        if (receivedChatId === chatId && typingUserId !== user?._id) {
           setTypingUsers((prev) => prev.filter((u) => u._id !== typingUserId));
         }
       };
