@@ -47,9 +47,10 @@ export default function ChatInput({ selectedChat, user }) {
   const [showModal, setShowModal] = useState(false);
   const buttonRef = useRef(null);
   const [isClientSessionExpired, setClientSession] = useState(false);
-
+  const [originalFile, setOriginalFile] = useState(null);
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
+  const [isFileSending, setIsFileSending] = useState(false);
 
   const recorderRef = useRef(
     new vmsg.Recorder({
@@ -131,11 +132,12 @@ export default function ChatInput({ selectedChat, user }) {
   // 🔹 Function to handle file selection (Preview)
   const handleDocUpload = async (e) => {
     const file = e.target.files[0];
+
     if (!file) return;
 
     // 🔹 Validate file size (Max: 15MB)
-    if (file.size > 15 * 1024 * 1024) {
-      setPopupMessage("Document must be less than 15MB");
+    if (file.size > 20 * 1024 * 1024) {
+      setPopupMessage("Document must be less than 20MB");
       e.target.value = null; // Reset file input
       return;
     }
@@ -153,11 +155,15 @@ export default function ChatInput({ selectedChat, user }) {
     } else if (file.type.startsWith("image/")) {
       setPreviewFilePath(previewUrl);
       setPreviewFile(file);
+      setOriginalFile(file);
     } else if (
-      ["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(fileExtension)
+      ["doc", "docx", "xls", "xlsx", "ppt", "pptx", "pdf"].includes(
+        fileExtension
+      )
     ) {
       setPreviewFilePath("/path/to/document-icon.png"); // Set a generic document preview icon
       setPreviewFile(file);
+      setOriginalFile(file);
     } else {
       setPreviewFile(null);
       setPopupMessage("Unsupported file type");
@@ -185,6 +191,7 @@ export default function ChatInput({ selectedChat, user }) {
 
       setPreviewFilePath(thumbnailUrl);
       setPreviewFile({ name: file.name, type: "image/png" });
+      setOriginalFile(file); // Keep the actual PDF file for upload
     } catch (error) {
       setPopupMessage("Error generating PDF preview");
     }
@@ -192,15 +199,16 @@ export default function ChatInput({ selectedChat, user }) {
 
   // 🔹 Function to handle file upload & send via socket
   const handleFileUpload = async () => {
-    if (!previewFile) return;
+    if (!originalFile) return;
 
     try {
-      // 🔹 Prepare file for upload
-      const formData = new FormData();
-      formData.append("file", previewFile);
+      setIsFileSending(true); // Show loading spinner
+      setPreviewFile(null); // Hide preview immediately
 
-      // 🔹 Upload file to S3 via API
-      const response = await fetch(`${ApiEndPoint}/uploadFile`, {
+      const formData = new FormData();
+      formData.append("file", originalFile);
+
+      const response = await fetch(`${ApiEndPoint}uploadFile`, {
         method: "POST",
         body: formData,
       });
@@ -209,26 +217,28 @@ export default function ChatInput({ selectedChat, user }) {
         throw new Error(`Failed to upload file: ${response.statusText}`);
       }
 
-      const { fileUrl } = await response.json(); // Extract file URL from response
+      const { fileUrl } = await response.json();
       if (!fileUrl) throw new Error("File URL is missing from API response");
 
-      // 🔹 Send file metadata via Socket.IO
       await SocketService.sendFile({
-        senderId: user?._id, // Ensure user ID is correct
-        chatId: selectedChat?._id, // Use the correct chat ID
+        senderId: user?._id,
+        chatId: selectedChat?._id,
         file: {
-          name: previewFile.name,
-          type: previewFile.type,
-          url: fileUrl, // The uploaded S3 file URL
+          name: originalFile.name,
+          type: originalFile.type,
+          url: fileUrl,
         },
         messageType: "file",
       });
 
       console.log("✅ File sent via socket successfully!");
-      setPreviewFile(null); // Clear preview after sending
+      setPreviewFile(null);
       setPreviewFilePath(null);
+      setOriginalFile(null);
     } catch (error) {
       console.error("❌ Error handling file upload:", error);
+    } finally {
+      setIsFileSending(false); // Hide spinner when done
     }
   };
 
@@ -294,6 +304,7 @@ export default function ChatInput({ selectedChat, user }) {
       } else {
       }
       setPreviewFile(null);
+      setOriginalFile(null);
       setPreviewCaption("");
     }
   };
@@ -375,20 +386,20 @@ export default function ChatInput({ selectedChat, user }) {
           onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
         />
 
-        {isMessageSending ? (
+        {/* Show loading spinner when sending */}
+        {isMessageSending || isFileSending ? (
           <FaSpinner
-            className="spinner"
             style={{
               color: "#25D366",
-              fontSize: "25px",
+              fontSize: "20px",
               animation: "spin 1s linear infinite",
             }}
           />
         ) : (
           <img
             src={Send}
-            height={25}
-            width={25}
+            height={20}
+            width={20}
             className="icon"
             onClick={handleSendMessage}
           />
@@ -400,19 +411,17 @@ export default function ChatInput({ selectedChat, user }) {
         <div
           className="file-preview-container position-absolute p-2 border rounded shadow-sm bg-white"
           style={{
-            bottom: "110%", // Keeps it slightly above the button
-            left: "50%", // Centers it to the button
-            transform: "translateX(-50%)", // Ensures perfect centering
-            width: "40%", // Fixed size for better layout
+            bottom: "110%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "40%",
             maxWidth: "50%",
-
-            zIndex: 1050, // Ensures it appears on top
+            zIndex: 1050,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
           }}
         >
-          {/* File Preview Box */}
           <div
             className="border p-2 d-flex justify-content-center align-items-center main-bgcolor"
             style={{
@@ -436,25 +445,19 @@ export default function ChatInput({ selectedChat, user }) {
               <FontAwesomeIcon icon={faFileAlt} size="3x" color="gray" />
             )}
           </div>
-          {/* File Info */}
           <div className="text-center mt-2 d-flex flex-column align-items-center">
-            {/* File Name */}
             <p
               className="mb-1 fw-bold text-truncate text-center"
               style={{ maxWidth: "150px" }}
             >
               {previewFile.name}
             </p>
-
-            {/* File Details (Size & Type) */}
             <p className="text-muted small">
               {fileType.toUpperCase()} Document
             </p>
           </div>
 
-          {/* Buttons */}
           <div className="d-flex justify-content-center gap-2 mt-2">
-            {/* Cancel Button */}
             <button
               className="btn btn-outline-danger d-flex align-items-center justify-content-center"
               onClick={() => setPreviewFile(null)}
@@ -462,8 +465,6 @@ export default function ChatInput({ selectedChat, user }) {
             >
               <FontAwesomeIcon icon={faTimes} />
             </button>
-
-            {/* Upload Button */}
             <button
               className="btn btn-outline-success upload-btn d-flex align-items-center justify-content-center"
               onClick={handleFileUpload}
