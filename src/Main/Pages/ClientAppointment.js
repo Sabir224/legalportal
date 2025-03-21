@@ -76,7 +76,7 @@ const ClientAppointment = ({ token }) => {
   let data;
   useEffect(() => {
     fetchLawyerDetails();
-  }, []);
+  }, [appointmentDetails,lawyerDetails]);
 
   const [imageUrl, setImageUrl] = useState("");
 

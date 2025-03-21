@@ -555,7 +555,7 @@ const LawyerProfile = ({ token }) => {
 
     fetchLawyerDetails();
 
-  }, []);
+  }, [appointmentDetails,lawyerDetails]);
 
   const [imageUrl, setImageUrl] = useState("");
 
