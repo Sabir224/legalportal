@@ -36,24 +36,22 @@ const CaseAssignmentForm = ({ selectedCase }) => {
   const handleAssign = async (e) => {
     e.preventDefault();
 
-    if (!selectedCase?._id || selectedUsers.length === 0) {
+    if (!selectedCase || selectedUsers.length === 0) {
       alert("Please select a case and users.");
       return;
     }
-
     const usersData = selectedUsers.map((user) => ({
       userId: user.value, // Ensure this is correct
       permissions: userPermissions[user.value] || [], // Ensure permissions exist
     }));
-
     console.log("Users to Assign:", usersData); // Debugging users
-    console.log("Selected Case ID:", selectedCase._id);
+    console.log("Selected Case ID:", selectedCase);
     console.log("Permissions List:", userPermissions); // Check permissions
 
     try {
       const response = await dispatch(
         assignCase({
-          caseId: selectedCase._id,
+          caseId: selectedCase,
           users: usersData,
           permissionList: userPermissions, // Check if permissionsList is correct
         })
@@ -87,7 +85,7 @@ const CaseAssignmentForm = ({ selectedCase }) => {
             className="basic-multi-select"
             classNamePrefix="select"
             value={selectedUsers}
-            onChange={setSelectedUsers}
+            onChange={(selected) => setSelectedUsers(selected || [])}
             placeholder="Search & Select Users..."
             styles={{
               control: (base) => ({

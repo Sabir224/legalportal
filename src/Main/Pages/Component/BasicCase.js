@@ -16,6 +16,16 @@ const BasicCase = ({ token }) => {
   const [caseName, setCaseName] = useState("");
   const [check, setcheck] = useState(true);
   const screen = useSelector((state) => state.screen.value);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredData, setFilteredData] = useState([]);
+  const casesPerPage = 50; // Show 50 cases per page
+  const [filters, setFilters] = useState({
+    status: "All",
+    caseType: "All",
+    priority: "All",
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
   // console.log("_________Token:0", token.Role);
 
   const dispatch = useDispatch();
@@ -25,6 +35,7 @@ const BasicCase = ({ token }) => {
   const [selectedCase, setSelectedCase] = useState(null);
 
   const handleOpenModal = (caseId) => {
+    // console.log("CaseId:", caseId);
     setSelectedCase(caseId);
     setShowAssignModal(true);
   };
@@ -36,26 +47,10 @@ const BasicCase = ({ token }) => {
   const [data, setData] = useState([]);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    fetchCases();
-  }, []);
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
 
   // Function to fetch cases
-  const fetchCases = async () => {
-    try {
-      const response = await axios.get(`${ApiEndPoint}getcase`, {
-        withCredentials: true,
-      }); // API endpoint
-      console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
-      setData(response.data.data);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-  };
 
   const handleEdit = (index, value) => {
     const updatedData = [...data];
@@ -87,18 +82,118 @@ const BasicCase = ({ token }) => {
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
   // Get data for the current page
+  // const handleSearch = (query) => {
+  //   setSearchQuery(query);
+
+  //   if (!query) {
+  //     setFilteredData(data);
+  //     return;
+  //   }
+
+  //   const lowerCaseQuery = query.toLowerCase();
+
+  //   const filtered = data.filter(
+  //     (item) =>
+  //       item.CaseNumber.toLowerCase().includes(lowerCaseQuery) ||
+  //       item.Name.toLowerCase().includes(lowerCaseQuery) ||
+  //       item.Status.toLowerCase().includes(lowerCaseQuery)
+  //   );
+
+  //   setFilteredData(filtered);
+  // };
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+  };
+  const handleFilterChange = (filterType, value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterType]: value,
+    }));
+    setCurrentPage(1); // Reset to first page when filter changes
+  };
+  const getFilteredCases = () => {
+    let filteredCases = data;
+
+    // Apply search filter
+    if (searchQuery) {
+      filteredCases = filteredCases.filter((item) =>
+        item.CaseNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    // Apply status filter
+    if (filters.status && filters.status !== "All") {
+      filteredCases = filteredCases.filter(
+        (item) => item.Status === filters.status
+      );
+    }
+
+    // Apply case type filter
+    if (filters.caseType && filters.caseType !== "All") {
+      filteredCases = filteredCases.filter(
+        (item) => item.Name === filters.caseType
+      );
+    }
+
+    // Apply priority filter
+    if (filters.priority && filters.priority !== "All") {
+      filteredCases = filteredCases.filter(
+        (item) => item.Priority === filters.priority
+      );
+    }
+
+    // Apply sorting
+    if (filters.sortBy) {
+      filteredCases.sort((a, b) => {
+        if (filters.sortOrder === "asc") {
+          return a[filters.sortBy] > b[filters.sortBy] ? 1 : -1;
+        } else {
+          return a[filters.sortBy] < b[filters.sortBy] ? 1 : -1;
+        }
+      });
+    }
+
+    // Apply pagination
+    const startIndex = (currentPage - 1) * casesPerPage;
+    const paginatedCases = filteredCases.slice(
+      startIndex,
+      startIndex + casesPerPage
+    );
+
+    return paginatedCases;
+  };
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return data.slice(startIndex, endIndex);
+    return filteredData.slice(startIndex, endIndex);
   };
 
+  const fetchCases = async () => {
+    try {
+      const response = await axios.get(`${ApiEndPoint}getcase`, {
+        withCredentials: true,
+      }); // API endpoint
+      console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
+      setData(response.data.data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCases();
+  }, []);
   // Handle page navigation
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
       setCurrentPage(pageNumber);
     }
   };
+  useEffect(() => {
+    setFilteredData(data);
+  }, [data]); // Sync `filteredData` when `data` changes
 
   // Function to fetch and parse the Excel file
 
@@ -112,6 +207,76 @@ const BasicCase = ({ token }) => {
       className="container-fluid m-0 p-0"
       style={{ height: "84vh", overflowY: "auto" }}
     >
+      {/* Search Input */}
+
+      {/* Filters Container */}
+
+      <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
+        {/* Search Input on the Left */}
+        <input
+          type="text"
+          className="form-control me-3"
+          style={{ maxWidth: "250px" }} // Adjust width as needed
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+
+        {/* Filter & Sorting Dropdowns */}
+        <div className="d-flex flex-wrap gap-2">
+          {/* Status Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+          >
+            <option value="All">All Status</option>
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Pending">Pending</option>
+          </select>
+
+          {/* Case Type Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("caseType", e.target.value)}
+          >
+            <option value="All">All Case Types</option>
+            <option value="Civil">Civil</option>
+            <option value="Criminal">Criminal</option>
+            <option value="Family">Family</option>
+          </select>
+
+          {/* Priority Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("priority", e.target.value)}
+          >
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+
+          {/* Sorting Options */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+          >
+            <option value="createdAt">Sort by Created Date</option>
+            <option value="updatedAt">Sort by Updated Date</option>
+            <option value="CaseNumber">Sort by Case Number</option>
+          </select>
+
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
+          >
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
+
       <div className="card mb-3 shadow">
         <div
           className="card-header d-flex justify-content-between align-items-center px-3"
@@ -125,7 +290,7 @@ const BasicCase = ({ token }) => {
         </div>
 
         <div className="card-list p-0">
-          {getCurrentPageData().map((item, index) => (
+          {getFilteredCases().map((item, index) => (
             <div key={index}>
               <div
                 className="d-flex justify-content-between align-items-center p-3 border-bottom"
@@ -231,10 +396,10 @@ const BasicCase = ({ token }) => {
             zIndex: 10,
             padding: "10px",
             borderRadius: "8px",
-            width: "20%", // Reduced size
+            width: "20%",
             textAlign: "center",
             border: "2px solid #d4af37",
-            margin: "auto", // Centers the div
+            margin: "auto",
           }}
         >
           <div
@@ -262,7 +427,7 @@ const BasicCase = ({ token }) => {
                 )
               }
               style={{
-                width: "50px", // Slightly reduced input width
+                width: "50px",
                 textAlign: "center",
                 borderRadius: "6px",
                 border: "2px solid #d4af37",

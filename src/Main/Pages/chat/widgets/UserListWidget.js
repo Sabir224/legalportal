@@ -23,7 +23,7 @@ export default function UserListWidget({
   const fetchUsersForChat = async (email) => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getUsersForChat/${email}`
+        `${ApiEndPoint}getUsersForChat/${userData.email}`
       );
       console.log("Users:", response.data);
       return response.data;

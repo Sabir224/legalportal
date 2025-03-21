@@ -22,7 +22,7 @@ import Chat from "./Pages/chat/Chat";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
-import ChatBody from "./Pages/NewMessanger/Component/chatBody/ChatBody";
+
 import ClientAppointment from "./Pages/ClientAppointment";
 import { BsChevronRight } from "react-icons/bs";
 import UserListWidget from "./Pages/chat/widgets/UserListWidget";
@@ -180,7 +180,7 @@ const Dashboard = () => {
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
           borderRadius: "6px",
-          backgroundColor:"#18273e",
+          backgroundColor: "#18273e",
           transition: "all 0.3s ease",
           paddingTop: "10px",
         }}

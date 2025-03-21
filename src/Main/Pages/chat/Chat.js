@@ -20,7 +20,7 @@ import { Offcanvas } from "bootstrap/dist/js/bootstrap.bundle.min";
 
 export default function Chat({ token }) {
   //const Users = useSelector((state) => state.Data.usersdetail);
-
+  console.log("Email", token.email);
   const [users, setUsers] = useState([]);
   const [selectUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -184,6 +184,7 @@ export default function Chat({ token }) {
             setSelectedChat={(chat) => setSelectedChat(chat)}
             userData={token}
             searchQuery={searchQuery}
+            token={token}
           />
         </div>
       </div>
