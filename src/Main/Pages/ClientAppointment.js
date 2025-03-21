@@ -319,14 +319,57 @@ const ClientAppointment = ({ token }) => {
   };
 
   const handleSchedule = async () => {
-    // if (selectedDate && selectedTime) {
-    // setpopupmessage(`${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${selectedTime} ?`)
+    
+
+
+    const { startTime, endTime } = selectedslot;
+
+
+    // Ensure selectedDate is a valid Date object
+    const meetingDate = selectedDate instanceof Date
+      ? new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
+        .toISOString()
+        .split("T")[0] // Extract YYYY-MM-DD
+      : new Date(selectedDate).toISOString().split("T")[0];
+
+    console.log("Corrected Meeting Date:", meetingDate);
+
+
+    // Combine formatted date with slot times
+    const selectedStartTime = new Date(`${meetingDate}T${startTime}:00`);
+    const selectedEndTime = new Date(`${meetingDate}T${endTime}:00`);
+    console.log("startTime :", selectedStartTime);
+
+   
+
+
+        // Meeting details
+  //  const preserveLocalTimeISO = (date) => {
+  //   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+  // };
+  
+  // // Preserve the original time while formatting as ISO
+  // const meetingDetails = {
+  //   summary: "Scheduled Meeting",
+  //   startTime: preserveLocalTimeISO(selectedStartTime), // Keeps time unchanged
+  //   endTime: preserveLocalTimeISO(selectedEndTime),
+  //   timeZone: "Asia/Dubai", // UAE Time Zone
+  // };
+  
+  // console.log("Meeting Details:", meetingDetails);
+  
+
+    
+    // Meeting details
     const meetingDetails = {
-      summary: "Raheem Meeting",
-      startTime: "2025-03-12T17:05:00Z",
-      endTime: "2025-03-12T17:07:00Z",
-      timeZone: "UTC+05:00",
+      summary: "Scheduled Meeting",
+      startTime: selectedStartTime.toISOString(),
+      endTime: selectedEndTime.toISOString(),
+      timeZone: "Asia/Dubai", // UAE Time Zone
     };
+
+    console.log("Meeting Details:", meetingDetails);
+ console.log("time ", selectedslot);
 
     let meeting = null;
     console.log(`Meeting Created Request: ${JSON.stringify(meetingDetails)}`);
@@ -461,10 +504,6 @@ const ClientAppointment = ({ token }) => {
       console.error("Error in POST request:", error.message || error);
     }
 
-    // alert(`Meeting scheduled on  ${selectedDate.day} at ${selectedTime}`);
-    // } else {
-    //   alert("Please select both a day and time to schedule a meeting.");
-    // }
   };
 
   // data = {
@@ -820,9 +859,8 @@ const ClientAppointment = ({ token }) => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${
-                    isAvailableDate ? "availableDate" : ""
-                  }`}
+                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
+                    }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -866,8 +904,8 @@ const ClientAppointment = ({ token }) => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                        ? "#d2a85a" // Golden when selected
-                        : "#16213e", // Default background
+                          ? "#d2a85a" // Golden when selected
+                          : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                       fontSize: 11,
