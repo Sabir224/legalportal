@@ -315,7 +315,7 @@ const UserProfile = ({ token }) => {
     setUploadSuccess(false);
 
     const formData = new FormData();
-    formData.append("Email", storedEmail);
+    formData.append("Email", token.email);
 
     selectedFiles.forEach((file) => {
       formData.append("files", file);
@@ -372,7 +372,7 @@ const UserProfile = ({ token }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ Email: storedEmail }), // Sending email in request body
+        body: JSON.stringify({ Email: token.email }), // Sending email in request body
       });
 
       // Log the raw response before processing
