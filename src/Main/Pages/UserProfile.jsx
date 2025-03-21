@@ -517,7 +517,7 @@ const UserProfile = ({ token }) => {
   };
   useEffect(() => {
     fetchClientDetails();
-  }, [DatabaseappointmentDetailsm,clientDetails]);
+  }, [DatabaseappointmentDetails,clientDetails]);
 
   const prevMonth = () => {
     setSelectedDate();
