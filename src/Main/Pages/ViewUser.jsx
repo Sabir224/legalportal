@@ -435,7 +435,7 @@ const ViewUser = ({ token }) => {
         setLoading(true);
         try {
             const response = await axios.get(
-                `${ApiEndPoint}getClientDetails/sabirkhan@gmail.com`
+                `${ApiEndPoint}getClientDetails/Raheem@example.com`
             );
             setUsersDetails(response.data.user);
             setClientDetails(response.data.clientDetails); // Set the API response to state

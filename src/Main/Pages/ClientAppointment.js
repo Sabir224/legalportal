@@ -91,7 +91,7 @@ const ClientAppointment = ({ token }) => {
     let lawyerid;
     try {
       const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails/basil@aws-legalgroup.com`
+        `${ApiEndPoint}geLawyerDetails/wissam@awsyounus.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
