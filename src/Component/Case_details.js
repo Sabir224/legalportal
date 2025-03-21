@@ -45,7 +45,7 @@ import ExperienceReports from "../Main/Pages/Component/Casedetails/Experience_Re
 import SubCaseDetails from "../Main/Pages/Component/Casedetails/SubCaseDetails";
 import { blue } from "@mui/material/colors";
 
-function Case_details() {
+const Case_details = ({ token }) => {
   const dispatch = useDispatch();
   const [activeSections, setActiveSections] = useState([]);
   const [buttoncolor, setbuttoncolor] = useState([]);
@@ -583,6 +583,12 @@ function Case_details() {
     console.log(global.User);
     dispatch(screenChange(2));
   };
+  const handleViewClientDetails = async () => {
+    // global.lawyerDetails = lawyerDetails[0];
+    // global.User = user;
+    // console.log(global.User);
+    dispatch(screenChange(7));
+  };
 
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
@@ -618,6 +624,21 @@ function Case_details() {
                 View lawyer
               </button>
             </div>
+            {(token?.Role !== "client" ) && (
+              <div style={{ textAlign: "center", marginBottom: "10px" }}>
+                <button
+                  className="View-button rounded-4 m-1  w-100 px-4 py-2"
+                  style={{
+                    boxShadow: "5px 5px 5px gray",
+                    border: "2px solid #d4af37",
+                    borderRadius: "6px",
+                  }}
+                  onClick={handleViewClientDetails}
+                >
+                  View Client
+                </button>
+              </div>
+            )}
             {/* <h6>Further Details</h6> */}
 
             <div className=" flex-col gap-2">

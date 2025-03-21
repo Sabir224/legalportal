@@ -33,6 +33,7 @@ import AddCaseForm from "./Pages/cases/CaseForm";
 import CaseFilingForm from "./Pages/cases/CaseMatter";
 import { useCookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
+import ViewUser from "./Pages/ViewUser";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -82,6 +83,9 @@ const Dashboard = () => {
         break;
       case 6:
         setCurrentScreen(<CaseFilingForm token={decodedToken} />);
+        break;
+      case 7:
+        setCurrentScreen(<ViewUser token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -294,7 +298,7 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            {decodedToken?.Role === "lawyer" && (
+            {(decodedToken?.Role === "lawyer" || decodedToken?.Role==="receptionist") && (
               <button
                 className="btn me-2"
                 onClick={() => {
