@@ -145,7 +145,7 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
 
     async function initializeChat() {
       console.log(`🔗 Joining chat: ${chatId}`);
-      await SocketService.joinChat(chatId, user._id);
+      await SocketService.joinChat(chatId, user?._id);
 
       fetchMessages(); // Fetch messages after joining
       subscribeToEvents(); // Subscribe only after joining
@@ -180,7 +180,7 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
         setIsAtBottom(atBottom);
 
         // ✅ Only mark messages as Delivered & Read if the sender is NOT the current user
-        if (newMessage.sender._id !== user._id) {
+        if (newMessage?.sender?._id !== user?._id) {
           console.log("📤 Marking Messages as Delivered...");
           SocketService.markAsDelivered(user?._id);
 
@@ -193,13 +193,13 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
         // ✅ Add message to state only if it's not a duplicate
         setMessages((prevMessages) => {
           const isDuplicate = prevMessages.some(
-            (msg) => msg._id === newMessage._id
+            (msg) => msg?._id === newMessage?._id
           );
           return isDuplicate ? prevMessages : [...prevMessages, newMessage];
         });
 
         // ✅ Scroll to bottom only if the user is at the bottom or the message was sent by the user
-        if (atBottom || newMessage.sender._id === user._id) {
+        if (atBottom || newMessage.sender?._id === user?._id) {
           setTimeout(() => scrollToBottom(true), 100);
         }
       };
