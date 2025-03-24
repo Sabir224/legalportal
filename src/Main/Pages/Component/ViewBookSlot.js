@@ -69,6 +69,8 @@ const ContactForm = ({ slotbookuserid }) => {
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const storedEmail = sessionStorage.getItem("Email");
+    const [lawyerDetails, setLawyersDetails] = useState(null);
+
     // Function to categorize files
 
     const onHide = () => {
@@ -384,6 +386,8 @@ const ContactForm = ({ slotbookuserid }) => {
         let fetchdata = slotbookuserid?.lawyerId ? "lawyerDetails" : "clientDetails"
         console.log("id", id)
         let apifuncation = slotbookuserid?.lawyerId ? "geLawyerDetails" : "getClientDetails"
+
+
         try {
             const response = await axios.get(
                 `${ApiEndPoint}getUserById/${id}`
@@ -394,6 +398,18 @@ const ContactForm = ({ slotbookuserid }) => {
             mail = response.data?.Email;
             setFiles(response.data?.clientDetails?.Files);
             console.log("email", mail)
+            setLoading(false);
+        } catch (err) {
+            console.error("Error fetching client details:", err);
+            setLoading(false);
+        }
+
+        try {
+            const response = await axios.get(
+                `${ApiEndPoint}getUserById/${slotbookuserid?.FklawyerId}`
+            );
+            await setLawyersDetails(response.data);
+            console.log("lawyers  Data:", response.data);
             setLoading(false);
         } catch (err) {
             console.error("Error fetching client details:", err);
@@ -431,7 +447,7 @@ const ContactForm = ({ slotbookuserid }) => {
                     className="card border rounded d-flex flex-column mb-3"
                     style={{
                         background: "#001f3f",
-                        width: "90%",
+                        width: "100%",
                         backdropFilter: "blur(10px)", // Glass effect
                         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
                         border: "1px solid rgba(255, 255, 255, 0.1)", // Slight border for contrast
@@ -442,8 +458,6 @@ const ContactForm = ({ slotbookuserid }) => {
                         <div
                             className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
                         >
-
-
                             <div className="ms-2 d-flex align-items-center" style={{ gap: "10px" }}>
                                 <h3>{slotbookuserid?.lawyerId ? "Lawyer Name:" : "Client Name:"}</h3>
                                 <h3>
@@ -452,7 +466,20 @@ const ContactForm = ({ slotbookuserid }) => {
                                         : ""}
                                 </h3>
                             </div>
-
+                        </div>
+                        <div
+                            className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
+                        >
+                            {lawyerDetails !== null && (
+                                <div className="ms-2 d-flex align-items-center" style={{ gap: "10px" }}>
+                                    <h4>Lawyer Name:</h4>
+                                    <h3>
+                                        {lawyerDetails?.UserName
+                                            ? lawyerDetails.UserName.charAt(0).toUpperCase() + lawyerDetails.UserName.slice(1)
+                                            : ""}
+                                    </h3>
+                                </div>
+                            )}
                         </div>
 
                         <div className="client-details">
@@ -1008,7 +1035,7 @@ export const UpdateForm = ({ user }) => {
 
 const ViewBookLawyerSlot = ({ isOpen, onClose, slotbookuserid }) => {
 
-    console.log("slotbookuserid", slotbookuserid)
+    // console.log("slotbookuserid", slotbookuserid)
     return (
         <Modal show={isOpen} onHide={onClose} centered>
             <Modal.Header closeButton>

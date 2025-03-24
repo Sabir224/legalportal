@@ -616,6 +616,7 @@ const LawyerProfile = ({ token }) => {
                 isBooked: s.isBooked,
                 byBook: s.byBook,
                 meetingLink: s.meetingLink,
+                FklawyerId:s.lawyerId,
                 _id: s._id,
               })),
             ];
