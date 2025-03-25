@@ -166,6 +166,22 @@ const onMessageDelivered = (callback) => {
     callback(data);
   });
 };
+//----- Socket functions for appointment
+const bookAppointment = (update) => {
+  console.log("BOOK Appointment", update);
+  if (socket.connected) {
+    socket.emit("appointmentBooked", update);
+  } else {
+    console.log("Socket Not Connected_____________");
+  }
+};
+const onBookAppointment = (callback) => {
+  socket.off("slotHasBooked");
+  socket.on("slotHasBooked", (data) => {
+    console.log("📨 Received slotHasBooked event:", data);
+    callback(data);
+  });
+};
 
 // Export functions
 
@@ -184,4 +200,6 @@ export default {
   onMessageDelivered,
   onMessageRead,
   joinChat,
+  bookAppointment,
+  onBookAppointment,
 };

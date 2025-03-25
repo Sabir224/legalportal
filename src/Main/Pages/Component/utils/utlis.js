@@ -78,8 +78,8 @@ export const useMediaQuery = (query) => {
   return matches;
 };
 
-// export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
-export const ApiEndPoint = "http://localhost:5001/api/";
+export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
+//export const ApiEndPoint = "http://localhost:5001/api/";
 
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {

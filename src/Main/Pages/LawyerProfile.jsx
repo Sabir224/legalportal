@@ -76,6 +76,7 @@ import {
   BsSendPlusFill,
 } from "react-icons/bs";
 import Dropdown from "./Component/Dropdown";
+import SocketService from "../../SocketService";
 
 const LawyerProfile = ({ token }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -110,7 +111,7 @@ const LawyerProfile = ({ token }) => {
   const [editingSlotIndex, setEditingSlotIndex] = useState(null);
   const [bgcolor, setbgcolor] = useState("green");
   const [AllLawyer, setAllLawyer] = useState([]);
-  let alluser = { UserName: "All" }
+  let alluser = { UserName: "All" };
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
   let data;
 
@@ -139,7 +140,9 @@ const LawyerProfile = ({ token }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [selectfile, setselectfile] = useState("");
-  const [activeTab, setActiveTab] = useState(token?.Role === "lawyer" ? "addslot" : "ViewBookedSlot");
+  const [activeTab, setActiveTab] = useState(
+    token?.Role === "lawyer" ? "addslot" : "ViewBookedSlot"
+  );
 
   const [message, setMessage] = useState("");
   const [isAddedorUpdated, setIsAddedorUpdated] = useState(false);
@@ -154,6 +157,19 @@ const LawyerProfile = ({ token }) => {
     // ✅ Hide message after 5 seconds
   };
 
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchLawyerDetails();
+    };
+
+    SocketService.socket.off("slotHasBooked", handleMessagesDelivered);
+    SocketService.onBookAppointment(handleMessagesDelivered);
+  }, []);
   const hanldeEdit = async (e) => {
     e.preventDefault(); // Prevent default form submission behavior
 
@@ -408,9 +424,9 @@ const LawyerProfile = ({ token }) => {
 
   const updateSlot = async () => {
     // slot update when is note
-    let start = new Date(newStartTime)
-    let end = new Date(newEndTime)
-    const lawyerId = user?._id
+    let start = new Date(newStartTime);
+    let end = new Date(newEndTime);
+    const lawyerId = user?._id;
     const updatedSlot = {
       startTime: start.toLocaleTimeString([], {
         hour: "2-digit",
@@ -552,10 +568,8 @@ const LawyerProfile = ({ token }) => {
   // };
 
   useEffect(() => {
-
     fetchLawyerDetails();
-
-  }, [appointmentDetails,lawyerDetails]);
+  }, []);
 
   const [imageUrl, setImageUrl] = useState("");
 
@@ -580,7 +594,7 @@ const LawyerProfile = ({ token }) => {
       ); // API endpoint
       setUser(response.data.user);
       await setLawyersDetails(response.data.lawyerDetails);
-      lawyerId = response.data?.user._id
+      lawyerId = response.data?.user._id;
       console.log("lawyers data ", response.data, lawyerId);
 
       setLoading(false);
@@ -616,7 +630,7 @@ const LawyerProfile = ({ token }) => {
                 isBooked: s.isBooked,
                 byBook: s.byBook,
                 meetingLink: s.meetingLink,
-                FklawyerId:s.lawyerId,
+                FklawyerId: s.lawyerId,
                 _id: s._id,
               })),
             ];
@@ -641,9 +655,6 @@ const LawyerProfile = ({ token }) => {
       setLoading(false);
     }
 
-
-
-
     // try {
     //   const response = await axios.get(
     //     `${ApiEndPoint}getClientDetails?Email=${storedEmail}`
@@ -658,8 +669,6 @@ const LawyerProfile = ({ token }) => {
     // }
 
     if (token.Role === "lawyer") {
-
-
       try {
         console.log("lawyer id", lawyerDetails);
         const response = await axios.get(
@@ -712,15 +721,13 @@ const LawyerProfile = ({ token }) => {
         setError(err.message);
         setLoading(false);
       }
-
     } else {
-
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
         if (!response.data || response.data.length === 0) {
           throw new Error("No appointment data found");
         }
-        await setAllLawyer(response.data?.lawyers)
+        await setAllLawyer(response.data?.lawyers);
         console.log("Formatted Appointments:", AllLawyer);
         setLoading(false);
       } catch (err) {
@@ -728,9 +735,7 @@ const LawyerProfile = ({ token }) => {
         setError(err.message);
         setLoading(false);
       }
-
     }
-
   };
 
   const generateCalendarDates = () => {
@@ -904,8 +909,8 @@ const LawyerProfile = ({ token }) => {
           isPopupVisible
             ? "Delete successfully"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-              ? "Delete successfully"
-              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+            ? "Delete successfully"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -1185,8 +1190,6 @@ const LawyerProfile = ({ token }) => {
 
   const calendarDates = generateCalendarDates();
 
-
-
   const lawyers = [
     { value: "1", label: "Option 1" },
     { value: "2", label: "Option 2" },
@@ -1195,11 +1198,10 @@ const LawyerProfile = ({ token }) => {
 
   const handleSelect = async (selectedOption) => {
     console.log("Selected:", selectedOption);
-    setSelectedLawyer(selectedOption)
+    setSelectedLawyer(selectedOption);
     if (selectedOption?.UserName === "All") {
-      fetchLawyerDetails()
+      fetchLawyerDetails();
     } else {
-
       try {
         console.log("lawyer id", selectedOption);
         const response = await axios.get(
@@ -1252,18 +1254,15 @@ const LawyerProfile = ({ token }) => {
         setError(err.message);
         setLoading(false);
       }
-
     }
-
   };
-
 
   return (
     <div
       className="border rounded row gap-5 justify-content-center ms-1 "
       style={{
         width: "100%",
-        minHeight: '86vh',
+        minHeight: "86vh",
         // maxHeight: "83vh",
         padding: 20,
         padding: 20,
@@ -1272,7 +1271,13 @@ const LawyerProfile = ({ token }) => {
     >
       <div
         className="slots-section col-5"
-        style={{ boxShadow: "5px 5px 5px gray" }}
+        style={{
+          boxShadow: "5px 5px 5px gray",
+          overflowY: "auto",
+          maxHeight: "500px",
+          scrollbarWidth: "thin", // For Firefox
+          scrollbarColor: "#d2a85a #16213e",
+        }}
       >
         {isEditing ? (
           <form className="Theme3">
@@ -1841,7 +1846,6 @@ const LawyerProfile = ({ token }) => {
         )}
       </div>
 
-
       <div
         className="slots-section col-5  "
         style={{ boxShadow: "5px 5px 5px gray" }}
@@ -1904,7 +1908,6 @@ const LawyerProfile = ({ token }) => {
         {/* Month Selector */}
 
         {token?.Role === "lawyer" && (
-
           <Tabs
             activeKey={activeTab}
             onSelect={(k) => setActiveTab(k)}
@@ -1938,14 +1941,16 @@ const LawyerProfile = ({ token }) => {
                 </span>
               }
             >
-              <div style={{
-                boxShadow: "0px 0px 0px gray",
-                overflowY: "auto",
-                maxHeight: "400px",
-                overflowX: 'hidden',
-                scrollbarWidth: "thin",
-                scrollbarColor: "#d2a85a #16213e",
-              }}>
+              <div
+                style={{
+                  boxShadow: "0px 0px 0px gray",
+                  overflowY: "auto",
+                  maxHeight: "400px",
+                  overflowX: "hidden",
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#d2a85a #16213e",
+                }}
+              >
                 <div
                   style={{
                     display: "flex",
@@ -2089,13 +2094,15 @@ const LawyerProfile = ({ token }) => {
                               onClick={() => {
                                 setNewStartTime(
                                   new Date(
-                                    `${selectedDate.toDateString()} ${slot.startTime
+                                    `${selectedDate.toDateString()} ${
+                                      slot.startTime
                                     }`
                                   )
                                 );
                                 setNewEndTime(
                                   new Date(
-                                    `${selectedDate.toDateString()} ${slot.endTime
+                                    `${selectedDate.toDateString()} ${
+                                      slot.endTime
                                     }`
                                   )
                                 );
@@ -2111,10 +2118,12 @@ const LawyerProfile = ({ token }) => {
                                 background: slot.isBooked
                                   ? "green" // Green if booked
                                   : selectedTime === slot.startTime
-                                    ? "#d2a85a" // Golden when selected
-                                    : "#16213e", // Default background
+                                  ? "#d2a85a" // Golden when selected
+                                  : "#16213e", // Default background
                                 color: "white",
-                                cursor: slot.isBooked ? "not-allowed" : "pointer",
+                                cursor: slot.isBooked
+                                  ? "not-allowed"
+                                  : "pointer",
                                 fontSize: 11,
                                 position: "relative",
                                 width: 130,
@@ -2255,10 +2264,12 @@ const LawyerProfile = ({ token }) => {
                           className="small-datepicker"
                           id="start-time-picker"
                           style={{
-                            border: message ? "2px solid red" : "1px solid #ccc",
+                            border: message
+                              ? "2px solid red"
+                              : "1px solid #ccc",
                             transition: "border 0.3s ease-in-out",
                           }}
-                        // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
+                          // ref={(input) => message && input && input.setFocus()} // Auto-focus if message exists
                         />
 
                         {/* ✅ Message appears just below the DatePicker */}
@@ -2324,14 +2335,15 @@ const LawyerProfile = ({ token }) => {
               </div>
             </Tab>
 
-
             <Tab
               eventKey="ViewBookedSlot"
               title={
                 <span
                   style={{
                     background:
-                      activeTab === "ViewBookedSlot" ? "#d3b386" : "transparent",
+                      activeTab === "ViewBookedSlot"
+                        ? "#d3b386"
+                        : "transparent",
                     padding: "8px 12px",
                     borderRadius: "5px",
                     color: "white",
@@ -2441,8 +2453,6 @@ const LawyerProfile = ({ token }) => {
                   scrollbarColor: "#d2a85a #16213e",
                 }}
               >
-
-
                 <div
                   style={{
                     display: "flex",
@@ -2450,14 +2460,20 @@ const LawyerProfile = ({ token }) => {
                     alignItems: "center",
                   }}
                 >
-                  <button className="calender-button simple-text" onClick={prevMonth}>
+                  <button
+                    className="calender-button simple-text"
+                    onClick={prevMonth}
+                  >
                     <FontAwesomeIcon icon={faArrowLeft} size="1x" />
                   </button>
                   <h3>
                     {currentDate.toLocaleString("default", { month: "long" })}{" "}
                     {currentDate.getFullYear()}
                   </h3>
-                  <button onClick={nextMonth} className="simple-text calender-button">
+                  <button
+                    onClick={nextMonth}
+                    className="simple-text calender-button"
+                  >
                     <FontAwesomeIcon icon={faArrowRight} size="1x" />
                   </button>
                 </div>
@@ -2486,20 +2502,35 @@ const LawyerProfile = ({ token }) => {
                             alignItems: "center",
                             justifyContent: "space-between",
                             padding: "5px",
-                            background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
+                            background:
+                              selectedDate?.toDateString() ===
+                              date.toDateString()
+                                ? "#d2a85a"
+                                : "#16213e",
                             borderRadius: "5px",
                             color: "white",
                             gap: "10px", // Space between date and slots
                           }}
                         >
-
-                          <div style={{ fontWeight: "bold", maxWidth: "100px", flexShrink: 0, marginRight: "20px" }}>
+                          <div
+                            style={{
+                              fontWeight: "bold",
+                              maxWidth: "100px",
+                              flexShrink: 0,
+                              marginRight: "20px",
+                            }}
+                          >
                             {date.toDateString()}
                           </div>
 
-
-
-                          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexGrow: 1 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "10px",
+                              flexWrap: "wrap",
+                              flexGrow: 1,
+                            }}
+                          >
                             {slots.map((slot) =>
                               slot.isBooked ? (
                                 <button
@@ -2508,7 +2539,9 @@ const LawyerProfile = ({ token }) => {
                                     setslotbookuserid(slot);
                                     setNewStartTime(
                                       new Date(
-                                        `${date.toDateString()} ${slot.startTime}`
+                                        `${date.toDateString()} ${
+                                          slot.startTime
+                                        }`
                                       )
                                     );
                                     setNewEndTime(
@@ -2520,7 +2553,10 @@ const LawyerProfile = ({ token }) => {
                                     handleBookTimeClick(slot);
                                     handleTimeClick(slot.startTime);
                                     setupdateslot(slot);
-                                    setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
+                                    setSelectedSlot({
+                                      date: date.toDateString(),
+                                      time: slot.startTime,
+                                    });
                                   }}
                                   className="time-button"
                                   style={{
@@ -2528,7 +2564,11 @@ const LawyerProfile = ({ token }) => {
                                     borderRadius: "5px",
                                     border: "1px solid #d4af37",
                                     background:
-                                      selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime ? "#d2a85a" : "green",
+                                      selectedSlot?.date ===
+                                        date.toDateString() &&
+                                      selectedSlot?.time === slot.startTime
+                                        ? "#d2a85a"
+                                        : "green",
                                     color: "white",
                                     cursor: "pointer",
                                     width: 130,
@@ -2541,138 +2581,166 @@ const LawyerProfile = ({ token }) => {
                             )}
                           </div>
                         </div>
-
                       );
                     })}
                 </div>
               </div>
             </Tab>
-
           </Tabs>
         )}
 
         {token?.Role !== "lawyer" && (
           <div>
             <div className="d-flex justify-content-center mb-2">
-              <Dropdown options={[alluser, ...AllLawyer]} onSelect={handleSelect} />
+              <Dropdown
+                options={[alluser, ...AllLawyer]}
+                onSelect={handleSelect}
+              />
             </div>
             {/* {selectedLawyer ? ( */}
-              <div>
+            <div>
+              <div
+                style={{
+                  boxShadow: "0px 0px 0px gray",
+                  overflowY: "auto",
+                  maxHeight: "400px",
+                  scrollbarWidth: "thin",
+                  scrollbarColor: "#d2a85a #16213e",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <button
+                    className="calender-button simple-text"
+                    onClick={prevMonth}
+                  >
+                    <FontAwesomeIcon icon={faArrowLeft} size="1x" />
+                  </button>
+                  <h3>
+                    {currentDate.toLocaleString("default", { month: "long" })}{" "}
+                    {currentDate.getFullYear()}
+                  </h3>
+                  <button
+                    onClick={nextMonth}
+                    className="simple-text calender-button"
+                  >
+                    <FontAwesomeIcon icon={faArrowRight} size="1x" />
+                  </button>
+                </div>
 
                 <div
                   style={{
-                    boxShadow: "0px 0px 0px gray",
-                    overflowY: "auto",
-                    maxHeight: "400px",
-                    scrollbarWidth: "thin",
-                    scrollbarColor: "#d2a85a #16213e",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
                   }}
                 >
+                  {calendarDates
+                    .map((d) => (d instanceof Date ? d : new Date(d))) // Ensure valid Date objects
+                    .filter((date) => {
+                      const slots = ExistSlotsMap[date.toDateString()] || [];
+                      return slots.some((slot) => slot.isBooked); // Only include dates with booked slots
+                    })
+                    .map((date, index) => {
+                      const slots = ExistSlotsMap[date.toDateString()] || [];
 
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                    }}
-                  >
-                    <button className="calender-button simple-text" onClick={prevMonth}>
-                      <FontAwesomeIcon icon={faArrowLeft} size="1x" />
-                    </button>
-                    <h3>
-                      {currentDate.toLocaleString("default", { month: "long" })}{" "}
-                      {currentDate.getFullYear()}
-                    </h3>
-                    <button onClick={nextMonth} className="simple-text calender-button">
-                      <FontAwesomeIcon icon={faArrowRight} size="1x" />
-                    </button>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: "10px",
-                    }}
-                  >
-                    {calendarDates
-                      .map((d) => (d instanceof Date ? d : new Date(d))) // Ensure valid Date objects
-                      .filter((date) => {
-                        const slots = ExistSlotsMap[date.toDateString()] || [];
-                        return slots.some((slot) => slot.isBooked); // Only include dates with booked slots
-                      })
-                      .map((date, index) => {
-                        const slots = ExistSlotsMap[date.toDateString()] || [];
-
-                        return (
+                      return (
+                        <div
+                          key={index}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            padding: "5px",
+                            background:
+                              selectedDate?.toDateString() ===
+                              date.toDateString()
+                                ? "#d2a85a"
+                                : "#16213e",
+                            borderRadius: "5px",
+                            color: "white",
+                            gap: "10px", // Space between date and slots
+                          }}
+                        >
                           <div
-                            key={index}
                             style={{
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "space-between",
-                              padding: "5px",
-                              background: selectedDate?.toDateString() === date.toDateString() ? "#d2a85a" : "#16213e",
-                              borderRadius: "5px",
-                              color: "white",
-                              gap: "10px", // Space between date and slots
+                              fontWeight: "bold",
+                              maxWidth: "100px",
+                              flexShrink: 0,
+                              marginRight: "20px",
                             }}
                           >
-
-                            <div style={{ fontWeight: "bold", maxWidth: "100px", flexShrink: 0, marginRight: "20px" }}>
-                              {date.toDateString()}
-                            </div>
-
-
-                            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", flexGrow: 1 }}>
-                              {slots.map((slot) =>
-                                slot.isBooked ? (
-                                  <button
-                                    key={slot._id}
-                                    onClick={() => {
-                                      setslotbookuserid(slot);
-                                      setNewStartTime(
-                                        new Date(
-                                          `${date.toDateString()} ${slot.startTime}`
-                                        )
-                                      );
-                                      setNewEndTime(
-                                        new Date(
-                                          `${date.toDateString()} ${slot.endTime}`
-                                        )
-                                      );
-                                      setEditingSlotIndex(index);
-                                      handleBookTimeClick(slot);
-                                      handleTimeClick(slot.startTime);
-                                      setupdateslot(slot);
-                                      setSelectedSlot({ date: date.toDateString(), time: slot.startTime });
-                                    }}
-                                    className="time-button"
-                                    style={{
-                                      padding: "5px 10px",
-                                      borderRadius: "5px",
-                                      border: "1px solid #d4af37",
-                                      background:
-                                        selectedSlot?.date === date.toDateString() && selectedSlot?.time === slot.startTime ? "#d2a85a" : "green",
-                                      color: "white",
-                                      cursor: "pointer",
-                                      width: 130,
-                                      fontSize: "11px",
-                                    }}
-                                  >
-                                    {slot.startTime} - {slot.endTime}
-                                  </button>
-                                ) : null
-                              )}
-                            </div>
+                            {date.toDateString()}
                           </div>
 
-                        );
-                      })}
-                  </div>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "10px",
+                              flexWrap: "wrap",
+                              flexGrow: 1,
+                            }}
+                          >
+                            {slots.map((slot) =>
+                              slot.isBooked ? (
+                                <button
+                                  key={slot._id}
+                                  onClick={() => {
+                                    setslotbookuserid(slot);
+                                    setNewStartTime(
+                                      new Date(
+                                        `${date.toDateString()} ${
+                                          slot.startTime
+                                        }`
+                                      )
+                                    );
+                                    setNewEndTime(
+                                      new Date(
+                                        `${date.toDateString()} ${slot.endTime}`
+                                      )
+                                    );
+                                    setEditingSlotIndex(index);
+                                    handleBookTimeClick(slot);
+                                    handleTimeClick(slot.startTime);
+                                    setupdateslot(slot);
+                                    setSelectedSlot({
+                                      date: date.toDateString(),
+                                      time: slot.startTime,
+                                    });
+                                  }}
+                                  className="time-button"
+                                  style={{
+                                    padding: "5px 10px",
+                                    borderRadius: "5px",
+                                    border: "1px solid #d4af37",
+                                    background:
+                                      selectedSlot?.date ===
+                                        date.toDateString() &&
+                                      selectedSlot?.time === slot.startTime
+                                        ? "#d2a85a"
+                                        : "green",
+                                    color: "white",
+                                    cursor: "pointer",
+                                    width: 130,
+                                    fontSize: "11px",
+                                  }}
+                                >
+                                  {slot.startTime} - {slot.endTime}
+                                </button>
+                              ) : null
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
                 </div>
               </div>
+            </div>
             {/* )
               : (
                 <div>
@@ -2795,10 +2863,6 @@ const LawyerProfile = ({ token }) => {
               )} */}
           </div>
         )}
-
-
-
-
       </div>
       <ViewBookLawyerSlot
         isOpen={IsCalenderView}

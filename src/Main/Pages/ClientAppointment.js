@@ -39,6 +39,7 @@ import {
   BsSendFill,
   BsSendPlusFill,
 } from "react-icons/bs";
+import SocketService from "../../SocketService";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = ({ token }) => {
@@ -56,7 +57,7 @@ const ClientAppointment = ({ token }) => {
   const [responseData, setResponseData] = useState(null);
   const [popupmessage, setpopupmessage] = useState();
   const [popupcolor, setpopupcolor] = useState("popup");
-  const [email, setEmail] = useState("raheemakbar999@gmail.com");
+  const [email, setEmail] = useState("taha@northern.edu.pk");
   const [subject, setSubject] = useState("Meeting Confirmation");
   const [ClientMessage, setClientMessage] = useState("");
   const [selectedslot, setslot] = useState("");
@@ -76,7 +77,34 @@ const ClientAppointment = ({ token }) => {
   let data;
   useEffect(() => {
     fetchLawyerDetails();
-  }, [appointmentDetails,lawyerDetails]);
+  }, []);
+  const updateSlotStatus = (slotId) => {
+    if (!appointmentDetails) return;
+
+    // Create a deep copy to avoid mutating state directly
+    const updatedDetails = {
+      ...appointmentDetails,
+      availableSlots: appointmentDetails.availableSlots.map((slot) =>
+        slot.id === slotId ? { ...slot, isBooked: true } : slot
+      ),
+    };
+
+    // Update state
+    setAppoinmentDetails(updatedDetails);
+  };
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchLawyerDetails();
+    };
+
+    SocketService.socket.off("slotHasBooked", handleMessagesDelivered);
+    SocketService.onBookAppointment(handleMessagesDelivered);
+  }, []);
 
   const [imageUrl, setImageUrl] = useState("");
 
@@ -91,7 +119,7 @@ const ClientAppointment = ({ token }) => {
     let lawyerid;
     try {
       const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails/wissam@awsyounus.com`
+        `${ApiEndPoint}geLawyerDetails/osama@aws-legalgroup.com`
       ); // API endpoint
       setUser(response.data.user);
       setLawyersDetails(response.data.lawyerDetails);
@@ -319,47 +347,40 @@ const ClientAppointment = ({ token }) => {
   };
 
   const handleSchedule = async () => {
-    
-
-
     const { startTime, endTime } = selectedslot;
 
-
     // Ensure selectedDate is a valid Date object
-    const meetingDate = selectedDate instanceof Date
-      ? new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
-        .toISOString()
-        .split("T")[0] // Extract YYYY-MM-DD
-      : new Date(selectedDate).toISOString().split("T")[0];
+    const meetingDate =
+      selectedDate instanceof Date
+        ? new Date(
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .split("T")[0] // Extract YYYY-MM-DD
+        : new Date(selectedDate).toISOString().split("T")[0];
 
     console.log("Corrected Meeting Date:", meetingDate);
-
 
     // Combine formatted date with slot times
     const selectedStartTime = new Date(`${meetingDate}T${startTime}:00`);
     const selectedEndTime = new Date(`${meetingDate}T${endTime}:00`);
     console.log("startTime :", selectedStartTime);
 
-   
+    // Meeting details
+    //  const preserveLocalTimeISO = (date) => {
+    //   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
+    // };
 
+    // // Preserve the original time while formatting as ISO
+    // const meetingDetails = {
+    //   summary: "Scheduled Meeting",
+    //   startTime: preserveLocalTimeISO(selectedStartTime), // Keeps time unchanged
+    //   endTime: preserveLocalTimeISO(selectedEndTime),
+    //   timeZone: "Asia/Dubai", // UAE Time Zone
+    // };
 
-        // Meeting details
-  //  const preserveLocalTimeISO = (date) => {
-  //   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
-  // };
-  
-  // // Preserve the original time while formatting as ISO
-  // const meetingDetails = {
-  //   summary: "Scheduled Meeting",
-  //   startTime: preserveLocalTimeISO(selectedStartTime), // Keeps time unchanged
-  //   endTime: preserveLocalTimeISO(selectedEndTime),
-  //   timeZone: "Asia/Dubai", // UAE Time Zone
-  // };
-  
-  // console.log("Meeting Details:", meetingDetails);
-  
+    // console.log("Meeting Details:", meetingDetails);
 
-    
     // Meeting details
     const meetingDetails = {
       summary: "Scheduled Meeting",
@@ -369,7 +390,7 @@ const ClientAppointment = ({ token }) => {
     };
 
     console.log("Meeting Details:", meetingDetails);
- console.log("time ", selectedslot);
+    console.log("time ", selectedslot);
 
     let meeting = null;
     console.log(`Meeting Created Request: ${JSON.stringify(meetingDetails)}`);
@@ -402,6 +423,7 @@ const ClientAppointment = ({ token }) => {
     // console.log("updatedSlot =", updatedSlot)
     // console.log("updatespecifcslot", slot)
     let updatedSlot = {
+      slot: slot,
       isBooked: true,
       byBook: ClientDetails.user?._id,
       meetingLink: meeting,
@@ -473,6 +495,7 @@ const ClientAppointment = ({ token }) => {
             body: JSON.stringify(updatedSlot),
           }
         );
+        SocketService.bookAppointment(updatedSlot);
 
         const update = await responseupdate.json();
 
@@ -503,7 +526,6 @@ const ClientAppointment = ({ token }) => {
     } catch (error) {
       console.error("Error in POST request:", error.message || error);
     }
-
   };
 
   // data = {
@@ -859,8 +881,9 @@ const ClientAppointment = ({ token }) => {
                 <div
                   key={index}
                   onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${isAvailableDate ? "availableDate" : ""
-                    }`}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
                   style={{
                     border:
                       selectedDate?.getDate() === date?.getDate()
@@ -904,8 +927,8 @@ const ClientAppointment = ({ token }) => {
                       background: slot.isBooked
                         ? "green" // Green if booked
                         : selectedTime === slot.startTime
-                          ? "#d2a85a" // Golden when selected
-                          : "#16213e", // Default background
+                        ? "#d2a85a" // Golden when selected
+                        : "#16213e", // Default background
                       color: "white",
                       cursor: slot.isBooked ? "not-allowed" : "pointer",
                       fontSize: 11,
