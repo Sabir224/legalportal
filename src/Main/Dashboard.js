@@ -7,6 +7,7 @@ import {
   faCalendar,
   faHome,
   faMessage,
+  faPerson,
   faPowerOff,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
@@ -34,6 +35,7 @@ import CaseFilingForm from "./Pages/cases/CaseMatter";
 import { useCookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
 import ViewUser from "./Pages/ViewUser";
+import AddUser from "./Pages/AddUsers/AddUser";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -86,6 +88,9 @@ const Dashboard = () => {
         break;
       case 7:
         setCurrentScreen(<ViewUser token={decodedToken} />);
+        break;
+      case 8:
+        setCurrentScreen(<AddUser token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -222,11 +227,11 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
-            // {
-            //   icon: faBriefcase,
-            //   label: "Add Case",
-            //   action: () => handlescreen2(6),
-            // },
+            {
+              icon: faPerson,
+              label: "Add Case",
+              action: () => handlescreen2(8),
+            },
 
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ].map((item, index) => (
@@ -293,12 +298,15 @@ const Dashboard = () => {
                 ? "Profile"
                 : screen === 5
                 ? "Profile"
+                : screen === 8
+                ? "Add User"
                 : ""}
             </h3>
           </div>
 
           <div id="notification-profile">
-            {(decodedToken?.Role === "lawyer" || decodedToken?.Role==="receptionist") && (
+            {(decodedToken?.Role === "lawyer" ||
+              decodedToken?.Role === "receptionist") && (
               <button
                 className="btn me-2"
                 onClick={() => {
