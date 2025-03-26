@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 import "../Chat.module.css";
 import SocketService from "../../../../SocketService";
 import { FaArrowLeft } from "react-icons/fa";
+import ViewChatUser from "./ViewChatuser";
 
 const dropdownData = {
   firstStage: ["Option 1", "Option 2", "Option 3"],
   secondStage: ["Option A", "Option B", "Option C"],
 };
-
 export default function ChatHeader({ selectedChat, user, setSelectedChat }) {
+  const [IsDetailView, setDetailView] = useState(false);
+  console.log("users headers", selectedChat)
   return (
     <div
       className="py-0 px-0 d-block mt-1 mb-1 mt-1"
@@ -24,78 +26,89 @@ export default function ChatHeader({ selectedChat, user, setSelectedChat }) {
       >
         {/* Back Arrow */}
         <div className="me-2 d-lg-none">
-          {" "}
-          {/* Added margin to separate from image */}
           <FaArrowLeft
             className="main-color"
             size={20}
             onClick={() => {
               setSelectedChat(null);
-
               SocketService.socket.disconnect();
             }}
           />
         </div>
+        <div className="d-flex gap-2" onClick={() =>
+            // alert(selectedChat?.chatName ? selectedChat.chatName : "Name")
+            setDetailView(true)
+          }
+            style={{ marginRight: "10px", cursor: "pointer" }}>
 
-        {/* Profile Image */}
-        <div className="position-relative" style={{ marginRight: "10px" }}>
-          <div
-            className="rounded-circle d-flex justify-content-center align-items-center"
-            style={{
-              backgroundColor: selectedChat?.AvatarColor || "#ccc", // Fallback color
-              backgroundImage: selectedChat?.chatProfilePicture
-                ? `url(${selectedChat.chatProfilePicture})`
-                : "none", // Use image if available
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              width: "30px",
-              height: "30px",
-              border: "1px solid #FFF",
-              boxShadow: "none",
-              overflow: "hidden", // Ensure initials don't overflow
-            }}
-          >
-            {/* Show initials only if no profile picture */}
-            {!selectedChat?.chatProfilePicture && (
-              <div
-                style={{
-                  margin: "auto",
-                  textAlign: "center",
-                  color: "#FFF",
-                  fontSize: "10px",
-                  fontWeight: "bold",
-                }}
-              >
-                {(() => {
-                  const participant = selectedChat?.participants
-                    ?.filter(
-                      (participant) =>
-                        String(participant._id) !== String(user._id)
-                    )
-                    .find((participant) => participant.UserName);
+          {/* Profile Image */}
+          <div className="position-relative" >
+            <div
+              className="rounded-circle d-flex justify-content-center align-items-center"
+              style={{
+                backgroundColor: selectedChat?.AvatarColor || "#ccc",
+                backgroundImage: selectedChat?.chatProfilePicture
+                  ? `url(${selectedChat.chatProfilePicture})`
+                  : "none",
+                backgroundSize: "cover",
+                backgroundPosition: "center",
+                backgroundRepeat: "no-repeat",
+                width: "30px",
+                height: "30px",
+                border: "1px solid #FFF",
+                boxShadow: "none",
+                overflow: "hidden",
+              }}
+            >
+              {!selectedChat?.chatProfilePicture && (
+                <div
+                  style={{
+                    margin: "auto",
+                    textAlign: "center",
+                    color: "#FFF",
+                    fontSize: "10px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {(() => {
+                    const participant = selectedChat?.participants
+                      ?.filter(
+                        (participant) =>
+                          String(participant._id) !== String(user._id)
+                      )
+                      .find((participant) => participant.UserName);
 
-                  if (participant?.UserName) {
-                    const nameParts = participant.UserName.split(" ");
-                    const initials =
-                      nameParts.length > 1
-                        ? nameParts[0][0] + nameParts[nameParts.length - 1][0] // First and last name initials
-                        : nameParts[0][0]; // If only one name exists, use its first letter
-                    return initials.toUpperCase();
-                  }
-                  return "N";
-                })()}
-              </div>
-            )}
+                    if (participant?.UserName) {
+                      const nameParts = participant.UserName.split(" ");
+                      const initials =
+                        nameParts.length > 1
+                          ? nameParts[0][0] + nameParts[nameParts.length - 1][0]
+                          : nameParts[0][0];
+                      return initials.toUpperCase();
+                    }
+                    return "N";
+                  })()}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Name */}
+          <div className="flex-grow-1 d-flex flex-column align-items-start pl-2">
+            <strong
+              className="text-start w-100"
+            // Adds a pointer cursor to indicate it's clickable
+            >
+              {selectedChat?.chatName ? selectedChat.chatName : "Name"}
+            </strong>
           </div>
         </div>
 
-        {/*Name*/}
-        <div className="flex-grow-1 d-flex flex-column align-items-start pl-2">
-          <strong className="text-start w-100">
-            {selectedChat?.chatName ? selectedChat?.chatName : "Name"}
-          </strong>
-        </div>
+        <ViewChatUser
+          isOpen={IsDetailView}
+          onClose={(value) => setDetailView(value)}
+          userid={selectedChat?.participants[0]?._id}
+        />
       </div>
     </div>
   );
