@@ -56,8 +56,9 @@ import {
 } from "react-bootstrap";
 // import DragAndDrop from "./DragAndDrop";
 import { ApiEndPoint } from "../../Component/utils/utlis";
+import Dropdown from "../../Component/Dropdown";
 
-const ContactForm = ({ users }) => {
+const ContactForm = ({ users, participants }) => {
 
     const [email, setEmail] = useState("raheemakbar999@gmail.com");
     const [subject, setSubject] = useState("Meeting Confirmation");
@@ -72,6 +73,8 @@ const ContactForm = ({ users }) => {
     const [errorMessage, setErrorMessage] = useState("");
     const storedEmail = sessionStorage.getItem("Email");
     const [lawyerDetails, setLawyersDetails] = useState(null);
+    const [selectedLawyer, setSelectedLawyer] = useState(null);
+
 
     // Function to categorize files
 
@@ -330,7 +333,6 @@ const ContactForm = ({ users }) => {
 
     const fetchClientDetails = async () => {
 
-
         let mail = null
         let role = null
         try {
@@ -385,6 +387,15 @@ const ContactForm = ({ users }) => {
 
 
 
+    const handleSelect = async (selectedOption) => {
+        console.log("Selected:", selectedOption);
+        setSelectedLawyer(selectedOption);
+        users = selectedOption?._id
+        fetchClientDetails();
+
+    };
+
+
 
     const InfoRow = ({ label, value, icon }) => (
         <tr>
@@ -415,6 +426,7 @@ const ContactForm = ({ users }) => {
         <div
             className="card container-fluid justify-content-center mr-3 ml-3 p-0"
         >
+
             <Row className="d-flex justify-content-center m-3 p-0 gap-5">
                 {" "}
                 {/* Left Column: User Profile */}
@@ -428,16 +440,22 @@ const ContactForm = ({ users }) => {
                         backdropFilter: "blur(10px)", // Glass effect
                         boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
                         border: "1px solid rgba(255, 255, 255, 0.1)",
-                     
-                            // boxShadow: "5px 5px 5px gray",
-                            overflowY: "auto",
-                            maxHeight: "400px",
-                            scrollbarWidth: "thin", // For Firefox
-                            scrollbarColor: "#d2a85a #16213e",
-                        
+
+                        // boxShadow: "5px 5px 5px gray",
+                        overflowY: "auto",
+                        maxHeight: "400px",
+                        scrollbarWidth: "thin", // For Firefox
+                        scrollbarColor: "#d2a85a #16213e",
+
                         // Slight border for contrast
                     }}
                 >
+                    <div className="d-flex justify-content-left mb-2 pt-4">
+                        <Dropdown
+                            options={participants}
+                            onSelect={handleSelect}
+                        />
+                    </div>
                     <div className="mb-2 mt-2 text-center avatar-container">
                         <label htmlFor="profilePicInput">
                             <img
@@ -452,8 +470,8 @@ const ContactForm = ({ users }) => {
                                     maxHeight: "80px",
                                     minWidth: "50px",
                                     minHeight: "50px",
-                                    height:"80px",
-                                    width:"80px",
+                                    height: "80px",
+                                    width: "80px",
                                     borderRadius: "50%",
                                     border: "1px solid #18273e",
                                     boxShadow: "#18273e 0px 2px 5px",
@@ -470,9 +488,9 @@ const ContactForm = ({ users }) => {
                         <table className="w-100" style={{ borderCollapse: "collapse" }}>
                             <tbody>
                                 {/* <h3 className="text-white"> */}
-                                    {/* <FontAwesomeIcon icon={faUser} className="me-2" /> */}
-                                    <InfoRow label="Name" value={usersDetails?.UserName ? usersDetails.UserName.charAt(0).toUpperCase() + usersDetails.UserName.slice(1) : "N/A"} icon={faBriefcase} />
-                                    {/* <span className="ms-2">{}</span> */}
+                                {/* <FontAwesomeIcon icon={faUser} className="me-2" /> */}
+                                <InfoRow label="Name" value={usersDetails?.UserName ? usersDetails.UserName.charAt(0).toUpperCase() + usersDetails.UserName.slice(1) : "N/A"} icon={faBriefcase} />
+                                {/* <span className="ms-2">{}</span> */}
                                 {/* </h3> */}
 
                                 {/* Additional Details if not Client */}
@@ -933,7 +951,7 @@ export const UpdateForm = ({ user }) => {
 //   );
 // };
 
-const ViewChatUser = ({ isOpen, onClose, userid }) => {
+const ViewChatUser = ({ isOpen, onClose, user }) => {
 
     // console.log("users", users)
     return (
@@ -943,7 +961,7 @@ const ViewChatUser = ({ isOpen, onClose, userid }) => {
                 </Modal.Title>
             </Modal.Header>
             <Modal.Body>
-                <ContactForm users={userid} />
+                <ContactForm users={user[0]._id} participants={user} />
             </Modal.Body>
         </Modal>
     );
