@@ -107,7 +107,7 @@ export default function ChatHeader({ selectedChat, user, setSelectedChat }) {
         <ViewChatUser
           isOpen={IsDetailView}
           onClose={(value) => setDetailView(value)}
-          userid={selectedChat?.participants[0]?._id}
+          user={selectedChat?.participants}
         />
       </div>
     </div>
