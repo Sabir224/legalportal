@@ -227,39 +227,44 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
-            {
-              icon: faPerson,
-              label: "Add Case",
-              action: () => handlescreen2(8),
-            },
-
+            decodedToken?.Role === "admin"
+              ? {
+                  icon: faPerson,
+                  label: "Add User",
+                  action: () => handlescreen2(8),
+                }
+              : null,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
-          ].map((item, index) => (
-            <div
-              key={index}
-              className="d-flex align-items-center my-2"
-              onClick={item.action}
-              style={{ gap: "10px", cursor: "pointer" }}
-            >
-              <FontAwesomeIcon
-                icon={item.icon}
-                style={{ fontSize: "20px", color: "white", marginLeft: "6px" }}
-              />
-              {!isCollapsed && (
-                <span
-                  className="d-inline-block text-truncate"
+          ]
+            .filter(Boolean) // Removes `null` or `false` values
+            .map((item, index) => (
+              <div
+                key={index}
+                className="d-flex align-items-center my-2"
+                onClick={item.action}
+                style={{ gap: "10px", cursor: "pointer" }}
+              >
+                <FontAwesomeIcon
+                  icon={item.icon}
                   style={{
-                    fontSize: "16px",
-                    // height: "auto",
-                    // lineHeight: "1",
-                    maxWidth: "150px",
+                    fontSize: "20px",
+                    color: "white",
+                    marginLeft: "6px",
                   }}
-                >
-                  {item.label}
-                </span>
-              )}
-            </div>
-          ))}
+                />
+                {!isCollapsed && (
+                  <span
+                    className="d-inline-block text-truncate"
+                    style={{
+                      fontSize: "16px",
+                      maxWidth: "150px",
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </div>
+            ))}
         </div>
       </div>
 

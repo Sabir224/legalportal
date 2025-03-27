@@ -123,9 +123,9 @@ const AddUser = () => {
 
   return (
     <div
-      className="container card shadow"
+      className="container card shadow m-0"
       style={{
-        height: "87vh",
+        height: "86.6vh",
         overflowY: "auto",
       }}
     >
@@ -161,7 +161,7 @@ const AddUser = () => {
         </div>
 
         {/* Profile Picture Upload */}
-        <div className="mb-3 text-center">
+        <div className="mb-3 d-flex justify-content-center">
           <label htmlFor="fileUpload" className="d-block">
             {preview ? (
               <img
