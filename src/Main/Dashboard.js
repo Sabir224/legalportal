@@ -227,13 +227,13 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
-            decodedToken?.Role === "admin"
-              ? {
-                  icon: faPerson,
-                  label: "Add User",
-                  action: () => handlescreen2(8),
-                }
-              : null,
+            // decodedToken?.Role === "admin"
+            //   ? {
+            //       icon: faPerson,
+            //       label: "Add User",
+            //       action: () => handlescreen2(8),
+            //     }
+            //   : null,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean) // Removes `null` or `false` values

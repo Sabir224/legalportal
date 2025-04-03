@@ -159,7 +159,7 @@ const ClientAppointment = ({ token }) => {
 
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails/${token.email}`
+        `${ApiEndPoint}getClientDetails/taha.sawar@biit.edu.pk`
       );
       // API endpoint
       // API endpoint
