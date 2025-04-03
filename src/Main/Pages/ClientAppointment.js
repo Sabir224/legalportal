@@ -32,6 +32,7 @@ import {
   Tabs,
 } from "react-bootstrap";
 import {
+  BsArrowLeft,
   BsCalendar,
   BsCalendar2,
   BsCalendar2Plus,
@@ -159,7 +160,7 @@ const ClientAppointment = ({ token }) => {
 
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails/${token.email}`
+        `${ApiEndPoint}getClientDetails/taha.sawar@biit.edu.pk`
       );
       // API endpoint
       // API endpoint
@@ -353,10 +354,10 @@ const ClientAppointment = ({ token }) => {
     const meetingDate =
       selectedDate instanceof Date
         ? new Date(
-            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
-          )
-            .toISOString()
-            .split("T")[0] // Extract YYYY-MM-DD
+          selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+        )
+          .toISOString()
+          .split("T")[0] // Extract YYYY-MM-DD
         : new Date(selectedDate).toISOString().split("T")[0];
 
     console.log("Corrected Meeting Date:", meetingDate);
@@ -449,8 +450,7 @@ const ClientAppointment = ({ token }) => {
       text: `
          <strong>Client Message:</strong>
           <p>${ClientMessage}</p>
-        Please note that <strong>${
-          ClientDetails.user?.UserName
+        Please note that <strong>${ClientDetails.user?.UserName
         }</strong> has scheduled a meeting with you at
         <strong>${convertTo12HourFormat(
           selectedTime
@@ -515,8 +515,8 @@ const ClientAppointment = ({ token }) => {
           isPopupVisible
             ? "Meeting Schedule mail is send"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-            ? "Meeting Schedule mail is send"
-            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+              ? "Meeting Schedule mail is send"
+              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -590,434 +590,421 @@ const ClientAppointment = ({ token }) => {
 
   return (
     <div
-      className="border rounded row gap-5 justify-content-center ms-1 mt-2"
+      className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
       style={{
         width: "100%",
         height: "85vh",
         overflowY: "auto",
+        overflowX:'hidden',
         // padding: 10,
-        boxShadow: "5px 5px 5px gray",
+        boxShadow: "5px 0px 5px gray",
       }}
     >
-      {/* <div className="row gap-5 justify-content-center "  > */}
-      <div
-        className="slots-section col-5 mt-3"
-        style={{
-          boxShadow: "5px 5px 5px gray",
-          overflowY: "auto",
-          maxHeight: "500px",
-          scrollbarWidth: "thin", // For Firefox
-          scrollbarColor: "#d2a85a #16213e",
-        }}
-      >
-        <div className="profile-section">
-          <div className="d-flex flex-row">
-            {/* <div
-              className="client-picture mb-3"
-              style={{
-                border: "2px solid #d4af37",
-                textAlign: "center",
-                padding: "10px",
-                borderRadius: "50%", // Use 50% for a perfect circle
-                width: "100px",
-                height: "100px",
-                display: "flex", // Use flexbox for centering
-                alignItems: "center", // Vertically center the icon
-                justifyContent: "center", // Horizontally center the icon
-              }}
-            >
-              <FontAwesomeIcon
-                icon={faUserCircle}
-                className="rounded-circle"
-                style={{ fontSize: "48px" }} // Adjust the size of the icon
-              />
-            </div> */}
-            <img
-              style={{
-                border: "2px solid #d4af37",
-                textAlign: "center",
-                padding: "3px",
-                borderRadius: "50%", // Use 50% for a perfect circle
-                width: "100px",
-                height: "100px",
-                display: "flex", // Use flexbox for centering
-                alignItems: "center", // Vertically center the icon
-                justifyContent: "center", // Horizontally center the icon
-              }}
-              src={
-                user?.ProfilePicture ? (
-                  `${user?.ProfilePicture}`
-                ) : (
-                  <div
-                    className="client-picture mb-3"
-                    style={{
-                      border: "2px solid #d4af37",
-                      textAlign: "center",
-                      padding: "3px",
-                      borderRadius: "50%", // Use 50% for a perfect circle
-                      width: "100px",
-                      height: "100px",
-                      display: "flex", // Use flexbox for centering
-                      alignItems: "center", // Vertically center the icon
-                      justifyContent: "center", // Horizontally center the icon
-                    }}
-                  >
-                    <FontAwesomeIcon
-                      icon={faUserCircle}
-                      className="rounded-circle"
-                      style={{ fontSize: "48px" }} // Adjust the size of the icon
-                    />
-                  </div>
-                )
-              }
-              alt="Profile"
-              className="avatar-img"
-            />
-            <div className="d-flex flex-column justify-content-center p-2">
-              <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
-              <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
-            </div>
-          </div>
 
-          <div className="lawyer-details mt-1">
-            <div
-              className="d-flex"
-              style={{ width: "auto", height: "55%", overflowY: "auto" }}
-            >
-              <p>{lawyerDetails.Bio}</p>
-            </div>
-            <div className="d-flex">
-              <FontAwesomeIcon
-                icon={faMailBulk}
-                size="1x"
-                color="white"
-                className="m-2"
-              />
-              <p className="ms-2 m-1">
-                <a href={mailtoLink} style={{ color: "white" }}>
-                  {user?.Email}
-                </a>
-              </p>
-            </div>
-            <div className="d-flex">
-              <FontAwesomeIcon
-                icon={faPhone}
-                size="1x"
-                color="white"
-                className="m-2"
-              />
-              <p className="ms-2 m-1">{lawyerDetails?.Contact}</p>
-            </div>
-
-            <div className="d-flex">
-              <FontAwesomeIcon
-                icon={faAddressCard}
-                size="1x"
-                color="white"
-                className="m-2"
-              />
-              <p style={{ height: 50 }} className="ms-2 m-1 ">
-                {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
-                {lawyerDetails?.Address}
-              </p>
-            </div>
-          </div>
-        </div>
+      <div className="d-flex position-absolute align-items-center m-2" style={{ height: "40px" }}>
+        <button
+          className="btn btn-light d-flex align-items-center p-1"
+          onClick={() => window.history.back()}
+          style={{
+            width: "35px", // Adjust button width
+            height: "35px", // Adjust button height
+            borderRadius: "50%", // Make it circular
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "2px 2px 5px gray",
+          }}
+        >     <BsArrowLeft size={20} />
+        </button>
       </div>
+
       <div
-        className="slots-section col-5  mt-3"
+        className="row gap-5 justify-content-center ms-1 mt-2"
         style={{
-          boxShadow: "5px 5px 5px gray",
-          overflowY: "auto",
-          maxHeight: "500px",
-          scrollbarWidth: "thin", // For Firefox
-          scrollbarColor: "#d2a85a #16213e",
+          // width: "100%",
+          // height: "85vh",
+          // overflowY: "auto",
+          // padding: 10,
+          // boxShadow: "5px 5px 5px gray",
         }}
       >
-        <div>
-          {isPopupVisible && (
-            <div className="popup-overlay">
-              <div className={popupcolor}>
-                {!isLoading && !isEmailSent && (
-                  <>
-                    <h3
+
+        {/* <div className="row gap-5 justify-content-center "  > */}
+        <div
+          className="slots-section col-5 mt-3 mb-3"
+          style={{
+            boxShadow: "5px 5px 5px gray",
+            overflowY: "auto",
+            maxHeight: "500px",
+            scrollbarWidth: "thin", // For Firefox
+            scrollbarColor: "#d2a85a #16213e",
+          }}
+        >
+          <div className="profile-section">
+            <div className="d-flex flex-row">
+              <img
+                style={{
+                  border: "2px solid #d4af37",
+                  textAlign: "center",
+                  padding: "3px",
+                  borderRadius: "50%", // Use 50% for a perfect circle
+                  width: "100px",
+                  height: "100px",
+                  display: "flex", // Use flexbox for centering
+                  alignItems: "center", // Vertically center the icon
+                  justifyContent: "center", // Horizontally center the icon
+                }}
+                src={
+                  user?.ProfilePicture ? (
+                    `${user?.ProfilePicture}`
+                  ) : (
+                    <div
+                      className="client-picture mb-3"
                       style={{
-                        fontSize: "18px",
-                        fontWeight: "bold",
-                        marginBottom: "5px",
+                        border: "2px solid #d4af37",
+                        textAlign: "center",
+                        padding: "3px",
+                        borderRadius: "50%", // Use 50% for a perfect circle
+                        width: "100px",
+                        height: "100px",
+                        display: "flex", // Use flexbox for centering
+                        alignItems: "center", // Vertically center the icon
+                        justifyContent: "center", // Horizontally center the icon
                       }}
                     >
-                      {popupmessage}
-                    </h3>
-                    <textarea
-                      placeholder="Text Message (Optional)"
-                      value={ClientMessage}
-                      onChange={(e) => setClientMessage(e.target.value)}
-                      style={{
-                        width: "90%",
-                        minHeight: "100px", // Adjust height as needed
-                        padding: "8px",
-                        border: "1px solid #ddd",
-                        borderRadius: "6px",
-                        margin: "10px 0",
-                        resize: "vertical", // Allows resizing if needed
-                      }}
-                    ></textarea>
-
-                    {isPopupVisiblecancel && (
-                      <div className="popup-actions d-flex justify-content-center">
-                        <button className="confirm-btn" onClick={handleConfirm}>
-                          Yes
-                        </button>
-                        <button
-                          className="cancel-btn"
-                          onClick={handleClosePopup}
-                        >
-                          No
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-                {isLoading && (
-                  <div className="loading-indicator">
-                    <p>Sending...</p>
-                    <div className="spinner"></div>{" "}
-                    {/* You can style a spinner here */}
-                  </div>
-                )}
-                {isEmailSent && (
-                  <div className="confirmation">
-                    <FontAwesomeIcon
-                      icon={faCheck}
-                      size="3x"
-                      color="white"
-                      className="m-2"
-                    />
-
-                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
-                  </div>
-                )}
+                      <FontAwesomeIcon
+                        icon={faUserCircle}
+                        className="rounded-circle"
+                        style={{ fontSize: "48px" }} // Adjust the size of the icon
+                      />
+                    </div>
+                  )
+                }
+                alt="Profile"
+                className="avatar-img"
+              />
+              <div className="d-flex flex-column justify-content-center p-2">
+                <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
+                <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* Month Selector */}
-        <div
-          className="d-flex "
-          style={{ marginBottom: "2px", justifyContent: "space-between" }}
-        >
-          <div style={{ color: " #d4af37" }}>
-            <h2>Available Slots</h2>
+            <div className="lawyer-details mt-1">
+              <div
+                className="d-flex"
+                style={{ width: "auto", height: "55%", overflowY: "auto" }}
+              >
+                <p>{lawyerDetails.Bio}</p>
+              </div>
+              <div className="d-flex">
+                <FontAwesomeIcon
+                  icon={faMailBulk}
+                  size="1x"
+                  color="white"
+                  className="m-2"
+                />
+                <p className="ms-2 m-1">
+                  <a href={mailtoLink} style={{ color: "white" }}>
+                    {user?.Email}
+                  </a>
+                </p>
+              </div>
+              <div className="d-flex">
+                <FontAwesomeIcon
+                  icon={faPhone}
+                  size="1x"
+                  color="white"
+                  className="m-2"
+                />
+                <p className="ms-2 m-1">{lawyerDetails?.Contact}</p>
+              </div>
+
+              <div className="d-flex">
+                <FontAwesomeIcon
+                  icon={faAddressCard}
+                  size="1x"
+                  color="white"
+                  className="m-2"
+                />
+                <p style={{ height: 50 }} className="ms-2 m-1 ">
+                  {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
+                  {lawyerDetails?.Address}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-
         <div
+          className="slots-section col-5 mb-3 mt-3"
           style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
+            boxShadow: "5px 5px 5px gray",
+            overflowY: "auto",
+            maxHeight: "500px",
+            scrollbarWidth: "thin", // For Firefox
+            scrollbarColor: "#d2a85a #16213e",
           }}
         >
-          <button className="calender-button" onClick={prevMonth}>
-            <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
-          </button>
-          <h3>
-            {currentDate.toLocaleString("default", { month: "long" })}{" "}
-            {currentDate.getFullYear()}
-          </h3>
-          <button onClick={nextMonth} className="calender-button">
-            <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
-          </button>
-        </div>
+          <div>
+            {isPopupVisible && (
+              <div className="popup-overlay">
+                <div className={popupcolor}>
+                  {!isLoading && !isEmailSent && (
+                    <>
+                      <h3
+                        style={{
+                          fontSize: "18px",
+                          fontWeight: "bold",
+                          marginBottom: "5px",
+                        }}
+                      >
+                        {popupmessage}
+                      </h3>
+                      <textarea
+                        placeholder="Text Message (Optional)"
+                        value={ClientMessage}
+                        onChange={(e) => setClientMessage(e.target.value)}
+                        style={{
+                          width: "90%",
+                          minHeight: "100px", // Adjust height as needed
+                          padding: "8px",
+                          border: "1px solid #ddd",
+                          borderRadius: "6px",
+                          margin: "10px 0",
+                          resize: "vertical", // Allows resizing if needed
+                        }}
+                      ></textarea>
 
-        {/* Days of the Week */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            fontWeight: "bold",
-            marginBottom: "5px",
-          }}
-        >
-          {daysOfWeek.map((day) => (
-            <div
-              key={day}
-              className="Calendarday"
-              style={{
-                border: " 1px solid #d2a85a",
-                margin: 3,
-                width: "calc(100% / 7)",
-                textAlign: "center",
-              }}
-            >
-              {day}
+                      {isPopupVisiblecancel && (
+                        <div className="popup-actions d-flex justify-content-center">
+                          <button className="confirm-btn" onClick={handleConfirm}>
+                            Yes
+                          </button>
+                          <button
+                            className="cancel-btn"
+                            onClick={handleClosePopup}
+                          >
+                            No
+                          </button>
+                        </div>
+                      )}
+                    </>
+                  )}
+                  {isLoading && (
+                    <div className="loading-indicator">
+                      <p>Sending...</p>
+                      <div className="spinner"></div>{" "}
+                      {/* You can style a spinner here */}
+                    </div>
+                  )}
+                  {isEmailSent && (
+                    <div className="confirmation">
+                      <FontAwesomeIcon
+                        icon={faCheck}
+                        size="3x"
+                        color="white"
+                        className="m-2"
+                      />
+
+                      {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Month Selector */}
+          <div
+            className="d-flex "
+            style={{ marginBottom: "2px", justifyContent: "space-between" }}
+          >
+            <div style={{ color: " #d4af37" }}>
+              <h2>Available Slots</h2>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div>
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
-            {calendarDates.map((date, index) => {
-              if (!date) {
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
+            <button className="calender-button" onClick={prevMonth}>
+              <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
+            </button>
+            <h3>
+              {currentDate.toLocaleString("default", { month: "long" })}{" "}
+              {currentDate.getFullYear()}
+            </h3>
+            <button onClick={nextMonth} className="calender-button">
+              <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
+            </button>
+          </div>
+
+          {/* Days of the Week */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              fontWeight: "bold",
+              marginBottom: "5px",
+            }}
+          >
+            {daysOfWeek.map((day) => (
+              <div
+                key={day}
+                className="Calendarday"
+                style={{
+                  border: " 1px solid #d2a85a",
+                  margin: 3,
+                  width: "calc(100% / 7)",
+                  textAlign: "center",
+                }}
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
+          <div>
+            <div style={{ display: "flex", flexWrap: "wrap" }}>
+              {calendarDates.map((date, index) => {
+                if (!date) {
+                  return (
+                    <div
+                      key={index}
+                      className="calendarEmpty"
+                      style={{
+                        width: "calc(100% / 7)",
+                        height: "40px", // Consistent height for empty cells
+                      }}
+                    ></div>
+                  );
+                }
+
+                const dateStr = date.toDateString();
+                const dateInfo = availableDatesInfo[dateStr] || {};
+                const isAvailableDate = dateInfo.isAvailable;
+
                 return (
                   <div
                     key={index}
-                    className="calendarEmpty"
+                    onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
+                    className={`calendarDates ${isAvailableDate ? "availableDate" : ""
+                      }`}
                     style={{
-                      width: "calc(100% / 7)",
-                      height: "40px", // Consistent height for empty cells
-                    }}
-                  ></div>
-                );
-              }
-
-              const dateStr = date.toDateString();
-              const dateInfo = availableDatesInfo[dateStr] || {};
-              const isAvailableDate = dateInfo.isAvailable;
-
-              return (
-                <div
-                  key={index}
-                  onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                  className={`calendarDates ${
-                    isAvailableDate ? "availableDate" : ""
-                  }`}
-                  style={{
-                    border:
-                      selectedDate?.getDate() === date?.getDate()
-                        ? "2px solid white"
-                        : "2px solid rgb(2, 30, 58)",
-                    borderRadius: "5px",
-                    color: isAvailableDate ? "" : "gray",
-                    cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
-                    background:
-                      selectedDate?.getDate() === date?.getDate()
-                        ? "#d2a85a"
-                        : "",
-                    // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
-                    textAlign: "center",
-                    lineHeight: "40px",
-                    height: "40px",
-                    fontSize: 12, // Ensure consistent height
-                  }}
-                >
-                  {date.getDate()}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <div>
-            <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
-            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-              {selectedDate ? (
-                availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
-                  <button
-                    key={slot._id}
-                    onClick={() => handleTimeClick(slot.startTime, slot)}
-                    className="time-button"
-                    style={{
-                      padding: "5px 10px",
+                      border:
+                        selectedDate?.getDate() === date?.getDate()
+                          ? "2px solid white"
+                          : "2px solid rgb(2, 30, 58)",
                       borderRadius: "5px",
-                      border: "1px solid #d4af37",
-                      background: slot.isBooked
-                        ? "green" // Green if booked
-                        : selectedTime === slot.startTime
-                        ? "#d2a85a" // Golden when selected
-                        : "#16213e", // Default background
-                      color: "white",
-                      cursor: slot.isBooked ? "not-allowed" : "pointer",
-                      fontSize: 11,
-                      width: 130,
-                    }}
-                    disabled={slot.isBooked}
-                    onMouseEnter={(e) => {
-                      if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = "#d2a85a"; // Hover background (light golden)
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!slot.isBooked && selectedTime !== slot.startTime) {
-                        e.target.style.background = "#16213e"; // Reset to default
-                      }
+                      color: isAvailableDate ? "" : "gray",
+                      cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
+                      background:
+                        selectedDate?.getDate() === date?.getDate()
+                          ? "#d2a85a"
+                          : "",
+                      // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
+                      textAlign: "center",
+                      lineHeight: "40px",
+                      height: "40px",
+                      fontSize: 12, // Ensure consistent height
                     }}
                   >
-                    {convertTo12HourFormat(slot.startTime)} -{" "}
-                    {convertTo12HourFormat(slot.endTime)}
-                  </button>
-                ))
-              ) : (
-                <p style={{ color: "gray" }}>
-                  Select a date to view available times.
-                </p>
-              )}
+                    {date.getDate()}
+                  </div>
+                );
+              })}
             </div>
           </div>
-        </div>
 
-        {selectedTime && (
-          <div
-            style={{
-              position: "fixed",
-              bottom: "70px",
-              right: "110px",
-              zIndex: 1000,
-              width: 60,
-              height: 60,
-              boxShadow: "5px 5px 5px black",
-              borderRadius: "50%",
-              border: "1px solid #d2a85a",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: " #d2a85a",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.background = "#16213e"; // Reset to default
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.background = "#d2a85a"; // Hover background (light golden)
-            }}
-            onClick={() => handleOpenPopup()}
-          >
-            {/* <Button
+          <div>
+            <div>
+              <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
+              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                {selectedDate ? (
+                  availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
+                    <button
+                      key={slot._id}
+                      onClick={() => handleTimeClick(slot.startTime, slot)}
+                      className="time-button"
+                      style={{
+                        padding: "5px 10px",
+                        borderRadius: "5px",
+                        border: "1px solid #d4af37",
+                        background: slot.isBooked
+                          ? "green" // Green if booked
+                          : selectedTime === slot.startTime
+                            ? "#d2a85a" // Golden when selected
+                            : "#16213e", // Default background
+                        color: "white",
+                        cursor: slot.isBooked ? "not-allowed" : "pointer",
+                        fontSize: 11,
+                        width: 130,
+                      }}
+                      disabled={slot.isBooked}
+                      onMouseEnter={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = "#d2a85a"; // Hover background (light golden)
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = "#16213e"; // Reset to default
+                        }
+                      }}
+                    >
+                      {convertTo12HourFormat(slot.startTime)} -{" "}
+                      {convertTo12HourFormat(slot.endTime)}
+                    </button>
+                  ))
+                ) : (
+                  <p style={{ color: "gray" }}>
+                    Select a date to view available times.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
-              variant="primary"
+          {selectedTime && (
+            <div
               style={{
-                // width: 'auto',
+                position: "fixed",
+                bottom: "70px",
+                right: "110px",
+                zIndex: 1000,
+                width: 60,
+                height: 60,
                 boxShadow: "5px 5px 5px black",
+                borderRadius: "50%",
                 border: "1px solid #d2a85a",
-                backgroundColor: " #16213e",
-                 
-                // display: "flex",
-                // alignItems: "center",
-                // justifyContent: "center",
-                
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: " #d2a85a",
               }}
               onMouseEnter={(e) => {
-                e.target.style.background = "#d2a85a"; // Hover background (light golden)
-
-              }}
-              onMouseLeave={(e) => {
                 e.target.style.background = "#16213e"; // Reset to default
               }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "#d2a85a"; // Hover background (light golden)
+              }}
               onClick={() => handleOpenPopup()}
-            > */}
-            <BsCalendar2Plus
-              style={
-                {
-                  //  padding: "15px 20px",
+            >
+              <BsCalendar2Plus
+                style={
+                  {
+                    //  padding: "15px 20px",
+                  }
                 }
-              }
-              color="white"
-            />
-            {/* </Button> */}
-          </div>
-        )}
+                color="white"
+              />
+              {/* </Button> */}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
