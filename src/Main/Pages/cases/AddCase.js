@@ -21,12 +21,14 @@ import {
     FaRegEnvelope,
     FaFilter,
     FaMailBulk,
+    FaAudioDescription,
+    FaTypo3,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { ApiEndPoint } from "../Component/utils/utlis";
 import { useDispatch, useSelector } from "react-redux";
 import { screenChange } from "../../../REDUX/sliece";
-import { BsPerson } from "react-icons/bs";
+import { Bs123, BsPerson, BsType } from "react-icons/bs";
 import axios from "axios";
 
 const AddCase = () => {
@@ -195,7 +197,7 @@ const AddCase = () => {
         </div> */}
 
             {/* Profile Picture Upload */}
-            <div className="mb-3 d-flex justify-content-center">
+            {/* <div className="mb-3 d-flex justify-content-center">
                 <label htmlFor="fileUpload" className="d-block">
                     {selectedclientdetails.ProfilePicture && selectedclientdetails.ProfilePicture !== null ? (
                         <img
@@ -232,17 +234,17 @@ const AddCase = () => {
                     accept="image/*"
                     onChange={handleFileChange}
                 />
-            </div>
+            </div> */}
 
             {/* Form Fields */}
             <div className="row">
                 {[
-                    { label: "Case Number", icon: <FaUser />, state: casenumber, setState: setCaseNumber },
-                    { label: "Name", icon: <FaRegEnvelope />, state: selectedclientdetails.UserName, setState: setClientname },
-                    { label: "Case Type", icon: <FaPhone />, state: casetype, setState: setCaseType },
-                    { label: "Discription (Optional)", icon: <FaLock />, state: discription, setState: setDiscription },
+                    { label: "Case Id", icon: <Bs123 />, state: casenumber, setState: setCaseNumber },
+                    { label: "Client Name", icon: <BsPerson />, state: selectedclientdetails.UserName, setState: setClientname },
+                    { label: "Case Type", icon: <BsType />, state: casetype, setState: setCaseType },
+                    { label: "Description (Optional)", icon: <FaAudioDescription />, state: discription, setState: setDiscription },
                     // { label: "Priority", icon: <FaLock />, state: confirmPassword, setState: setConfirmPassword },
-                    { label: "Client Email", icon: <FaMailBulk />, state: selectedclientdetails.Email },
+                    { label: "Client Email", icon: <FaRegEnvelope />, state: selectedclientdetails.Email },
                     // { label: "Language", icon: <FaGlobe />, state: language, setState: setLanguage },
                     // selectedRole !== "client" && { label: "Location", icon: <FaMapMarkedAlt />, state: location, setState: setLocation },
                     // selectedRole !== "client" && { label: "Expertise", icon: <FaBriefcase />, state: expertise, setState: setExpertise },
@@ -264,7 +266,7 @@ const AddCase = () => {
                                     value={state}
                                     style={{ minWidth: '300px', border: '1px solid #18273e' }}
                                     onChange={(e) => setState(e.target.value)}
-                                    disabled={label !== "Client Email" ? label !== 'Name' ? "" : true : true}
+                                    disabled={label !== "Client Email" ? label !== 'Client Name' ? "" : true : true}
                                 />
                             </div>
                         </div>
