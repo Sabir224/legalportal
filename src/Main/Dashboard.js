@@ -3,12 +3,18 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Dashboard.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBookBible,
   faBriefcase,
   faCalendar,
   faHome,
   faMessage,
   faPerson,
+  faPersonCane,
+  faPersonCircleMinus,
+  faPersonCirclePlus,
+  faPersonWalkingDashedLineArrowRight,
   faPowerOff,
+  faStreetView,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
@@ -36,6 +42,9 @@ import { useCookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
 import ViewUser from "./Pages/ViewUser";
 import AddUser from "./Pages/AddUsers/AddUser";
+import ViewUsers from "./Pages/AddUsers/ViewUsers";
+import ViewClient from "./Pages/cases/ViewClient";
+import AddCase from "./Pages/cases/AddCase";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -57,7 +66,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (cookies.token) {
       try {
-        setDecodedToken(jwtDecode(cookies.token)); // Decode and store token
+        handlescreen2(0) // Decode and store token
+        setDecodedToken(jwtDecode(cookies.token));
       } catch (error) {
         console.error("Invalid token:", error);
       }
@@ -91,6 +101,15 @@ const Dashboard = () => {
         break;
       case 8:
         setCurrentScreen(<AddUser token={decodedToken} />);
+        break;
+      case 9:
+        setCurrentScreen(<ViewUsers token={decodedToken} screen={currenScreen} />);
+        break;
+      case 10:
+        setCurrentScreen(<ViewClient token={decodedToken} />);
+        break;
+      case 11:
+        setCurrentScreen(<AddCase token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -182,9 +201,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${
-          isCollapsed ? "col-1" : "col-2"
-        } h-100 position-relative`}
+        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
+          } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -227,12 +245,19 @@ const Dashboard = () => {
               label: "Messages",
               action: () => handlescreen2(3),
             },
+            decodedToken?.Role === "admin"
+              ? {
+                icon: faPerson,
+                label: "View Users",
+                action: () => handlescreen2(9),
+              }
+              : null,
             // decodedToken?.Role === "admin"
             //   ? {
-            //       icon: faPerson,
-            //       label: "Add User",
-            //       action: () => handlescreen2(8),
-            //     }
+            //     icon: faStreetView,
+            //     label: "View Client",
+            //     action: () => handlescreen2(10),
+            //   }
             //   : null,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
@@ -288,44 +313,96 @@ const Dashboard = () => {
             color: "white",
           }}
         >
-          <div className="d-flex align-items-center justify-content-between p-3 position-relative">
+          <div className="d-flex align-items-center gap-2 justify-content-between p-3 position-relative">
             {/* Case Title */}
-            <h3 className="m-0">
+            <h3 className="m-0 ">
               {screen === 3
                 ? "Chat"
                 : screen === 0
-                ? "Master List"
-                : screen === 1
-                ? "Case Details"
-                : screen === 2
-                ? "Appointment"
-                : screen === 4
-                ? "Profile"
-                : screen === 5
-                ? "Profile"
-                : screen === 8
-                ? "Add User"
-                : ""}
+                  ? "Master List"
+                  : screen === 1
+                    ? "Case Details"
+                    : screen === 2
+                      ? "Appointment"
+                      : screen === 4
+                        ? "Profile"
+                        : screen === 5
+                          ? "Profile"
+                          : screen === 8
+                            ? "Add User"
+                            : screen === 9
+                              ? "View User"
+                              : screen === 10
+                                ? "View Client"
+                              : screen === 11
+                                ? "Add Case"
+                                : ""}
             </h3>
+            {decodedToken?.Role === "admin" && screen === 9
+              ? (
+
+                <div
+                  className="d-flex align-items-center my-2"
+                  onClick={() => handlescreen2(8)}
+                  style={{ gap: "10px", cursor: "pointer" }}
+                >
+                  <FontAwesomeIcon
+                    icon={faPersonCirclePlus}
+                    style={{
+                      fontSize: "20px",
+                      color: "white",
+                      marginLeft: "6px",
+                    }}
+                  />
+
+                </div>
+              )
+
+              : null
+
+            }
+            {decodedToken?.Role === "admin" && screen === 10
+              ? (
+
+                <div
+                  className="d-flex align-items-center my-2"
+                  onClick={() => handlescreen2(11)}
+                  style={{ gap: "10px", cursor: "pointer" }}
+                >
+                  <FontAwesomeIcon
+                    icon={faBookBible}
+                    style={{
+                      fontSize: "20px",
+                      color: "white",
+                      marginLeft: "6px",
+                    }}
+                  />
+
+                </div>
+              )
+
+              : null
+
+            }
           </div>
 
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-              <button
-                className="btn me-2"
-                onClick={() => {
-                  handlescreen2(5);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUser}
-                  size="1x"
-                  color="white"
-                  className=""
-                />
-              </button>
-            )}
+                <button
+                  className="btn me-2"
+                  onClick={() => {
+                    handlescreen2(5);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    size="1x"
+                    color="white"
+                    className=""
+                  />
+                </button>
+              )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
@@ -349,7 +426,7 @@ const Dashboard = () => {
         <div style={{ padding: 1, marginRight: "10px" }}>{currenScreen}</div>
         {/* </div> */}
       </div>
-    </div>
+    </div >
   );
 };
 export default Dashboard;

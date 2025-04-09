@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import UsersAdminUserListWidget from "./widgets/UsersAdminUserListWidget";
-import ViewUsersAdminWidget from "./widgets/ViewUsersAdminWidget";
+// import UsersAdminUserListWidget from "./widgets/UsersAdminUserListWidget";
+// import ViewUsersAdminWidget from "./widgets/ViewUsersAdminWidget";
 import { useMediaQuery } from "react-responsive";
 import { GrContactInfo } from "react-icons/gr";
+import UsersAdminUserListWidget from "../AddUsers/widgets/UsersAdminUserListWidget";
+import ViewUsersAdminWidget from "../AddUsers/widgets/ViewUsersAdminWidget";
 
-export default function ViewUsers({ token, screen }) {
+export default function ViewClient({ token }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -14,7 +16,7 @@ export default function ViewUsers({ token, screen }) {
 
   // Update isMobile state on screen resize
   useEffect(() => {
-    console.log("currenScreen", screen.type.name)
+    // console.log("currenScreen", screen.type.name)
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
@@ -60,7 +62,7 @@ export default function ViewUsers({ token, screen }) {
             userData={token}
             searchQuery={searchQuery}
             token={token}
-            screen={null}
+            screen={"ViewClient"}
             
           />
         </div>

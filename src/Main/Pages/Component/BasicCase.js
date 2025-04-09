@@ -306,11 +306,10 @@ const BasicCase = ({ token }) => {
               >
                 <span className="col d-flex align-items-center text-start">
                   <span
-                    className={`me-2 rounded-circle ${
-                      item.Status.toLowerCase() === "case filed"
+                    className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
                         ? "bg-success"
                         : "bg-danger"
-                    }`}
+                      }`}
                     style={{
                       width: "10px",
                       height: "10px",

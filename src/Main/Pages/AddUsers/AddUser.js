@@ -19,11 +19,17 @@ import {
   FaBuilding,
   FaChair,
   FaRegEnvelope,
+  FaFilter,
 } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import { ApiEndPoint } from "../Component/utils/utlis";
+import { useDispatch } from "react-redux";
+import { screenChange } from "../../../REDUX/sliece";
+import { BsPerson } from "react-icons/bs";
 
 const AddUser = () => {
+
+  const dispatch = useDispatch();
   const [selectedRole, setSelectedRole] = useState("client");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -82,7 +88,7 @@ const AddUser = () => {
       if (!response.ok) {
         throw new Error("Failed to add user");
       }
-
+      dispatch(screenChange(9));
       alert("✅ User Added Successfully!");
 
       setName("");
@@ -123,22 +129,22 @@ const AddUser = () => {
 
   return (
     <div
-      className="container card shadow m-0"
+      className="container card shadow m-0 p-5"
       style={{
         height: "86.6vh",
         overflowY: "auto",
       }}
     >
-      <div
+      {/* <div
         className="card shadow p-4 m-2"
         style={{
           height: "84vh",
           overflowY: "auto",
-          backgroundColor: "#1d3557",
+          backgroundColor: "white",
         }}
-      >
+      > */}
         {/* Role Selection Dropdown */}
-        <div
+        {/* <div
           className="mb-3 position-relative d-flex justify-content-end"
           ref={dropdownRef}
         >
@@ -147,7 +153,7 @@ const AddUser = () => {
           </button>
           {dropdownOpen && (
             <ul className="list-group position-absolute bg-white border rounded shadow w-auto end-0">
-              {["client", "lawyer", "finance"].map((role) => (
+              {["client", "lawyer", "finance", "receptionist"].map((role) => (
                 <li
                   key={role}
                   className="list-group-item list-group-item-action"
@@ -158,7 +164,7 @@ const AddUser = () => {
               ))}
             </ul>
           )}
-        </div>
+        </div> */}
 
         {/* Profile Picture Upload */}
         <div className="mb-3 d-flex justify-content-center">
@@ -182,8 +188,9 @@ const AddUser = () => {
                   width: 100,
                   height: 100,
                   borderRadius: "50%",
-                  border: "2px dashed #ccc",
+                  border: "2px solid #18273e",
                   cursor: "pointer",
+                  backgroundColor: "#18273e",
                 }}
               >
                 <FaUpload className="fs-4 text-white" />
@@ -203,101 +210,81 @@ const AddUser = () => {
         <div className="row">
           {[
             { label: "Name", icon: <FaUser />, state: name, setState: setName },
-            {
-              label: "Email",
-              icon: <FaRegEnvelope />,
-              state: email,
-              setState: setEmail,
-              type: "email",
-            },
-            {
-              label: "Contact Number",
-              icon: <FaPhone />,
-              state: contactNumber,
-              setState: setContactNumber,
-            },
-            {
-              label: "Password",
-              icon: <FaLock />,
-              state: password,
-              setState: setPassword,
-              type: "password",
-            },
-            {
-              label: "Confirm Password",
-              icon: <FaLock />,
-              state: confirmPassword,
-              setState: setConfirmPassword,
-              type: "password",
-            },
-            {
-              label: "Address",
-              icon: <FaMapMarkerAlt />,
-              state: address,
-              setState: setAddress,
-            },
-            {
-              label: "Language",
-              icon: <FaGlobe />,
-              state: language,
-              setState: setLanguage,
-            },
-            selectedRole !== "client" && {
-              label: "Location",
-              icon: <FaMapMarkedAlt />,
-              state: location,
-              setState: setLocation,
-            },
-            selectedRole !== "client" && {
-              label: "Expertise",
-              icon: <FaBriefcase />,
-              state: expertise,
-              setState: setExpertise,
-            },
-            selectedRole !== "client" && {
-              label: "Department",
-              icon: <FaBuilding />,
-              state: department,
-              setState: setDepartment,
-            },
-            selectedRole !== "client" && {
-              label: "Position",
-              icon: <FaChair />,
-              state: position,
-              setState: setPosition,
-            },
+            { label: "Email", icon: <FaRegEnvelope />, state: email, setState: setEmail, type: "email" },
+            { label: "Contact Number", icon: <FaPhone />, state: contactNumber, setState: setContactNumber },
+            { label: "Password", icon: <FaLock />, state: password, setState: setPassword, type: "password" },
+            { label: "Confirm Password", icon: <FaLock />, state: confirmPassword, setState: setConfirmPassword, type: "password" },
+            { label: "Address", icon: <FaMapMarkerAlt />, state: address, setState: setAddress },
+            { label: "Language", icon: <FaGlobe />, state: language, setState: setLanguage },
+            selectedRole !== "client" && { label: "Location", icon: <FaMapMarkedAlt />, state: location, setState: setLocation },
+            selectedRole !== "client" && { label: "Expertise", icon: <FaBriefcase />, state: expertise, setState: setExpertise },
+            selectedRole !== "client" && { label: "Department", icon: <FaBuilding />, state: department, setState: setDepartment },
+            selectedRole !== "client" && { label: "Position", icon: <FaChair />, state: position, setState: setPosition },
           ]
             .filter(Boolean)
             .map(({ label, icon, state, setState, type = "text" }, index) => (
               <div key={index} className="col-md-6 mb-3">
-                <label className="form-label form-label1 text-white">
-                  {label}
-                </label>
+                <label className="form-label" style={{color: '#18273e'}}>{label}</label>
                 <div className="input-group">
-                  <span className="input-group-text customIcon text-white bg-transparent border-white">
+                  <span className="input-group-text customIcon  ">
                     {icon}
                   </span>
                   <input
                     type={type}
-                    className="form-control  form-control1 text-white bg-transparent border-white"
+                    className="form-control"
                     placeholder={label}
                     value={state}
+                    style={{ minWidth: '300px', border: '1px solid #18273e' }}
+
                     onChange={(e) => setState(e.target.value)}
                   />
                 </div>
               </div>
             ))}
+
+          <div className="mb-3 col-md-6">
+            <label className="form-label" style={{color: '#18273e'}}>Role</label>
+            <div className="input-group">
+              <div className="position-relative w-100" ref={dropdownRef}>
+                <div
+                  className="form-control  d-flex align-items-center justify-content-between"
+                  style={{ cursor: "pointer", minWidth: '300px', border: '1px solid #18273e', color: "#18273e" }}
+
+                  onClick={toggleDropdown}
+                >
+                  {selectedRole || "Select Role"} <FaChevronDown />
+                </div>
+                {dropdownOpen && (
+                  <ul className="list-group position-absolute bg-dark border rounded shadow w-100 mt-1" style={{ zIndex: 1000 }}>
+                    {["client", "lawyer", "finance", "receptionist"].map((role) => (
+                      <li
+                        key={role}
+                        className="list-group-item list-group-item-action text-white bg-dark border-secondary"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => handleRoleSelect(role)}
+                      >
+                        {role}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+
+
 
         {/* Bio Section */}
         {selectedRole !== "client" && (
           <div className="mb-3">
             <label className="form-label form-label1 text-white">Bio</label>
             <textarea
-              className="form-control form-control1 text-white bg-transparent border-white"
+              className="form-control form-control1 bg-transparent"
               placeholder="Short bio"
               rows="3"
               value={bio}
+              style={{ border: '1px solid #18273e' }}
               onChange={(e) => setBio(e.target.value)}
             ></textarea>
           </div>
@@ -315,7 +302,7 @@ const AddUser = () => {
             Add User
           </button>
         </div>
-      </div>
+      {/* </div> */}
     </div>
   );
 };
