@@ -3,12 +3,13 @@ import axios from "axios";
 import { ApiEndPoint } from "../Main/Pages/Component/utils/utlis";
 export const assignCase = createAsyncThunk(
   "cases/assignCase",
-  async ({ caseId, users, permissionList }, { rejectWithValue }) => {
+  async ({ caseId, users, permissionList, CaseClientId }, { rejectWithValue }) => {
     try {
       const response = await axios.post(`${ApiEndPoint}assign`, {
         caseId,
         users,
-        permissionList, // Sending permissions list from frontend
+        permissionList,
+        CaseClientId // Sending permissions list from frontend
       });
 
       if (!response.data || !response.data.case) {

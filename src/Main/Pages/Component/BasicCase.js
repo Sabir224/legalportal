@@ -33,10 +33,12 @@ const BasicCase = ({ token }) => {
   const [responseData, setResponseData] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
+  const [casedetails, setcasedetails] = useState(null);
 
-  const handleOpenModal = (caseId) => {
+  const handleOpenModal = (caseinfo) => {
     // console.log("CaseId:", caseId);
-    setSelectedCase(caseId);
+    setSelectedCase(caseinfo?._id);
+    setcasedetails(caseinfo)
     setShowAssignModal(true);
   };
 
@@ -365,7 +367,7 @@ const BasicCase = ({ token }) => {
                         <Dropdown.Item
                           onClick={(event) => {
                             event.stopPropagation();
-                            handleOpenModal(item?._id);
+                            handleOpenModal(item);
                           }}
                         >
                           Assign Case
@@ -453,6 +455,7 @@ const BasicCase = ({ token }) => {
         <Modal.Body>
           <CaseAssignmentForm
             selectedCase={selectedCase}
+            casedetails={casedetails}
             onClose={handleCloseModal}
           />
         </Modal.Body>

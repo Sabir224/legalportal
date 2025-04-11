@@ -18,20 +18,48 @@ const permissionLabels = {
   manage_documents: "Manage Documents",
 };
 
-const CaseAssignmentForm = ({ selectedCase }) => {
+const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [selectedClient, setSelectedClient] = useState([]);
   const [userPermissions, setUserPermissions] = useState({});
+  const [clientdetails, setClientDetails] = useState();
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.cases);
 
+  // useEffect(() => {
+  //   axios
+  //     .get(`${ApiEndPoint}/legalUsers`)
+  //     .then((res) => setUsers(res.data))
+  //     .catch((err) => console.error("Error fetching users:", err));
+  // }, []);
   useEffect(() => {
-    axios
-      .get(`${ApiEndPoint}/legalUsers`)
-      .then((res) => setUsers(res.data))
-      .catch((err) => console.error("Error fetching users:", err));
+    fetchUsers()
   }, []);
+
+  const fetchUsers = async () => {
+    try {
+      console.log("selectedCase:", selectedCase);
+
+      const response = await axios.get(`${ApiEndPoint}getAllUser`);
+      const users = response.data.users || [];
+      console.log("casedetails?.ClientId",casedetails?.ClientId)
+      if (casedetails?.ClientId!=="") {
+        const filteredUsers = users.filter(user => user.Role !== "client");
+        console.log("Filtered Users (clients):", filteredUsers);
+        await setUsers(filteredUsers)
+        return users;
+      }
+      console.log("Filtered Users (clients):", users);
+      await setUsers(users)
+      return users;
+
+    } catch (error) {
+      console.error("Error fetching users for chat:", error);
+      return [];
+    }
+  };
 
   const handleAssign = async (e) => {
     e.preventDefault();
@@ -40,20 +68,38 @@ const CaseAssignmentForm = ({ selectedCase }) => {
       alert("Please select a case and users.");
       return;
     }
-    const usersData = selectedUsers.map((user) => ({
-      userId: user.value, // Ensure this is correct
-      permissions: userPermissions[user.value] || [], // Ensure permissions exist
-    }));
+    // const usersData = selectedUsers.map((user) => ({
+    //   userId: user.value, // Ensure this is correct
+    //   permissions: userPermissions[user.value] || [], // Ensure permissions exist
+    // }));
+
+    const usersData = selectedUsers
+      .filter((user) => user.value.Role.toLowerCase() !== "client")
+      .map((user) => ({
+        userId: user.value._id,
+        permissions: userPermissions[user.value._id] || [],
+      }));
+
+    // const CaseClientId = selectedUsers
+    // .filter((user) => user.value.Role.toLowerCase() === "client")
+    // .map((user) => user.value._id);
+
+    const CaseClient = selectedUsers.find(
+      (user) => user.value.Role.toLowerCase() === "client"
+    )?.value._id;
+
     console.log("Users to Assign:", usersData); // Debugging users
     console.log("Selected Case ID:", selectedCase);
     console.log("Permissions List:", userPermissions); // Check permissions
+    console.log("CaseClientId :", CaseClient); // Check permissions
 
     try {
       const response = await dispatch(
         assignCase({
           caseId: selectedCase,
           users: usersData,
-          permissionList: userPermissions, // Check if permissionsList is correct
+          permissionList: userPermissions,
+          CaseClientId: CaseClient,// Check if permissionsList is correct
         })
       ).unwrap();
 
@@ -67,19 +113,24 @@ const CaseAssignmentForm = ({ selectedCase }) => {
     }
   };
 
+  const capitalizeFirst = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
+
   return (
     <div className="container mt-1 p-4 rounded shadow main-bgcolor">
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleAssign}>
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <label className="form-label fw-bold" style={{ color: "#c0a262" }}>
             Select Users
           </label>
           <Select
             options={users.map((user) => ({
-              value: user._id,
-              label: `${user.UserName}`,
+              value: user,
+              label: `${user.UserName}   (${capitalizeFirst(user.Role)})`,
             }))}
             isMulti
             className="basic-multi-select"
@@ -105,7 +156,51 @@ const CaseAssignmentForm = ({ selectedCase }) => {
               }),
             }}
           />
-        </div>
+        </div> */}
+        <Select
+          options={users.map((user) => ({
+            value: user,
+            label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
+          }))}
+          isMulti
+          className="basic-multi-select"
+          classNamePrefix="select"
+          value={selectedUsers}
+          onChange={(selected) => {
+            if (!selected) {
+              setSelectedUsers([]);
+              return;
+            }
+
+            // Separate clients and others
+            const clients = selected.filter((s) => s.value.Role.toLowerCase() === "client");
+            const others = selected.filter((s) => s.value.Role.toLowerCase() !== "client");
+
+            // Only allow one client, keep latest selected client if multiple
+            const latestClient = clients.length > 0 ? [clients[clients.length - 1]] : [];
+
+            // Combine into final selection
+            setSelectedUsers([...latestClient, ...others]);
+          }}
+          placeholder="Search & Select Users..."
+          styles={{
+            control: (base) => ({
+              ...base,
+              backgroundColor: "#0E1833",
+              color: "#FFFFFF",
+              border: "1px solid #c0a262",
+            }),
+            menu: (base) => ({
+              ...base,
+              backgroundColor: "#0E1833",
+            }),
+            option: (base, { isFocused }) => ({
+              ...base,
+              backgroundColor: isFocused ? "#c0a262" : "#0E1833",
+              color: "#FFFFFF",
+            }),
+          }}
+        />
 
         {selectedUsers.length > 0 && (
           <div
@@ -116,6 +211,42 @@ const CaseAssignmentForm = ({ selectedCase }) => {
               paddingRight: "10px",
             }}
           >
+
+            {/* <div className="mb-4">
+              <label className="form-label fw-bold" style={{ color: "#c0a262" }}>
+                Select Client
+              </label>
+              <Select
+                options={clientdetails?.map((user) => ({
+                  value: user?._id,
+                  label: `${user?.UserName}`,
+                }))}
+                // isMulti
+                className="basic-multi-select"
+                classNamePrefix="select"
+                value={selectedClient}
+                onChange={(selected) => setSelectedClient(selected || [])}
+                placeholder="Search & Select Users..."
+                styles={{
+                  color: "white",
+                  control: (base) => ({
+                    ...base,
+                    backgroundColor: "#0E1833",
+                    color: "#FFFFFF",
+                    border: "1px solid #c0a262",
+                  }),
+                  menu: (base) => ({
+                    ...base,
+                    backgroundColor: "#0E1833",
+                  }),
+                  option: (base, { isFocused }) => ({
+                    ...base,
+                    backgroundColor: isFocused ? "#c0a262" : "#0E1833",
+                    color: "#FFFFFF",
+                  }),
+                }}
+              />
+            </div> */}
             <h5 style={{ color: "#c0a262" }}>Assigned Users</h5>
             {selectedUsers.map((user) => (
               <div
@@ -148,45 +279,54 @@ const CaseAssignmentForm = ({ selectedCase }) => {
                     <FontAwesomeIcon icon={faTimes} size={16} />
                   </button>
                 </div>
+                {user.value.Role !== 'client' ? (
+                  <div className="mt-3">
+                    <label
+                      className="form-label fw-bold"
+                      style={{ color: "#c0a262" }}
+                    >
+                      Case Permissions
+                    </label>
 
-                <div className="mt-3">
-                  <label
-                    className="form-label fw-bold"
-                    style={{ color: "#c0a262" }}
-                  >
-                    Case Permissions
-                  </label>
+                    {permissionList?.legal?.map((perm) => (
+                      <div key={perm} className="form-check">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          value={perm}
+                          checked={(userPermissions[user.value] || []).includes(
+                            perm
+                          )}
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setUserPermissions((prev) => ({
+                              ...prev,
+                              [user.value]: checked
+                                ? [...(prev[user.value] || []), perm]
+                                : prev[user.value].filter((p) => p !== perm),
+                            }));
+                          }}
+                        />
+                        <label
+                          className="form-check-label"
+                          style={{ color: "#FFFFFF" }}
+                        >
+                          {permissionLabels[perm] || perm}{" "}
+                          {/* Use human-readable text */}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )
+                  :
+                  (
 
-                  {permissionList?.legal?.map((perm) => (
-                    <div key={perm} className="form-check">
-                      <input
-                        className="form-check-input"
-                        type="checkbox"
-                        value={perm}
-                        checked={(userPermissions[user.value] || []).includes(
-                          perm
-                        )}
-                        onChange={(e) => {
-                          const checked = e.target.checked;
-                          setUserPermissions((prev) => ({
-                            ...prev,
-                            [user.value]: checked
-                              ? [...(prev[user.value] || []), perm]
-                              : prev[user.value].filter((p) => p !== perm),
-                          }));
-                        }}
-                      />
-                      <label
-                        className="form-check-label"
-                        style={{ color: "#FFFFFF" }}
-                      >
-                        {permissionLabels[perm] || perm}{" "}
-                        {/* Use human-readable text */}
-                      </label>
+                    <div>
+
                     </div>
-                  ))}
-                </div>
+                  )}
               </div>
+
             ))}
           </div>
         )}

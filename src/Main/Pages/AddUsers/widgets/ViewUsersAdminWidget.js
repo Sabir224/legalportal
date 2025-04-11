@@ -974,7 +974,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
 
                                             <button
                                                 onClick={() => handleAddCase()}
-                                                disabled={currentPage === totalPages}
                                                 className="first-lastbutton btn btn-sm text-white"
                                                 style={{ backgroundColor: "#d3b386", border: "none" }}
                                             >
@@ -1135,31 +1134,33 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                 </div>
             )}
 
-            <button
-                onClick={() => handleFloatingButtonClick()}
-                title="Floating Action"
-                style={{
-                    position: "fixed", // 🔥 Keep it fixed on screen
-                    bottom: "60px",
-                    right: "50px",
-                    backgroundColor: "#f4e9d8",
-                    color: "#18273e",
-                    border: "1px solid #d3b386",
-                    borderRadius: "50%",
-                    width: "50px",
-                    height: "50px",
-                    boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.5rem",
-                    cursor: "pointer",
-                    zIndex: 9999, // Higher z-index to stay above most elements
-                }}
-            >
-                {flaotingButton ? <BsPerson /> : <BsCassette />}
-            </button>
+            {!editableFields &&
 
+                <button
+                    onClick={() => handleFloatingButtonClick()}
+                    title="Floating Action"
+                    style={{
+                        // position: "fixed", // 🔥 Keep it fixed on screen
+                        // bottom: "60px",
+                        // right: "50px",
+                        backgroundColor: "#f4e9d8",
+                        color: "#18273e",
+                        border: "1px solid #d3b386",
+                        borderRadius: "20%",
+                        boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
+                        display: "flex",
+                        padding: 10,
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "1.0rem",
+                        cursor: "pointer",
+                        // zIndex: 9999, // Higher z-index to stay above most elements
+                    }}
+                >
+                    View Case
+                </button>
+
+            }
         </center>
     );
 };

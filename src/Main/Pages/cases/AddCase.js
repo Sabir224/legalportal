@@ -53,7 +53,18 @@ const AddCase = () => {
     const [expertise, setExpertise] = useState("");
     const [department, setDepartment] = useState("");
     const [position, setPosition] = useState("");
+    const [PreviewCaseId, setPreviewCaseId] = useState("");
     const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        const fetchNextCaseId = async () => {
+            const res = await fetch(`${ApiEndPoint}getNextCaseId`);
+            const data = await res.json();
+            setPreviewCaseId(data.nextCaseId);
+        };
+
+        fetchNextCaseId();
+    }, []);
 
     const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
     const handleRoleSelect = (role) => {
@@ -148,6 +159,11 @@ const AddCase = () => {
         try {
             const response = await axios.post(`${ApiEndPoint}cases`, caseData);
             console.log('Case added successfully:', response.data.case);
+            // dispatch(screenChange(9));
+            setCaseNumber("");
+            setCaseType("");
+            setDiscription("")
+            
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
@@ -239,7 +255,8 @@ const AddCase = () => {
             {/* Form Fields */}
             <div className="row">
                 {[
-                    { label: "Case Id", icon: <Bs123 />, state: casenumber, setState: setCaseNumber },
+                    { label: "Case Id", icon: <Bs123 />, state: PreviewCaseId },
+                    { label: "Case Number", icon: <Bs123 />, state: casenumber, setState: setCaseNumber },
                     { label: "Client Name", icon: <BsPerson />, state: selectedclientdetails.UserName, setState: setClientname },
                     { label: "Case Type", icon: <BsType />, state: casetype, setState: setCaseType },
                     { label: "Description (Optional)", icon: <FaAudioDescription />, state: discription, setState: setDiscription },
@@ -266,7 +283,7 @@ const AddCase = () => {
                                     value={state}
                                     style={{ minWidth: '300px', border: '1px solid #18273e' }}
                                     onChange={(e) => setState(e.target.value)}
-                                    disabled={label !== "Client Email" ? label !== 'Client Name' ? "" : true : true}
+                                    disabled={label === "Client Email" ? true : label === 'Client Name' ? true  : label === "Case Id" ?  true : ""}
                                 />
                             </div>
                         </div>
@@ -315,7 +332,7 @@ const AddCase = () => {
                     style={{
                         backgroundColor: "#d3b386",
                     }}
-                    onClick={handleaddCase}
+                    onClick={()=>handleaddCase()}
                 >
                     Add Case
                 </button>

@@ -3,11 +3,14 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Dashboard.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faBook,
   faBookBible,
+  faBookReader,
   faBriefcase,
   faCalendar,
   faHome,
   faMessage,
+  faNoteSticky,
   faPerson,
   faPersonCane,
   faPersonCircleMinus,
@@ -17,7 +20,7 @@ import {
   faStreetView,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import { faCcMastercard, faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
@@ -45,6 +48,7 @@ import AddUser from "./Pages/AddUsers/AddUser";
 import ViewUsers from "./Pages/AddUsers/ViewUsers";
 import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
+import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -250,6 +254,13 @@ const Dashboard = () => {
                 icon: faPerson,
                 label: "View Users",
                 action: () => handlescreen2(9),
+              }
+              : null,
+            decodedToken?.Role === "admin"
+              ? {
+                icon: faCcMastercard,
+                label: "Add Case",
+                action: () => handlescreen2(11),
               }
               : null,
             // decodedToken?.Role === "admin"
