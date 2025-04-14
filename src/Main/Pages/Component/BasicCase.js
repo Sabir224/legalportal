@@ -309,8 +309,8 @@ const BasicCase = ({ token }) => {
                 <span className="col d-flex align-items-center text-start">
                   <span
                     className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
-                        ? "bg-success"
-                        : "bg-danger"
+                      ? "bg-success"
+                      : "bg-danger"
                       }`}
                     style={{
                       width: "10px",
@@ -324,7 +324,7 @@ const BasicCase = ({ token }) => {
                   {item["CaseNumber"]}
                 </span>
                 <span className="col d-flex align-items-center text-start">
-                  {item["Name"]}
+                  {item["CaseType"]}
                 </span>
                 <input
                   className="col w-100"
@@ -383,68 +383,69 @@ const BasicCase = ({ token }) => {
             </div>
           ))}
         </div>
+        {totalPages > 1 &&
 
-        {/* Pagination */}
-        <div
-          id="numberbar"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            position: "sticky",
-            bottom: "10px",
-            backgroundColor: "#18273e",
-            zIndex: 10,
-            padding: "10px",
-            borderRadius: "8px",
-            width: "20%",
-            textAlign: "center",
-            border: "2px solid #d4af37",
-            margin: "auto",
-          }}
-        >
           <div
+            id="numberbar"
             style={{
               display: "flex",
               justifyContent: "center",
               alignItems: "center",
-              gap: "10px",
+              position: "sticky",
+              bottom: "10px",
+              backgroundColor: "#18273e",
+              zIndex: 10,
+              padding: "10px",
+              borderRadius: "8px",
+              width: "20%",
+              textAlign: "center",
+              border: "2px solid #d4af37",
+              margin: "auto",
             }}
           >
-            <button
-              onClick={() => goToPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="first-lastbutton"
-            >
-              Previous
-            </button>
-            <input
-              value={currentPage}
-              min={1}
-              max={totalPages}
-              onChange={(e) =>
-                goToPage(
-                  Math.max(1, Math.min(totalPages, Number(e.target.value)))
-                )
-              }
+            <div
               style={{
-                width: "50px",
-                textAlign: "center",
-                borderRadius: "6px",
-                border: "2px solid #d4af37",
-                backgroundColor: "#18273e",
-                color: "white",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                gap: "10px",
               }}
-            />
-            <button
-              onClick={() => goToPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="first-lastbutton"
             >
-              Next
-            </button>
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="first-lastbutton"
+              >
+                Previous
+              </button>
+              <input
+                value={currentPage}
+                min={1}
+                max={totalPages}
+                onChange={(e) =>
+                  goToPage(
+                    Math.max(1, Math.min(totalPages, Number(e.target.value)))
+                  )
+                }
+                style={{
+                  width: "50px",
+                  textAlign: "center",
+                  borderRadius: "6px",
+                  border: "2px solid #d4af37",
+                  backgroundColor: "#18273e",
+                  color: "white",
+                }}
+              />
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="first-lastbutton"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
+        }
       </div>
 
       {/* Assign Modal */}

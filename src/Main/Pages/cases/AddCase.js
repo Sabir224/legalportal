@@ -160,10 +160,12 @@ const AddCase = () => {
             const response = await axios.post(`${ApiEndPoint}cases`, caseData);
             console.log('Case added successfully:', response.data.case);
             // dispatch(screenChange(9));
+            alert("✅ Case Added Successfully!");
+
             setCaseNumber("");
             setCaseType("");
             setDiscription("")
-            
+
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
@@ -303,7 +305,7 @@ const AddCase = () => {
                             </div>
                             {dropdownOpen && (
                                 <ul className="list-group position-absolute bg-dark border rounded shadow w-100 mt-1" style={{ zIndex: 1000 }}>
-                                    {["High", "Meduim", "Low"].map((role) => (
+                                    {["High", "Medium", "Low"].map((role) => (
                                         <li
                                             key={role}
                                             className="list-group-item list-group-item-action text-white bg-dark border-secondary"
@@ -332,7 +334,7 @@ const AddCase = () => {
                     style={{
                         backgroundColor: "#d3b386",
                     }}
-                    onClick={()=>handleaddCase()}
+                    onClick={() => handleaddCase()}
                 >
                     Add Case
                 </button>

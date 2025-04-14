@@ -527,7 +527,7 @@ const Case_details = ({ token }) => {
   useEffect(() => {
     fetchCases();
     fetchLawyerDetails();
-  }, [caseData]);
+  }, []);
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
 
@@ -624,7 +624,7 @@ const Case_details = ({ token }) => {
                 View lawyer
               </button>
             </div>
-            {(token?.Role !== "client" ) && (
+            {(token?.Role !== "client") && (
               <div style={{ textAlign: "center", marginBottom: "10px" }}>
                 <button
                   className="View-button rounded-4 m-1  w-100 px-4 py-2"
@@ -643,35 +643,38 @@ const Case_details = ({ token }) => {
 
             <div className=" flex-col gap-2">
               {sections.map((section) => (
-                <button
-                  key={section.id}
-                  onClick={() => toggleSection(section.id)}
-                  className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton`}
-                  style={{
-                    // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
-                    // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-                    border: "2px solid rgba(0, 0, 0, 0.2)",
-                    // transition: "background-color 0.3s ease",
-                  }}
-                  // onMouseEnter={(e) => {
-                  //   e.currentTarget.style.background = "#d3b386";
-                  // }}
-                  // onMouseLeave={(e) => {
-                  //   e.currentTarget.style.background = activeButtons[section.id]
-                  //     ? "hsl(210, 88.90%, 3.50%)"
-                  //     : " #18273e";
-                  // }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.border = "2px solid white";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.border = activeButtons[section.id]
-                      ? "2px solid #d4af37"
-                      : "";
-                  }}
-                >
-                  {section.title}
-                </button>
+                <div>
+                  <button
+                    key={section.id}
+                    onClick={() => toggleSection(section.id)}
+                    className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton`}
+                    style={{
+                      // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
+                      // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+                      border: "2px solid rgba(0, 0, 0, 0.2)",
+                      // transition: "background-color 0.3s ease",
+                    }}
+                    // onMouseEnter={(e) => {
+                    //   e.currentTarget.style.background = "#d3b386";
+                    // }}
+                    // onMouseLeave={(e) => {
+                    //   e.currentTarget.style.background = activeButtons[section.id]
+                    //     ? "hsl(210, 88.90%, 3.50%)"
+                    //     : " #18273e";
+                    // }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.border = "2px solid white";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.border = activeButtons[section.id]
+                        ? "2px solid #d4af37"
+                        : "";
+                    }}
+                  >
+                    {section.title}
+                  </button>
+
+                </div>
               ))}
             </div>
           </div>
