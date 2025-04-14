@@ -76,16 +76,16 @@ export default function RightChatTextWidget({ message, selectedChat, user }) {
               fontSize: "12px",
             }}
           >
-            {message.sender._id === user._id
+            {message.sender?._id === user?._id
               ? "You"
-              : message.sender.UserName.split(" ")[0]}
+              : message.sender?.UserName.split(" ")[0]}
           </div>
 
           <img
             alt="User"
             src={
-              message.sender.ProfilePicture
-                ? message.sender.ProfilePicture
+              message.sender?.ProfilePicture
+                ? message.sender?.ProfilePicture
                 : "https://bootdey.com/img/Content/avatar/avatar1.png"
             }
             className="rounded-circle"

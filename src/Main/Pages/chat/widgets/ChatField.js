@@ -354,8 +354,8 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
           ) : (
             messages.map((message) => {
               const senderRole =
-                typeof message.sender === "object" && message.sender.Role
-                  ? message.sender.Role
+                typeof message.sender === "object" && message.sender?.Role
+                  ? message.sender?.Role
                   : String(message.sender);
 
               const formattedDate = formatMessageDate(message.createdAt);
@@ -368,12 +368,12 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
               displayedDates.add(messageDate);
 
               const userId = String(user._id);
-              const isClient = user.Role === "client";
+              const isClient = user?.Role === "client";
               const isSenderClient = senderRole === "client";
-              const isOwnMessage = String(message.sender._id) === userId;
+              const isOwnMessage = String(message.sender?._id) === userId;
 
               return (
-                <React.Fragment key={message._id}>
+                <React.Fragment key={message?._id}>
                   {showDateDivider && (
                     <div className="date-divider">
                       <span className="main-bgcolor">{formattedDate}</span>

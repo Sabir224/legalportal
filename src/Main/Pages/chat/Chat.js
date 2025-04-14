@@ -20,7 +20,7 @@ import { Offcanvas } from "bootstrap/dist/js/bootstrap.bundle.min";
 
 export default function Chat({ token }) {
   //const Users = useSelector((state) => state.Data.usersdetail);
-  console.log("Email", token.email);
+  console.log("Email", token?.email);
   const [users, setUsers] = useState([]);
   const [selectUser, setSelectedUser] = useState(null);
   const [showArchived, setShowArchived] = useState(false);
@@ -37,13 +37,13 @@ export default function Chat({ token }) {
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   // Connect to the socket when the app loads
   useEffect(() => {
-    if (!token.email || hasFetched.current) return;
+    if (!token?.email || hasFetched.current) return;
 
     const fetchClientDetails = async () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `${ApiEndPoint}/getUserDetail/${token.email}`
+          `${ApiEndPoint}/getUserDetail/${token?.email}`
         );
         setUserData(response.data);
 
@@ -77,7 +77,7 @@ export default function Chat({ token }) {
         SocketService.socket.disconnect();
       }
     };
-  }, [token.email]);
+  }, [token?.email]);
 
   // ✅ Depend only on userData._id to avoid unnecessary re-renders
 

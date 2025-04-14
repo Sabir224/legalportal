@@ -84,12 +84,12 @@ export default function UserListWidget({
   useEffect(() => {
     if (userData?.email) {
       const loadUsers = async () => {
-        const fetchedUsers = await fetchUsersForChat(userData.email);
+        const fetchedUsers = await fetchUsersForChat(userData?.email);
         setUsers(fetchedUsers);
       };
       loadUsers();
     }
-  }, [userData, userData.email]);
+  }, [userData, userData?.email]);
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {
@@ -128,9 +128,9 @@ export default function UserListWidget({
     <>
       {searchedUsers.map((user) => (
         <div
-          key={user._id}
+          key={user?._id}
           className="d-flex d-block align-items-center p-2 hover-bg"
-          onClick={() => handleUserClick(user.Email)}
+          onClick={() => handleUserClick(user?.Email)}
           style={{
             cursor: "pointer",
             transition: "all 0.3s ease",
@@ -142,8 +142,8 @@ export default function UserListWidget({
           <div
             className="rounded-circle"
             style={{
-              backgroundImage: user.ProfilePicture
-                ? `url(${user.ProfilePicture})`
+              backgroundImage: user?.ProfilePicture
+                ? `url(${user?.ProfilePicture})`
                 : `url(${Contactprofile})`,
               backgroundSize: "cover",
               backgroundRepeat: "no-repeat",
@@ -160,12 +160,12 @@ export default function UserListWidget({
             style={{ fontSize: "14px", display: "flex", alignItems: "center" }}
           >
             <span className="username">
-              {user.UserName &&
-                (user.UserName.includes(" ")
-                  ? `${user.UserName.split(" ")[0]} ${
-                      user.UserName.split(" ")[1]?.[0] || ""
+              {user?.UserName &&
+                (user?.UserName.includes(" ")
+                  ? `${user?.UserName.split(" ")[0]} ${
+                      user?.UserName.split(" ")[1]?.[0] || ""
                     }`
-                  : user.UserName)}
+                  : user?.UserName)}
             </span>
           </div>
         </div>
