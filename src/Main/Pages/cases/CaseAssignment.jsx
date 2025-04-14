@@ -468,12 +468,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           value={selectedUsers}
           onChange={(selectedOptions) => {
             if (!selectedOptions) return;
-
+          
             const sanitizedOptions = selectedOptions.map((opt) => {
-              // If label/value already exist, use as is
-              if (opt.label && opt.value) return opt;
-
-              // If raw user object, transform it
               const user = opt?.value || opt;
               return {
                 value: user,
@@ -481,15 +477,24 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                 isClient: user.Role === "client",
               };
             });
-
-            if (casedetails?.ClientId) {
-              const client = selectedUsers.find((u) => u.isClient);
-              const filtered = sanitizedOptions.filter((opt) => !opt.isClient);
-              setSelectedUsers([client, ...filtered].filter(Boolean));
+          
+            // Separate clients and non-clients
+            const clients = sanitizedOptions.filter((opt) => opt.isClient);
+            const nonClients = sanitizedOptions.filter((opt) => !opt.isClient);
+          
+            let finalSelection = [];
+          
+            if (clients.length > 0) {
+              // If there's at least one client, only pick the last one (override others)
+              const latestClient = clients[clients.length - 1];
+              finalSelection = [latestClient, ...nonClients];
             } else {
-              setSelectedUsers(sanitizedOptions);
+              finalSelection = nonClients;
             }
+          
+            setSelectedUsers(finalSelection);
           }}
+          
           options={[
             ...(!casedetails?.ClientId
               ? users
