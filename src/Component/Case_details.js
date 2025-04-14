@@ -535,7 +535,7 @@ const Case_details = ({ token }) => {
   const fetchCases = async () => {
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getCaseDetail?FkCaseId?${global.CaseId._id}`,
+        `${ApiEndPoint}getCaseDetail/${global.CaseId._id}`,
         {
           withCredentials: true, // ✅ Sends cookies with the request
         }
@@ -549,8 +549,8 @@ const Case_details = ({ token }) => {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`${ApiEndPoint}getparties`); // API endpoint
-      console.log("data of parties", response.data[0].Parties);
+      const response = await axios.get(`${ApiEndPoint}getpartie/${global.CaseId._id}`); // API endpoint
+      console.log("data of parties", response.data[0]);
 
       // Assuming the API returns data in the `data` field
       setsections(transformData(await response.data));
