@@ -1,0 +1,533 @@
+const requestBody = {
+  FKCaseId: "your_case_id_here", // Replace with actual ObjectId
+  Parties: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    Parties_header: [
+      {
+        PartyNumber: "",
+        PartyName: "",
+        TitleInCase: "",
+        TitleAfterJudgment: "",
+      },
+    ],
+    Parties_body: [
+      {
+        Legal_Consultants: {
+          Legal_Consultants_header: [
+            {
+              Name: "سهاد فاضل جبار مهدي الجبوري",
+              Date_of_disconnection: "",
+              City: "دبي المركز التجاري الأولي",
+              Address:
+                "سهاد الجبوري للمحاماة والإستشارات القانونية الإمارات - إمارة دبي - مدينة : دبي - المركز التجاري الأولي - شارع: الشيخ زايد - مبنى : ذا اتش هوتيل - شقة : الطابق 16 / 1602",
+              Tel: "045547635",
+              Fax: "",
+              Email: "sj@suhadaljuboorilawfirm.com",
+            },
+          ],
+        },
+        PartyNumber: "7221289",
+        PartyName: "سهاد الجبوري للمحاماة والاستشارات القانونية",
+        TitleInCase: "طالب الأمر",
+        TitleAfterJudgment: "",
+        Agents_or_LegalConsultants: "سهاد فاضل جبار مهدي الجبوري",
+        Address: {
+          Location: "Bur Dubai",
+          Address:
+            "الإمارات-إمارة دبي-بر دبي - دبي-شارع الشيخ زايد -مبنى ذا اتش -شقة 1602- info@awsadvocates.com",
+          Tel: "0502613000",
+          Fax: "0400000000",
+          POBox: "",
+          Mobile: "0502613000",
+          Email: "info@awsadvocates.com",
+          Makani: "2742091585",
+        },
+      },
+      {
+        Legal_Consultants: {
+          Legal_Consultants_header: [],
+        },
+        PartyNumber: "6755807",
+        PartyName: "معمل شاهين للمشغولات الاسمنتية ش.ذ.م.م",
+        TitleInCase: "المطلوب بالأمر",
+        TitleAfterJudgment: "",
+        Agents_or_LegalConsultants: "",
+        Address: {
+          Location: "Al Qusais Ind Second",
+          Address:
+            "الإمارات-إمارة دبي-القصيص الصناعية الثانية - دبي-مبنى ملك عقارات حكومة دبي",
+          Tel: "0504385227",
+          Fax: "97142580070",
+          POBox: "",
+          Mobile: "0504385227",
+          Email: "",
+          Makani: "3803597382",
+        },
+      },
+      {
+        Legal_Consultants: {
+          Legal_Consultants_header: [],
+        },
+        PartyNumber: "6755808",
+        PartyName: "كوثرالشرق للتجارة العامة ش.ذ.م.م",
+        TitleInCase: "المطلوب بالأمر",
+        TitleAfterJudgment: "",
+        Agents_or_LegalConsultants: "",
+        Address: {
+          Location: "Bur Dubai",
+          Address:
+            "الإمارات-إمارة دبي-بر دبي - دبي-شارع القصيص الثانية -مبنى ارضملك عقارات حكومة دبي الوصل",
+          Tel: "0557739321",
+          Fax: "97143370993",
+          POBox: "",
+          Mobile: "0557739321",
+          Email: "meysm.kasiri@gmail.com",
+          Makani: "2431689265",
+        },
+      },
+    ],
+  },
+  Exhibits: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Detailed Description",
+      "Session Date",
+      "Attachment Date",
+      "Party Name",
+      "Attachment",
+    ],
+    body: [
+      {
+        Detailed_Description: "51354 / 2025 صحيفة دعوى",
+        Session_Date: "",
+        Attachment_Date: "10-02-2025 15:10:13",
+        Party_Name: "submitter",
+        Submitter: [
+          {
+            Party_Name: "سهاد الجبوري للمحاماة والإستشارات القانونية",
+            Party_Type: "Order Applicant",
+          },
+        ],
+        Attachment: "Details",
+      },
+    ],
+  },
+  Documents: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Detailed Description",
+      "Session Date",
+      "Attachment Date",
+      "Party Name",
+      "Attachment",
+    ],
+    body: [
+      {
+        Detailed_Description: "No items to show...",
+      },
+    ],
+  },
+  Notices: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Notice number",
+      "Notice Type",
+      "Registration date",
+      "Notice Party",
+      "Notice Party Description",
+      "",
+    ],
+    body: [
+      {
+        Notice_number: "No items to show...",
+      },
+    ],
+  },
+  PublishedNotices: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Notice Number",
+      "Insertion Date",
+      "Notice Type",
+      "Journal Name",
+      "Journal Number",
+      "Journal Issue Date",
+      "",
+    ],
+    body: [
+      {
+        Notice_Number: "No data found",
+      },
+    ],
+  },
+  Decisions_and_Session_Minutes: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Decision Number",
+      "Session Date",
+      "Decision Abstract",
+      "Decision Type",
+      "Detailed Decision Type",
+      "Member Name",
+      "",
+      "",
+    ],
+    body: [
+      {
+        Decision_Number: "No items to show...",
+      },
+    ],
+  },
+  Petitions: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Petition Number",
+      "Subject",
+      "Petition Date",
+      "Petition Details",
+      "Applicant",
+      "",
+      "",
+    ],
+    body: [
+      {
+        Petition_Number: "No items to show...",
+      },
+    ],
+  },
+  Effsah_Platform_Orders: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Request Number",
+      "Case Number",
+      "Service Name",
+      "Request Date",
+      "Judge Name",
+      "Request Status",
+      "",
+    ],
+    body: [
+      {
+        Request_Number: "No items to show...",
+      },
+    ],
+  },
+  Experience_Reports: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Decision Number",
+      "Expert Name",
+      "Mission Ascription Date",
+      "Expected Submission Date",
+      "Actual Submission Date",
+      "",
+    ],
+    body: [
+      {
+        Decision_Number: "No items to show...",
+      },
+    ],
+  },
+  Public_Prosecution_Reports: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Petition Number",
+      "Subject",
+      "Petition Date",
+      "Petition Details",
+      "Applicant",
+      "",
+      "",
+    ],
+    body: [
+      {
+        Petition_Number: "No items to show...",
+      },
+    ],
+  },
+  Social_Researcher_Reports: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Petition Number",
+      "Subject",
+      "Petition Date",
+      "Petition Details",
+      "Applicant",
+      "",
+      "",
+    ],
+    body: [
+      {
+        Petition_Number: "No items to show...",
+      },
+    ],
+  },
+  Related_Cases: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Case Number",
+      "Claimed Amount",
+      "Registeraton Date",
+      "Judgement Date",
+      "Case Status",
+      "Total Actual Fees Acquired",
+    ],
+    body: [
+      {
+        Case_Number: "43 / 2023 / 311 Commercial Banks",
+        Claimed_Amount: "7671403.3",
+        Registeraton_Date: "09-05-2023",
+        Judgement_Date: "02-04-2024",
+        Case_Status: "مفصولة",
+        Total_Actual_Fees_Acquired: "40195",
+      },
+      {
+        Case_Number: "305 / 2024 / 691 Commercial appeal",
+        Claimed_Amount: "4800000",
+        Registeraton_Date: "01-05-2024",
+        Judgement_Date: "24-07-2024",
+        Case_Status: "مفصولة",
+        Total_Actual_Fees_Acquired: "20135.5",
+      },
+      {
+        Case_Number: "284 / 2024 / 145 Banks Execution",
+        Claimed_Amount: "5581069.66",
+        Registeraton_Date: "02-09-2024",
+        Judgement_Date: "",
+        Case_Status: "محفوظة",
+        Total_Actual_Fees_Acquired: "5135.5",
+      },
+    ],
+  },
+  Joined_Cases: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Case Number",
+      "Join Type",
+      "Join Date",
+      "Join End Date",
+      "JOIN REASON",
+      "Details",
+    ],
+    body: [
+      {
+        Case_Number: "No items to show...",
+      },
+    ],
+  },
+  Verdicts: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Verdict Decision Number",
+      "Verdict Number",
+      "Verdict Date",
+      "Decision Type",
+      "Detailed Decision Type",
+      "",
+      "",
+    ],
+    body: [
+      {
+        Verdict_Decision_Number: "No items to show...",
+      },
+    ],
+  },
+  Related_Claims_And_SubClaims: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Case Number",
+      "Legitation Stage",
+      "Registeration Date",
+      "Verdict Date",
+    ],
+    body: [
+      {
+        Case_Number: "No items to show...",
+      },
+    ],
+  },
+  Arrest_Orders: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Order Number",
+      "Decision Date",
+      "Applicant Name",
+      "Party Name",
+      "Arrest Reason",
+      "Amount",
+      "Status",
+      "Refrain Date",
+      "Refrainer",
+      "",
+    ],
+    body: [
+      {
+        Order_Number: "No items to show...",
+      },
+    ],
+  },
+  Detentions: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Order Number",
+      "Decision Abstract",
+      "Order Type",
+      "Order Date",
+      "Start Date",
+      "Actual Start Date",
+      "",
+    ],
+    body: [
+      {
+        Order_Number: "No items to show...",
+      },
+    ],
+  },
+  Bans: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: ["Party", "Type", "Ban date", "Current status", ""],
+    body: [
+      {
+        Party: "No items to show...",
+      },
+    ],
+  },
+  Seizures: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Applicant",
+      "Party Name",
+      "Decision Date",
+      "Claimed Amount",
+      "Seizure Status",
+      "Description",
+    ],
+    body: [
+      {
+        Applicant: "No items to show...",
+      },
+    ],
+  },
+  Auctions: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Notice Number",
+      "Insertion Date",
+      "Notice Type",
+      "Applicant",
+      "Party",
+      "Notice Party Description",
+      "",
+    ],
+    body: [
+      {
+        Notice_Number: "No data found",
+      },
+    ],
+  },
+  Seized_Documents: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Document number",
+      "Party name",
+      "Type",
+      "Seizure date",
+      "Status",
+      "Description",
+      "Notes",
+      "Release date",
+    ],
+    body: [
+      {
+        Document_number: "No items to show...",
+      },
+    ],
+  },
+  Case_Letters: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Letter No.",
+      "Letter Type",
+      "Letter Date",
+      "Addressee Name",
+      "Letter Body Text",
+    ],
+    body: [
+      {
+        Letter_No: "No items to show...",
+      },
+    ],
+  },
+  Mr_Letters: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Letter type",
+      "Letter number",
+      "Letter date",
+      "Authority",
+      "Subject",
+      "Letter",
+    ],
+    body: [
+      {
+        Letter_type: "No items to show...",
+      },
+    ],
+  },
+  Payments: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Voucher number",
+      "Date",
+      "Value",
+      "Status",
+      "Countersign",
+      "Beneficiary",
+      "Payment type",
+      "Payment Method",
+      "Details",
+    ],
+    body: [
+      {
+        Voucher_number: "No items to show...",
+      },
+    ],
+  },
+  Deposit_Vouchers: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: ["Year", "Type", "Amount"],
+    body: [
+      {
+        Year: "2025",
+        Type: "Fees",
+        Amount: "435.5",
+      },
+    ],
+  },
+  Claims: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [],
+    body: [],
+  },
+  Related_Case_Reg_Apps: {
+    heading: "95 / 2025 / 8 Order on Commercial Estimate Lawyer Fee",
+    header: [
+      "Application Number",
+      "First submit Date",
+      "Applicant name",
+      "Application Status",
+      "Status Date",
+      "Case Number",
+    ],
+    body: [
+      {
+        Application_Number: "No items to show...",
+        First_Submit_Date: "",
+        Applicant_Name: "",
+        Application_Status: "",
+        Status_Date: "",
+        Case_Number: "",
+      },
+    ],
+  },
+};
