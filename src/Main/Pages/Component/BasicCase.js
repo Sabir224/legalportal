@@ -170,13 +170,47 @@ const BasicCase = ({ token }) => {
     return filteredData.slice(startIndex, endIndex);
   };
 
+  // const fetchCases = async () => {
+  //   try {
+  //     const response = await axios.get(`${ApiEndPoint}getcase`, {
+  //       withCredentials: true,
+  //     }); // API endpoint
+  //     console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
+  //     setData(response.data.data);
+  //     setLoading(false);
+  //   } catch (err) {
+  //     setError(err.message);
+  //     setLoading(false);
+  //   }
+  // };
+
   const fetchCases = async () => {
     try {
       const response = await axios.get(`${ApiEndPoint}getcase`, {
         withCredentials: true,
-      }); // API endpoint
-      console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
-      setData(response.data.data);
+      });
+
+      const allCases = response.data.data;
+      let filteredCases = [];
+
+      if (token.Role?.toLowerCase() === "client") {
+        // Show only client's own cases
+        filteredCases = allCases.filter(
+          (caseItem) => caseItem.ClientId === token._id
+        );
+      } else if (token.Role?.toLowerCase() === "admin") {
+        // Admin sees all cases
+        filteredCases = allCases;
+      } else {
+        // Legal users: show only assigned cases
+        filteredCases = allCases.filter((caseItem) =>
+          caseItem.AssignedUsers?.some(
+            (user) => user.UserId?.toString() === token._id?.toString()
+          )
+        );
+      }
+
+     await setData(filteredCases);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -185,8 +219,12 @@ const BasicCase = ({ token }) => {
   };
 
   useEffect(() => {
-    fetchCases();
-  }, []);
+    console.log("Token received in useEffect:", token);
+    if (token && token._id && token.Role) {
+      fetchCases();
+    }
+  }, [token]);
+  
   // Handle page navigation
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
