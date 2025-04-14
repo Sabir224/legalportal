@@ -13,23 +13,30 @@ export default function UserListWidget({
   searchQuery,
 }) {
   const [users, setUsers] = useState([]);
-  const [chats, setChats] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const storedEmail = sessionStorage.getItem("Email");
   const isCompact = useMediaQuery({ maxWidth: 768 });
   const [cookies] = useCookies(["token"]);
-  // Fetch users list (not chats)
 
+  // Fetch users list based on case assignments
   const fetchUsersForChat = async (email) => {
     try {
+      setLoading(true);
       const response = await axios.get(
-        `${ApiEndPoint}getUsersForChat/${userData.email}`
+        `${ApiEndPoint}getUsersForChat/${email}`,
+        {
+          headers: {
+            Authorization: `Bearer ${cookies.token}`,
+          },
+        }
       );
-      console.log("Users:", response.data);
+      console.log("Filtered Users:", response.data);
       return response.data;
     } catch (error) {
       console.error("Error fetching users for chat:", error);
       return [];
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -39,75 +46,96 @@ export default function UserListWidget({
       const response = await axios.post(
         `${ApiEndPoint}chats/checkIfChatExists`,
         {
-          participants: [userData?.email, selectedUserEmail], // Pass emails to the backend
+          participants: [userData?.email, selectedUserEmail],
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${cookies.token}`,
+          },
         }
       );
-      console.log("Chat Exists Response:", response.data);
-      return response.data; // Return the chat data or null if no chat
+      return response.data;
     } catch (error) {
       console.error("Error checking if chat exists:", error);
       return null;
     }
   };
 
-  // Fetch users and chats on initial load
-  useEffect(() => {
-    const loadUsers = async () => {
-      console.log("userData", userData);
-      const fetchedUsers = await fetchUsersForChat(userData?.email);
-      setUsers(fetchedUsers);
-    };
-
-    loadUsers();
-  }, [userData, userData?.email]);
-
-  // Handle user click (select chat)
-  const handleUserClick = async (selectedUserEmail) => {
-    const existingChat = await checkIfChatExists(selectedUserEmail);
-
-    if (existingChat) {
-      setSelectedChat(existingChat); // If chat exists, set it as selected
-    } else {
-      const newChat = await createChat([storedEmail, selectedUserEmail]); // If no chat, create a new one
-      setSelectedChat(newChat); // Set the new chat as selected
-    }
-    // const newChat = await createChat([storedEmail, selectedUserEmail]); // If no chat, create a new one
-    // setSelectedChat(newChat); // Set the new chat as selected
-  };
-
   // Create a new chat between two users
   const createChat = async (participants) => {
     try {
-      const response = await axios.post(`${ApiEndPoint}chats`, {
-        participants,
-      });
-      console.log("New Chat Created:", response.data);
+      const response = await axios.post(
+        `${ApiEndPoint}chats`,
+        { participants },
+        {
+          headers: {
+            Authorization: `Bearer ${cookies.token}`,
+          },
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error creating chat:", error);
       return null;
     }
   };
+
+  // Fetch users on initial load and when userData changes
+  useEffect(() => {
+    if (userData?.email) {
+      const loadUsers = async () => {
+        const fetchedUsers = await fetchUsersForChat(userData.email);
+        setUsers(fetchedUsers);
+      };
+      loadUsers();
+    }
+  }, [userData, userData.email]);
+
+  // Handle user click (select chat)
+  const handleUserClick = async (selectedUserEmail) => {
+    const existingChat = await checkIfChatExists(selectedUserEmail);
+
+    if (existingChat) {
+      setSelectedChat(existingChat);
+    } else {
+      const newChat = await createChat([storedEmail, selectedUserEmail]);
+      if (newChat) {
+        setSelectedChat(newChat);
+      }
+    }
+  };
+
+  // Filter users based on search query
   const searchedUsers = users.filter((user) => {
-    if (!searchQuery) return true; // If no search query, return all users
-
+    if (!searchQuery) return true;
     const lowerCaseSearchQuery = searchQuery.toLowerCase();
-
-    // Use empty string as a fallback to prevent undefined errors
     return (user.UserName?.toLowerCase() || "").includes(lowerCaseSearchQuery);
   });
+
+  if (loading) {
+    return <div className="text-center py-3">Loading users...</div>;
+  }
+
+  if (searchedUsers.length === 0) {
+    return (
+      <div className="text-center py-3">
+        {searchQuery ? "No matching users found" : "No users available to chat"}
+      </div>
+    );
+  }
 
   return (
     <>
       {searchedUsers.map((user) => (
         <div
           key={user._id}
-          className="d-flex d-block align-items-center"
+          className="d-flex d-block align-items-center p-2 hover-bg"
           onClick={() => handleUserClick(user.Email)}
           style={{
             cursor: "pointer",
-            padding: "5px",
             transition: "all 0.3s ease",
+            borderRadius: "5px",
+            marginBottom: "5px",
           }}
         >
           {/* Profile Picture */}
@@ -119,11 +147,10 @@ export default function UserListWidget({
                 : `url(${Contactprofile})`,
               backgroundSize: "cover",
               backgroundRepeat: "no-repeat",
-              width: "30px",
-              height: "30px",
+              width: "40px",
+              height: "40px",
               marginRight: isCompact ? "5px" : "10px",
               border: "1px solid #d3b386",
-              transition: "all 0.3s ease",
             }}
           />
 
@@ -135,13 +162,9 @@ export default function UserListWidget({
             <span className="username">
               {user.UserName &&
                 (user.UserName.includes(" ")
-                  ? `${
-                      user.UserName.split(" ")[0].length > 10
-                        ? user.UserName.split(" ")[0].slice(0, 10) + "..."
-                        : user.UserName.split(" ")[0]
-                    } ${user.UserName.split(" ")[1]?.[0] || ""}`
-                  : user.UserName.length > 10
-                  ? user.UserName.slice(0, 10) + "..."
+                  ? `${user.UserName.split(" ")[0]} ${
+                      user.UserName.split(" ")[1]?.[0] || ""
+                    }`
                   : user.UserName)}
             </span>
           </div>
