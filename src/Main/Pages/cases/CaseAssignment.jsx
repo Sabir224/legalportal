@@ -21,7 +21,6 @@ const permissionLabels = {
 };
 const ClientpermissionLabels = {
   view_cases: "View Cases",
-
 };
 
 const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
@@ -42,46 +41,92 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   //     .catch((err) => console.error("Error fetching users:", err));
   // }, []);
   useEffect(() => {
-    fetchUsers()
+    fetchUsers();
   }, []);
 
   const fetchUsers = async () => {
     try {
-      console.log("selectedCase:", selectedCase);
-
       const response = await axios.get(`${ApiEndPoint}getAllUser`);
-      const users = response.data.users || [];
-      console.log("casedetails?.ClientId", casedetails?.ClientId)
-      if (casedetails?.ClientId !== null) {
-        const filteredUsers = users.filter(user => user.Role !== "client");
-        console.log("Filtered Users (clients):", filteredUsers);
-        const client = users.filter(user => user._id === casedetails?.ClientId);
-        setSelectedUsers([{
-          value: client[0],
-          label: `${client[0]?.UserName} (${capitalizeFirst(client[0]?.Role)})`,
-        }])
-        console.log("client name", client[0]?.UserName)
-        setclientname(client[0]?.UserName)
+      const allUsers = response.data.users || [];
 
-        await setUsers(filteredUsers)
-        return users;
+      let filteredUsers = allUsers;
+      let clientUser = null;
+
+      if (casedetails?.ClientId) {
+        filteredUsers = allUsers.filter((user) => user.Role !== "client");
+        clientUser = allUsers.find((user) => user._id === casedetails.ClientId);
+
+        if (clientUser) {
+          setSelectedUsers([
+            {
+              value: clientUser,
+              label: `${clientUser.UserName} (${capitalizeFirst(
+                clientUser.Role
+              )})`,
+              isClient: true, // mark as client
+            },
+          ]);
+          setclientname(clientUser.UserName);
+        }
       }
 
-      console.log("Filtered Users (clients):", users);
-      await setUsers(users)
-      return users;
-
+      setUsers(filteredUsers);
+      return allUsers;
     } catch (error) {
       console.error("Error fetching users for chat:", error);
       return [];
     }
   };
 
+  useEffect(() => {
+    if (!selectedCase || !casedetails || users.length === 0) return;
 
+    const caseData = casedetails; // directly use the object
 
+    const selected = [];
 
+    caseData.AssignedUsers?.forEach((assigned) => {
+      const user = users.find((u) => u._id === assigned.UserId);
+      if (user) {
+        selected.push({
+          value: user,
+          label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
+        });
 
+        if (user.Role.toLowerCase() === "client") {
+          setClientPermissions((prev) => ({
+            ...prev,
+            [user._id]: caseData.ClientPermissions || [],
+          }));
+          setclientname(user.UserName);
+        } else {
+          setUserPermissions((prev) => ({
+            ...prev,
+            [user._id]: assigned.Permissions || [],
+          }));
+        }
+      }
+    });
 
+    // Add client explicitly if not in AssignedUsers
+    if (caseData.ClientId) {
+      const client = users.find((u) => u._id === caseData.ClientId);
+      if (client && !selected.some((s) => s.value._id === client._id)) {
+        selected.unshift({
+          value: client,
+          label: `${client.UserName} (${capitalizeFirst(client.Role)})`,
+        });
+
+        setClientPermissions((prev) => ({
+          ...prev,
+          [client._id]: caseData.ClientPermissions || [],
+        }));
+        setclientname(client.UserName);
+      }
+    }
+
+    setSelectedUsers(selected);
+  }, [selectedCase, casedetails, users]);
 
   // const handleAssign = async (e) => {
   //   e.preventDefault();
@@ -101,7 +146,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   //       userId: user.value._id,
   //       permissions: userPermissions[user.value._id] || [],
   //     }));
-
 
   //   console.log("usersData", usersData)
   //   // const CaseClientId = selectedUsers
@@ -137,8 +181,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   //   // }
   // };
 
-
-
   const handleAssign = async (e) => {
     e.preventDefault();
 
@@ -163,7 +205,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
     }));
 
     // Get client permissions if available
-    const clientPermission = CaseClient ? clientPermissions[CaseClient] || [] : [];
+    const clientPermission = CaseClient
+      ? clientPermissions[CaseClient] || []
+      : [];
 
     // Logging payload for debugging
     console.log("Users to Assign:", usersData);
@@ -189,14 +233,12 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
       setSelectedUsers([]);
       setUserPermissions({});
       setClientPermissions({});
-      setclientname(null)
+      setclientname(null);
     } catch (err) {
       console.error("Error assigning case:", err);
       alert(`Failed to assign users: ${err.message || err}`);
     }
   };
-
-
 
   const capitalizeFirst = (str) => {
     if (!str) return "";
@@ -417,48 +459,32 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           </div>
         )} */}
 
-
-
         <Select
-          options={users.map((user) => ({
-            value: user,
-            label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
-          }))}
           isMulti
-          className="basic-multi-select"
-          classNamePrefix="select"
           value={selectedUsers}
-          onChange={(selected) => {
-            if (!selected) {
-              setSelectedUsers([]);
-              setClientPermissions({});
-              return;
+          onChange={(selectedOptions) => {
+            // Prevent removing the client if clientId exists
+            if (casedetails?.ClientId) {
+              const client = selectedUsers.find((u) => u.isClient);
+              const filtered = selectedOptions.filter((opt) => !opt.isClient);
+              setSelectedUsers([client, ...filtered]);
+            } else {
+              setSelectedUsers(selectedOptions);
             }
-
-            const clients = selected.filter((s) => s.value.Role.toLowerCase() === "client");
-            const others = selected.filter((s) => s.value.Role.toLowerCase() !== "client");
-            const latestClient = clients.length > 0 ? [clients[clients.length - 1]] : [];
-
-            setSelectedUsers([...latestClient, ...others]);
           }}
-          placeholder="Search & Select Users..."
-          styles={{
-            control: (base) => ({
-              ...base,
-              backgroundColor: "#0E1833",
-              color: "#FFFFFF",
-              border: "1px solid #c0a262",
-            }),
-            menu: (base) => ({
-              ...base,
-              backgroundColor: "#0E1833",
-            }),
-            option: (base, { isFocused }) => ({
-              ...base,
-              backgroundColor: isFocused ? "#c0a262" : "#0E1833",
-              color: "#FFFFFF",
-            }),
-          }}
+          options={[
+            // If no client assigned, allow selecting all users
+            ...(!casedetails?.ClientId
+              ? users
+              : users.filter((u) => u.Role !== "client")
+            ).map((user) => ({
+              value: user,
+              label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
+            })),
+          ]}
+          isOptionDisabled={(option) =>
+            option.value?.Role === "client" && !!casedetails?.ClientId
+          }
         />
 
         {selectedUsers.length > 0 && (
@@ -495,7 +521,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                       borderRadius: "50%",
                     }}
                     disabled={clientname !== null ? true : false}
-
                     onClick={() => {
                       const newList = selectedUsers.filter(
                         (u) => u.value._id !== user.value._id
@@ -532,14 +557,18 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                           className="form-check-input"
                           type="checkbox"
                           value={perm}
-                          checked={(userPermissions[user.value._id] || []).includes(perm)}
+                          checked={(
+                            userPermissions[user.value._id] || []
+                          ).includes(perm)}
                           onChange={(e) => {
                             const checked = e.target.checked;
                             setUserPermissions((prev) => ({
                               ...prev,
                               [user.value._id]: checked
                                 ? [...(prev[user.value._id] || []), perm]
-                                : prev[user.value._id].filter((p) => p !== perm),
+                                : prev[user.value._id].filter(
+                                    (p) => p !== perm
+                                  ),
                             }));
                           }}
                         />
@@ -554,12 +583,14 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                   </div>
                 ) : (
                   <div>
-                    {clientname === null &&
+                    {clientname === null && (
                       <div>
                         {user.value.Role?.toLowerCase() === "client" && (
                           <div className="mt-3">
-
-                            <label className="form-label fw-bold" style={{ color: "#c0a262" }}>
+                            <label
+                              className="form-label fw-bold"
+                              style={{ color: "#c0a262" }}
+                            >
                               Client Permissions
                             </label>
 
@@ -569,30 +600,37 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                                   className="form-check-input"
                                   type="checkbox"
                                   value={perm}
-                                  checked={(clientPermissions[user.value._id] || []).includes(perm)}
+                                  checked={(
+                                    clientPermissions[user.value._id] || []
+                                  ).includes(perm)}
                                   onChange={(e) => {
                                     const checked = e.target.checked;
                                     setClientPermissions((prev) => ({
                                       ...prev,
                                       [user.value._id]: checked
-                                        ? [...(prev[user.value._id] || []), perm]
-                                        : (prev[user.value._id] || []).filter((p) => p !== perm),
+                                        ? [
+                                            ...(prev[user.value._id] || []),
+                                            perm,
+                                          ]
+                                        : (prev[user.value._id] || []).filter(
+                                            (p) => p !== perm
+                                          ),
                                     }));
                                   }}
                                 />
-                                <label className="form-check-label" style={{ color: "#FFFFFF" }}>
+                                <label
+                                  className="form-check-label"
+                                  style={{ color: "#FFFFFF" }}
+                                >
                                   {ClientpermissionLabels[perm] || perm}
                                 </label>
                               </div>
-
                             ))}
                           </div>
                         )}
                       </div>
-                    }
-
+                    )}
                   </div>
-
                 )}
               </div>
             ))}
