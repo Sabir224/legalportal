@@ -1,14 +1,10 @@
 import React, { useState } from "react";
 
-
 const ExhibitDetails = ({ caseData }) => {
-    const [expandedParty, setExpandedParty] = useState(null);
     const [expandedSubmitters, setExpandedSubmitters] = useState({});
     const exhibits = caseData?.Exhibits;
+
     if (!exhibits) return <p>No exhibit details available.</p>;
-    const toggleExpandParty = (partyId) => {
-        setExpandedParty(expandedParty === partyId ? null : partyId);
-    };
 
     const toggleExpandSubmitter = (exhibitId) => {
         setExpandedSubmitters((prev) => ({
@@ -16,6 +12,7 @@ const ExhibitDetails = ({ caseData }) => {
             [exhibitId]: !prev[exhibitId],
         }));
     };
+
     return (
         <div>
             <div className="overflow-x-auto mt-8">
@@ -33,56 +30,53 @@ const ExhibitDetails = ({ caseData }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {exhibits.body.map((exhibit) => (
-                            <React.Fragment key={exhibit._id}>
-                                <tr className="hover:bg-gray-100">
-                                    <td className="p-2">
-                                        {exhibit.Detailed_Description || "N/A"}
-                                    </td>
-                                    <td className="p-2">
-                                        {exhibit.Session_Date || "N/A"}
-                                    </td>
-                                    <td className="p-2">
-                                        {exhibit.Attachment_Date || "N/A"}
-                                    </td>
-                                    <td
-                                        className="p-2 cursor-pointer text-blue-600 hover:underline"
-                                        style={{cursor :"pointer"}}
-                                        onClick={() => toggleExpandSubmitter(exhibit._id)}
-                                    >
-                                        {/* {exhibit.Party_Name?.submitter?.PartyName || "N/A"}{" "} */}
-                                        {expandedSubmitters[exhibit._id] ? " Submitter ▲" : "Submitter ▼"}
-                                    </td>
-                                    <td className="p-2">
-                                        {exhibit.Attachment || "N/A"}
-                                    </td>
-                                </tr>
-                                {expandedSubmitters[exhibit._id] &&
-                                    exhibit.Party_Name?.submitter && (
-                                        <tr className="border border-gray-400">
-                                            <td colSpan="5">
-                                                <div className="p-2 bg-gray-100">
-                                                    <p className="font-semibold mb-1">
-                                                        Submitter Details:
-                                                    </p>
-                                                    <p>
-                                                        <strong>Party Name:</strong>{" "}
-                                                        {exhibit.Party_Name.submitter.PartyName}
-                                                    </p>
-                                                    <p>
-                                                        <strong>Party Type:</strong>{" "}
-                                                        {exhibit.Party_Name.submitter.PartyType}
-                                                    </p>
-                                                    <p>
-                                                        <strong>ID:</strong>{" "}
-                                                        {exhibit.Party_Name.submitter._id}
-                                                    </p>
-                                                </div>
+                        {exhibits.body.map((exhibit) => {
+                            const exhibitId = exhibit._id;
+                            const isExpanded = expandedSubmitters[exhibitId];
+                            const submitters = Array.isArray(exhibit.Submitter)
+                                ? exhibit.Submitter
+                                : [];
+
+                            return (
+                                <React.Fragment key={exhibitId}>
+                                    <tr className="hover:bg-gray-100">
+                                        <td className="p-2">
+                                            {exhibit.Detailed_Description || "N/A"}
+                                        </td>
+                                        <td className="p-2">
+                                            {exhibit.Session_Date || "N/A"}
+                                        </td>
+                                        <td className="p-2">
+                                            {exhibit.Attachment_Date || "N/A"}
+                                        </td>
+                                        <td
+                                            className="p-2 cursor-pointer text-blue-600 hover:underline"
+                                            onClick={() => toggleExpandSubmitter(exhibitId)}
+                                        >
+                                            {isExpanded ? "Submitter ▲" : "Submitter ▼"}
+                                        </td>
+                                        <td className="p-2">
+                                            {exhibit.Attachment || "N/A"}
+                                        </td>
+                                    </tr>
+
+                                    {isExpanded && submitters.length > 0 && (
+                                        <tr>
+                                            <td colSpan="5" className="bg-gray-100 p-2 border border-t-0 border-gray-400">
+                                                <p className="font-semibold mb-2">Submitter Details:</p>
+                                                {submitters.map((submitter, idx) => (
+                                                    <div key={idx} className="mb-2">
+                                                        <p><strong>Party Name:</strong> {submitter.Party_Name || "N/A"}</p>
+                                                        <p><strong>Party Type:</strong> {submitter.Party_Type || "N/A"}</p>
+                                                        {/* <p><strong>ID:</strong> {submitter._id || "N/A"}</p> */}
+                                                    </div>
+                                                ))}
                                             </td>
                                         </tr>
                                     )}
-                            </React.Fragment>
-                        ))}
+                                </React.Fragment>
+                            );
+                        })}
                     </tbody>
                 </table>
             </div>
@@ -90,4 +84,4 @@ const ExhibitDetails = ({ caseData }) => {
     );
 };
 
-export default ExhibitDetails
+export default ExhibitDetails;
