@@ -524,24 +524,66 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
         return filteredData.slice(startIndex, endIndex);
     };
 
-    const fetchCases = async () => {
-        try {
-            const response = await axios.get(`${ApiEndPoint}getcase`, {
-                withCredentials: true,
-            }); // API endpoint
-            console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
-            setData(response.data.data);
-            setLoading(false);
-        } catch (err) {
-            setError(err.message);
-            setLoading(false);
-        }
-    };
+    // const fetchCases = async () => {
+    //     try {
+    //         const response = await axios.get(`${ApiEndPoint}getcase`, {
+    //             withCredentials: true,
+    //         }); // API endpoint
+    //         console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
+    //         setData(response.data.data);
+    //         setLoading(false);
+    //     } catch (err) {
+    //         setError(err.message);
+    //         setLoading(false);
+    //     }
+    // };
 
-    useEffect(() => {
-        fetchCases();
-    }, []);
-    // Handle page navigation
+    // useEffect(() => {
+    //     fetchCases();
+    // }, []);
+
+
+      const fetchCases = async () => {
+        try {
+          const response = await axios.get(`${ApiEndPoint}getcase`, {
+            withCredentials: true,
+          });
+    
+          const allCases = response.data.data;
+          let filteredCases = [];
+    
+          if (user.Role?.toLowerCase() === "client") {
+            // Show only client's own cases
+            filteredCases = allCases.filter(
+              (caseItem) => caseItem.ClientId === user._id
+            );
+          } else if (user.Role?.toLowerCase() === "admin") {
+            // Admin sees all cases
+            filteredCases = allCases;
+          } else {
+            // Legal users: show only assigned cases
+            filteredCases = allCases.filter((caseItem) =>
+              caseItem.AssignedUsers?.some(
+                (user) => user.UserId?.toString() === user._id?.toString()
+              )
+            );
+          }
+    
+         await setData(filteredCases);
+          setLoading(false);
+        } catch (err) {
+          setError(err.message);
+          setLoading(false);
+        }
+      };
+    
+      useEffect(() => {
+        console.log("Token received in useEffect:", user);
+        if (user && user._id && user.Role) {
+          fetchCases();
+        }
+      }, [user]);
+    // // Handle page navigation
     const goToPage = (pageNumber) => {
         if (pageNumber >= 1 && pageNumber <= totalPages) {
             setCurrentPage(pageNumber);
@@ -1046,7 +1088,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                                                         {item["CaseNumber"]}
                                                     </span>
                                                     <span className="col d-flex align-items-center text-start">
-                                                        {item["Name"]}
+                                                        {item["CaseType"]}
                                                     </span>
                                                     {/* <input
                                                     className="col w-100"

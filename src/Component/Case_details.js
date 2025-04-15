@@ -288,34 +288,6 @@ const Case_details = ({ token }) => {
 
     const caseData = apiData[0];
 
-    const generateReportContent = (reportType) => {
-      const report = caseData[reportType];
-
-      return (
-        <>
-          <h5>{report.heading}</h5>
-          <table>
-            <thead>
-              <tr>
-                {report.header?.map((header, index) => (
-                  <th key={index}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {report.body?.map((item, index) => (
-                <tr key={index}>
-                  {Object.keys(report.header).map((key, idx) => (
-                    <td key={idx}>{item[key]}</td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
-      );
-    };
-
     return [
       {
         id: "Parties",
@@ -342,7 +314,6 @@ const Case_details = ({ token }) => {
         title: "Published Notices Details",
         content: <PublishedNotices data={caseData.PublishedNotices} />,
       },
-
       {
         id: "Petitions",
         title: "Petitions Details",
@@ -351,9 +322,7 @@ const Case_details = ({ token }) => {
       {
         id: "effsahPlatformOrders",
         title: "Effsah Platform Orders Details",
-        content: (
-          <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />
-        ),
+        content: <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />,
       },
       {
         id: "experienceReports",
@@ -383,18 +352,13 @@ const Case_details = ({ token }) => {
       {
         id: "relatedCases",
         title: "Related Cases Details",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />,
       },
       {
         id: "joinedCases",
         title: "Joined Cases Details",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />,
       },
-
       {
         id: "Settlements_Legal_Reasoned_Decisions",
         title: "Settlements & Legal Reasoned Decisions",
@@ -402,6 +366,16 @@ const Case_details = ({ token }) => {
           <SubCaseDetails
             caseData={caseData}
             reportType={"Settlements_Legal_Reasoned_Decisions"}
+          />
+        ),
+      },
+      {
+        id: "Verdicts_Legal_Reasoned_Decisions",
+        title: "Verdicts & Legal Reasoned Decisions",
+        content: (
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Verdicts_Legal_Reasoned_Decisions"}
           />
         ),
       },
@@ -418,16 +392,12 @@ const Case_details = ({ token }) => {
       {
         id: "Arrest_Orders",
         title: "Arrest Orders",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />,
       },
       {
         id: "Detentions",
         title: "Detentions",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Detentions"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Detentions"} />,
       },
       {
         id: "Bans",
@@ -447,23 +417,17 @@ const Case_details = ({ token }) => {
       {
         id: "seizedDocuments",
         title: "Seized Documents",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />,
       },
       {
         id: "caseLetters",
         title: "Case Letters",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />,
       },
       {
         id: "mrletters",
         title: "Mr Letters",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />,
       },
       {
         id: "payments",
@@ -473,9 +437,7 @@ const Case_details = ({ token }) => {
       {
         id: "depositvouchers",
         title: "Deposit Vouchers",
-        content: (
-          <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />
-        ),
+        content: <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />,
       },
       {
         id: "claims",
@@ -486,14 +448,19 @@ const Case_details = ({ token }) => {
         id: "relatedcaseregapps",
         title: "Related Case Reg Apps",
         content: (
-          <SubCaseDetails
-            caseData={caseData}
-            reportType={"Related_Case_Reg_Apps"}
-          />
+          <SubCaseDetails caseData={caseData} reportType={"Related_Case_Reg_Apps"} />
+        ),
+      },
+      {
+        id: "decisionsAndSessionMinutes",
+        title: "Decisions and Session Minutes",
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Decisions_and_Session_Minutes"} />
         ),
       },
     ];
   };
+
 
   const scrollRef = useRef(null);
 
@@ -549,11 +516,12 @@ const Case_details = ({ token }) => {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`${ApiEndPoint}getpartie/${global.CaseId._id}`); // API endpoint
-      console.log("data of parties", response.data[0]);
+      const response = await axios.get(`${ApiEndPoint}getparties/${global.CaseId._id}`); // API endpoint
 
+      console.log("data of parties", response.data[0]);
       // Assuming the API returns data in the `data` field
       setsections(transformData(await response.data));
+
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -593,6 +561,29 @@ const Case_details = ({ token }) => {
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
   };
+
+
+
+  const fieldMappings = [
+    { key: "CaseNumber", label: "Case Number" },
+    { key: "CaseStatus", label: "Status" },
+    { key: "ClaimedAmount", label: "Claimed Amount" },
+    { key: "LitigationStage", label: "Litigation Stage" },
+    { key: "TotalClaimedAmount", label: "Total Claimed Amount" },
+    { key: "CaseBalance", label: "Case Balance" },
+    { key: "RequestDate", label: "Request Date" },
+    { key: "ESubmitDate", label: "eSubmit Date" },
+    { key: "StartPreparationDate", label: "Start Preparation Date" },
+    { key: "NextSessionDate", label: "Next Session Date" },
+    { key: "LastSessionDate", label: "Last Session Date" },
+    { key: "VerdictDate", label: "Verdict Date" },
+    { key: "AscriptionDescription", label: "Ascription Description" },
+    { key: "RequestNumber", label: "Request Number" },
+    { key: "CaseCurrentDetails", label: "Case Current Details" },
+    { key: "RootCaseNumber", label: "Root Case Number" },
+    { key: "RootDecision", label: "Root Decision" },
+  ];
+
 
   return (
     <div className="container-fluid  m-0 p-0">
@@ -718,23 +709,18 @@ const Case_details = ({ token }) => {
               >
                 {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
                 <div className="overflow-x-auto">
-                  <table className=" table-fixed w-100">
-                    <tbody>
-                      <tr className="bg-gray-100 ">
-                        <td className=" px-1 py-2 font-bold w-1/7">
-                          Case Number :
-                        </td>
-                        <td className=" px-1 py-2 w-1/7">
-                          {global.CaseId.CaseNumber}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className=" px-1 py-2 font-bold">Status :</td>
-                        <td className=" px-1 py-2">{global.CaseId.Status}</td>
-                      </tr>
-                      {/* Add more rows as needed */}
-                    </tbody>
-                  </table>
+                  <tbody>
+                    {fieldMappings
+                      .filter((f) => ["CaseNumber", "CaseStatus"].includes(f.key))
+                      .map(({ key, label }) =>
+                        caseData?.[key] ? (
+                          <tr key={key} className="bg-gray-100">
+                            <td className=" px-1 py-2 font-bold w-1/7">{label} :</td>
+                            <td className=" px-1 py-2 w-1/7">{caseData[key]}</td>
+                          </tr>
+                        ) : null
+                      )}
+                  </tbody>
                 </div>
               </div>
             </div>
@@ -768,35 +754,20 @@ const Case_details = ({ token }) => {
                 <div className="overflow-x-auto">
                   <table className="table-auto border-collapse w-100">
                     <tbody>
-                      <tr className="bg-gray-100">
-                        <td className=" px-1 py-2 font-bold">
-                          Claimed Amount :
-                        </td>
-                        <td className=" px-1 py-2">
-                          {caseData?.ClaimedAmount}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className=" px-1 py-2 font-bold">
-                          Litigation Stage :
-                        </td>
-                        <td className=" px-1 py-2">
-                          {caseData?.LitigationStage}
-                        </td>
-                      </tr>
-                      <tr className="bg-gray-100">
-                        <td className=" px-1 py-2 font-bold">
-                          Total Claimed Amount :
-                        </td>
-                        <td className=" px-1 py-2">
-                          {caseData?.TotalClaimedAmount}
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className=" px-1 py-2 font-bold">Case Balance :</td>
-                        <td className=" px-1 py-2">{caseData?.CaseBalance}</td>
-                      </tr>
+                      {fieldMappings
+                        .filter((f) =>
+                          ["ClaimedAmount", "LitigationStage", "TotalClaimedAmount", "CaseBalance"].includes(f.key)
+                        )
+                        .map(({ key, label }, index) =>
+                          caseData?.[key] ? (
+                            <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                              <td className=" px-1 py-2 font-bold">{label} :</td>
+                              <td className=" px-1 py-2">{caseData[key]}</td>
+                            </tr>
+                          ) : null
+                        )}
                     </tbody>
+
                   </table>
                 </div>
               </div>
@@ -831,56 +802,20 @@ const Case_details = ({ token }) => {
                   <div className="overflow-x-auto ">
                     <table className="table-auto border-collapse border border-gray-300  w-100">
                       <tbody>
-                        <tr className="bg-gray-100">
-                          <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
-                            Request Date
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.RequestDate
-                              ? caseData.RequestDate.split("T")[0]
-                              : ""}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            eSubmit Date
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.ESubmitDate
-                              ? caseData.ESubmitDate.split("T")[0]
-                              : ""}
-                          </td>
-                        </tr>
-                        <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Start Preparation Date
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.StartPreparationDate
-                              ? caseData.StartPreparationDate.split("T")[0]
-                              : ""}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Next Session Date
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.NextSessionDate
-                              ? caseData.NextSessionDate.split("T")[0]
-                              : ""}
-                          </td>
-                        </tr>
-                        <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Last Session Date
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.LastSessionDate
-                              ? caseData.LastSessionDate.split("T")[0]
-                              : ""}
-                          </td>
-                        </tr>
+                        {fieldMappings
+                          .filter((f) => f.key.toLowerCase().includes("date"))
+                          .map(({ key, label }, index) =>
+                            caseData?.[key] ? (
+                              <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                                <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
+                                  {label}
+                                </td>
+                                <td className="border border-gray-300 px-1 py-2">
+                                  {caseData[key].split("T")[0]}
+                                </td>
+                              </tr>
+                            ) : null
+                          )}
                       </tbody>
                     </table>
                   </div>
@@ -908,12 +843,15 @@ const Case_details = ({ token }) => {
                   <div style={{ fontSize: 20 }}>Last Decisions</div>
                 </div>
                 {/* {caseData.lastDecisions.map((item, index) => ( */}
-                <div
-                  className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
-                  style={{ fontSize: 12, overflow: "hidden" }}
-                >
-                  {caseData?.LastDecisions}
-                </div>
+                {caseData?.LastDecisions && (
+                  <div
+                    className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
+                    style={{ fontSize: 12, overflow: "hidden" }}
+                  >
+                    {caseData.LastDecisions}
+                  </div>
+                )}
+
                 {/* ))} */}
               </div>
 
@@ -944,67 +882,69 @@ const Case_details = ({ token }) => {
                   <div className="overflow-x-auto">
                     <table className="table-auto border-collapse border border-gray-300 w-100">
                       <tbody>
-                        {/* <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Case Number</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.CaseNumber}</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">Status</td>
-                          <td className="border border-gray-300 px-1 py-2">{caseData?.Status}</td>
-                        </tr> */}
-                        <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Ascription Description
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.AscriptionDescription}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Request Number
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.RequestNumber}
-                          </td>
-                        </tr>
-                        <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Case Current Details
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.CaseCurrentDetails}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1 py-2 font-bold">
-                            Root Case Number
-                          </td>
-                          <td className="border border-gray-300 px-1 py-2">
-                            {caseData?.RootCaseNumber}
-                          </td>
-                        </tr>
-                        <tr className="bg-gray-100">
-                          <td className="border border-gray-300 px-1  font-bold">
-                            Root Decision
-                          </td>
-                          <td className="border border-gray-300 px-1 ">
-                            {caseData?.RootDecision}
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-300 px-1  font-bold">
-                            Litigation Stage
-                          </td>
-                          <td className="border border-gray-300 px-1 ">
-                            {caseData?.LitigationStage}
-                          </td>
-                        </tr>
+                        {fieldMappings
+                          .filter((f) =>
+                            [
+                              "AscriptionDescription",
+                              "RequestNumber",
+                              "CaseCurrentDetails",
+                              "RootCaseNumber",
+                              "RootDecision",
+                              "LitigationStage",
+                            ].includes(f.key)
+                          )
+                          .map(({ key, label }, index) =>
+                            caseData?.[key] ? (
+                              <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                                <td className="border border-gray-300 px-1 py-2 font-bold">{label}</td>
+                                <td className="border border-gray-300 px-1 py-2">{caseData[key]}</td>
+                              </tr>
+                            ) : null
+                          )}
                       </tbody>
+
                     </table>
                   </div>
                 </div>
               </div>
+
+
+
+
+
+
+              {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
+
+              {/* 
+
+              <div className="table-responsive" style={{ fontSize: 12, color: "white" }}>
+                <table className="table table-bordered table-sm table-dark">
+                  <tbody>
+                    {Object.entries(caseData).map(([key, value]) => {
+                      if (["_id", "FkCaseId", "__v", "createdAt", "updatedAt"].includes(key)) return null;
+
+                      // Format camelCase or PascalCase keys into readable labels
+                      const formatKey = key
+                        .replace(/([A-Z])/g, " $1") // insert space before capital letters
+                        .replace(/^./, str => str.toUpperCase()); // capitalize first letter
+
+                      // Format dates if value is a valid ISO string
+                      let displayValue = value;
+                      if (typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))) {
+                        displayValue = new Date(value).toLocaleDateString("en-GB");
+                      }
+
+                      return (
+                        <tr key={key}>
+                          <td className="font-weight-bold">{formatKey}</td>
+                          <td>{displayValue || "—"}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div> */}
+              {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
               {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
 

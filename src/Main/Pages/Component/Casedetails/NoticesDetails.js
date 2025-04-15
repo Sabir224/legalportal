@@ -14,7 +14,7 @@ const NoticesDetails = ({ caseData }) => {
 
     return (
         <div className="overflow-x-auto mt-6">
-            <h5 className="text-lg font-semibold mb-4">Notices</h5>
+            <h5 className="text-lg font-semibold mb-4">{notices.heading}</h5>
             <table className="table-auto w-full border border-gray-400">
                 <thead>
                     <tr className="bg-gray-200 text-gray-700">

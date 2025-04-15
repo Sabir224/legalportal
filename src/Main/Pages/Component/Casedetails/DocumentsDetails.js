@@ -3,29 +3,41 @@ import ViewDocumentsModal from "./DocumentViewers/ViewDocumentsModal";
 
 const DocumentsDetails = ({ caseData }) => {
     const [expandedDocument, setExpandedDocument] = useState(null);
-    const documents = caseData?.Documents;
     const [showDocModal, setShowDocModal] = useState(false);
+
+    const documents = caseData?.Documents;
     if (!documents) return <p>No document details available.</p>;
 
     const toggleExpand = (docId) => {
         setExpandedDocument(expandedDocument === docId ? null : docId);
     };
 
-    const handleViewDocument = (document) => {
-        console.log("View Document:", document);
-        // Add your view logic here (e.g. open modal or navigate to doc)
+    const handleAddDocument = () => {
+        setShowDocModal(true);
     };
 
-    const handleAddDocument = () => {
-        console.log("Add Document button clicked");
-        setShowDocModal(true)
-        // Add your logic to add a new document (e.g. open form/modal)
+    const getCellValue = (document, header) => {
+        // Map header labels to keys in the document object
+        const keyMap = {
+            "Detailed Description": "Detailed_Description",
+            "Session Date": "Session_Date",
+            "Attachment Date": "Attachment_Date",
+            "Party Name": "Party_Name",
+            "Attachment": "Attachment",
+        };
+
+        const value = document?.[keyMap[header]];
+        if (typeof value === "object" && value?.submitter) {
+            return value.submitter.PartyName || "N/A";
+        }
+
+        return value ?? "N/A";
     };
 
     return (
         <div className="overflow-x-auto mt-6">
             <div className="d-flex items-center justify-content-between mb-4">
-                <h5 className="text-lg font-semibold">Documents</h5>
+                <h5 className="text-lg font-semibold">{documents.heading}</h5>
                 <button
                     onClick={handleAddDocument}
                     className="text-white px-3 py-1 rounded"
@@ -34,7 +46,7 @@ const DocumentsDetails = ({ caseData }) => {
                         e.currentTarget.style.background = "#d3b386";
                     }}
                     onMouseLeave={(e) => {
-                        e.currentTarget.style.background = '#18273e'
+                        e.currentTarget.style.background = '#18273e';
                     }}
                 >
                     View Document
@@ -46,7 +58,6 @@ const DocumentsDetails = ({ caseData }) => {
                 onHide={() => setShowDocModal(false)}
                 caseData={caseData}
             />
-
 
             <table className="table-auto w-full border border-gray-400">
                 <thead>
@@ -61,40 +72,21 @@ const DocumentsDetails = ({ caseData }) => {
                     {documents?.body?.map((document) => (
                         <React.Fragment key={document._id}>
                             <tr className="hover:bg-gray-100">
-                                <td className="p-2">{document.Detailed_Description || "N/A"}</td>
-                                <td className="p-2">{document.Session_Date || "N/A"}</td>
-                                <td className="p-2">{document.Attachment_Date || "N/A"}</td>
-                                <td
-                                    className="p-2 text-blue-600 hover:underline cursor-pointer"
-                                    onClick={() => toggleExpand(document._id)}
-                                >
-                                    {expandedDocument === document._id ? "Submitter ▲" : "Submitter ▼"}
+                                {documents.header.map((header, index) => (
+                                    <td key={index} className="p-2">
+                                        {getCellValue(document, header)}
+                                    </td>
+                                ))}
+                                <td className="p-2 text-blue-600 hover:underline cursor-pointer" onClick={() => toggleExpand(document._id)}>
+                                    {expandedDocument === document._id ? "Collapse ▲" : "Expand ▼"}
                                 </td>
-                                <td className="p-2">{document.Attachment || "No Attachment"}</td>
-                                {/* <td className="p-2">
-                                    <button
-                                        onClick={() => handleViewDocument(document)}
-                                        className=" text-white px-3 py-1 rounded"
-                                        style={{ backgroundColor: '#18273e' }}
-                                        onMouseEnter={(e) => {
-                                            e.currentTarget.style.background = "#d3b386";
-                                        }}
-                                        onMouseLeave={(e) => {
-                                            e.currentTarget.style.background = '#18273e'
-                                        }}
-
-                                    >
-
-                                        View Document
-                                    </button>
-                                </td> */}
                             </tr>
-                            {expandedDocument === document._id && (
+                            {expandedDocument === document._id && document?.Party_Name?.submitter && (
                                 <tr>
-                                    <td colSpan="6" className="p-2 bg-gray-100">
-                                        <p><strong>Party Name:</strong> {document.Party_Name?.submitter?.PartyName || "N/A"}</p>
-                                        <p><strong>Party Type:</strong> {document.Party_Name?.submitter?.PartyType || "N/A"}</p>
-                                        <p><strong>ID:</strong> {document.Party_Name?.submitter?._id || "N/A"}</p>
+                                    <td colSpan={documents.header.length + 1} className="p-2 bg-gray-100">
+                                        <p><strong>Party Name:</strong> {document.Party_Name.submitter.PartyName || "N/A"}</p>
+                                        <p><strong>Party Type:</strong> {document.Party_Name.submitter.PartyType || "N/A"}</p>
+                                        {/* <p><strong>ID:</strong> {document.Party_Name.submitter._id || "N/A"}</p> */}
                                     </td>
                                 </tr>
                             )}
