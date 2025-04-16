@@ -551,6 +551,12 @@ const Case_details = ({ token }) => {
     console.log(global.User);
     dispatch(screenChange(2));
   };
+  const handleViewFolders = async () => {
+    global.lawyerDetails = lawyerDetails[0];
+    global.User = user;
+    console.log(global.User);
+    dispatch(screenChange(12));
+  };
   const handleViewClientDetails = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -613,6 +619,19 @@ const Case_details = ({ token }) => {
                 onClick={handleViewDetails}
               >
                 View lawyer
+              </button>
+            </div>
+            <div style={{ textAlign: "center", marginBottom: "10px" }}>
+              <button
+                className="View-button rounded-4 m-1  w-100 px-4 py-2"
+                style={{
+                  boxShadow: "5px 5px 5px gray",
+                  border: "2px solid #d4af37",
+                  borderRadius: "6px",
+                }}
+                onClick={handleViewFolders}
+              >
+                View Folders
               </button>
             </div>
             {(token?.Role !== "client") && (

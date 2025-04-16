@@ -49,6 +49,7 @@ import ViewUsers from "./Pages/AddUsers/ViewUsers";
 import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
 import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
+import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -114,6 +115,9 @@ const Dashboard = () => {
         break;
       case 11:
         setCurrentScreen(<AddCase token={decodedToken} />);
+        break;
+      case 12:
+        setCurrentScreen(<ViewFolder token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -347,6 +351,8 @@ const Dashboard = () => {
                                 ? "View Client"
                               : screen === 11
                                 ? "Add Case"
+                              : screen === 12
+                                ? "View Folder"
                                 : ""}
             </h3>
             {decodedToken?.Role === "admin" && screen === 9
