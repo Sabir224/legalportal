@@ -23,6 +23,7 @@ import {
     faSpinner,
     faArrowRight,
     faArrowLeft,
+    faFolder,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
@@ -42,7 +43,7 @@ import { FaCalendar } from "react-icons/fa";
 import DragAndDrop from "../DragAndDrop";
 import { ApiEndPoint } from "../utils/utlis";
 
-const ViewDocumentsAndAdd = ({ caseData }) => {
+const ViewDocumentsAndAdd = ({ caseData, folderdetails }) => {
     const [email, setEmail] = useState("raheemakbar999@gmail.com");
     const [subject, setSubject] = useState("Meeting Confirmation");
     const [clientDetails, setClientDetails] = useState({});
@@ -57,12 +58,44 @@ const ViewDocumentsAndAdd = ({ caseData }) => {
     const storedEmail = sessionStorage.getItem("Email");
     // Function to categorize files
     const [error, setError] = useState("");
+    const [viewMode, setViewMode] = useState("grid"); // ya "list"
+
+
+
+    const [currentFolder, setCurrentFolder] = useState(folderdetails);
+    const [folderHistory, setFolderHistory] = useState([]);
+
+    const handleOpenFolder = (subfolder) => {
+        setFolderHistory((prev) => [...prev, currentFolder]);
+        setCurrentFolder(subfolder);
+    };
+
+    // const handleGoBack = () => {
+    //     if (folderHistory.length > 0) {
+    //         const previousFolder = folderHistory[folderHistory.length - 1];
+    //         setCurrentFolder(previousFolder);
+    //         setFolderHistory((prev) => prev.slice(0, prev.length - 1));
+    //     }
+    // };
+
+    const getBreadcrumbPath = () => {
+        const path = [...folderHistory, currentFolder].filter(Boolean);
+        return path.map(folder => folder.folderName).join(" > ");
+    };
+
+
+    const handleGoBack = () => {
+        const newHistory = [...folderHistory];
+        const previousFolder = newHistory.pop();
+        setFolderHistory(newHistory);
+        setCurrentFolder(previousFolder || null);
+    };
 
 
     useEffect(() => {
         fetchCases();
 
-    }, []);
+    }, [folderdetails]);
     const onHide = () => {
         setShowUploadModal(false);
         setSelectedFiles([]);
@@ -251,18 +284,18 @@ const ViewDocumentsAndAdd = ({ caseData }) => {
     };
 
     const fetchCases = async () => {
+        console.log("folderdetails", folderdetails)
         try {
             const response = await axios.get(
-                `${ApiEndPoint}getCaseById/${global.CaseId._id}`,
+                `${ApiEndPoint}getFolderById/${folderdetails?._id}`,
                 {
                     withCredentials: true, // ✅ Sends cookies with the request
                 }
             ); // API endpoint
             // Assuming the API returns data in the `data` field
             //setCaseData(response.data.caseDetails);
-            console.log("Files Data:", response.data.clientCase.Documents);
-
-            await setFiles(response.data.clientCase.Documents);
+            console.log("Files Data:", response.data?.files);
+            await setFiles(response.data?.files);
 
             setLoading(false);
         } catch (err) {
@@ -278,14 +311,15 @@ const ViewDocumentsAndAdd = ({ caseData }) => {
         setUploadSuccess(false);
 
         const formData = new FormData();
-        formData.append("CaseId", global.CaseId._id);
+        formData.append("CaseId", caseData?._id);
+        formData.append("folderName", folderdetails?.folderName);
 
         selectedFiles.forEach((file) => {
             formData.append("files", file);
         });
 
         try {
-            const response = await axios.post(`${ApiEndPoint}caseDocumentUploadFiles`, formData, {
+            const response = await axios.post(`${ApiEndPoint}caseFoldersDocumentUploadFiles`, formData, {
                 headers: {
                     "Content-Type": "multipart/form-data",
                 },
@@ -311,7 +345,7 @@ const ViewDocumentsAndAdd = ({ caseData }) => {
     };
     const handleFileDelete = async (fileId) => {
         try {
-            const response = await axios.delete(`${ApiEndPoint}/files/${fileId}`);
+            const response = await axios.delete(`${ApiEndPoint}/deleteFileFromFolder/${fileId}`);
 
             if (response.status === 200) {
                 setFiles((prevFiles) =>
@@ -332,308 +366,393 @@ const ViewDocumentsAndAdd = ({ caseData }) => {
 
 
     const handleDownload = async (fileId, fileName) => {
-        // try {
-        //     const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
-        //         method: "POST", // Changed to POST to send body
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         body: JSON.stringify({ Email: token.email }), // Sending email in request body
-        //     });
+        try {
+            const response = await fetch(`${ApiEndPoint}downloadFileFromFolder/${fileId}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({}), // No email needed anymore
+            });
 
-        //     // Log the raw response before processing
-        //     console.log("Raw Response:", response);
+            console.log("Raw Response:", response);
 
-        //     if (!response.ok) {
-        //         const errorText = await response.text(); // Get the error response if available
-        //         throw new Error(`Failed to fetch the file: ${errorText}`);
-        //     }
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Failed to fetch the file: ${errorText}`);
+            }
 
-        //     // Log the JSON response before downloading (if applicable)
-        //     const jsonResponse = await response.json();
-        //     console.log("Download Response JSON:", jsonResponse);
+            const jsonResponse = await response.json();
+            console.log("Download Response JSON:", jsonResponse);
 
-        //     // Check if the response contains a signed URL instead of a file blob
-        //     if (jsonResponse.downloadUrl) {
-        //         console.log("Signed URL received:", jsonResponse.downloadUrl);
-        //         window.open(jsonResponse.downloadUrl, "_blank");
-        //         return;
-        //     }
+            if (jsonResponse.downloadUrl) {
+                console.log("Signed URL received:", jsonResponse.downloadUrl);
+                window.open(jsonResponse.downloadUrl, "_blank");
+                return;
+            }
 
-        //     // Validate content type
-        //     const contentType = response.headers.get("Content-Type");
-        //     console.log("Content-Type:", contentType);
-        //     if (
-        //         !contentType ||
-        //         (!contentType.startsWith("application/") &&
-        //             contentType !== "application/octet-stream")
-        //     ) {
-        //         throw new Error("Invalid content type: " + contentType);
-        //     }
-
-        //     // Process the file blob
-        //     const blob = await response.blob();
-        //     console.log("Blob Data:", blob);
-
-        //     // Create a URL and trigger download
-        //     const url = window.URL.createObjectURL(blob);
-        //     const a = document.createElement("a");
-        //     a.href = url;
-        //     a.download = fileName || "downloaded_file"; // Default filename if none is provided
-        //     document.body.appendChild(a);
-        //     a.click();
-        //     document.body.removeChild(a);
-
-        //     // Cleanup
-        //     setTimeout(() => window.URL.revokeObjectURL(url), 100);
-        // } catch (error) {
-        //     console.error("Error downloading file:", error);
-        // }
+            throw new Error("Signed URL not received in the response");
+        } catch (error) {
+            console.error("Error downloading file:", error);
+        }
     };
 
-    return (
-        <div
-            className="card container-fluid justify-content-center mr-3 ml-3 p-0"
-            style={{
-                height: "86vh",
-            }}
-        >
-            <Row className="d-flex justify-content-center m-3 p-0 gap-5">
 
-                <Col
-                    sm={12}
-                    md={6}
-                    className="card border rounded p-3 mb-3"
+    return (
+
+        <Row className="d-flex justify-content-center m-3 p-0 gap-5">
+
+            <Col
+                // sm={12}
+                // md={6}
+                className="card border rounded p-3 mb-3"
+                style={{
+                    background: "#001f3f",
+                    width: "70%",
+                    backdropFilter: "blur(10px)",
+                    boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                }}
+            >
+                <h4 className="text-white mb-4" style={{ fontWeight: "600" }}>
+                    File and Docs
+                </h4>
+
+                <Tabs
+                    activeKey={activeTab}
+                    onSelect={(k) => setActiveTab(k)}
+                    className="mb-3"
+                    variant="primary"
                     style={{
-                        background: "#001f3f",
-                        width: "70%",
-                        backdropFilter: "blur(10px)",
-                        boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
-                        border: "1px solid rgba(255, 255, 255, 0.2)",
-                        transition: "transform 0.2s, box-shadow 0.2s",
+                        borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                        color: "white",
                     }}
                 >
-                    <h4 className="text-white mb-4" style={{ fontWeight: "600" }}>
-                        File and Docs
-                    </h4>
+                    <Tab
+                        eventKey="documents"
+                        title={
+                            <span
+                                style={{
+                                    background:
+                                        activeTab === "documents" ? "#d3b386" : "transparent",
+                                    padding: "8px 8px",
+                                    borderRadius: "5px",
+                                    color: "white",
+                                }}
+                            >
+                                Documents 📄
+                            </span>
+                        }
+                    >
+                        <Row
+                            className="g-3"
+                            style={{
+                                height: "41vh",
+                                overflow: "auto",
+                            }}
+                        >
+                            {getFilesByCategory("documents", files)?.map((file, index) => (
+                                <Col key={index} sm={6} md={4} lg={3}>
+                                    <Card
+                                        className="text-white bg-dark p-2"
+                                        style={{
+                                            background: "white",
+                                            border: "1px solid white",
+                                            transition: "transform 0.2s, box-shadow 0.2s",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = "scale(1.05)";
+                                            e.currentTarget.style.boxShadow =
+                                                "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = "scale(1)";
+                                            e.currentTarget.style.boxShadow = "none";
+                                        }}
+                                    >
+                                        <FontAwesomeIcon
+                                            icon={getFileTypeIcon(file.fileName)} // Default icon if not found
+                                            size="2x"
+                                            className="mb-2"
+                                            style={{ color: "#d3b386" }}
+                                        />
+                                        <Card.Body className="p-1">
+                                            <Card.Text
+                                                className="text-truncate"
+                                                style={{ fontSize: "0.9rem" }}
+                                            >
+                                                {file.fileName}
+                                                {file._id}
+                                            </Card.Text>
+                                            <div className="d-flex justify-content-between">
+                                                <Button
+                                                    variant="success"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleDownload(file._id, file.fileName)
+                                                    }
+                                                    style={{ background: "#28a745", border: "none" }}
+                                                >
+                                                    <FontAwesomeIcon icon={faDownload} />
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    onClick={() => handleFileDelete(file._id)}
+                                                    style={{ background: "#dc3545", border: "none" }}
+                                                >
+                                                    <FontAwesomeIcon icon={faTrash} />
+                                                </Button>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Tab>
 
-                    <Tabs
-                        activeKey={activeTab}
-                        onSelect={(k) => setActiveTab(k)}
-                        className="mb-3"
+                    <Tab
+                        eventKey="media"
+                        title={
+                            <span
+                                style={{
+                                    background:
+                                        activeTab === "media" ? "#d3b386" : "transparent",
+                                    padding: "8px 8px",
+                                    borderRadius: "5px",
+                                    color: "white",
+                                }}
+                            >
+                                Media Files 🎬
+                            </span>
+                        }
+                    >
+                        <Row
+                            className="g-3"
+                            style={{
+                                height: "41vh",
+                                overflow: "auto",
+                            }}
+                        >
+                            {getFilesByCategory("media", files)?.map((file, index) => (
+                                <Col key={index} sm={6} md={4} lg={3}>
+                                    <Card
+                                        className="text-white bg-dark p-2"
+                                        style={{
+                                            background: "white",
+                                            border: "1px solid white",
+                                            transition: "transform 0.2s, box-shadow 0.2s",
+                                        }}
+                                        onMouseEnter={(e) => {
+                                            e.currentTarget.style.transform = "scale(1.05)";
+                                            e.currentTarget.style.boxShadow =
+                                                "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                            e.currentTarget.style.transform = "scale(1)";
+                                            e.currentTarget.style.boxShadow = "none";
+                                        }}
+                                    >
+                                        {/* File Preview for Images */}
+                                        <FontAwesomeIcon
+                                            icon={getFileTypeIcon(file.fileName)} // Default icon if not found
+                                            size="2x"
+                                            className="mb-2"
+                                            style={{ color: "#d3b386" }}
+                                        />
+
+                                        <Card.Body className="p-1">
+                                            <Card.Text
+                                                className="text-truncate"
+                                                style={{ fontSize: "0.9rem" }}
+                                            >
+                                                {file.fileName}
+                                            </Card.Text>
+                                            <div className="d-flex justify-content-between">
+                                                <Button
+                                                    variant="success"
+                                                    size="sm"
+                                                    onClick={() =>
+                                                        handleDownload(file._id, file.fileName)
+                                                    }
+                                                    style={{ background: "#28a745", border: "none" }}
+                                                >
+                                                    <FontAwesomeIcon icon={faDownload} />
+                                                </Button>
+                                                <Button
+                                                    variant="danger"
+                                                    size="sm"
+                                                    onClick={() => handleFileDelete(file._id)}
+                                                    style={{ background: "#dc3545", border: "none" }}
+                                                >
+                                                    <FontAwesomeIcon icon={faTrash} />
+                                                </Button>
+                                            </div>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            ))}
+                        </Row>
+                    </Tab>
+                </Tabs>
+                {/* Floating Upload Icon */}
+                <div
+                    style={{
+                        position: "fixed",
+                        bottom: "20px",
+                        right: "30px",
+                        zIndex: 1000,
+                    }}
+                >
+                    <Button
                         variant="primary"
+                        className="border border-rounded"
+                        onClick={() => setShowUploadModal(true)}
                         style={{
-                            borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                            borderRadius: "50%",
+                            width: "50px",
+                            height: "50px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "#d3b386",
                             color: "white",
                         }}
                     >
-                        <Tab
-                            eventKey="documents"
-                            title={
-                                <span
-                                    style={{
-                                        background:
-                                            activeTab === "documents" ? "#d3b386" : "transparent",
-                                        padding: "8px 8px",
-                                        borderRadius: "5px",
-                                        color: "white",
-                                    }}
-                                >
-                                    Documents 📄
-                                </span>
-                            }
-                        >
-                            <Row
-                                className="g-3"
-                                style={{
-                                    height: "50vh",
-                                    overflow: "auto",
-                                }}
-                            >
-                                {getFilesByCategory("documents", files)?.map((file, index) => (
-                                    <Col key={index} sm={6} md={4} lg={3}>
-                                        <Card
-                                            className="text-white bg-dark p-2"
-                                            style={{
-                                                background: "white",
-                                                border: "1px solid white",
-                                                transition: "transform 0.2s, box-shadow 0.2s",
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = "scale(1.05)";
-                                                e.currentTarget.style.boxShadow =
-                                                    "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = "scale(1)";
-                                                e.currentTarget.style.boxShadow = "none";
-                                            }}
-                                        >
-                                            <FontAwesomeIcon
-                                                icon={getFileTypeIcon(file.fileName)} // Default icon if not found
-                                                size="2x"
-                                                className="mb-2"
-                                                style={{ color: "#d3b386" }}
-                                            />
-                                            <Card.Body className="p-1">
-                                                <Card.Text
-                                                    className="text-truncate"
-                                                    style={{ fontSize: "0.9rem" }}
-                                                >
-                                                    {file.fileName}
-                                                    {file._id}
-                                                </Card.Text>
-                                                <div className="d-flex justify-content-between">
-                                                    <Button
-                                                        variant="success"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleDownload(file._id, file.fileName)
-                                                        }
-                                                        style={{ background: "#28a745", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faDownload} />
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleFileDelete(file._id)}
-                                                        style={{ background: "#dc3545", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faTrash} />
-                                                    </Button>
-                                                </div>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </Tab>
+                        <FontAwesomeIcon icon={faUpload} size="lg" />
+                    </Button>
+                </div>
+            </Col>
+            <DragAndDrop
+                showModal={showUploadModal}
+                onHide={onHide}
+                handleFileChange={handleFileChange}
+                uploading={uploading}
+                uploadSuccess={uploadSuccess}
+                selectedFiles={selectedFiles}
+                handleFileUpload={handleFileUpload}
+                errorMessage={errorMessage}
+            />
+        </Row>
 
-                        <Tab
-                            eventKey="media"
-                            title={
-                                <span
-                                    style={{
-                                        background:
-                                            activeTab === "media" ? "#d3b386" : "transparent",
-                                        padding: "8px 8px",
-                                        borderRadius: "5px",
-                                        color: "white",
-                                    }}
-                                >
-                                    Media Files 🎬
-                                </span>
-                            }
-                        >
-                            <Row
-                                className="g-3"
-                                style={{
-                                    height: "50vh",
-                                    overflow: "auto",
-                                }}
-                            >
-                                {getFilesByCategory("media", files)?.map((file, index) => (
-                                    <Col key={index} sm={6} md={4} lg={3}>
-                                        <Card
-                                            className="text-white bg-dark p-2"
-                                            style={{
-                                                background: "white",
-                                                border: "1px solid white",
-                                                transition: "transform 0.2s, box-shadow 0.2s",
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                e.currentTarget.style.transform = "scale(1.05)";
-                                                e.currentTarget.style.boxShadow =
-                                                    "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.transform = "scale(1)";
-                                                e.currentTarget.style.boxShadow = "none";
-                                            }}
-                                        >
-                                            {/* File Preview for Images */}
-                                            <FontAwesomeIcon
-                                                icon={getFileTypeIcon(file.fileName)} // Default icon if not found
-                                                size="2x"
-                                                className="mb-2"
-                                                style={{ color: "#d3b386" }}
-                                            />
+        // <Row className="d-flex justify-content-center m-3 p-0 gap-5">
+        //     <Col md={12}>
+        //         <div className="d-flex justify-content-between align-items-center mb-3">
+        //             {folderHistory.length > 0 && (
+        //                 <Button variant="secondary" onClick={handleGoBack}>
+        //                     <FontAwesomeIcon icon={faArrowLeft} /> Back
+        //                 </Button>
+        //             )}
+        //             <h4>{getBreadcrumbPath()}</h4> {/* ← Header mein full path */}
+        //         </div>
 
-                                            <Card.Body className="p-1">
-                                                <Card.Text
-                                                    className="text-truncate"
-                                                    style={{ fontSize: "0.9rem" }}
-                                                >
-                                                    {file.fileName}
-                                                </Card.Text>
-                                                <div className="d-flex justify-content-between">
-                                                    <Button
-                                                        variant="success"
-                                                        size="sm"
-                                                        onClick={() =>
-                                                            handleDownload(file._id, file.fileName)
-                                                        }
-                                                        style={{ background: "#28a745", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faDownload} />
-                                                    </Button>
-                                                    <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleFileDelete(file._id)}
-                                                        style={{ background: "#dc3545", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faTrash} />
-                                                    </Button>
-                                                </div>
-                                            </Card.Body>
-                                        </Card>
-                                    </Col>
-                                ))}
-                            </Row>
-                        </Tab>
-                    </Tabs>
-                    {/* Floating Upload Icon */}
-                    <div
-                        style={{
-                            position: "fixed",
-                            bottom: "20px",
-                            right: "30px",
-                            zIndex: 1000,
-                        }}
-                    >
-                        <Button
-                            variant="primary"
-                            className="border border-rounded"
-                            onClick={() => setShowUploadModal(true)}
-                            style={{
-                                borderRadius: "50%",
-                                width: "50px",
-                                height: "50px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: "#d3b386",
-                                color: "white",
-                            }}
-                        >
-                            <FontAwesomeIcon icon={faUpload} size="lg" />
-                        </Button>
-                    </div>
-                </Col>
-                <DragAndDrop
-                    showModal={showUploadModal}
-                    onHide={onHide}
-                    handleFileChange={handleFileChange}
-                    uploading={uploading}
-                    uploadSuccess={uploadSuccess}
-                    selectedFiles={selectedFiles}
-                    handleFileUpload={handleFileUpload}
-                    errorMessage={errorMessage}
-                />
-            </Row>
-        </div>
+        //         {/* Toggle buttons */}
+        //         <div className="mb-3 d-flex gap-2">
+        //             <Button variant={viewMode === "grid" ? "primary" : "secondary"} onClick={() => setViewMode("grid")}>
+        //                 Grid View
+        //             </Button>
+        //             <Button variant={viewMode === "list" ? "primary" : "secondary"} onClick={() => setViewMode("list")}>
+        //                 List View
+        //             </Button>
+        //         </div>
+
+        //         {/* Folder Display */}
+        //         {viewMode === "grid" ? (
+        //             <Row className="g-3 mb-4">
+        //                 {currentFolder?.subFolders?.length > 0 ? (
+        //                     currentFolder.subFolders.map((subfolder) => (
+        //                         <Col md={3} key={subfolder._id}>
+        //                             <Card className="p-3 text-center" onClick={() => handleOpenFolder(subfolder)} style={{ cursor: 'pointer' }}>
+        //                                 <FontAwesomeIcon icon={faFolder} size="3x" className="mb-2" />
+        //                                 <div>{subfolder.folderName}</div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))
+        //                 ) : (
+        //                     <div>No Subfolders</div>
+        //                 )}
+        //             </Row>
+        //         ) : (
+        //             <div className="list-group mb-4">
+        //                 {currentFolder?.subFolders?.length > 0 ? (
+        //                     currentFolder.subFolders.map((subfolder) => (
+        //                         <div key={subfolder._id} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onClick={() => handleOpenFolder(subfolder)} style={{ cursor: 'pointer' }}>
+        //                             <div className="d-flex align-items-center gap-2">
+        //                                 <FontAwesomeIcon icon={faFolder} size="lg" />
+        //                                 <span>{subfolder.folderName}</span>
+        //                             </div>
+        //                             <FontAwesomeIcon icon={faArrowRight} />
+        //                         </div>
+        //                     ))
+        //                 ) : (
+        //                     <div>No Subfolders</div>
+        //                 )}
+        //             </div>
+        //         )}
+
+        //         {/* Files */}
+        //         <Tabs
+        //             id="files-tabs"
+        //             activeKey={activeTab}
+        //             onSelect={(k) => setActiveTab(k)}
+        //             className="mb-3"
+        //         >
+        //             <Tab eventKey="documents" title="Documents">
+        //                 <Row className="g-3">
+        //                     {getFilesByCategory("documents", currentFolder.files).map((file) => (
+        //                         <Col md={4} key={file._id}>
+        //                             <Card className="p-3 text-center">
+        //                                 <FontAwesomeIcon
+        //                                     icon={getFileTypeIcon(file.fileName)}
+        //                                     size="3x"
+        //                                     className="mb-2"
+        //                                 />
+        //                                 <div>{file.fileName}</div>
+        //                                 <div className="d-flex justify-content-center gap-2 mt-2">
+        //                                     <Button variant="primary" size="sm" onClick={() => handleDownload(file._id, file.fileName)}>
+        //                                         <FontAwesomeIcon icon={faDownload} /> Download
+        //                                     </Button>
+        //                                     <Button variant="danger" size="sm" onClick={() => handleFileDelete(file._id)}>
+        //                                         <FontAwesomeIcon icon={faTrash} /> Delete
+        //                                     </Button>
+        //                                 </div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))}
+        //                 </Row>
+        //             </Tab>
+
+        //             <Tab eventKey="media" title="Media">
+        //                 <Row className="g-3">
+        //                     {getFilesByCategory("media", currentFolder.files).map((file) => (
+        //                         <Col md={4} key={file._id}>
+        //                             <Card className="p-3 text-center">
+        //                                 <FontAwesomeIcon
+        //                                     icon={getFileTypeIcon(file.fileName)}
+        //                                     size="3x"
+        //                                     className="mb-2"
+        //                                 />
+        //                                 <div>{file.fileName}</div>
+        //                                 <div className="d-flex justify-content-center gap-2 mt-2">
+        //                                     <Button variant="primary" size="sm" onClick={() => handleDownload(file._id, file.fileName)}>
+        //                                         <FontAwesomeIcon icon={faDownload} /> Download
+        //                                     </Button>
+        //                                     <Button variant="danger" size="sm" onClick={() => handleFileDelete(file._id)}>
+        //                                         <FontAwesomeIcon icon={faTrash} /> Delete
+        //                                     </Button>
+        //                                 </div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))}
+        //                 </Row>
+        //             </Tab>
+        //         </Tabs>
+        //     </Col>
+        // </Row>
+
+
+
     );
 };
 export default ViewDocumentsAndAdd;

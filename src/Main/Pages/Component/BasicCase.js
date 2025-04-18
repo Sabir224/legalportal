@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./BasicCase.css";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { screenChange } from "../../../REDUX/sliece";
+import { Caseinfo, screenChange } from "../../../REDUX/sliece";
 import * as XLSX from "xlsx";
 import filepath from "../../../utils/dataset.csv";
 import axios from "axios";
@@ -65,6 +65,7 @@ const BasicCase = ({ token }) => {
     // const newParams = { CaseId:item.CaseId };
     // dispatch(setParams(newParams));
     global.CaseId = item;
+    dispatch(Caseinfo(item));
     console.log("  global.CaseId ", item._id);
     dispatch(screenChange(1));
 
