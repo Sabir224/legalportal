@@ -23,6 +23,7 @@ import {
     faSpinner,
     faArrowRight,
     faArrowLeft,
+    faFolder,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
@@ -42,7 +43,7 @@ import { FaCalendar } from "react-icons/fa";
 import DragAndDrop from "../DragAndDrop";
 import { ApiEndPoint } from "../utils/utlis";
 
-const ViewDocumentsAndAdd = ({ caseData,folderdetails }) => {
+const ViewDocumentsAndAdd = ({ caseData, folderdetails }) => {
     const [email, setEmail] = useState("raheemakbar999@gmail.com");
     const [subject, setSubject] = useState("Meeting Confirmation");
     const [clientDetails, setClientDetails] = useState({});
@@ -57,6 +58,38 @@ const ViewDocumentsAndAdd = ({ caseData,folderdetails }) => {
     const storedEmail = sessionStorage.getItem("Email");
     // Function to categorize files
     const [error, setError] = useState("");
+    const [viewMode, setViewMode] = useState("grid"); // ya "list"
+
+
+
+    const [currentFolder, setCurrentFolder] = useState(folderdetails);
+    const [folderHistory, setFolderHistory] = useState([]);
+
+    const handleOpenFolder = (subfolder) => {
+        setFolderHistory((prev) => [...prev, currentFolder]);
+        setCurrentFolder(subfolder);
+    };
+
+    // const handleGoBack = () => {
+    //     if (folderHistory.length > 0) {
+    //         const previousFolder = folderHistory[folderHistory.length - 1];
+    //         setCurrentFolder(previousFolder);
+    //         setFolderHistory((prev) => prev.slice(0, prev.length - 1));
+    //     }
+    // };
+
+    const getBreadcrumbPath = () => {
+        const path = [...folderHistory, currentFolder].filter(Boolean);
+        return path.map(folder => folder.folderName).join(" > ");
+    };
+
+
+    const handleGoBack = () => {
+        const newHistory = [...folderHistory];
+        const previousFolder = newHistory.pop();
+        setFolderHistory(newHistory);
+        setCurrentFolder(previousFolder || null);
+    };
 
 
     useEffect(() => {
@@ -251,7 +284,7 @@ const ViewDocumentsAndAdd = ({ caseData,folderdetails }) => {
     };
 
     const fetchCases = async () => {
-        console.log("folderdetails",folderdetails)
+        console.log("folderdetails", folderdetails)
         try {
             const response = await axios.get(
                 `${ApiEndPoint}getFolderById/${folderdetails?._id}`,
@@ -341,29 +374,29 @@ const ViewDocumentsAndAdd = ({ caseData,folderdetails }) => {
                 },
                 body: JSON.stringify({}), // No email needed anymore
             });
-    
+
             console.log("Raw Response:", response);
-    
+
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Failed to fetch the file: ${errorText}`);
             }
-    
+
             const jsonResponse = await response.json();
             console.log("Download Response JSON:", jsonResponse);
-    
+
             if (jsonResponse.downloadUrl) {
                 console.log("Signed URL received:", jsonResponse.downloadUrl);
                 window.open(jsonResponse.downloadUrl, "_blank");
                 return;
             }
-    
+
             throw new Error("Signed URL not received in the response");
         } catch (error) {
             console.error("Error downloading file:", error);
         }
     };
-    
+
 
     return (
 
@@ -602,6 +635,123 @@ const ViewDocumentsAndAdd = ({ caseData,folderdetails }) => {
                 errorMessage={errorMessage}
             />
         </Row>
+
+        // <Row className="d-flex justify-content-center m-3 p-0 gap-5">
+        //     <Col md={12}>
+        //         <div className="d-flex justify-content-between align-items-center mb-3">
+        //             {folderHistory.length > 0 && (
+        //                 <Button variant="secondary" onClick={handleGoBack}>
+        //                     <FontAwesomeIcon icon={faArrowLeft} /> Back
+        //                 </Button>
+        //             )}
+        //             <h4>{getBreadcrumbPath()}</h4> {/* ← Header mein full path */}
+        //         </div>
+
+        //         {/* Toggle buttons */}
+        //         <div className="mb-3 d-flex gap-2">
+        //             <Button variant={viewMode === "grid" ? "primary" : "secondary"} onClick={() => setViewMode("grid")}>
+        //                 Grid View
+        //             </Button>
+        //             <Button variant={viewMode === "list" ? "primary" : "secondary"} onClick={() => setViewMode("list")}>
+        //                 List View
+        //             </Button>
+        //         </div>
+
+        //         {/* Folder Display */}
+        //         {viewMode === "grid" ? (
+        //             <Row className="g-3 mb-4">
+        //                 {currentFolder?.subFolders?.length > 0 ? (
+        //                     currentFolder.subFolders.map((subfolder) => (
+        //                         <Col md={3} key={subfolder._id}>
+        //                             <Card className="p-3 text-center" onClick={() => handleOpenFolder(subfolder)} style={{ cursor: 'pointer' }}>
+        //                                 <FontAwesomeIcon icon={faFolder} size="3x" className="mb-2" />
+        //                                 <div>{subfolder.folderName}</div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))
+        //                 ) : (
+        //                     <div>No Subfolders</div>
+        //                 )}
+        //             </Row>
+        //         ) : (
+        //             <div className="list-group mb-4">
+        //                 {currentFolder?.subFolders?.length > 0 ? (
+        //                     currentFolder.subFolders.map((subfolder) => (
+        //                         <div key={subfolder._id} className="list-group-item list-group-item-action d-flex justify-content-between align-items-center" onClick={() => handleOpenFolder(subfolder)} style={{ cursor: 'pointer' }}>
+        //                             <div className="d-flex align-items-center gap-2">
+        //                                 <FontAwesomeIcon icon={faFolder} size="lg" />
+        //                                 <span>{subfolder.folderName}</span>
+        //                             </div>
+        //                             <FontAwesomeIcon icon={faArrowRight} />
+        //                         </div>
+        //                     ))
+        //                 ) : (
+        //                     <div>No Subfolders</div>
+        //                 )}
+        //             </div>
+        //         )}
+
+        //         {/* Files */}
+        //         <Tabs
+        //             id="files-tabs"
+        //             activeKey={activeTab}
+        //             onSelect={(k) => setActiveTab(k)}
+        //             className="mb-3"
+        //         >
+        //             <Tab eventKey="documents" title="Documents">
+        //                 <Row className="g-3">
+        //                     {getFilesByCategory("documents", currentFolder.files).map((file) => (
+        //                         <Col md={4} key={file._id}>
+        //                             <Card className="p-3 text-center">
+        //                                 <FontAwesomeIcon
+        //                                     icon={getFileTypeIcon(file.fileName)}
+        //                                     size="3x"
+        //                                     className="mb-2"
+        //                                 />
+        //                                 <div>{file.fileName}</div>
+        //                                 <div className="d-flex justify-content-center gap-2 mt-2">
+        //                                     <Button variant="primary" size="sm" onClick={() => handleDownload(file._id, file.fileName)}>
+        //                                         <FontAwesomeIcon icon={faDownload} /> Download
+        //                                     </Button>
+        //                                     <Button variant="danger" size="sm" onClick={() => handleFileDelete(file._id)}>
+        //                                         <FontAwesomeIcon icon={faTrash} /> Delete
+        //                                     </Button>
+        //                                 </div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))}
+        //                 </Row>
+        //             </Tab>
+
+        //             <Tab eventKey="media" title="Media">
+        //                 <Row className="g-3">
+        //                     {getFilesByCategory("media", currentFolder.files).map((file) => (
+        //                         <Col md={4} key={file._id}>
+        //                             <Card className="p-3 text-center">
+        //                                 <FontAwesomeIcon
+        //                                     icon={getFileTypeIcon(file.fileName)}
+        //                                     size="3x"
+        //                                     className="mb-2"
+        //                                 />
+        //                                 <div>{file.fileName}</div>
+        //                                 <div className="d-flex justify-content-center gap-2 mt-2">
+        //                                     <Button variant="primary" size="sm" onClick={() => handleDownload(file._id, file.fileName)}>
+        //                                         <FontAwesomeIcon icon={faDownload} /> Download
+        //                                     </Button>
+        //                                     <Button variant="danger" size="sm" onClick={() => handleFileDelete(file._id)}>
+        //                                         <FontAwesomeIcon icon={faTrash} /> Delete
+        //                                     </Button>
+        //                                 </div>
+        //                             </Card>
+        //                         </Col>
+        //                     ))}
+        //                 </Row>
+        //             </Tab>
+        //         </Tabs>
+        //     </Col>
+        // </Row>
+
+
 
     );
 };
