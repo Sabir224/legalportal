@@ -42,6 +42,7 @@ import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
 import { FaCalendar } from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
+import { useSelector } from "react-redux";
 
 const ViewUser = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -56,6 +57,8 @@ const ViewUser = ({ token }) => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const storedEmail = sessionStorage.getItem("Email");
+  const caseInfo = useSelector((state) => state.screen.Caseinfo);
+
   // Function to categorize files
   const [currentDate, setCurrentDate] = useState(new Date());
   const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
@@ -415,9 +418,12 @@ const ViewUser = ({ token }) => {
   };
   const fetchClientDetails = async () => {
     setLoading(true);
+    console.log("Error fetching client details:");
+
+   
     try {
       const response = await axios.get(
-        `${ApiEndPoint}getClientDetails/taha.sawar@biit.edu.pk`
+        `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
       );
       setUsersDetails(response.data.user);
       setClientDetails(response.data.clientDetails); // Set the API response to state
