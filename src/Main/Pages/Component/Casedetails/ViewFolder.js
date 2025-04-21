@@ -41,8 +41,11 @@ import {
     faArrowLeft,
     faFolder,
     faEdit,
+    faArrowsAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import DragAndDrop from "../DragAndDrop";
+import MoveFolderModal from "./MoveFolderModal";
+import movefolder from "./Icons/movefolder.png";
 
 
 const ViewFolder = ({ token }) => {
@@ -50,9 +53,12 @@ const ViewFolder = ({ token }) => {
     const caseInfo = useSelector((state) => state.screen.Caseinfo);
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showFileModal, setShowFileModal] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
+    const [newFileName, setNewFileName] = useState("");
     const [isEditMode, setIsEditMode] = useState(false);
     const [editFolderId, setEditFolderId] = useState(null);
+    const [editFileId, setEditFileId] = useState(null);
     const [error, setError] = useState(null);
     const [files, setFiles] = useState([]);
     const [hoveredBtn, setHoveredBtn] = useState(null);
@@ -68,7 +74,10 @@ const ViewFolder = ({ token }) => {
     const [uploadSuccess, setUploadSuccess] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const storedEmail = sessionStorage.getItem("Email");
-    const [viewMode, setViewMode] = useState("grid"); // "grid" ya "list"
+    const [viewMode, setViewMode] = useState("grid");
+    const [moveFileId, setMoveFileId] = useState(null);
+    const [MainfolderId, setMainfolderId] = useState(null);
+    const [Mainfolder, setMainfolder] = useState(null);
 
     const baseStyle = {
         backgroundColor: "#18273e",
@@ -109,7 +118,12 @@ const ViewFolder = ({ token }) => {
             }
 
             const data = await response.json();
-            setFolderList(Array.isArray(data) ? data : []); // ✅ safe check
+            console.log("fetch folders", data)
+            setMainfolderId(data?.mainfolder?._id)
+            setMainfolder(data?.mainfolder)
+            setFolderPath([])
+            setFiles(data?.files)
+            setFolderList(Array.isArray(data?.folders) ? data?.folders : []); // ✅ safe check
         } catch (err) {
             setError(err.message);
             setFolderList([]); // ✅ error hone pe bhi clear
@@ -120,6 +134,7 @@ const ViewFolder = ({ token }) => {
 
     const fetchsubFolders = async (parentId) => {
         setLoadingFolders(true);
+        console.log("parentId", parentId)
         setError('');
         try {
             const response = await fetch(`${ApiEndPoint}getSubFolders/${parentId}`);
@@ -127,7 +142,6 @@ const ViewFolder = ({ token }) => {
             if (!response.ok) {
                 throw new Error('Error fetching folders');
             }
-
             const data = await response.json();
             setFolderList(Array.isArray(data) ? data : []); // ✅ safe check
         } catch (err) {
@@ -260,7 +274,7 @@ const ViewFolder = ({ token }) => {
             folderName: newFolderName,        // Folder name being created
             files: [],                        // Initialize with an empty array, even if there are no files
             subFolders: [],                   // Initialize with an empty array for subfolders
-            parentFolderId: selectedFolder ? selectedFolder._id : null,  // Only set if folder is inside another
+            parentFolderId: selectedFolder?._id // Only set if folder is inside another
         };
 
         try {
@@ -269,8 +283,10 @@ const ViewFolder = ({ token }) => {
             // Check if the response contains a success message or the created folder
             if (response.data._id) {
                 console.log('📂 Folder created successfully:', response.data);
-                fetchFolders();  // Refresh the folder list after creation
+                // await fetchCases();
+                await fetchsubFolders(response.data?.parentId);  // Refresh the folder list after creation
                 alert("✅ Folder Added Successfully!");
+                setShowModal(false)
             } else {
                 console.error('Folder creation failed:', response.data.message);
                 alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
@@ -300,9 +316,10 @@ const ViewFolder = ({ token }) => {
         console.log("case data", caseData)
         try {
             const response = await axios.put(`${ApiEndPoint}updateFolderName`, caseData);
-            console.log('Folder updated successfully:', response.data);
-            fetchFolders()
+            console.log('Folder updated successfully:', response.data.data.parentId);
+            fetchsubFolders(response.data?.data?.parentId);
             alert("✅ Folder name updated successfully!");
+            setShowModal(false)
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
@@ -324,7 +341,7 @@ const ViewFolder = ({ token }) => {
 
         try {
             await axios.delete(`${ApiEndPoint}deleteFolder/${id}`);
-            fetchFolders()
+            // fetchFolders()
             setFolderList(folderList.filter((folder) => folder._id !== id)); // Use `_id` instead of `id` if that's your MongoDB field
             if (selectedFolder?._id === id) {
                 setSelectedFolder(null);
@@ -340,6 +357,12 @@ const ViewFolder = ({ token }) => {
         setEditFolderId(folder?._id);
         setIsEditMode(true);
         setShowModal(true);
+    };
+    const openFileEditModal = (filedetails) => {
+        setNewFileName(filedetails?.folderName);
+        setEditFileId(filedetails?._id);
+        setIsEditMode(true);
+        setShowFileModal(true);
     };
     const [folderPath, setFolderPath] = useState([]);
 
@@ -419,6 +442,7 @@ const ViewFolder = ({ token }) => {
 
         const formData = new FormData();
         formData.append("folderId", selectedFolder?._id);
+        formData.append("caseId", caseInfo._id);
         //formData.append("folderName", selectedFolder?.folderName);
         console.log(" uploading file", selectedFolder)
         selectedFiles.forEach((file) => {
@@ -442,7 +466,11 @@ const ViewFolder = ({ token }) => {
                     setUploadSuccess(false);
                 }, 1000);
                 // Hide modal after 2 seconds
-                fetchCases()
+                if (selectedFolder)
+                    fetchCases()
+                else {
+                    fetchFolders()
+                }
                 setErrorMessage([]);
             }
         } catch (error) {
@@ -472,6 +500,7 @@ const ViewFolder = ({ token }) => {
             // Assuming the API returns data in the `data` field
             //setCaseData(response.data.caseDetails);
             console.log("Files Data:", response.data?.files);
+            // console.log("folders Data:", response.data);
             await setFiles(response.data?.files);
 
             setLoading(false);
@@ -560,6 +589,154 @@ const ViewFolder = ({ token }) => {
     };
 
 
+
+    const [showMoveModal, setShowMoveModal] = useState(false);
+    const [folderToMove, setFolderToMove] = useState(null);
+
+    const openMoveModal = (folder) => {
+        setFolderToMove(folder);
+        setShowMoveModal(true);
+    };
+
+    const closeMoveModal = () => {
+        setFolderToMove(null);
+        setShowMoveModal(false);
+    };
+
+    const handleMoveFolder = async (movefolder, moveintofolder) => {
+
+        let caseData = {
+            folderId: movefolder?._id,             // Unique ID for the case
+            newParentFolderId: moveintofolder ? moveintofolder?._id : MainfolderId,        // Folder name being created
+        };
+
+
+        console.log("folder move data", moveintofolder);
+
+
+        try {
+            const response = await axios.post(`${ApiEndPoint}moveFolderOneToAnotherFolder`, caseData);
+
+            // Check if the response contains a success message or the created folder
+            if (response.data._id) {
+                console.log('📂 Folder Move successfully:', response.data);
+                fetchFolders();  // Refresh the folder list after creation
+                alert("✅ Folder Move Successfully!");
+            } else {
+                console.error('Folder Move failed:', response.data.message);
+                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error('API error:', error.response);
+                if (error.response.status === 409) {
+                    alert("❌ Folder with the same name already exists for this case.");
+                } else {
+                    alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+                }
+            } else {
+                console.error('Network or server error:', error.message);
+                alert("❌ Network or server error. Please try again later.");
+            }
+        }
+
+
+    };
+
+
+    const handlefileMove = async (movefolder, moveintofolder) => {
+        let caseData = {
+            fileId: moveFileId,
+            sourceFolderId: movefolder?._id,
+            destinationFolderId: !moveintofolder ? MainfolderId : moveintofolder,
+        };
+        console.log("file move data", caseData);
+
+        try {
+            const response = await axios.post(`${ApiEndPoint}moveFileToAnotherFolder`, caseData);
+
+            console.log('Move file API response:', response.data);
+
+            if (response.data.success || response.status === 200) {
+                console.log('📂 File moved successfully');
+                fetchFolders();  // Refresh the folders
+                setSelectedFolder(null);
+                setFolderPath([]);
+                setMoveFileId(null)
+                alert("✅ File moved successfully!");
+            } else {
+                console.error('File move failed:', response.data.message);
+                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error('API error:', error.response);
+                alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+            } else {
+                console.error('Network/server error:', error.message);
+                alert("❌ Network or server error. Please try again later.");
+            }
+        }
+    };
+
+
+    const handleUpdateFileName = async (movefolder, moveintofolder) => {
+        let caseData = {
+            fileId: editFileId,
+            newFileName: newFileName,
+        };
+        console.log("file Editing data", caseData);
+
+        try {
+            const response = await axios.post(`${ApiEndPoint}updateFileName`, caseData);
+
+            console.log('Editing file API response:', response.data);
+
+            if (response.data.success || response.status === 200) {
+                console.log('📂 File Editing successfully', selectedFolder);
+                //fetchFolders();  // Refresh the folders
+                if (selectedFolder !== null) {
+                    await fetchCases();
+                } else {
+                    await fetchFolders()
+                }
+
+                alert("✅ File Editing successfully!");
+                setShowFileModal(false)
+
+            } else {
+                console.error('File Editing failed:', response.data.message);
+                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+            }
+        } catch (error) {
+            if (error.response) {
+                console.error('API error:', error.response);
+                alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+            } else {
+                console.error('Network/server error:', error.message);
+                alert("❌ Network or server error. Please try again later.");
+            }
+        }
+    };
+
+
+    //  <Button
+    //                 variant="primary"
+    //                 className="border border-rounded"
+    //                 onClick={() => setShowUploadModal(true)}
+    //                 style={{
+    //                     borderRadius: "50%",
+    //                     width: "50px",
+    //                     height: "50px",
+    //                     display: "flex",
+    //                     alignItems: "center",
+    //                     justifyContent: "center",
+    //                     backgroundColor: "#d3b386",
+    //                     color: "white",
+    //                 }}
+    //             >
+    //                 <FontAwesomeIcon icon={faUpload} size="lg" />
+    //             </Button>
 
     return (
 
@@ -697,22 +874,22 @@ const ViewFolder = ({ token }) => {
 
 
 
-        <div className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0" style={{ minHeight: "80vh" }}>
+        <div className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0" style={{ minHeight: "86vh", maxHeight: "86vh" }}>
             <Card className="flex-grow-1 d-flex flex-column">
                 <Card.Body className="flex-grow-1 d-flex flex-column">
                     <div className="h-100">
                         <Card.Header className="d-flex justify-content-between align-items-center">
+                            {/* Left side: Breadcrumb navigation */}
                             <div className="d-flex align-items-center gap-2">
-                                {/* Breadcrumb navigation */}
                                 <div className="d-flex align-items-center">
                                     <Button
                                         variant="light"
                                         size="sm"
                                         onClick={async () => {
-                                            await fetchCases()
-                                            setSelectedFolder(null);
+                                            await fetchCases();
+                                            await setSelectedFolder(null);
                                             setFolderPath([]);
-                                            fetchFolders()
+                                            fetchFolders();
                                         }}
                                         style={{ fontSize: "1.2rem", lineHeight: "1", padding: "0 8px" }}
                                         title="Back to root"
@@ -722,23 +899,6 @@ const ViewFolder = ({ token }) => {
                                     {folderPath.length > 0 && (
                                         <>
                                             <span className="mx-1">/</span>
-                                            {/* {folderPath.map((folder, index) => (
-                                                <React.Fragment key={folder._id}>
-                                                    <Button
-                                                        variant="link"
-                                                        size="sm"
-                                                        className="p-0"
-                                                        onClick={() => {
-                                                            const newPath = folderPath.slice(0, index + 1);
-                                                            setFolderPath(newPath);
-                                                            setSelectedFolder(folder);
-                                                        }}
-                                                    >
-                                                        {folder.folderName}
-                                                    </Button>
-                                                    {index < folderPath.length - 1 && <span className="mx-1">/</span>}
-                                                </React.Fragment>
-                                            ))} */}
                                             {folderPath.map((folder, index) => (
                                                 <React.Fragment key={folder._id}>
                                                     <Button
@@ -749,10 +909,8 @@ const ViewFolder = ({ token }) => {
                                                             const newPath = folderPath.slice(0, index + 1);
                                                             setFolderPath(newPath);
                                                             setSelectedFolder(folder);
-
-                                                            // ✅ Yahan check karte hain: agar index exist karta hai (0 ya usse aage)
                                                             if (index >= 0) {
-                                                                fetchsubFolders(folder._id); // folder ka id pass kar rahe hain
+                                                                fetchsubFolders(folder._id);
                                                             }
                                                         }}
                                                     >
@@ -761,43 +919,68 @@ const ViewFolder = ({ token }) => {
                                                     {index < folderPath.length - 1 && <span className="mx-1">/</span>}
                                                 </React.Fragment>
                                             ))}
-
-
                                         </>
                                     )}
                                 </div>
                             </div>
 
-                            <Button
-                                size="sm"
-                                variant="primary"
-                                className="d-flex justify-content-center align-items-center m-0"
-                                style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
-                                onClick={() => {
-                                    setNewFolderName("");
-                                    setIsEditMode(false);
-                                    setShowModal(true);
-                                }}
-                            >
-                                + New
-                            </Button>
-                            <Dropdown>
-                                <Dropdown.Toggle variant="primary" size="sm"
+                            {/* Right side: All buttons */}
+                            <div className="d-flex align-items-center gap-2">
+                                <Button
+                                    variant="primary"
+                                    // className="border border-rounded"
+                                    onClick={() => setShowUploadModal(true)}
+                                    // style={{
+                                    //     borderRadius: "10%",
+                                    //     width: "50px",
+                                    //     height: "50px",
+                                    //     display: "flex",
+                                    //     alignItems: "center",
+                                    //     justifyContent: "center",
+                                    //     // backgroundColor: "#d3b386",
+                                    //     color: "white",
+                                    // }}
                                     className="d-flex justify-content-center align-items-center m-0"
                                     style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
                                 >
-                                    View
-                                </Dropdown.Toggle>
+                                    <FontAwesomeIcon icon={faUpload} size="sm" />
+                                </Button>
+                                <Button
+                                    size="sm"
+                                    variant="primary"
+                                    className="d-flex justify-content-center align-items-center m-0"
+                                    style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
+                                    onClick={() => {
+                                        setNewFolderName("");
+                                        setIsEditMode(false);
+                                        setShowModal(true);
+                                    }}
+                                >
+                                    + New
+                                </Button>
 
-                                <Dropdown.Menu>
-                                    <Dropdown.Item onClick={() => setViewMode("grid")}>Grid View</Dropdown.Item>
-                                    <Dropdown.Item onClick={() => setViewMode("list")}>List View</Dropdown.Item>
-                                </Dropdown.Menu>
-                            </Dropdown>
+                                <Dropdown>
+                                    <Dropdown.Toggle
+                                        variant="primary"
+                                        size="sm"
+                                        className="d-flex justify-content-center align-items-center m-0"
+                                        style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
+                                    >
+                                        View
+                                    </Dropdown.Toggle>
 
+                                    <Dropdown.Menu>
+                                        <Dropdown.Item onClick={() => setViewMode("grid")}>Grid View</Dropdown.Item>
+                                        <Dropdown.Item onClick={() => setViewMode("list")}>List View</Dropdown.Item>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+
+                                {/* Upload Button */}
+
+                            </div>
                         </Card.Header>
 
-                        <Card.Body className="overflow-auto" style={{ maxHeight: "80vh" }}>
+                        <Card.Body className="overflow-auto" style={{ maxHeight: "72vh" }}>
                             <Row
                                 className="g-3"
                                 style={{
@@ -807,7 +990,7 @@ const ViewFolder = ({ token }) => {
                                 }}
                             >
                                 {/* Folders */}
-                                {folderList.map((folder) => {
+                                {folderList?.map((folder) => {
                                     const editKey = `edit-${folder._id}`;
                                     const deleteKey = `delete-${folder._id}`;
 
@@ -842,24 +1025,38 @@ const ViewFolder = ({ token }) => {
                                                     }
                                                 }}
                                             >
-                                                <FontAwesomeIcon
-                                                    icon={faFolder}
-                                                    size="2x"
-                                                    className="mb-2"
-                                                    style={{ color: "#d3b386", marginRight: viewMode === "list" ? "10px" : "0" }}
-                                                />
-                                                <Card.Body className="p-1 d-flex justify-content-between align-items-center" style={{ width: "100%" }}>
+                                                <div className="d-flex gap-2 justify-content-between align-items-center">
+                                                    <FontAwesomeIcon
+                                                        icon={faFolder}
+                                                        size="2x"
+                                                        className="mb-2"
+                                                        style={{ color: "#d3b386", marginRight: viewMode === "list" ? "10px" : "0" }}
+                                                    />
                                                     <div
                                                         className="text-truncate"
                                                         style={{ fontSize: "0.9rem", color: 'white', maxWidth: "70%" }}
                                                     >
                                                         {folder.folderName}
                                                     </div>
-                                                    <div className="d-flex gap-2">
+                                                </div>
+
+                                                <Card.Body className="p-1 d-flex justify-content-between align-items-center" style={{ width: "100%" }}>
+
+                                                    <div className="d-flex gap-2 justify-content-end" style={{ width: "100%" }}>
                                                         <Button
                                                             variant="success"
                                                             size="sm"
-                                                            style={{ background: "#28a745", border: "none", padding: "0.25rem 0.5rem" }}
+                                                            style={{
+                                                                background: "#ebbf46",
+                                                                // background: "#929cd1",
+                                                                border: "none",
+                                                                width: "36px",
+                                                                height: "36px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                padding: 0,
+                                                            }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 openEditModal(folder);
@@ -868,9 +1065,43 @@ const ViewFolder = ({ token }) => {
                                                             <FontAwesomeIcon icon={faEdit} />
                                                         </Button>
                                                         <Button
+                                                            variant="success"
+                                                            size="sm"
+                                                            style={{
+                                                                background: "#007bff",
+                                                                border: "none",
+                                                                width: "36px",
+                                                                height: "36px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                padding: 0,
+                                                            }}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                openMoveModal(folder);
+                                                            }}
+                                                        >
+                                                            <img
+                                                                src={movefolder} // <-- Your folder move image path
+                                                                alt="Move Folder"
+                                                                style={{ width: "18px", height: "18px" }}
+                                                            />
+                                                        </Button>
+
+                                                        <Button
                                                             variant="danger"
                                                             size="sm"
-                                                            style={{ background: "#dc3545", border: "none", padding: "0.25rem 0.5rem" }}
+                                                            style={{
+                                                                background: "#dc3545",
+                                                                border: "none",
+                                                                width: "36px",
+                                                                height: "36px",
+                                                                display: "flex",
+                                                                alignItems: "center",
+                                                                justifyContent: "center",
+                                                                padding: 0,
+                                                            }}
                                                             onClick={(e) => {
                                                                 e.stopPropagation();
                                                                 handleDeleteFolder(folder._id);
@@ -880,6 +1111,8 @@ const ViewFolder = ({ token }) => {
                                                         </Button>
                                                     </div>
                                                 </Card.Body>
+
+
                                             </Card>
                                         </Col>
                                     );
@@ -911,20 +1144,50 @@ const ViewFolder = ({ token }) => {
                                                 }
                                             }}
                                         >
-                                            <FontAwesomeIcon
-                                                icon={getFileTypeIcon(file.fileName)}
-                                                size="2x"
-                                                className="mb-2"
-                                                style={{ color: "#d3b386", marginRight: viewMode === "list" ? "10px" : "0" }}
-                                            />
-                                            <Card.Body className="p-1 d-flex justify-content-between align-items-center" style={{ width: "100%" }}>
+                                            <div className="d-flex gap-2 justify-content-between align-items-center">
+                                                <FontAwesomeIcon
+                                                    icon={getFileTypeIcon(file.fileName)}
+                                                    size="2x"
+                                                    className="mb-2"
+                                                    style={{ color: "#d3b386", marginRight: viewMode === "list" ? "10px" : "0" }}
+                                                />
                                                 <div
                                                     className="text-truncate"
                                                     style={{ fontSize: "0.9rem", color: 'white', maxWidth: "70%" }}
                                                 >
                                                     {file.fileName}
                                                 </div>
-                                                <div className="d-flex gap-2">
+                                            </div>
+                                            <Card.Body className="p-1 d-flex justify-content-between align-items-center" style={{ width: "100%" }}>
+
+                                                <div className="d-flex gap-2 justify-content-end" style={{ width: "100%" }}>
+                                                    <Button
+                                                        variant="danger"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            openFileEditModal(file);
+                                                        }}
+                                                        style={{ background: "#ebbf46", border: "none", padding: "0.25rem 0.5rem" }}
+                                                    >
+                                                        <FontAwesomeIcon icon={faEdit} />
+                                                    </Button>
+                                                    <Button
+                                                        variant="success"
+                                                        size="sm"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            setMoveFileId(file._id)
+                                                            openMoveModal(selectedFolder);
+                                                        }}
+                                                        style={{ background: "#007bff", border: "none", padding: "0.25rem 0.5rem" }}
+                                                    >
+                                                        <img
+                                                            src={movefolder} // <-- Your folder move image path
+                                                            alt="Move Folder"
+                                                            style={{ width: "18px", height: "18px" }}
+                                                        />
+                                                    </Button>
                                                     <Button
                                                         variant="success"
                                                         size="sm"
@@ -953,24 +1216,26 @@ const ViewFolder = ({ token }) => {
                     </div>
                 </Card.Body>
             </Card>
+            <MoveFolderModal
+                show={showMoveModal}
+                onClose={closeMoveModal}
+                folder={folderToMove !== null ? folderToMove : Mainfolder}
+                allFolders={folderList} // array of all folders you have
+                onMove={moveFileId !== null ? handlefileMove : handleMoveFolder}
+            />
 
-            <Button
-                variant="primary"
-                className="border border-rounded"
-                onClick={() => setShowUploadModal(true)}
-                style={{
-                    borderRadius: "50%",
-                    width: "50px",
-                    height: "50px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "#d3b386",
-                    color: "white",
-                }}
-            >
-                <FontAwesomeIcon icon={faUpload} size="lg" />
-            </Button>
+            <DragAndDrop
+                showModal={showUploadModal}
+                onHide={onHide}
+                handleFileChange={handleFileChange}
+                uploading={uploading}
+                uploadSuccess={uploadSuccess}
+                selectedFiles={selectedFiles}
+                handleFileUpload={handleFileUpload}
+                errorMessage={errorMessage}
+            />
+
+
             {/* Create/Edit Folder Modal */}
             <Modal show={showModal} onHide={() => setShowModal(false)} centered>
                 <Modal.Header closeButton>
@@ -996,6 +1261,39 @@ const ViewFolder = ({ token }) => {
                     <Button
                         variant="primary"
                         onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
+                    >
+                        {isEditMode ? "Update" : "Create"}
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+
+
+
+            <Modal show={showFileModal} onHide={() => setShowFileModal(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>{isEditMode ? "Edit File" : "Create New FIle"}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <Form>
+                        <Form.Group className="mb-3">
+                            <Form.Label>File Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                placeholder="Enter folder name"
+                                value={newFileName}
+                                onChange={(e) => setNewFileName(e.target.value)}
+                            />
+                        </Form.Group>
+                    </Form>
+                </Modal.Body>
+                <Modal.Footer className="d-flex justify-content-end">
+                    <Button variant="primary" onClick={() => setShowFileModal(false)}>
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="primary"
+                        onClick={handleUpdateFileName}
                     >
                         {isEditMode ? "Update" : "Create"}
                     </Button>
