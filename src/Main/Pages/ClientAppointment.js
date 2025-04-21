@@ -41,6 +41,7 @@ import {
   BsSendPlusFill,
 } from "react-icons/bs";
 import SocketService from "../../SocketService";
+import { useSelector } from "react-redux";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = ({ token }) => {
@@ -51,7 +52,7 @@ const ClientAppointment = ({ token }) => {
   const [lawyerDetails, setLawyersDetails] = useState([]);
   const [ClientDetails, setClientDetails] = useState([]);
   const [user, setUser] = useState();
-
+  const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const [date, setdate] = useState(null);
   const [getDay, setDay] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -120,10 +121,23 @@ const ClientAppointment = ({ token }) => {
     let lawyerid;
     try {
       const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails/osama@aws-legalgroup.com`
+        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
       ); // API endpoint
-      setUser(response.data.user);
-      setLawyersDetails(response.data.lawyerDetails);
+      console.log("response.data ",response.data?.LawyerId)
+      lawyerid = response.data?.LawyerId;
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+
+    try {
+      const response = await axios.get(
+        `${ApiEndPoint}getLawyerDetailsById/${lawyerid}`
+      ); // API endpoint
+      console.log("response lawyer data ",response.data)
+      setUser(response.data?.user);
+      setLawyersDetails(response.data?.lawyerDetails);
       lawyerid = response.data.user?._id;
       setLoading(false);
     } catch (err) {
