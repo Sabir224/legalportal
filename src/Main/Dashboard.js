@@ -343,6 +343,8 @@ const Dashboard = () => {
                         ? "Profile"
                         : screen === 5
                           ? "Profile"
+                          : screen === 7
+                            ? "View User"
                           : screen === 8
                             ? "Add User"
                             : screen === 9
