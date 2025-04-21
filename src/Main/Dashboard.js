@@ -213,7 +213,7 @@ const Dashboard = () => {
   };
   const ScreenHeader = ({ title }) => (
     <div className="d-flex align-items-center">
-      {!title === "Master List" &&
+      {title !== "Master List" &&
         <button
           onClick={handleGoBack}
           style={{
