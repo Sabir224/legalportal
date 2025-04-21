@@ -322,7 +322,9 @@ const Case_details = ({ token }) => {
       {
         id: "effsahPlatformOrders",
         title: "Effsah Platform Orders Details",
-        content: <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />,
+        content: (
+          <EffsahPlatformOrders data={caseData.Effsah_Platform_Orders} />
+        ),
       },
       {
         id: "experienceReports",
@@ -352,12 +354,16 @@ const Case_details = ({ token }) => {
       {
         id: "relatedCases",
         title: "Related Cases Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Related_Cases"} />
+        ),
       },
       {
         id: "joinedCases",
         title: "Joined Cases Details",
-        content: <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Joined_Cases"} />
+        ),
       },
       {
         id: "Settlements_Legal_Reasoned_Decisions",
@@ -392,12 +398,16 @@ const Case_details = ({ token }) => {
       {
         id: "Arrest_Orders",
         title: "Arrest Orders",
-        content: <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Arrest_Orders"} />
+        ),
       },
       {
         id: "Detentions",
         title: "Detentions",
-        content: <SubCaseDetails caseData={caseData} reportType={"Detentions"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Detentions"} />
+        ),
       },
       {
         id: "Bans",
@@ -417,17 +427,23 @@ const Case_details = ({ token }) => {
       {
         id: "seizedDocuments",
         title: "Seized Documents",
-        content: <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Seized_Documents"} />
+        ),
       },
       {
         id: "caseLetters",
         title: "Case Letters",
-        content: <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Case_Letters"} />
+        ),
       },
       {
         id: "mrletters",
         title: "Mr Letters",
-        content: <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Mr_Letters"} />
+        ),
       },
       {
         id: "payments",
@@ -437,7 +453,9 @@ const Case_details = ({ token }) => {
       {
         id: "depositvouchers",
         title: "Deposit Vouchers",
-        content: <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />,
+        content: (
+          <SubCaseDetails caseData={caseData} reportType={"Deposit_Vouchers"} />
+        ),
       },
       {
         id: "claims",
@@ -448,19 +466,24 @@ const Case_details = ({ token }) => {
         id: "relatedcaseregapps",
         title: "Related Case Reg Apps",
         content: (
-          <SubCaseDetails caseData={caseData} reportType={"Related_Case_Reg_Apps"} />
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Related_Case_Reg_Apps"}
+          />
         ),
       },
       {
         id: "decisionsAndSessionMinutes",
         title: "Decisions and Session Minutes",
         content: (
-          <SubCaseDetails caseData={caseData} reportType={"Decisions_and_Session_Minutes"} />
+          <SubCaseDetails
+            caseData={caseData}
+            reportType={"Decisions_and_Session_Minutes"}
+          />
         ),
       },
     ];
   };
-
 
   const scrollRef = useRef(null);
 
@@ -516,7 +539,9 @@ const Case_details = ({ token }) => {
       setLoading(false);
     }
     try {
-      const response = await axios.get(`${ApiEndPoint}getparties/${global.CaseId._id}`); // API endpoint
+      const response = await axios.get(
+        `${ApiEndPoint}getparties/${global.CaseId._id}`
+      ); // API endpoint
 
       console.log("data of parties", response.data[0]);
       // Assuming the API returns data in the `data` field
@@ -551,12 +576,6 @@ const Case_details = ({ token }) => {
     console.log(global.User);
     dispatch(screenChange(2));
   };
-  const handleViewFolders = async () => {
-    global.lawyerDetails = lawyerDetails[0];
-    global.User = user;
-    console.log(global.User);
-    dispatch(screenChange(12));
-  };
   const handleViewClientDetails = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -567,8 +586,6 @@ const Case_details = ({ token }) => {
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
   };
-
-
 
   const fieldMappings = [
     { key: "CaseNumber", label: "Case Number" },
@@ -589,7 +606,6 @@ const Case_details = ({ token }) => {
     { key: "RootCaseNumber", label: "Root Case Number" },
     { key: "RootDecision", label: "Root Decision" },
   ];
-
 
   return (
     <div className="container-fluid  m-0 p-0">
@@ -621,20 +637,7 @@ const Case_details = ({ token }) => {
                 View lawyer
               </button>
             </div>
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <button
-                className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                style={{
-                  boxShadow: "5px 5px 5px gray",
-                  border: "2px solid #d4af37",
-                  borderRadius: "6px",
-                }}
-                onClick={handleViewFolders}
-              >
-                View Folders
-              </button>
-            </div>
-            {(token?.Role !== "client") && (
+            {token?.Role !== "client" && (
               <div style={{ textAlign: "center", marginBottom: "10px" }}>
                 <button
                   className="View-button rounded-4 m-1  w-100 px-4 py-2"
@@ -683,7 +686,6 @@ const Case_details = ({ token }) => {
                   >
                     {section.title}
                   </button>
-
                 </div>
               ))}
             </div>
@@ -730,12 +732,18 @@ const Case_details = ({ token }) => {
                 <div className="overflow-x-auto">
                   <tbody>
                     {fieldMappings
-                      .filter((f) => ["CaseNumber", "CaseStatus"].includes(f.key))
+                      .filter((f) =>
+                        ["CaseNumber", "CaseStatus"].includes(f.key)
+                      )
                       .map(({ key, label }) =>
                         caseData?.[key] ? (
                           <tr key={key} className="bg-gray-100">
-                            <td className=" px-1 py-2 font-bold w-1/7">{label} :</td>
-                            <td className=" px-1 py-2 w-1/7">{caseData[key]}</td>
+                            <td className=" px-1 py-2 font-bold w-1/7">
+                              {label} :
+                            </td>
+                            <td className=" px-1 py-2 w-1/7">
+                              {caseData[key]}
+                            </td>
                           </tr>
                         ) : null
                       )}
@@ -775,18 +783,27 @@ const Case_details = ({ token }) => {
                     <tbody>
                       {fieldMappings
                         .filter((f) =>
-                          ["ClaimedAmount", "LitigationStage", "TotalClaimedAmount", "CaseBalance"].includes(f.key)
+                          [
+                            "ClaimedAmount",
+                            "LitigationStage",
+                            "TotalClaimedAmount",
+                            "CaseBalance",
+                          ].includes(f.key)
                         )
                         .map(({ key, label }, index) =>
                           caseData?.[key] ? (
-                            <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
-                              <td className=" px-1 py-2 font-bold">{label} :</td>
+                            <tr
+                              key={key}
+                              className={index % 2 === 0 ? "bg-gray-100" : ""}
+                            >
+                              <td className=" px-1 py-2 font-bold">
+                                {label} :
+                              </td>
                               <td className=" px-1 py-2">{caseData[key]}</td>
                             </tr>
                           ) : null
                         )}
                     </tbody>
-
                   </table>
                 </div>
               </div>
@@ -825,7 +842,10 @@ const Case_details = ({ token }) => {
                           .filter((f) => f.key.toLowerCase().includes("date"))
                           .map(({ key, label }, index) =>
                             caseData?.[key] ? (
-                              <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
+                              <tr
+                                key={key}
+                                className={index % 2 === 0 ? "bg-gray-100" : ""}
+                              >
                                 <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
                                   {label}
                                 </td>
@@ -914,23 +934,24 @@ const Case_details = ({ token }) => {
                           )
                           .map(({ key, label }, index) =>
                             caseData?.[key] ? (
-                              <tr key={key} className={index % 2 === 0 ? "bg-gray-100" : ""}>
-                                <td className="border border-gray-300 px-1 py-2 font-bold">{label}</td>
-                                <td className="border border-gray-300 px-1 py-2">{caseData[key]}</td>
+                              <tr
+                                key={key}
+                                className={index % 2 === 0 ? "bg-gray-100" : ""}
+                              >
+                                <td className="border border-gray-300 px-1 py-2 font-bold">
+                                  {label}
+                                </td>
+                                <td className="border border-gray-300 px-1 py-2">
+                                  {caseData[key]}
+                                </td>
                               </tr>
                             ) : null
                           )}
                       </tbody>
-
                     </table>
                   </div>
                 </div>
               </div>
-
-
-
-
-
 
               {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
 
@@ -1011,6 +1032,6 @@ const Case_details = ({ token }) => {
       </div>
     </div>
   );
-}
+};
 
 export default Case_details;

@@ -432,8 +432,9 @@ const UserProfile = ({ token }) => {
     }
 
     try {
+      console.log("token =", token._id);
       const response = await axios.get(
-        `${ApiEndPoint}GetClientBookAppointments/${token?._id}`
+        `${ApiEndPoint}GetClientBookAppointments/${token._id}`
       );
 
       if (!response.data || response.data.length === 0) {
@@ -563,7 +564,7 @@ const UserProfile = ({ token }) => {
 
               {/* Username */}
               <div className="ms-3">
-                <h2>{usersDetails?.UserName}</h2>
+                <h2>{usersDetails.UserName}</h2>
               </div>
             </div>
             {/* Client Details */}
@@ -586,10 +587,10 @@ const UserProfile = ({ token }) => {
                 />
                 <p className="ms-2 m-1">
                   <a
-                    href={`mailto:${usersDetails?.Email}`}
+                    href={`mailto:${usersDetails.Email}`}
                     style={{ color: "white" }}
                   >
-                    {usersDetails?.Email}
+                    {usersDetails.Email}
                   </a>
                 </p>
               </div>
@@ -602,7 +603,7 @@ const UserProfile = ({ token }) => {
                   color="white"
                   className="m-2"
                 />
-                <p className="ms-2 m-1">{clientDetails?.Contact}</p>
+                <p className="ms-2 m-1">{clientDetails.Contact}</p>
               </div>
 
               {/* Address */}
@@ -614,7 +615,7 @@ const UserProfile = ({ token }) => {
                   className="m-2"
                 />
                 <p style={{ fontSize: 12 }} className="ms-2 m-1">
-                  {clientDetails?.Address}
+                  {clientDetails.Address}
                 </p>
               </div>
             </div>
