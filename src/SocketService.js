@@ -1,9 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 // services/SocketService.js
 import { io } from "socket.io-client";
-const ApiBase = "https://portal.aws-legalgroup.com";
+//const ApiBase = "https://portal.aws-legalgroup.com";
 //const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
-//const ApiBase = "http://localhost:5001"; // Use this for local testing
+const ApiBase = "http://localhost:5001"; // Use this for local testing
 
 const socket = io(ApiBase, {
   transports: ["websocket"], // Force WebSocket connection
