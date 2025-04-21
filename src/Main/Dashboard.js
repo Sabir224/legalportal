@@ -213,18 +213,20 @@ const Dashboard = () => {
   };
   const ScreenHeader = ({ title }) => (
     <div className="d-flex align-items-center">
-      <button
-        onClick={handleGoBack}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          fontSize: "24px",
-        }}
-      >
-        <FaArrowLeft color="white" />
-      </button>
-      <span style={{ marginLeft: "10px" }}>{title}</span>
+      {!title === "Master List" &&
+        <button
+          onClick={handleGoBack}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            fontSize: "24px",
+          }}
+        >
+          <FaArrowLeft color="white" />
+        </button>
+      }
+      <span style={{  }}>{title}</span>
     </div>
   );
 
@@ -240,9 +242,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${
-          isCollapsed ? "col-1" : "col-2"
-        } h-100 position-relative`}
+        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
+          } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -287,17 +288,17 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                  icon: faPerson,
-                  label: "View Users",
-                  action: () => handlescreen2(9),
-                }
+                icon: faPerson,
+                label: "View Users",
+                action: () => handlescreen2(9),
+              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                  icon: faCcMastercard,
-                  label: "Add Case",
-                  action: () => handlescreen2(11),
-                }
+                icon: faCcMastercard,
+                label: "Add Case",
+                action: () => handlescreen2(11),
+              }
               : null,
             // decodedToken?.Role === "admin"
             //   ? {
@@ -370,7 +371,7 @@ const Dashboard = () => {
               {screen === 3 && <ScreenHeader title="Chat" />}
               {screen === 4 && <ScreenHeader title="Profile" />}
               {screen === 5 && <ScreenHeader title="Profile" />}
-              {screen === 7 && <ScreenHeader title="View CLient" />}
+              {screen === 7 && <ScreenHeader title="View Client" />}
               {screen === 8 && <ScreenHeader title="Add User" />}
               {screen === 9 && <ScreenHeader title="View User" />}
               {screen === 10 && <ScreenHeader title="View Client" />}
@@ -419,20 +420,20 @@ const Dashboard = () => {
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-              <button
-                className="btn me-2"
-                onClick={() => {
-                  handlescreen2(5);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUser}
-                  size="1x"
-                  color="white"
-                  className=""
-                />
-              </button>
-            )}
+                <button
+                  className="btn me-2"
+                  onClick={() => {
+                    handlescreen2(5);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    size="1x"
+                    color="white"
+                    className=""
+                  />
+                </button>
+              )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
