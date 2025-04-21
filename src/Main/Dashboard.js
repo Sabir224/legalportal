@@ -20,7 +20,11 @@ import {
   faStreetView,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
-import { faCcMastercard, faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
+import {
+  faCcMastercard,
+  faFacebook,
+  faWhatsapp,
+} from "@fortawesome/free-brands-svg-icons";
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
@@ -29,7 +33,7 @@ import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
 import Chat from "./Pages/chat/Chat";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowLeft, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 
@@ -66,12 +70,14 @@ const Dashboard = () => {
   const [decodedToken, setDecodedToken] = useState(null);
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   const [cookies] = useCookies(["token"]);
+  const [viewClient, setViewClient] = useState(false);
+  const [viewLawyer, setViewLawyer] = useState(false);
   // console.log("________", cookies.token);
   // Get the decoded token
   useEffect(() => {
     if (cookies.token) {
       try {
-        handlescreen2(0) // Decode and store token
+        handlescreen2(0); // Decode and store token
         setDecodedToken(jwtDecode(cookies.token));
       } catch (error) {
         console.error("Invalid token:", error);
@@ -108,7 +114,9 @@ const Dashboard = () => {
         setCurrentScreen(<AddUser token={decodedToken} />);
         break;
       case 9:
-        setCurrentScreen(<ViewUsers token={decodedToken} screen={currenScreen} />);
+        setCurrentScreen(
+          <ViewUsers token={decodedToken} screen={currenScreen} />
+        );
         break;
       case 10:
         setCurrentScreen(<ViewClient token={decodedToken} />);
@@ -201,7 +209,11 @@ const Dashboard = () => {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
-
+  // This function will reset the view state
+  const handleBack = () => {
+    setViewClient(false);
+    setViewLawyer(false);
+  };
   return (
     <div
       className="d-flex w-99 gap-3 m-1"
@@ -209,8 +221,9 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
-          } h-100 position-relative`}
+        className={`d-flex flex-column text-white  ${
+          isCollapsed ? "col-1" : "col-2"
+        } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -255,17 +268,17 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                icon: faPerson,
-                label: "View Users",
-                action: () => handlescreen2(9),
-              }
+                  icon: faPerson,
+                  label: "View Users",
+                  action: () => handlescreen2(9),
+                }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                icon: faCcMastercard,
-                label: "Add Case",
-                action: () => handlescreen2(11),
-              }
+                  icon: faCcMastercard,
+                  label: "Add Case",
+                  action: () => handlescreen2(11),
+                }
               : null,
             // decodedToken?.Role === "admin"
             //   ? {
@@ -356,72 +369,123 @@ const Dashboard = () => {
                               : screen === 12
                                 ? "View Folder"
                                 : ""}
+              {screen === 3 ? (
+                "Chat"
+              ) : screen === 0 ? (
+                "Master List"
+              ) : screen === 1 ? (
+                <div className="d-flex align-items-center">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <button
+                      onClick={handleBack}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "24px",
+                      }}
+                    >
+                      <FaArrowLeft color="white" />
+                    </button>
+                  </div>
+                  <span>Case Details</span>
+                </div>
+              ) : screen === 2 ? (
+                "Appointment"
+              ) : screen === 4 ? (
+                "Profile"
+              ) : screen === 5 ? (
+                "Profile"
+              ) : screen === 8 ? (
+                "Add User"
+              ) : screen === 9 ? (
+                "View User"
+              ) : screen === 10 ? (
+                "View Client"
+              ) : screen === 11 ? (
+                "Add Case"
+              ) : screen === 12 ? (
+                <div className="d-flex align-items-center">
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <button
+                      onClick={handleBack}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        fontSize: "24px",
+                      }}
+                    >
+                      <FaArrowLeft color="white" />
+                    </button>
+                  </div>
+                  <span>View Folder</span>
+                </div>
+              ) : (
+                ""
+              )}
             </h3>
-            {decodedToken?.Role === "admin" && screen === 9
-              ? (
-
-                <div
-                  className="d-flex align-items-center my-2"
-                  onClick={() => handlescreen2(8)}
-                  style={{ gap: "10px", cursor: "pointer" }}
-                >
-                  <FontAwesomeIcon
-                    icon={faPersonCirclePlus}
-                    style={{
-                      fontSize: "20px",
-                      color: "white",
-                      marginLeft: "6px",
-                    }}
-                  />
-
-                </div>
-              )
-
-              : null
-
-            }
-            {decodedToken?.Role === "admin" && screen === 10
-              ? (
-
-                <div
-                  className="d-flex align-items-center my-2"
-                  onClick={() => handlescreen2(11)}
-                  style={{ gap: "10px", cursor: "pointer" }}
-                >
-                  <FontAwesomeIcon
-                    icon={faBookBible}
-                    style={{
-                      fontSize: "20px",
-                      color: "white",
-                      marginLeft: "6px",
-                    }}
-                  />
-
-                </div>
-              )
-
-              : null
-
-            }
+            {decodedToken?.Role === "admin" && screen === 9 ? (
+              <div
+                className="d-flex align-items-center my-2"
+                onClick={() => handlescreen2(8)}
+                style={{ gap: "10px", cursor: "pointer" }}
+              >
+                <FontAwesomeIcon
+                  icon={faPersonCirclePlus}
+                  style={{
+                    fontSize: "20px",
+                    color: "white",
+                    marginLeft: "6px",
+                  }}
+                />
+              </div>
+            ) : null}
+            {decodedToken?.Role === "admin" && screen === 10 ? (
+              <div
+                className="d-flex align-items-center my-2"
+                onClick={() => handlescreen2(11)}
+                style={{ gap: "10px", cursor: "pointer" }}
+              >
+                <FontAwesomeIcon
+                  icon={faBookBible}
+                  style={{
+                    fontSize: "20px",
+                    color: "white",
+                    marginLeft: "6px",
+                  }}
+                />
+              </div>
+            ) : null}
           </div>
 
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-                <button
-                  className="btn me-2"
-                  onClick={() => {
-                    handlescreen2(5);
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    size="1x"
-                    color="white"
-                    className=""
-                  />
-                </button>
-              )}
+              <button
+                className="btn me-2"
+                onClick={() => {
+                  handlescreen2(5);
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUser}
+                  size="1x"
+                  color="white"
+                  className=""
+                />
+              </button>
+            )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
@@ -445,7 +509,7 @@ const Dashboard = () => {
         <div style={{ padding: 1, marginRight: "10px" }}>{currenScreen}</div>
         {/* </div> */}
       </div>
-    </div >
+    </div>
   );
 };
 export default Dashboard;
