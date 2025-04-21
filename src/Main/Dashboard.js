@@ -344,31 +344,6 @@ const Dashboard = () => {
           <div className="d-flex align-items-center gap-2 justify-content-between p-3 position-relative">
             {/* Case Title */}
             <h3 className="m-0 ">
-              {screen === 3
-                ? "Chat"
-                : screen === 0
-                  ? "Master List"
-                  : screen === 1
-                    ? "Case Details"
-                    : screen === 2
-                      ? "Appointment"
-                      : screen === 4
-                        ? "Profile"
-                        : screen === 5
-                          ? "Profile"
-                          : screen === 7
-                            ? "View User"
-                          : screen === 8
-                            ? "Add User"
-                            : screen === 9
-                              ? "View User"
-                              : screen === 10
-                                ? "View Client"
-                              : screen === 11
-                                ? "Add Case"
-                              : screen === 12
-                                ? "View Folder"
-                                : ""}
               {screen === 3 ? (
                 "Chat"
               ) : screen === 0 ? (
