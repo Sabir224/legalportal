@@ -28,7 +28,7 @@ import {
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
-import { screenChange } from "../REDUX/sliece";
+import { goBackScreen, screenChange } from "../REDUX/sliece";
 import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
@@ -146,7 +146,9 @@ const Dashboard = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isSheetOpen]);
-
+  const handleGoBack = () => {
+    dispatch(goBackScreen());
+  };
   useEffect(() => {
     if (storedEmail && !hasFetched.current) {
       const fetchClientDetails = async () => {
@@ -209,6 +211,23 @@ const Dashboard = () => {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
+  const ScreenHeader = ({ title }) => (
+    <div className="d-flex align-items-center">
+      <button
+        onClick={handleGoBack}
+        style={{
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          fontSize: "24px",
+        }}
+      >
+        <FaArrowLeft color="white" />
+      </button>
+      <span style={{ marginLeft: "10px" }}>{title}</span>
+    </div>
+  );
+
   // This function will reset the view state
   const handleBack = () => {
     setViewClient(false);
@@ -342,75 +361,27 @@ const Dashboard = () => {
           }}
         >
           <div className="d-flex align-items-center gap-2 justify-content-between p-3 position-relative">
-            {/* Case Title */}
-            <h3 className="m-0 ">
-              {screen === 3 ? (
-                "Chat"
-              ) : screen === 0 ? (
-                "Master List"
-              ) : screen === 1 ? (
-                <div className="d-flex align-items-center">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <button
-                      onClick={handleBack}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "24px",
-                      }}
-                    >
-                      <FaArrowLeft color="white" />
-                    </button>
-                  </div>
-                  <span>Case Details</span>
-                </div>
-              ) : screen === 2 ? (
-                "Appointment"
-              ) : screen === 4 ? (
-                "Profile"
-              ) : screen === 5 ? (
-                "Profile"
-              ) : screen === 8 ? (
-                "Add User"
-              ) : screen === 9 ? (
-                "View User"
-              ) : screen === 10 ? (
-                "View Client"
-              ) : screen === 11 ? (
-                "Add Case"
-              ) : screen === 12 ? (
-                <div className="d-flex align-items-center">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    <button
-                      onClick={handleBack}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        fontSize: "24px",
-                      }}
-                    >
-                      <FaArrowLeft color="white" />
-                    </button>
-                  </div>
-                  <span>View Folder</span>
-                </div>
-              ) : (
-                ""
+            <h3 className="m-0">
+              {screen === 0 && <ScreenHeader title="Master List" />}
+              {screen === 1 && (
+                <ScreenHeader title="Case Details" onBack={handleGoBack} />
+              )}
+              {screen === 2 && <ScreenHeader title="Appointment" />}
+              {screen === 3 && <ScreenHeader title="Chat" />}
+              {screen === 4 && <ScreenHeader title="Profile" />}
+              {screen === 5 && <ScreenHeader title="Profile" />}
+              {screen === 7 && <ScreenHeader title="View CLient" />}
+              {screen === 8 && <ScreenHeader title="Add User" />}
+              {screen === 9 && <ScreenHeader title="View User" />}
+              {screen === 10 && <ScreenHeader title="View Client" />}
+              {screen === 11 && <ScreenHeader title="Add Case" />}
+              {screen === 12 && (
+                <ScreenHeader title="View Folder" onBack={handleBack} />
               )}
             </h3>
-            {decodedToken?.Role === "admin" && screen === 9 ? (
+
+            {/* Admin Buttons */}
+            {decodedToken?.Role === "admin" && screen === 9 && (
               <div
                 className="d-flex align-items-center my-2"
                 onClick={() => handlescreen2(8)}
@@ -425,8 +396,9 @@ const Dashboard = () => {
                   }}
                 />
               </div>
-            ) : null}
-            {decodedToken?.Role === "admin" && screen === 10 ? (
+            )}
+
+            {decodedToken?.Role === "admin" && screen === 10 && (
               <div
                 className="d-flex align-items-center my-2"
                 onClick={() => handlescreen2(11)}
@@ -441,7 +413,7 @@ const Dashboard = () => {
                   }}
                 />
               </div>
-            ) : null}
+            )}
           </div>
 
           <div id="notification-profile">

@@ -123,7 +123,7 @@ const ClientAppointment = ({ token }) => {
       const response = await axios.get(
         `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
       ); // API endpoint
-      console.log("response.data ",response.data?.LawyerId)
+      console.log("response.data ", response.data?.LawyerId);
       lawyerid = response.data?.LawyerId;
       setLoading(false);
     } catch (err) {
@@ -135,7 +135,7 @@ const ClientAppointment = ({ token }) => {
       const response = await axios.get(
         `${ApiEndPoint}getLawyerDetailsById/${lawyerid}`
       ); // API endpoint
-      console.log("response lawyer data ",response.data)
+      console.log("response lawyer data ", response.data);
       setUser(response.data?.user);
       setLawyersDetails(response.data?.lawyerDetails);
       lawyerid = response.data.user?._id;
@@ -368,10 +368,10 @@ const ClientAppointment = ({ token }) => {
     const meetingDate =
       selectedDate instanceof Date
         ? new Date(
-          selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
-        )
-          .toISOString()
-          .split("T")[0] // Extract YYYY-MM-DD
+            selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000
+          )
+            .toISOString()
+            .split("T")[0] // Extract YYYY-MM-DD
         : new Date(selectedDate).toISOString().split("T")[0];
 
     console.log("Corrected Meeting Date:", meetingDate);
@@ -464,7 +464,8 @@ const ClientAppointment = ({ token }) => {
       text: `
          <strong>Client Message:</strong>
           <p>${ClientMessage}</p>
-        Please note that <strong>${ClientDetails.user?.UserName
+        Please note that <strong>${
+          ClientDetails.user?.UserName
         }</strong> has scheduled a meeting with you at
         <strong>${convertTo12HourFormat(
           selectedTime
@@ -529,8 +530,8 @@ const ClientAppointment = ({ token }) => {
           isPopupVisible
             ? "Meeting Schedule mail is send"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-              ? "Meeting Schedule mail is send"
-              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+            ? "Meeting Schedule mail is send"
+            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -609,40 +610,23 @@ const ClientAppointment = ({ token }) => {
         width: "100%",
         height: "85vh",
         overflowY: "auto",
-        overflowX:'hidden',
+        overflowX: "hidden",
         // padding: 10,
         boxShadow: "5px 0px 5px gray",
       }}
     >
-
-      <div className="d-flex position-absolute align-items-center m-2" style={{ height: "40px" }}>
-        <button
-          className="btn btn-light d-flex align-items-center p-1"
-          onClick={() => window.history.back()}
-          style={{
-            width: "35px", // Adjust button width
-            height: "35px", // Adjust button height
-            borderRadius: "50%", // Make it circular
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: "2px 2px 5px gray",
-          }}
-        >     <BsArrowLeft size={20} />
-        </button>
-      </div>
-
       <div
         className="row gap-5 justify-content-center ms-1 mt-2"
-        style={{
-          // width: "100%",
-          // height: "85vh",
-          // overflowY: "auto",
-          // padding: 10,
-          // boxShadow: "5px 5px 5px gray",
-        }}
+        style={
+          {
+            // width: "100%",
+            // height: "85vh",
+            // overflowY: "auto",
+            // padding: 10,
+            // boxShadow: "5px 5px 5px gray",
+          }
+        }
       >
-
         {/* <div className="row gap-5 justify-content-center "  > */}
         <div
           className="slots-section col-5 mt-3 mb-3"
@@ -790,7 +774,10 @@ const ClientAppointment = ({ token }) => {
 
                       {isPopupVisiblecancel && (
                         <div className="popup-actions d-flex justify-content-center">
-                          <button className="confirm-btn" onClick={handleConfirm}>
+                          <button
+                            className="confirm-btn"
+                            onClick={handleConfirm}
+                          >
                             Yes
                           </button>
                           <button
@@ -904,9 +891,12 @@ const ClientAppointment = ({ token }) => {
                 return (
                   <div
                     key={index}
-                    onClick={isAvailableDate ? () => handleDateClick(date) : null} // Disable click for unavailable dates
-                    className={`calendarDates ${isAvailableDate ? "availableDate" : ""
-                      }`}
+                    onClick={
+                      isAvailableDate ? () => handleDateClick(date) : null
+                    } // Disable click for unavailable dates
+                    className={`calendarDates ${
+                      isAvailableDate ? "availableDate" : ""
+                    }`}
                     style={{
                       border:
                         selectedDate?.getDate() === date?.getDate()
@@ -938,41 +928,49 @@ const ClientAppointment = ({ token }) => {
               <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
               <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
                 {selectedDate ? (
-                  availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
-                    <button
-                      key={slot._id}
-                      onClick={() => handleTimeClick(slot.startTime, slot)}
-                      className="time-button"
-                      style={{
-                        padding: "5px 10px",
-                        borderRadius: "5px",
-                        border: "1px solid #d4af37",
-                        background: slot.isBooked
-                          ? "green" // Green if booked
-                          : selectedTime === slot.startTime
+                  availableSlotsMap[selectedDate.toDateString()]?.map(
+                    (slot) => (
+                      <button
+                        key={slot._id}
+                        onClick={() => handleTimeClick(slot.startTime, slot)}
+                        className="time-button"
+                        style={{
+                          padding: "5px 10px",
+                          borderRadius: "5px",
+                          border: "1px solid #d4af37",
+                          background: slot.isBooked
+                            ? "green" // Green if booked
+                            : selectedTime === slot.startTime
                             ? "#d2a85a" // Golden when selected
                             : "#16213e", // Default background
-                        color: "white",
-                        cursor: slot.isBooked ? "not-allowed" : "pointer",
-                        fontSize: 11,
-                        width: 130,
-                      }}
-                      disabled={slot.isBooked}
-                      onMouseEnter={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = "#d2a85a"; // Hover background (light golden)
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = "#16213e"; // Reset to default
-                        }
-                      }}
-                    >
-                      {convertTo12HourFormat(slot.startTime)} -{" "}
-                      {convertTo12HourFormat(slot.endTime)}
-                    </button>
-                  ))
+                          color: "white",
+                          cursor: slot.isBooked ? "not-allowed" : "pointer",
+                          fontSize: 11,
+                          width: 130,
+                        }}
+                        disabled={slot.isBooked}
+                        onMouseEnter={(e) => {
+                          if (
+                            !slot.isBooked &&
+                            selectedTime !== slot.startTime
+                          ) {
+                            e.target.style.background = "#d2a85a"; // Hover background (light golden)
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (
+                            !slot.isBooked &&
+                            selectedTime !== slot.startTime
+                          ) {
+                            e.target.style.background = "#16213e"; // Reset to default
+                          }
+                        }}
+                      >
+                        {convertTo12HourFormat(slot.startTime)} -{" "}
+                        {convertTo12HourFormat(slot.endTime)}
+                      </button>
+                    )
+                  )
                 ) : (
                   <p style={{ color: "gray" }}>
                     Select a date to view available times.
