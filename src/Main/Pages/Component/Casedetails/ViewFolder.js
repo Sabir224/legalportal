@@ -109,6 +109,33 @@ const ViewFolder = ({ token }) => {
     }, [caseInfo._id]);
 
 
+    // const fetchFolders = async () => {
+    //     setLoadingFolders(true);
+    //     setError('');
+    //     try {
+    //         const response = await fetch(`${ApiEndPoint}getFolders/${caseInfo._id}`);
+
+    //         if (!response.ok) {
+    //             throw new Error('Error fetching folders');
+    //         }
+
+    //         const data = await response.json();
+    //         console.log("fetch folders", data)
+    //         setMainfolderId(data?.mainfolder?._id)
+    //         setMainfolder(data?.mainfolder)
+    //         setFolderPath([])
+    //         setFiles(data?.files)
+    //         setFolderList(Array.isArray(data?.folders) ? data?.folders : []); // ✅ safe check
+    //     } catch (err) {
+    //         setError(err.message);
+    //         setFolderList([]); // ✅ error hone pe bhi clear
+    //     } finally {
+    //         setLoadingFolders(false);
+    //     }
+    // };
+
+
+
     const fetchFolders = async () => {
         setLoadingFolders(true);
         setError('');
@@ -120,19 +147,54 @@ const ViewFolder = ({ token }) => {
             }
 
             const data = await response.json();
-            console.log("fetch folders", data)
-            setMainfolderId(data?.mainfolder?._id)
-            setMainfolder(data?.mainfolder)
-            setFolderPath([])
-            setFiles(data?.files)
-            setFolderList(Array.isArray(data?.folders) ? data?.folders : []); // ✅ safe check
+            console.log("fetch folders", data);
+
+            setMainfolderId(data?.mainfolder?._id);
+            setMainfolder(data?.mainfolder);
+            setFolderPath([]);
+            setFiles(data?.files || []);
+
+            const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
+
+            // ✅ Create Personal Folder
+            const personalFolder = {
+                _id: "personal-folder",   // fake id
+                folderName: "Personal",
+                caseId: caseInfo._id,
+                files: [],
+                parentId: data?.mainfolder?._id || null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                __v: 0,
+                isPersonal: true
+            };
+
+            // ✅ Always add personal folder first
+            const finalFolders = [personalFolder, ...fetchedFolders];
+
+            // ✅ Even if fetchedFolders is empty, personalFolder will be there
+            setFolderList(finalFolders);
+
         } catch (err) {
             setError(err.message);
-            setFolderList([]); // ✅ error hone pe bhi clear
+            setFolderList([
+                {
+                    _id: "personal-folder",
+                    folderName: "Personal",
+                    caseId: caseInfo._id,
+                    files: [],
+                    parentId: null,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    __v: 0,
+                    isPersonal: true
+                }
+            ]);
         } finally {
             setLoadingFolders(false);
         }
     };
+
 
     const fetchsubFolders = async (parentId) => {
         setLoadingFolders(true);
@@ -287,7 +349,7 @@ const ViewFolder = ({ token }) => {
                 console.log('📂 Folder created successfully:', response.data);
                 // await fetchCases();
                 await fetchsubFolders(response.data?.parentId);  // Refresh the folder list after creation
-                alert("✅ Folder Added Successfully!");
+                // alert("✅ Folder Added Successfully!");
                 setShowModal(false)
             } else {
                 console.error('Folder creation failed:', response.data.message);
@@ -320,7 +382,7 @@ const ViewFolder = ({ token }) => {
             const response = await axios.put(`${ApiEndPoint}updateFolderName`, caseData);
             console.log('Folder updated successfully:', response.data.data.parentId);
             fetchsubFolders(response.data?.data?.parentId);
-            alert("✅ Folder name updated successfully!");
+            // alert("✅ Folder name updated successfully!");
             setShowModal(false)
         } catch (error) {
             if (error.response) {
@@ -623,7 +685,7 @@ const ViewFolder = ({ token }) => {
             if (response.data._id) {
                 console.log('📂 Folder Move successfully:', response.data);
                 fetchFolders();  // Refresh the folder list after creation
-                alert("✅ Folder Move Successfully!");
+                // alert("✅ Folder Move Successfully!");
             } else {
                 console.error('Folder Move failed:', response.data.message);
                 alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
@@ -665,7 +727,7 @@ const ViewFolder = ({ token }) => {
                 setSelectedFolder(null);
                 setFolderPath([]);
                 setMoveFileId(null)
-                alert("✅ File moved successfully!");
+                // alert("✅ File moved successfully!");
             } else {
                 console.error('File move failed:', response.data.message);
                 alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
@@ -703,7 +765,7 @@ const ViewFolder = ({ token }) => {
                     await fetchFolders()
                 }
 
-                alert("✅ File Editing successfully!");
+                // alert("✅ File Editing successfully!");
                 setShowFileModal(false)
 
             } else {
@@ -722,7 +784,9 @@ const ViewFolder = ({ token }) => {
     };
 
 
-    const fetchClientDetails = async () => {
+    const fetchClientDocuments = async () => {
+        setIsPersonal(true);
+        setFolderList([])
         setLoading(true);
         try {
             const response = await axios.get(
@@ -984,7 +1048,7 @@ const ViewFolder = ({ token }) => {
                                             </Button>
                                         </div>
                                     )}
-                                <Button
+                                {/* <Button
                                     size="sm"
                                     variant="primary"
                                     className="d-flex justify-content-center align-items-center m-0"
@@ -992,11 +1056,11 @@ const ViewFolder = ({ token }) => {
                                     onClick={() => {
                                         setIsPersonal(true);
                                         setFolderPath((prevPath) => [{ folderName: "Personal" }]);
-                                        fetchClientDetails()
+                                        fetchClientDocuments()
                                     }}
                                 >
                                     📁Personal
-                                </Button>
+                                </Button> */}
 
                                 <Dropdown>
                                     <Dropdown.Toggle
@@ -1051,7 +1115,7 @@ const ViewFolder = ({ token }) => {
                                                             transition: "transform 0.2s, box-shadow 0.2s",
                                                         }}
                                                         onClick={() => {
-                                                            fetchsubFolders(folder._id);
+                                                            folder.folderName === "Personal" ? fetchClientDocuments() : fetchsubFolders(folder._id);
                                                             setSelectedFolder(folder);
                                                             setFolderPath((prevPath) => [...prevPath, folder]);
                                                         }}
@@ -1086,6 +1150,7 @@ const ViewFolder = ({ token }) => {
                                                         <Card.Body className="p-1 d-flex justify-content-between align-items-center" style={{ width: "100%" }}>
 
                                                             <div className="d-flex gap-2 justify-content-end" style={{ width: "100%" }}>
+
                                                                 <Button
                                                                     variant="success"
                                                                     size="sm"
@@ -1104,6 +1169,7 @@ const ViewFolder = ({ token }) => {
                                                                         e.stopPropagation();
                                                                         openEditModal(folder);
                                                                     }}
+                                                                    disabled={folder.folderName === "Personal" ? true : false}
                                                                 >
                                                                     <FontAwesomeIcon icon={faEdit} />
                                                                 </Button>
@@ -1124,6 +1190,8 @@ const ViewFolder = ({ token }) => {
                                                                         e.stopPropagation();
                                                                         openMoveModal(folder);
                                                                     }}
+                                                                    disabled={folder.folderName === "Personal" ? true : false}
+
                                                                 >
                                                                     <img
                                                                         src={movefolder} // <-- Your folder move image path
@@ -1149,10 +1217,13 @@ const ViewFolder = ({ token }) => {
                                                                         e.stopPropagation();
                                                                         handleDeleteFolder(folder._id);
                                                                     }}
+                                                                    disabled={folder.folderName === "Personal" ? true : false}
+
                                                                 >
                                                                     <FontAwesomeIcon icon={faTrash} />
                                                                 </Button>
                                                             </div>
+
                                                         </Card.Body>
 
 
@@ -1260,6 +1331,14 @@ const ViewFolder = ({ token }) => {
                                         </Card>
                                     </Col>
                                 ))}
+
+                                {(!folderList?.length && !files?.length) && (
+                                    <Col xs={12}>
+                                        <div className="text-center text-black py-5">
+                                            No folders or files available.
+                                        </div>
+                                    </Col>
+                                )}
                             </Row>
                         </Card.Body>
 
@@ -1332,9 +1411,19 @@ const ViewFolder = ({ token }) => {
                                 type="text"
                                 placeholder="Enter folder name"
                                 value={newFileName}
-                                onChange={(e) => setNewFileName(e.target.value)}
+                                maxLength={40} // ✅ character limit
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // ✅ sirf alphabets, numbers, and space allow karo
+                                    const filteredValue = value.replace(/[^a-zA-Z0-9 ]/g, '');
+                                    setNewFileName(filteredValue);
+                                }}
                             />
+                            <div style={{ fontSize: '0.8rem', color: '#888', textAlign: 'right' }}>
+                                {newFileName?.length}/40
+                            </div>
                         </Form.Group>
+
                     </Form>
                 </Modal.Body>
                 <Modal.Footer className="d-flex justify-content-end">

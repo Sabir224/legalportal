@@ -54,7 +54,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
 
     const handleMove = () => {
         if (folder && onMove) {
-            console.log("newparentId",newParentId)
+            console.log("newparentId", newParentId)
             onMove(folder, selectedFolder || null);
         }
         onClose();
@@ -111,6 +111,8 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
                                     ))}
                                 </>
                             )}
+
+
                         </div>
                     </div>
                 </Card.Header>
@@ -156,6 +158,14 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
                                 </Card>
                             </Col>
                         ))}
+
+                        {(!folderList?.length) && (
+                            <Col xs={12}>
+                                <div className="text-center text-black py-5">
+                                    No Folders Available.
+                                </div>
+                            </Col>
+                        )}
                     </div>
                 </Form.Group>
             </Modal.Body>
