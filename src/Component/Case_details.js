@@ -44,6 +44,7 @@ import EffsahPlatformOrders from "../Main/Pages/Component/Casedetails/EffsahPlat
 import ExperienceReports from "../Main/Pages/Component/Casedetails/Experience_Reports";
 import SubCaseDetails from "../Main/Pages/Component/Casedetails/SubCaseDetails";
 import { blue } from "@mui/material/colors";
+import { Spinner } from "react-bootstrap";
 
 const Case_details = ({ token }) => {
   const dispatch = useDispatch();
@@ -523,33 +524,26 @@ const Case_details = ({ token }) => {
 
   // Function to fetch cases
   const fetchCases = async () => {
+    setLoading(true);
+
     try {
-      const response = await axios.get(
+      // 1. Fetch case details
+      const caseResponse = await axios.get(
         `${ApiEndPoint}getCaseDetail/${global.CaseId._id}`,
-        {
-          withCredentials: true, // ✅ Sends cookies with the request
-        }
-      ); // API endpoint
-      // console.log("data of case", response.data.caseDetails);
-      // Assuming the API returns data in the `data` field
-      setCaseData(response.data.caseDetails);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
-    try {
-      const response = await axios.get(
+        { withCredentials: true }
+      );
+      setCaseData(caseResponse.data.caseDetails);
+
+      // 2. Fetch parties
+      const partiesResponse = await axios.get(
         `${ApiEndPoint}getparties/${global.CaseId._id}`
-      ); // API endpoint
-
-      console.log("data of parties", response.data[0]);
-      // Assuming the API returns data in the `data` field
-      setsections(transformData(await response.data));
-
-      setLoading(false);
+      );
+      console.log("data of parties", partiesResponse.data[0]);
+      setsections(transformData(partiesResponse.data));
     } catch (err) {
+      console.error("Error fetching case or party data:", err);
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -672,42 +666,56 @@ const Case_details = ({ token }) => {
               </div>
             )}
             {/* <h6>Further Details</h6> */}
-
-            <div className=" flex-col gap-2">
-              {sections.map((section) => (
-                <div>
-                  <button
-                    key={section.id}
-                    onClick={() => toggleSection(section.id)}
-                    className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton`}
-                    style={{
-                      // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
-                      // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-                      border: "2px solid rgba(0, 0, 0, 0.2)",
-                      // transition: "background-color 0.3s ease",
-                    }}
-                    // onMouseEnter={(e) => {
-                    //   e.currentTarget.style.background = "#d3b386";
-                    // }}
-                    // onMouseLeave={(e) => {
-                    //   e.currentTarget.style.background = activeButtons[section.id]
-                    //     ? "hsl(210, 88.90%, 3.50%)"
-                    //     : " #18273e";
-                    // }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.border = "2px solid white";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.border = activeButtons[section.id]
-                        ? "2px solid #d4af37"
-                        : "";
-                    }}
-                  >
-                    {section.title}
-                  </button>
+            {loading ? (
+              <div className="d-flex justify-content-center align-items-center py-5">
+                <div className="text-center">
+                  <Spinner animation="border" variant="primary" />
+                  <p className="mt-2 mb-0">Loading client details...</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ) : sections && sections.length > 0 ? (
+              <div className=" flex-col gap-2">
+                {sections.map((section) => (
+                  <div>
+                    <button
+                      key={section.id}
+                      onClick={() => toggleSection(section.id)}
+                      className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton`}
+                      style={{
+                        // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
+                        // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
+                        border: "2px solid rgba(0, 0, 0, 0.2)",
+                        // transition: "background-color 0.3s ease",
+                      }}
+                      // onMouseEnter={(e) => {
+                      //   e.currentTarget.style.background = "#d3b386";
+                      // }}
+                      // onMouseLeave={(e) => {
+                      //   e.currentTarget.style.background = activeButtons[section.id]
+                      //     ? "hsl(210, 88.90%, 3.50%)"
+                      //     : " #18273e";
+                      // }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.border = "2px solid white";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.border = activeButtons[section.id]
+                          ? "2px solid #d4af37"
+                          : "";
+                      }}
+                    >
+                      {section.title}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="d-flex justify-content-center align-items-center">
+                <div className="text-center text-danger">
+                  <h4>No Sub Details Found</h4>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

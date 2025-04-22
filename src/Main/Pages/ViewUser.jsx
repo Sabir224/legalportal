@@ -418,42 +418,33 @@ const ViewUser = ({ token }) => {
   };
   const fetchClientDetails = async () => {
     setLoading(true);
-    console.log("Error fetching client details:");
-
-   
     try {
-      const response = await axios.get(
+      // Fetch client details
+      const clientRes = await axios.get(
         `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
       );
-      setUsersDetails(response.data.user);
-      setClientDetails(response.data.clientDetails); // Set the API response to state
-      console.log("Files Data:", response.data.clientDetails.Files);
-      setFiles(response.data.clientDetails.Files);
 
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching client details:", err);
-      setLoading(false);
-    }
+      if (clientRes.data) {
+        setUsersDetails(clientRes.data.user);
+        setClientDetails(clientRes.data.clientDetails);
+        setFiles(clientRes.data.clientDetails.Files);
+      }
 
-    try {
-      console.log("token =", token._id);
-      const response = await axios.get(
-        `${ApiEndPoint}GetClientBookAppointments/${token._id}`
+      // Fetch appointment details
+      const appointmentRes = await axios.get(
+        `${ApiEndPoint}GetClientBookAppointments/${token?._id}`
       );
 
-      if (!response.data || response.data.length === 0) {
+      if (!appointmentRes.data || appointmentRes.data.length === 0) {
         throw new Error("No appointment data found");
       }
 
-      console.log("Formatted Appointment Details");
-
       let temp = {
-        FkLawyerId: response.data[0].FkLawyerId,
+        FkLawyerId: appointmentRes.data[0].FkLawyerId,
         availableSlots: {},
       };
 
-      response.data.forEach((element) => {
+      appointmentRes.data.forEach((element) => {
         if (element.availableSlots) {
           element.availableSlots.forEach((slot) => {
             if (!temp.availableSlots[slot.date]) {
@@ -476,7 +467,6 @@ const ViewUser = ({ token }) => {
         }
       });
 
-      // Convert the object into an array format for consistency
       temp.availableSlots = Object.entries(temp.availableSlots).map(
         ([date, slots]) => ({
           date,
@@ -484,11 +474,10 @@ const ViewUser = ({ token }) => {
         })
       );
 
-      console.log("Formatted Appointment Details", temp);
       setDataAppointmentDetails(temp);
-      setLoading(false);
     } catch (err) {
-      console.error("Error fetching client details:", err);
+      console.error("Error fetching client or appointment details:", err);
+    } finally {
       setLoading(false);
     }
   };
@@ -501,8 +490,10 @@ const ViewUser = ({ token }) => {
     setSelectedTime(time);
   };
   useEffect(() => {
-    fetchClientDetails();
-  }, []);
+    if (caseInfo?.ClientId) {
+      fetchClientDetails();
+    }
+  }, [caseInfo?.ClientId]);
 
   const prevMonth = () => {
     setSelectedDate();
@@ -518,7 +509,15 @@ const ViewUser = ({ token }) => {
       new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     );
   };
-  return (
+
+  return loading ? (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-2">Loading client details...</p>
+      </div>
+    </div>
+  ) : caseInfo?.ClientId && clientDetails && usersDetails && !loading ? (
     <div
       className="card container-fluid justify-content-center mr-3 ml-3 p-0"
       style={{
@@ -826,6 +825,12 @@ const ViewUser = ({ token }) => {
       </Row>
 
       {/* <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} /> */}
+    </div>
+  ) : (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center text-danger">
+        <h4>No user found</h4>
+      </div>
     </div>
   );
 };

@@ -49,8 +49,8 @@ const ClientAppointment = ({ token }) => {
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
   const [error, setError] = useState("");
-  const [lawyerDetails, setLawyersDetails] = useState([]);
   const [ClientDetails, setClientDetails] = useState([]);
+  const [lawyerDetails, setLawyersDetails] = useState([]);
   const [user, setUser] = useState();
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const [date, setdate] = useState(null);
@@ -118,45 +118,40 @@ const ClientAppointment = ({ token }) => {
   }, []);
 
   const fetchLawyerDetails = async () => {
+    setLoading(true);
     let lawyerid;
+
     try {
-      const response = await axios.get(
+      // 1. Get lawyer ID from case
+      const lawyerIdRes = await axios.get(
         `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
-      ); // API endpoint
-      console.log("response.data ", response.data?.LawyerId);
-      lawyerid = response.data?.LawyerId;
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+      );
+      lawyerid = lawyerIdRes.data?.LawyerId;
 
-    try {
-      const response = await axios.get(
+      if (!lawyerid) {
+        throw new Error("Lawyer ID not found");
+      }
+
+      // 2. Get lawyer details
+      const lawyerDetailsRes = await axios.get(
         `${ApiEndPoint}getLawyerDetailsById/${lawyerid}`
-      ); // API endpoint
-      console.log("response lawyer data ", response.data);
-      setUser(response.data?.user);
-      setLawyersDetails(response.data?.lawyerDetails);
-      lawyerid = response.data.user?._id;
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+      );
+      setUser(lawyerDetailsRes.data?.user);
+      setLawyersDetails(lawyerDetailsRes.data?.lawyerDetails);
+      lawyerid = lawyerDetailsRes.data.user?._id;
 
-    try {
-      const response = await axios.get(
+      // 3. Get appointments
+      const appointmentsRes = await axios.get(
         `${ApiEndPoint}appointments/${lawyerid}`
       );
 
-      if (!response.data || response.data.length === 0) {
+      if (!appointmentsRes.data || appointmentsRes.data.length === 0) {
         throw new Error("No appointment data found");
       }
 
-      let temp = { ...response.data[0] }; // Clone to avoid mutation issues
+      let temp = { ...appointmentsRes.data[0] };
 
-      response.data.forEach((element) => {
+      appointmentsRes.data.forEach((element) => {
         if (element.availableSlots) {
           temp.availableSlots = [
             ...(temp.availableSlots || []),
@@ -166,24 +161,16 @@ const ClientAppointment = ({ token }) => {
       });
 
       setAppoinmentDetails(temp);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
 
-    try {
-      const response = await axios.get(
+      // 4. Get client details
+      const clientDetailsRes = await axios.get(
         `${ApiEndPoint}getClientDetails/taha.sawar@biit.edu.pk`
       );
-      // API endpoint
-      // API endpoint
-      setClientDetails(response.data);
-      // console.log("clint data ", response.data);
-      // console.log("clint data ", response.data);
-      setLoading(false);
+      setClientDetails(clientDetailsRes.data);
     } catch (err) {
+      console.error("Error fetching lawyer or client details:", err);
       setError(err.message);
+    } finally {
       setLoading(false);
     }
   };
@@ -603,7 +590,14 @@ const ClientAppointment = ({ token }) => {
       return acc;
     }, {}) || {};
 
-  return (
+  return loading ? (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center">
+        <Spinner animation="border" variant="primary" />
+        <p className="mt-2">Loading client details...</p>
+      </div>
+    </div>
+  ) : lawyerDetails && user && !loading ? (
     <div
       className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
       style={{
@@ -1017,6 +1011,12 @@ const ClientAppointment = ({ token }) => {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  ) : (
+    <div className="d-flex justify-content-center align-items-center vh-100">
+      <div className="text-center text-danger">
+        <h4>No user found</h4>
       </div>
     </div>
   );

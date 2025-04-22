@@ -93,15 +93,12 @@ export default function UserListWidget({
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {
-    const existingChat = await checkIfChatExists(selectedUserEmail);
+    //  console.log("SelectedUsers:", selectedUserEmail);
+    let existingChat = await checkIfChatExists(selectedUserEmail);
 
     if (existingChat) {
       setSelectedChat(existingChat);
     } else {
-      const newChat = await createChat([storedEmail, selectedUserEmail]);
-      if (newChat) {
-        setSelectedChat(newChat);
-      }
     }
   };
 
