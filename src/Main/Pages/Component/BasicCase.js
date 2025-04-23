@@ -10,6 +10,7 @@ import axios from "axios";
 import { ApiEndPoint } from "./utils/utlis";
 import CaseAssignmentForm from "../cases/CaseAssignment";
 import { Dropdown, Modal } from "react-bootstrap";
+import { Backdrop, CircularProgress } from "@mui/material";
 
 const BasicCase = ({ token }) => {
   const [caseNumber, setCaseNumber] = useState("");
@@ -34,11 +35,39 @@ const BasicCase = ({ token }) => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
   const [casedetails, setcasedetails] = useState(null);
+  const [loaderOpen, setLoaderOpen] = useState(false);
+  const updateFunction = async (item) => {
+    setLoaderOpen(true); // 🔄 Show loader before request
+
+    try {
+      const response = await fetch(
+        "http://51.112.142.191:8080/Receive_Case_Number",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            CaseNumber: item["CaseNumber"],
+          }),
+        }
+      );
+
+      const result = await response.json();
+      console.log("✅ Server response:", result);
+
+      return result;
+    } catch (error) {
+      console.error("❌ Error:", error);
+    } finally {
+      setLoaderOpen(false); // ✅ Hide loader after response or error
+    }
+  };
 
   const handleOpenModal = (caseinfo) => {
     // console.log("CaseId:", caseId);
     setSelectedCase(caseinfo?._id);
-    setcasedetails(caseinfo)
+    setcasedetails(caseinfo);
     setShowAssignModal(true);
   };
 
@@ -211,7 +240,7 @@ const BasicCase = ({ token }) => {
         );
       }
 
-     await setData(filteredCases);
+      await setData(filteredCases);
       setLoading(false);
     } catch (err) {
       setError(err.message);
@@ -225,7 +254,7 @@ const BasicCase = ({ token }) => {
       fetchCases();
     }
   }, [token]);
-  
+
   // Handle page navigation
   const goToPage = (pageNumber) => {
     if (pageNumber >= 1 && pageNumber <= totalPages) {
@@ -325,6 +354,7 @@ const BasicCase = ({ token }) => {
         >
           <span className="col text-start">Status</span>
           <span className="col text-start">Case Number</span>
+          <span className="col text-start">Request Number</span>
           <span className="col text-start">Case Type</span>
           <span className="col text-start">Purpose</span>
           <span className="col text-end">Action</span>
@@ -347,10 +377,11 @@ const BasicCase = ({ token }) => {
               >
                 <span className="col d-flex align-items-center text-start">
                   <span
-                    className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
-                      ? "bg-success"
-                      : "bg-danger"
-                      }`}
+                    className={`me-2 rounded-circle ${
+                      item.Status.toLowerCase() === "case filed"
+                        ? "bg-success"
+                        : "bg-danger"
+                    }`}
                     style={{
                       width: "10px",
                       height: "10px",
@@ -361,6 +392,9 @@ const BasicCase = ({ token }) => {
                 </span>
                 <span className="col d-flex align-items-center text-start">
                   {item["CaseNumber"]}
+                </span>
+                <span className="col d-flex align-items-center text-start">
+                  {item["SerialNumber"]}
                 </span>
                 <span className="col d-flex align-items-center text-start">
                   {item["CaseType"]}
@@ -391,7 +425,6 @@ const BasicCase = ({ token }) => {
                       }}
                     ></Dropdown.Toggle>
 
-                    {/* Dropdown Menu */}
                     <Dropdown.Menu
                       style={{
                         position: "absolute",
@@ -403,27 +436,79 @@ const BasicCase = ({ token }) => {
                       }}
                     >
                       {token.Role === "admin" && (
-                        <Dropdown.Item
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleOpenModal(item);
-                          }}
-                        >
-                          Assign Case
-                        </Dropdown.Item>
+                        <>
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleOpenModal(item);
+                            }}
+                          >
+                            Assign Case
+                          </Dropdown.Item>
+
+                          <Dropdown.Item
+                            onClick={async (event) => {
+                              event.stopPropagation();
+                              setLoaderOpen(true);
+                              try {
+                                const response = await updateFunction(item);
+                                if (response?.success) {
+                                  setLoaderOpen(false);
+                                }
+                              } catch (err) {
+                                console.error("Update failed", err);
+                                setLoaderOpen(false);
+                              }
+                            }}
+                          >
+                            Update Case
+                          </Dropdown.Item>
+                        </>
                       )}
 
                       <Dropdown.Item>View Details</Dropdown.Item>
                       <Dropdown.Item>Other Action</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
+
+                  {/* MUI Loader */}
+                  {loaderOpen && (
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        backgroundColor: "#16213e",
+                        padding: "24px 32px",
+                        borderRadius: "12px",
+                        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
+
+                        zIndex: 2000,
+                        display: "flex",
+                        alignItems: "center",
+                        flexDirection: "column",
+                      }}
+                    >
+                      <CircularProgress sx={{ color: "#d2a85a" }} />
+
+                      <div
+                        style={{
+                          marginTop: 16,
+                          fontWeight: "500",
+                          color: "white",
+                        }}
+                      >
+                        Updating Case...
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
           ))}
         </div>
-        {totalPages > 1 &&
-
+        {totalPages > 1 && (
           <div
             id="numberbar"
             style={{
@@ -484,7 +569,7 @@ const BasicCase = ({ token }) => {
               </button>
             </div>
           </div>
-        }
+        )}
       </div>
 
       {/* Assign Modal */}
