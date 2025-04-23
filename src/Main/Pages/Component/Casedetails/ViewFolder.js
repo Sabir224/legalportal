@@ -1409,7 +1409,7 @@ const ViewFolder = ({ token }) => {
                             <Form.Label>File Name</Form.Label>
                             <Form.Control
                                 type="text"
-                                placeholder="Enter folder name"
+                                placeholder="Enter File name"
                                 value={newFileName}
                                 maxLength={40} // ✅ character limit
                                 onChange={(e) => {
