@@ -594,7 +594,7 @@ const ClientAppointment = ({ token }) => {
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="text-center">
         <Spinner animation="border" variant="primary" />
-        <p className="mt-2">Loading client details...</p>
+        <p className="mt-2">Loading Lawyer details...</p>
       </div>
     </div>
   ) : lawyerDetails && user && !loading ? (

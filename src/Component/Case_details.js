@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./Case_details.css";
 // // import { FaBell, FaUser, FaHome } from 'react-icons/fa';
@@ -52,6 +52,7 @@ const Case_details = ({ token }) => {
   const [buttoncolor, setbuttoncolor] = useState([]);
   const [activeButtons, setActiveButtons] = useState({}); // Track button states by ID
   const [sections, setsections] = useState([]); // Track button states by ID
+  const [isDataFetched, setIsDataFetched] = useState(false);
 
   // const sections = [
   //   {
@@ -525,26 +526,30 @@ const Case_details = ({ token }) => {
   // Function to fetch cases
   const fetchCases = async () => {
     setLoading(true);
+    setIsDataFetched(false); // Reset before fetch
+    setsections([]); // Optional: Clear sections before loading
 
     try {
-      // 1. Fetch case details
       const caseResponse = await axios.get(
         `${ApiEndPoint}getCaseDetail/${global.CaseId._id}`,
         { withCredentials: true }
       );
       setCaseData(caseResponse.data.caseDetails);
 
-      // 2. Fetch parties
       const partiesResponse = await axios.get(
         `${ApiEndPoint}getparties/${global.CaseId._id}`
       );
-      console.log("data of parties", partiesResponse.data[0]);
-      setsections(transformData(partiesResponse.data));
+
+      const transformed = transformData(partiesResponse.data);
+      setsections(transformed);
     } catch (err) {
       console.error("Error fetching case or party data:", err);
       setError(err.message);
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false); // Finish loading after 2 seconds
+        setIsDataFetched(true); // Mark fetch as complete
+      }, 1000);
     }
   };
 
@@ -606,6 +611,29 @@ const Case_details = ({ token }) => {
     { key: "RootCaseNumber", label: "Root Case Number" },
     { key: "RootDecision", label: "Root Decision" },
   ];
+  const renderedSections = useMemo(() => {
+    return sections.map((section) => (
+      <div key={section.id}>
+        <button
+          onClick={() => toggleSection(section.id)}
+          className="px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton"
+          style={{
+            border: "2px solid rgba(0, 0, 0, 0.2)",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.border = "2px solid white";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.border = activeButtons[section.id]
+              ? "2px solid #d4af37"
+              : "";
+          }}
+        >
+          {section.title}
+        </button>
+      </div>
+    ));
+  }, [sections, activeButtons, toggleSection]);
 
   return (
     <div className="container-fluid  m-0 p-0">
@@ -670,52 +698,18 @@ const Case_details = ({ token }) => {
               <div className="d-flex justify-content-center align-items-center py-5">
                 <div className="text-center">
                   <Spinner animation="border" variant="primary" />
-                  <p className="mt-2 mb-0">Loading client details...</p>
+                  <p className="mt-2 mb-0">Loading case details...</p>
                 </div>
               </div>
             ) : sections && sections.length > 0 ? (
-              <div className=" flex-col gap-2">
-                {sections.map((section) => (
-                  <div>
-                    <button
-                      key={section.id}
-                      onClick={() => toggleSection(section.id)}
-                      className={`px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton`}
-                      style={{
-                        // backgroundColor: activeButtons[section.id] ? "#d3b386" : " #18273e", // Toggle color
-                        // boxShadow: '4px 4px 6px rgba(0, 0, 0, 0.2)',
-                        border: "2px solid rgba(0, 0, 0, 0.2)",
-                        // transition: "background-color 0.3s ease",
-                      }}
-                      // onMouseEnter={(e) => {
-                      //   e.currentTarget.style.background = "#d3b386";
-                      // }}
-                      // onMouseLeave={(e) => {
-                      //   e.currentTarget.style.background = activeButtons[section.id]
-                      //     ? "hsl(210, 88.90%, 3.50%)"
-                      //     : " #18273e";
-                      // }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.border = "2px solid white";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.border = activeButtons[section.id]
-                          ? "2px solid #d4af37"
-                          : "";
-                      }}
-                    >
-                      {section.title}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="d-flex justify-content-center align-items-center">
+              <div className=" flex-col gap-2">{renderedSections}</div>
+            ) : !loading && isDataFetched && sections.length === 0 ? (
+              <div className="d-flex justify-content-center align-items-center py-5">
                 <div className="text-center text-danger">
                   <h4>No Sub Details Found</h4>
                 </div>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
 

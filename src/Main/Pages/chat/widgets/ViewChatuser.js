@@ -449,7 +449,7 @@ const ContactForm = ({ users, participants }) => {
             // Slight border for contrast
           }}
         >
-          <div className="d-flex justify-content-left mb-2 pt-4">
+          <div className="d-flex justify-content-center mb-2 pt-4">
             <Dropdown options={participants} onSelect={handleSelect} />
           </div>
           <div className="mb-2 mt-2 text-center avatar-container">

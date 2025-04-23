@@ -180,6 +180,7 @@ const LawyerProfile = ({ token }) => {
     formData.append("Position", Position);
     formData.append("Bio", Bio);
     formData.append("Address", Address);
+    formData.append("Role", token?.Role);
 
     formData.append("file", selectfile ? selectfile : null);
 
