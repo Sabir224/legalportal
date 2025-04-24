@@ -56,6 +56,7 @@ import AddCase from "./Pages/cases/AddCase";
 import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
+import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -131,6 +132,9 @@ const Dashboard = () => {
         break;
       case 13:
         setCurrentScreen(<Task token={decodedToken} />);
+        break;
+      case 14:
+        setCurrentScreen(<TaskList token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -305,13 +309,13 @@ const Dashboard = () => {
                 action: () => handlescreen2(11),
               }
               : null,
-            decodedToken?.Role === "admin"
-              ? {
-                icon: faTasks,
-                label: "Task Management",
-                action: () => handlescreen2(13),
-              }
-              : null,
+            // decodedToken?.Role === "admin"
+            //   ? {
+            //     icon: faTasks,
+            //     label: "Task Management",
+            //     action: () => handlescreen2(13),
+            //   }
+            //   : null,
             // decodedToken?.Role === "admin"
             //   ? {
             //     icon: faStreetView,
@@ -394,6 +398,9 @@ const Dashboard = () => {
               {screen === 13 && (
                 <ScreenHeader title="Task Management" onBack={handleBack} />
               )}
+              {screen === 14 && (
+                <ScreenHeader title="View Task" onBack={handleBack} />
+              )}
 
 
             </h3>
@@ -435,6 +442,16 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
+          {/* <button
+                  className="btn me-2 "
+                  onClick={() => {
+                    handlescreen2(14);
+                  }}
+                  style={{color:"white" , border:'1px solid #c0a262'}}
+                  
+                >
+                  View Task
+                </button> */}
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
                 <button

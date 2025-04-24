@@ -46,6 +46,7 @@ import {
 import DragAndDrop from "../DragAndDrop";
 import MoveFolderModal from "./MoveFolderModal";
 import movefolder from "./Icons/movefolder.png";
+import ErrorModal from "../../AlertModels/ErrorModal";
 
 
 const ViewFolder = ({ token }) => {
@@ -84,6 +85,8 @@ const ViewFolder = ({ token }) => {
     const [deletefolderid, setDeletefolderId] = useState(null);
     const [Isfolderdelete, setIsfolderdelete] = useState(false);
 
+    const [showError, setShowError] = useState(false);
+    const [message, setMessage] = useState("");
 
     const baseStyle = {
         backgroundColor: "#18273e",
@@ -357,19 +360,33 @@ const ViewFolder = ({ token }) => {
                 setShowModal(false)
             } else {
                 console.error('Folder creation failed:', response.data.message);
-                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setShowModal(false)
+
+                setMessage(response.data.message)
+                // alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
             }
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
                 if (error.response.status === 409) {
-                    alert("❌ Folder with the same name already exists for this case.");
+                    setShowError(true)
+                    setShowModal(false)
+
+                    setMessage("❌ Folder with the same name already exists for this case.")
+                    //  alert("❌ Folder with the same name already exists for this case.");
                 } else {
-                    alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+                    setShowError(true)
+                    setShowModal(false)
+
+                    setMessage(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
                 }
             } else {
                 console.error('Network or server error:', error.message);
-                alert("❌ Network or server error. Please try again later.");
+                setShowError(true)
+                setShowModal(false)
+                setMessage("❌ Network or server error. Please try again later.")
+                // alert("❌ Network or server error. Please try again later.");
             }
         }
 
@@ -391,10 +408,18 @@ const ViewFolder = ({ token }) => {
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
-                alert(`❌ Error: ${error.response.data.message}`);
+                setShowError(true)
+                setShowModal(false)
+
+                setMessage(`❌ Error: ${error.response.data.message}`)
+                //  alert(`❌ Error: ${error.response.data.message}`);
             } else {
                 console.error('Network or server error:', error.message);
-                alert("❌ Network or server error. Please try again later.");
+                setShowError(true)
+                setShowModal(false)
+
+                setMessage(`❌ Network or server error. Please try again later.`)
+                //   alert("❌ Network or server error. Please try again later.");
             }
         }
     };
@@ -410,7 +435,7 @@ const ViewFolder = ({ token }) => {
         try {
             await axios.delete(`${ApiEndPoint}deleteFolder/${id}`);
             // fetchFolders()
-            setFolderList(folderList.filter((folder) => folder._id !== id)); 
+            setFolderList(folderList.filter((folder) => folder._id !== id));
             setIsfolderdelete(false)// Use `_id` instead of `id` if that's your MongoDB field
             setDeletefolderId(null)
             if (selectedFolder?._id === id) {
@@ -696,19 +721,24 @@ const ViewFolder = ({ token }) => {
                 // alert("✅ Folder Move Successfully!");
             } else {
                 console.error('Folder Move failed:', response.data.message);
-                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setMessage(`❌ Error: ${response.data.message || 'Something went wrong'}`)
+                //alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
             }
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
                 if (error.response.status === 409) {
-                    alert("❌ Folder with the same name already exists for this case.");
+                    setShowError(true)
+                    setMessage("❌ Folder with the same name already exists for this case.");
                 } else {
-                    alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+                    setShowError(true)
+                    setMessage(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
                 }
             } else {
                 console.error('Network or server error:', error.message);
-                alert("❌ Network or server error. Please try again later.");
+                setShowError(true)
+                setMessage("❌ Network or server error. Please try again later.");
             }
         }
 
@@ -738,15 +768,18 @@ const ViewFolder = ({ token }) => {
                 // alert("✅ File moved successfully!");
             } else {
                 console.error('File move failed:', response.data.message);
-                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setMessage(`❌ Error: ${response.data.message || 'Something went wrong'}`);
             }
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
-                alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setMessage(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
             } else {
                 console.error('Network/server error:', error.message);
-                alert("❌ Network or server error. Please try again later.");
+                setShowError(true)
+                setMessage("❌ Network or server error. Please try again later.");
             }
         }
     };
@@ -778,15 +811,18 @@ const ViewFolder = ({ token }) => {
 
             } else {
                 console.error('File Editing failed:', response.data.message);
-                alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setMessage(`❌ Error: ${response.data.message || 'Something went wrong'}`);
             }
         } catch (error) {
             if (error.response) {
                 console.error('API error:', error.response);
-                alert(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
+                setShowError(true)
+                setMessage(`❌ Error: ${error.response.data.message || 'Something went wrong'}`);
             } else {
                 console.error('Network/server error:', error.message);
-                alert("❌ Network or server error. Please try again later.");
+                setShowError(true)
+                setMessage("❌ Network or server error. Please try again later.");
             }
         }
     };
@@ -1223,9 +1259,9 @@ const ViewFolder = ({ token }) => {
                                                                     }}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                    //    handleDeleteFolder(folder._id);
-                                                                    setDeletefolderId(folder._id)
-                                                                    setIsfolderdelete(true)
+                                                                        //    handleDeleteFolder(folder._id);
+                                                                        setDeletefolderId(folder._id)
+                                                                        setIsfolderdelete(true)
                                                                     }}
                                                                     disabled={folder.folderName === "Personal" ? true : false}
 
@@ -1495,6 +1531,12 @@ const ViewFolder = ({ token }) => {
                 </Modal.Footer>
             </Modal>
 
+
+            <ErrorModal
+                show={showError}
+                handleClose={() => setShowError(false)}
+                message={message}
+            />
         </div >
 
 
