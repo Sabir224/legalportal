@@ -41,14 +41,14 @@ const BasicCase = ({ token }) => {
 
     try {
       const response = await fetch(
-        "http://51.112.142.191:8080/Receive_Case_Number",
+        "https://api.aws-legalgroup.com/Receive_Case_Number",
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            CaseNumber: item["CaseNumber"],
+            SerialNumber: item["SerialNumber"],
           }),
         }
       );

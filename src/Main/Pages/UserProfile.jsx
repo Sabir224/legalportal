@@ -23,13 +23,22 @@ import {
   faSpinner,
   faArrowRight,
   faArrowLeft,
+  faTimes,
+  faCheck,
+  faPen,
+  faUser,
+  faEnvelope,
+  faMapMarkerAlt,
+  faSave,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
 import {
   Button,
   Card,
   Col,
+  Form,
   Modal,
   Row,
   Spinner,
@@ -40,7 +49,7 @@ import "../../style/userProfile.css";
 import { ApiEndPoint } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
-import { FaCalendar } from "react-icons/fa";
+import { FaCalendar, FaPhone } from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 import SocketService from "../../SocketService";
 
@@ -70,6 +79,26 @@ const UserProfile = ({ token }) => {
 
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    UserName: "",
+    Email: "",
+    Contact: "",
+    Address: "",
+  });
+  const handleEditToggle = () => setIsEditing(!isEditing);
+  const handleCancel = () => {
+    setFormData({
+      UserName: usersDetails.UserName,
+      Email: usersDetails.Email,
+      Contact: clientDetails.Contact,
+      Address: clientDetails.Address,
+    });
+    setIsEditing(false);
+  };
+  const handleChange = (field) => (e) =>
+    setFormData({ ...formData, [field]: e.target.value });
 
   const generateCalendarDates = () => {
     const dates = [];
@@ -421,72 +450,24 @@ const UserProfile = ({ token }) => {
         `${ApiEndPoint}getClientDetails/${token?.email}`
       );
       setUsersDetails(response.data.user);
-      setClientDetails(response.data.clientDetails); // Set the API response to state
-      console.log("Files Data:", response.data.clientDetails.Files);
-      setFiles(response.data.clientDetails.Files);
-
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching client details:", err);
-      setLoading(false);
-    }
-
-    try {
-      console.log("token =", token._id);
-      const response = await axios.get(
-        `${ApiEndPoint}GetClientBookAppointments/${token._id}`
-      );
-
-      if (!response.data || response.data.length === 0) {
-        throw new Error("No appointment data found");
-      }
-
-      console.log("Formatted Appointment Details");
-
-      let temp = {
-        FkLawyerId: response.data[0].FkLawyerId,
-        availableSlots: {},
-      };
-
-      response.data.forEach((element) => {
-        if (element.availableSlots) {
-          element.availableSlots.forEach((slot) => {
-            if (!temp.availableSlots[slot.date]) {
-              temp.availableSlots[slot.date] = [];
-            }
-
-            temp.availableSlots[slot.date] = [
-              ...temp.availableSlots[slot.date],
-              ...slot.slots.map((s) => ({
-                startTime: convertTo12HourFormat(s.startTime),
-                endTime: convertTo12HourFormat(s.endTime),
-                isBooked: s.isBooked,
-                byBook: s.byBook,
-                lawyerId: s.lawyerId,
-                meetingLink: s.meetingLink,
-                _id: s._id,
-              })),
-            ];
-          });
-        }
+      setClientDetails(response.data.clientDetails);
+      setFormData({
+        UserName: response.data.user?.UserName || "",
+        Email: response.data.user?.Email || "",
+        Contact: response.data.clientDetails?.Contact || "",
+        Address: response.data.clientDetails?.Address || "",
       });
-
-      // Convert the object into an array format for consistency
-      temp.availableSlots = Object.entries(temp.availableSlots).map(
-        ([date, slots]) => ({
-          date,
-          slots,
-        })
-      );
-
-      console.log("Formatted Appointment Details", temp);
-      setDataAppointmentDetails(temp);
+      setSelectedFile(null);
       setLoading(false);
     } catch (err) {
       console.error("Error fetching client details:", err);
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchClientDetails();
+  }, []);
 
   const handleBookTimeClick = (slot) => {
     setCalenderView(true);
@@ -513,6 +494,38 @@ const UserProfile = ({ token }) => {
       new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
     );
   };
+  const handleUpdate = async () => {
+    try {
+      const formDataToSend = new FormData();
+      formDataToSend.append("UserName", formData.UserName);
+      formDataToSend.append("Contact", formData.Contact);
+      formDataToSend.append("Address", formData.Address);
+
+      if (selectedFile) {
+        formDataToSend.append("file", selectedFile);
+      }
+
+      const response = await axios.put(
+        `${ApiEndPoint}updateUserProfile/${token?._id}`,
+        formDataToSend,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      console.log("Update success:", response.data);
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Update failed:", error);
+      alert("Failed to update profile. Please try again.");
+    } finally {
+      fetchClientDetails();
+    }
+  };
+
   return (
     <div
       className="card container-fluid justify-content-center mr-3 ml-3 p-0"
@@ -530,96 +543,412 @@ const UserProfile = ({ token }) => {
           style={{
             background: "#001f3f",
             width: "45%",
-            backdropFilter: "blur(10px)", // Glass effect
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
-            border: "1px solid rgba(255, 255, 255, 0.1)", // Slight border for contrast
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            height: "500px", // Fixed height for the card
           }}
         >
-          <div className="client-section p-3 text-white">
-            {/* Client Picture */}
-            <div
-              className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
+          {isEditing ? (
+            <form
+              className="Theme3 p-3"
+              style={{
+                height: "100%",
+                display: "flex",
+                flexDirection: "column",
+              }}
             >
-              {/* Profile Icon */}
+              {/* Profile Picture - fixed at top */}
+              <div className="mb-2 text-center avatar-container">
+                <label htmlFor="profilePicUpdate">
+                  <img
+                    src={
+                      selectedFile
+                        ? URL.createObjectURL(selectedFile)
+                        : usersDetails?.ProfilePicture || defaultProfilePic
+                    }
+                    alt="Profile"
+                    style={{
+                      border: "2px solid #d4af37",
+                      textAlign: "center",
+                      padding: "3px",
+                      borderRadius: "50%",
+                      width: "100px",
+                      height: "100px",
+                      border: "1px solid #18273e",
+                      boxShadow: "#18273e 0px 2px 5px",
+                    }}
+                    className="avatar-img"
+                    onClick={() =>
+                      document.getElementById("profilePicUpdate").click()
+                    }
+                  />
+                </label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="profilePicUpdate"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  style={{ display: "none" }}
+                />
+              </div>
+
+              {/* Scrollable form fields */}
               <div
-                className="client-picture"
+                className="text-start d-flex flex-column gap-3"
                 style={{
-                  border: "2px solid #d4af37",
-                  textAlign: "center",
-                  padding: "10px",
-                  borderRadius: "50%", // Circle shape
-                  width: "100px",
-                  height: "100px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  flex: 1,
+                  overflowY: "auto",
+                  paddingRight: "8px", // Prevent scrollbar from overlapping content
                 }}
               >
-                <FontAwesomeIcon
-                  icon={faUserCircle}
-                  className="rounded-circle"
-                  style={{ fontSize: "48px" }} // Icon size
-                />
-              </div>
-
-              {/* Username */}
-              <div className="ms-3">
-                <h2>{usersDetails.UserName}</h2>
-              </div>
-            </div>
-            {/* Client Details */}
-            <div className="client-details">
-              {/* Bio */}
-              {/* <div
-                className="d-flex"
-                style={{ width: "auto", overflowY: "auto" }}
-              >
-                <p>{clientDetails.Bio}</p>
-              </div> */}
-
-              {/* Email */}
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={faMailBulk}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p className="ms-2 m-1">
-                  <a
-                    href={`mailto:${usersDetails.Email}`}
-                    style={{ color: "white" }}
+                {/* Name Field */}
+                <div>
+                  <label className="form-label font-weight-bold">
+                    <p
+                      className="ml-3 fw-bold"
+                      style={{
+                        marginLeft: "3px",
+                        letterSpacing: 2,
+                        fontSize: 12,
+                        color: "#fff",
+                      }}
+                    >
+                      Name
+                    </p>
+                  </label>
+                  <div
+                    className="input-group bg-soft-light rounded-2"
+                    style={{ marginTop: -8 }}
                   >
-                    {usersDetails.Email}
-                  </a>
-                </p>
+                    <span
+                      className="input-group-text"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: " #d4af37",
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faUser}
+                        style={{ fontSize: "16px" }}
+                      />
+                    </span>
+                    <input
+                      className="form-control-md form-control"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: "white",
+                      }}
+                      value={formData.UserName}
+                      onChange={handleChange("UserName")}
+                      placeholder="Enter Name"
+                      type="text"
+                      title="Please Enter Client Name"
+                      onFocus={(e) => (
+                        (e.target.style.borderColor = "#d2a85a"),
+                        (e.target.style.color = "white")
+                      )}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = "rgb(101, 103, 105)")
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Email Field */}
+                <div>
+                  <label className="form-label font-weight-bold">
+                    <p
+                      className="fw-bold"
+                      style={{
+                        marginLeft: "3px",
+                        letterSpacing: 2,
+                        fontSize: 12,
+                        color: "white",
+                      }}
+                    >
+                      Email
+                    </p>
+                  </label>
+                  <div
+                    className="input-group bg-soft-light rounded-2"
+                    style={{ marginTop: -8 }}
+                  >
+                    <span
+                      className="input-group-text"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: " #d4af37",
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faEnvelope}
+                        style={{ fontSize: "14px" }}
+                      />
+                    </span>
+                    <input
+                      className="form-control-md form-control"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: "white",
+                      }}
+                      value={formData.Email}
+                      onChange={handleChange("Email")}
+                      placeholder="Enter Email"
+                      type="email"
+                      pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                      title="Enter a valid email address"
+                      onFocus={(e) => (e.target.style.borderColor = "#d2a85a")}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = "rgb(101, 103, 105)")
+                      }
+                      required
+                      disabled
+                    />
+                  </div>
+                </div>
+
+                {/* Contact Field */}
+                <div>
+                  <label className="form-label font-weight-bold">
+                    <p
+                      className="fw-bold"
+                      style={{
+                        marginLeft: "3px",
+                        color: "white",
+                        letterSpacing: 2,
+                        fontSize: 12,
+                      }}
+                    >
+                      Contact Number
+                    </p>
+                  </label>
+                  <div
+                    className="input-group bg-soft-light rounded-2"
+                    style={{ marginTop: -8 }}
+                  >
+                    <span
+                      className="input-group-text"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: " #d4af37",
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faPhone}
+                        style={{ fontSize: "16px" }}
+                      />
+                    </span>
+                    <input
+                      className="form-control-md form-control"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: "white",
+                      }}
+                      value={formData.Contact}
+                      onChange={handleChange("Contact")}
+                      placeholder="Enter Contact Number"
+                      type="text"
+                      title="Please Enter Contact Number"
+                      onFocus={(e) => (e.target.style.borderColor = "#d2a85a")}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = "rgb(101, 103, 105)")
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Address Field */}
+                <div>
+                  <label className="form-label font-weight-bold">
+                    <p
+                      className="fw-bold"
+                      style={{
+                        marginLeft: "3px",
+                        color: "white",
+                        letterSpacing: 2,
+                        fontSize: 12,
+                      }}
+                    >
+                      Address
+                    </p>
+                  </label>
+                  <div
+                    className="input-group bg-soft-light rounded-2"
+                    style={{ marginTop: -8 }}
+                  >
+                    <span
+                      className="input-group-text"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: " #d4af37",
+                      }}
+                    >
+                      <FontAwesomeIcon
+                        icon={faMapMarkerAlt}
+                        style={{ fontSize: "16px" }}
+                      />
+                    </span>
+                    <textarea
+                      className="form-control-md form-control"
+                      value={formData.Address}
+                      onChange={handleChange("Address")}
+                      placeholder="Enter Address"
+                      style={{
+                        backgroundColor: "transparent",
+                        border: "1px solid rgb(101, 103, 105)",
+                        color: "#fff",
+                        height: "80px",
+                      }}
+                      title="Enter a Address"
+                      onFocus={(e) => (e.target.style.borderColor = "#d2a85a")}
+                      onBlur={(e) =>
+                        (e.target.style.borderColor = "rgb(101, 103, 105)")
+                      }
+                      required
+                    />
+                  </div>
+                </div>
               </div>
 
-              {/* Contact */}
-              <div className="d-flex align-items-center">
+              {/* Fixed buttons at bottom */}
+              <div
+                className="button-container gap-2 d-flex justify-content-center mt-3"
+                style={{
+                  paddingTop: "10px",
+                  borderTop: "1px solid rgba(255, 255, 255, 0.1)",
+                }}
+              >
+                <button
+                  className="btn simple-text text-light"
+                  type="button"
+                  style={{
+                    border: "1px solid rgb(101, 103, 105)",
+                    backgroundColor: "#18273e",
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#18273e";
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#d3b386";
+                  }}
+                  onClick={handleUpdate}
+                >
+                  <FontAwesomeIcon icon={faSave} className="me-2" />
+                  Update
+                </button>
+                <button
+                  className="btn simple-text text-light"
+                  type="button"
+                  style={{
+                    backgroundColor: "#18273e",
+                    border: "1px solid rgb(101, 103, 105)",
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "#18273e";
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#d3b386";
+                  }}
+                  onClick={() => {
+                    setIsEditing(false);
+                    fetchClientDetails();
+                  }}
+                >
+                  <FontAwesomeIcon icon={faTimes} className="me-2" />
+                  Cancel
+                </button>
+              </div>
+            </form>
+          ) : (
+            <div
+              className="client-section p-3 text-white"
+              style={{ height: "100%" }}
+            >
+              {/* Header */}
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center">
+                  <div
+                    style={{
+                      border: "2px solid #d4af37",
+                      borderRadius: "50%",
+                      width: "100px",
+                      height: "100px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      position: "relative",
+                    }}
+                  >
+                    {usersDetails?.ProfilePicture ? (
+                      <img
+                        src={usersDetails.ProfilePicture}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <FontAwesomeIcon
+                        icon={faUserCircle}
+                        style={{ fontSize: "100px", color: "#ccc" }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="ms-3">
+                    <h2>{formData.UserName}</h2>
+                  </div>
+                </div>
                 <FontAwesomeIcon
-                  icon={faPhone}
-                  size="1x"
-                  color="white"
-                  className="m-2"
+                  icon={faPen}
+                  className="text-white"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => setIsEditing(true)}
                 />
-                <p className="ms-2 m-1">{clientDetails.Contact}</p>
               </div>
 
-              {/* Address */}
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={faAddressCard}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p style={{ fontSize: 12 }} className="ms-2 m-1">
-                  {clientDetails.Address}
-                </p>
+              {/* Details Section */}
+              <div className="client-details">
+                {/* Email */}
+                <div className="d-flex align-items-center mb-2">
+                  <FontAwesomeIcon icon={faMailBulk} className="m-2" />
+                  <p className="ms-2 m-1">
+                    <a
+                      href={`mailto:${formData.Email}`}
+                      style={{ color: "white" }}
+                    >
+                      {formData.Email}
+                    </a>
+                  </p>
+                </div>
+
+                {/* Contact */}
+                <div className="d-flex align-items-center mb-2">
+                  <FontAwesomeIcon icon={faPhone} className="m-2" />
+                  <p className="ms-2 m-1">{formData.Contact}</p>
+                </div>
+
+                {/* Address */}
+                <div className="d-flex align-items-center mb-2">
+                  <FontAwesomeIcon icon={faAddressCard} className="m-2" />
+                  <p className="ms-2 m-1">{formData.Address}</p>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </Col>
         {/* Right Column: Files and Docs */}
         <Col
