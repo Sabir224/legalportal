@@ -18,6 +18,7 @@ import {
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
   faStreetView,
+  faTasks,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -54,6 +55,7 @@ import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
 import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
+import Task from "./Pages/Component/TaskManagemnet/Task";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -126,6 +128,9 @@ const Dashboard = () => {
         break;
       case 12:
         setCurrentScreen(<ViewFolder token={decodedToken} />);
+        break;
+      case 13:
+        setCurrentScreen(<Task token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -226,7 +231,7 @@ const Dashboard = () => {
           <FaArrowLeft color="white" />
         </button>
       }
-      <span style={{  }}>{title}</span>
+      <span style={{}}>{title}</span>
     </div>
   );
 
@@ -298,6 +303,13 @@ const Dashboard = () => {
                 icon: faCcMastercard,
                 label: "Add Case",
                 action: () => handlescreen2(11),
+              }
+              : null,
+            decodedToken?.Role === "admin"
+              ? {
+                icon: faTasks,
+                label: "Task Management",
+                action: () => handlescreen2(13),
               }
               : null,
             // decodedToken?.Role === "admin"
@@ -379,6 +391,11 @@ const Dashboard = () => {
               {screen === 12 && (
                 <ScreenHeader title="View Folder" onBack={handleBack} />
               )}
+              {screen === 13 && (
+                <ScreenHeader title="Task Management" onBack={handleBack} />
+              )}
+
+
             </h3>
 
             {/* Admin Buttons */}

@@ -54,6 +54,7 @@ const ViewFolder = ({ token }) => {
     const [selectedFolder, setSelectedFolder] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const [showFileModal, setShowFileModal] = useState(false);
+    const [Isdelete, setIsdelete] = useState(false);
     const [newFolderName, setNewFolderName] = useState("");
     const [newFileName, setNewFileName] = useState("");
     const [isEditMode, setIsEditMode] = useState(false);
@@ -79,6 +80,9 @@ const ViewFolder = ({ token }) => {
     const [MainfolderId, setMainfolderId] = useState(null);
     const [Mainfolder, setMainfolder] = useState(null);
     const [IsPersonal, setIsPersonal] = useState(null);
+    const [deletefileid, setDeletefileId] = useState(null);
+    const [deletefolderid, setDeletefolderId] = useState(null);
+    const [Isfolderdelete, setIsfolderdelete] = useState(false);
 
 
     const baseStyle = {
@@ -347,8 +351,8 @@ const ViewFolder = ({ token }) => {
             // Check if the response contains a success message or the created folder
             if (response.data._id) {
                 console.log('📂 Folder created successfully:', response.data);
-                // await fetchCases();
-                await fetchsubFolders(response.data?.parentId);  // Refresh the folder list after creation
+                await fetchFolders();
+                //await fetchsubFolders(response.data?.parentId);  // Refresh the folder list after creation
                 // alert("✅ Folder Added Successfully!");
                 setShowModal(false)
             } else {
@@ -406,7 +410,9 @@ const ViewFolder = ({ token }) => {
         try {
             await axios.delete(`${ApiEndPoint}deleteFolder/${id}`);
             // fetchFolders()
-            setFolderList(folderList.filter((folder) => folder._id !== id)); // Use `_id` instead of `id` if that's your MongoDB field
+            setFolderList(folderList.filter((folder) => folder._id !== id)); 
+            setIsfolderdelete(false)// Use `_id` instead of `id` if that's your MongoDB field
+            setDeletefolderId(null)
             if (selectedFolder?._id === id) {
                 setSelectedFolder(null);
             }
@@ -444,6 +450,8 @@ const ViewFolder = ({ token }) => {
                     prevFiles.filter((file) => file._id !== fileId)
                 );
                 console.log("File deleted successfully");
+                setIsdelete(false)
+                setDeletefileId(null)
             }
         } catch (error) {
             console.error("Error deleting file:", error);
@@ -1215,7 +1223,9 @@ const ViewFolder = ({ token }) => {
                                                                     }}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation();
-                                                                        handleDeleteFolder(folder._id);
+                                                                    //    handleDeleteFolder(folder._id);
+                                                                    setDeletefolderId(folder._id)
+                                                                    setIsfolderdelete(true)
                                                                     }}
                                                                     disabled={folder.folderName === "Personal" ? true : false}
 
@@ -1319,7 +1329,11 @@ const ViewFolder = ({ token }) => {
                                                         <Button
                                                             variant="danger"
                                                             size="sm"
-                                                            onClick={() => handleFileDelete(file._id)}
+                                                            onClick={() => {
+                                                                // handleFileDelete(file._id)
+                                                                setDeletefileId(file._id)
+                                                                setIsdelete(true)
+                                                            }}
                                                             style={{ background: "#dc3545", border: "none", padding: "0.25rem 0.5rem" }}
                                                         >
                                                             <FontAwesomeIcon icon={faTrash} />
@@ -1383,6 +1397,7 @@ const ViewFolder = ({ token }) => {
                         </Form.Group>
                     </Form>
                 </Modal.Body>
+
                 <Modal.Footer className="d-flex justify-content-end">
                     <Button variant="primary" onClick={() => setShowModal(false)}>
                         Cancel
@@ -1438,6 +1453,48 @@ const ViewFolder = ({ token }) => {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            <Modal show={Isdelete} onHide={() => setIsdelete(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>File Delete</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body className="text-center">
+                    <p className="fs-5">Are you sure you want to delete this file?</p>
+                </Modal.Body>
+
+                <Modal.Footer className="d-flex justify-content-end">
+                    <Button variant="secondary" onClick={() => setIsdelete(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={() => handleFileDelete(deletefileid)}>
+                        Delete
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
+
+
+
+            <Modal show={Isfolderdelete} onHide={() => setIsfolderdelete(false)} centered>
+                <Modal.Header closeButton>
+                    <Modal.Title>Folder Delete</Modal.Title>
+                </Modal.Header>
+
+                <Modal.Body className="text-center">
+                    <p className="fs-5">Are you sure you want to delete this folder?</p>
+                </Modal.Body>
+
+                <Modal.Footer className="d-flex justify-content-end">
+                    <Button variant="secondary" onClick={() => setIsfolderdelete(false)}>
+                        Cancel
+                    </Button>
+                    <Button variant="danger" onClick={() => handleDeleteFolder(deletefolderid)}>
+                        Delete
+                    </Button>
+                </Modal.Footer>
+            </Modal>
+
         </div >
 
 
