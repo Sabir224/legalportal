@@ -57,12 +57,14 @@ import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
+import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const authValidator = useAuthValidator(); // Initialize the validator
   const dispatch = useDispatch();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef(null);
@@ -87,43 +89,51 @@ const Dashboard = () => {
       }
     }
   }, [cookies.token]); // Decode token only when token changes
+  const [isValidating, setIsValidating] = useState(false);
+
   const validateToken = (decodedToken) => {
-    if (!decodedToken) {
-      removeCookie("token"); // Correct react-cookie v6+ method
-      navigate("/");
-      return false;
-    }
+    console.log("Validating token:", decodedToken);
 
-    try {
-      const currentTime = Date.now() / 1000;
-      const isExpired = decodedToken.exp < currentTime;
-      const hasRequiredFields =
-        decodedToken._id && decodedToken.email && decodedToken.Role;
-
-      if (isExpired || !hasRequiredFields) {
-        removeCookie("token");
-        navigate("/");
-        return false;
-      }
-      return true;
-    } catch (error) {
-      console.error("Token validation failed:", error);
+    // Check if token exists and has required structure
+    if (!decodedToken || typeof decodedToken !== "object") {
+      console.log("Invalid token structure - redirecting");
       removeCookie("token");
       navigate("/");
       return false;
     }
+
+    const currentTime = Date.now() / 1000;
+    const isExpired = decodedToken.exp < currentTime;
+    const hasRequiredFields =
+      decodedToken._id && decodedToken.email && decodedToken.Role;
+
+    console.log(
+      `Validation results - Expired: ${isExpired}, Has fields: ${hasRequiredFields}`
+    );
+
+    if (isExpired || !hasRequiredFields) {
+      console.log("Token invalid - redirecting");
+      removeCookie("token");
+      navigate("/");
+      return false;
+    }
+
+    console.log("Token is valid");
+    return true;
   };
   useEffect(() => {
     const interval = setInterval(() => {
-      validateToken(decodedToken);
+      if (!authValidator.validateToken()) {
+        return;
+      }
     }, 1 * 60 * 1000); // Check every 5 minutes
 
     return () => clearInterval(interval);
   }, [decodedToken]);
 
   useEffect(() => {
-    if (!validateToken(decodedToken)) {
-      return; // Already handled logout in validateToken
+    if (!authValidator.validateToken()) {
+      return;
     }
 
     switch (screen) {

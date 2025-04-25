@@ -37,7 +37,7 @@ import {
   Tabs,
 } from "react-bootstrap";
 import "../../style/userProfile.css";
-import { ApiEndPoint } from "./Component/utils/utlis";
+import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
 import { FaCalendar } from "react-icons/fa";
@@ -607,7 +607,9 @@ const ViewUser = ({ token }) => {
                   color="white"
                   className="m-2"
                 />
-                <p className="ms-2 m-1">{clientDetails.Contact}</p>
+                <p className="ms-2 m-1">
+                  {formatPhoneNumber(clientDetails?.Contact)}
+                </p>
               </div>
 
               {/* Address */}

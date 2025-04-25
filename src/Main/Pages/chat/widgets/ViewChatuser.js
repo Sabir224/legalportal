@@ -403,10 +403,15 @@ const ContactForm = ({ users, participants }) => {
       <td className="p-2 text-white">{value || "N/A"}</td>
     </tr>
   );
+  const formatPhoneNumber = (label, value) => {
+    if (label !== "Contact") return value;
+    if (!value) return "N/A"; // Consistent with your "N/A" fallback
+    return value.startsWith("+") ? value : `+${value}`;
+  };
 
   const ContactRow = ({ icon, label, value, isEmail, isSmall }) => (
     <tr>
-      <td className="fw-bold  text-white">
+      <td className="fw-bold text-white">
         {/* <FontAwesomeIcon icon={icon} className="me-2" /> */}
         {label}:
       </td>
@@ -416,10 +421,12 @@ const ContactForm = ({ users, participants }) => {
             href={`mailto:${value}`}
             style={{ color: "white", textDecoration: "none" }}
           >
-            {value}
+            {formatPhoneNumber(label, value)}
           </a>
         ) : (
-          <span style={isSmall ? { fontSize: 12 } : {}}>{value || "N/A"}</span>
+          <span style={isSmall ? { fontSize: 12 } : {}}>
+            {formatPhoneNumber(label, value) || "N/A"}
+          </span>
         )}
       </td>
     </tr>

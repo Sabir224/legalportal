@@ -33,7 +33,11 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
+import loginStyle from "../../style/LawyerProfile.css";
 import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
+import Profile from "../../../src/Component/Images/Profile.png";
+import EmailIcon from "../../../src/Component/Images/Email.png";
+import AddressIcon from "../../../src/Component/Images/Address.png";
 import {
   Button,
   Card,
@@ -46,12 +50,13 @@ import {
   Tabs,
 } from "react-bootstrap";
 import "../../style/userProfile.css";
-import { ApiEndPoint } from "./Component/utils/utlis";
+import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
 import { FaCalendar, FaPhone } from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 import SocketService from "../../SocketService";
+import PhoneInput from "react-phone-input-2";
 
 const UserProfile = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -457,7 +462,7 @@ const UserProfile = ({ token }) => {
         Contact: response.data.clientDetails?.Contact || "",
         Address: response.data.clientDetails?.Address || "",
       });
-      setFiles(response.data?.clientDetails?.Files)
+      setFiles(response.data?.clientDetails?.Files);
       setSelectedFile(null);
       setLoading(false);
     } catch (err) {
@@ -630,10 +635,7 @@ const UserProfile = ({ token }) => {
                         color: " #d4af37",
                       }}
                     >
-                      <FontAwesomeIcon
-                        icon={faUser}
-                        style={{ fontSize: "16px" }}
-                      />
+                      <img src={Profile} style={{ height: "20px" }} />
                     </span>
                     <input
                       className="form-control-md form-control"
@@ -686,10 +688,7 @@ const UserProfile = ({ token }) => {
                         color: " #d4af37",
                       }}
                     >
-                      <FontAwesomeIcon
-                        icon={faEnvelope}
-                        style={{ fontSize: "14px" }}
-                      />
+                      <img src={EmailIcon} style={{ height: "13px" }} />
                     </span>
                     <input
                       className="form-control-md form-control"
@@ -733,20 +732,47 @@ const UserProfile = ({ token }) => {
                     className="input-group bg-soft-light rounded-2"
                     style={{ marginTop: -8 }}
                   >
-                    <span
-                      className="input-group-text"
-                      style={{
-                        backgroundColor: "transparent",
-                        border: "1px solid rgb(101, 103, 105)",
-                        color: " #d4af37",
+                    <PhoneInput
+                      containerClass={`${loginStyle["form-control-1"]} form-control-md`}
+                      inputProps={{
+                        name: "phone",
+                        required: true,
+                        onFocus: (e) =>
+                          (e.target.style.borderColor = "#d2a85a"),
+                        onBlur: (e) =>
+                          (e.target.style.borderColor = "rgb(101, 103, 105)"),
                       }}
-                    >
-                      <FontAwesomeIcon
-                        icon={faPhone}
-                        style={{ fontSize: "16px" }}
-                      />
-                    </span>
-                    <input
+                      containerStyle={{
+                        width: "100%",
+                      }}
+                      enableSearch={true}
+                      searchStyle={{
+                        width: "99%",
+                      }}
+                      disableSearchIcon={true}
+                      inputStyle={{
+                        width: "100%",
+                        border: "1px solid rgb(101, 103, 105)",
+                        boxShadow: "none",
+                        height: "37px",
+                        backgroundColor: "transparent",
+                        color: "#fff",
+                        paddingLeft: "40px",
+                      }}
+                      buttonStyle={{
+                        backgroundColor: "transparent",
+                        border: "none",
+                        position: "absolute",
+                        top: "50%",
+                        transform: "translateY(-50%)",
+                      }}
+                      country={"ae"}
+                      value={formData.Contact}
+                      onChange={(value) =>
+                        setFormData({ ...formData, Contact: value })
+                      }
+                    />
+                    {/* <input
                       className="form-control-md form-control"
                       style={{
                         backgroundColor: "transparent",
@@ -763,7 +789,7 @@ const UserProfile = ({ token }) => {
                         (e.target.style.borderColor = "rgb(101, 103, 105)")
                       }
                       required
-                    />
+                    /> */}
                   </div>
                 </div>
 
@@ -794,10 +820,7 @@ const UserProfile = ({ token }) => {
                         color: " #d4af37",
                       }}
                     >
-                      <FontAwesomeIcon
-                        icon={faMapMarkerAlt}
-                        style={{ fontSize: "16px" }}
-                      />
+                      <img src={AddressIcon} style={{ height: "20px" }} />
                     </span>
                     <textarea
                       className="form-control-md form-control"
@@ -844,7 +867,6 @@ const UserProfile = ({ token }) => {
                   }}
                   onClick={handleUpdate}
                 >
-                  <FontAwesomeIcon icon={faSave} className="me-2" />
                   Update
                 </button>
                 <button
@@ -865,7 +887,6 @@ const UserProfile = ({ token }) => {
                     fetchClientDetails();
                   }}
                 >
-                  <FontAwesomeIcon icon={faTimes} className="me-2" />
                   Cancel
                 </button>
               </div>
@@ -902,9 +923,14 @@ const UserProfile = ({ token }) => {
                         }}
                       />
                     ) : (
-                      <FontAwesomeIcon
-                        icon={faUserCircle}
-                        style={{ fontSize: "100px", color: "#ccc" }}
+                      <img
+                        src={defaultProfilePic}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
                       />
                     )}
                   </div>
@@ -939,7 +965,9 @@ const UserProfile = ({ token }) => {
                 {/* Contact */}
                 <div className="d-flex align-items-center mb-2">
                   <FontAwesomeIcon icon={faPhone} className="m-2" />
-                  <p className="ms-2 m-1">{formData.Contact}</p>
+                  <p className="ms-2 m-1">
+                    {formatPhoneNumber(formData.Contact)}
+                  </p>
                 </div>
 
                 {/* Address */}

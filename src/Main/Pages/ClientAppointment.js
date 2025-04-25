@@ -20,7 +20,7 @@ import {
   faUserCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { ApiEndPoint } from "./Component/utils/utlis";
+import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
 import {
   Button,
   Card,
@@ -708,7 +708,9 @@ const ClientAppointment = ({ token }) => {
                   color="white"
                   className="m-2"
                 />
-                <p className="ms-2 m-1">{lawyerDetails?.Contact}</p>
+                <p className="ms-2 m-1">
+                  {formatPhoneNumber(lawyerDetails?.Contact)}
+                </p>
               </div>
 
               <div className="d-flex">
