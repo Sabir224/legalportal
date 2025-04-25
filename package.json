@@ -29,6 +29,7 @@
     "react-calendar": "^5.1.0",
     "react-color": "^2.19.3",
     "react-cookie": "^7.2.2",
+    "react-data-grid": "^7.0.0-beta.52",
     "react-datepicker": "^8.1.0",
     "react-dom": "^19.0.0",
     "react-dropzone": "^14.3.5",

@@ -14,6 +14,8 @@ import {
 import axios from "axios";
 import ErrorModal from "../../AlertModels/ErrorModal";
 import SuccessModal from "../../AlertModels/SuccessModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheck, faEdit, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 const TaskList = ({ token }) => {
   const [taskList, setTaskList] = useState([]);
@@ -47,7 +49,7 @@ const TaskList = ({ token }) => {
 
     } catch (err) {
       setMessage(err.response?.data?.message || "Error deleting task.");
-    //  setShowError(true);
+      //  setShowError(true);
 
     }
   };
@@ -123,6 +125,7 @@ const TaskList = ({ token }) => {
               <div
                 className="d-flex justify-content-between align-items-center p-3 border-bottom"
                 style={{ cursor: "pointer" }}
+                onClick={() => viewTask(task)} // row click triggers view
               >
                 <span className="col d-flex align-items-center text-start">
                   <span
@@ -142,38 +145,44 @@ const TaskList = ({ token }) => {
                 </span>
 
                 <span className="col text-start">{task.title}</span>
-                <span className="col text-start">{task.dueDate.split("T")[0]}</span>
+                <span className="col text-start">
+                  {task.dueDate?.split("T")[0]}
+                </span>
 
-                <div className="col text-end">
-                  <button
-                    className="btn btn-outline-primary btn-sm me-2"
-                    onClick={() => viewTask(task)}
-                  >
-                    View
-                  </button>
+                <div
+                  className="col text-end"
+                  onClick={(e) => e.stopPropagation()} // ❗ prevent row click
+                >
                   <button
                     className="btn btn-outline-secondary btn-sm me-2"
                     onClick={() => editTask(task)}
+                    title="Edit"
                   >
-                    Edit
+                    <FontAwesomeIcon icon={faEdit} />
                   </button>
                   <button
                     className="btn btn-outline-danger btn-sm me-2"
                     onClick={() => deletemodal(task)}
+                    title="Delete"
                   >
-                    Delete
+                    <FontAwesomeIcon icon={faTrash} />
                   </button>
                   <button
                     className="btn btn-success btn-sm"
                     onClick={() => markCompleted(task)}
+                    title="Mark Completed"
                   >
-                    Complete
+                    <FontAwesomeIcon icon={faCheck} />
                   </button>
                 </div>
+
               </div>
             </div>
           ))}
         </div>
+
+
+
         <TaskViewModal
           show={modalOpen}
           handleClose={() => setModalOpen(false)}
