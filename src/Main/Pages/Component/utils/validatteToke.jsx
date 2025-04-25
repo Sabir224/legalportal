@@ -18,7 +18,7 @@ class AuthValidator {
 
   validateToken() {
     const token = this.cookies.token;
-    console.log("Raw token from cookies:", token);
+    // console.log("Raw token from cookies:", token);
 
     if (!token) {
       console.log("No token found");
@@ -29,19 +29,19 @@ class AuthValidator {
 
     try {
       const decodedToken = jwtDecode(token);
-      console.log("Decoded token:", decodedToken);
+      //   console.log("Decoded token:", decodedToken);
 
       const currentTime = Date.now() / 1000;
       const isExpired = decodedToken.exp < currentTime;
       const hasRequiredFields =
         decodedToken._id && decodedToken.email && decodedToken.Role;
 
-      console.log(
-        `Validation - Expired: ${isExpired}, Fields: ${hasRequiredFields}`
-      );
+      //   console.log(
+      //     `Validation - Expired: ${isExpired}, Fields: ${hasRequiredFields}`
+      //   );
 
       if (isExpired || !hasRequiredFields) {
-        console.log("Token invalid - redirecting");
+        // console.log("Token invalid - redirecting");
         this.removeCookie("token");
         this.navigate("/");
         return false;

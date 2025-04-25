@@ -57,6 +57,7 @@ import { FaCalendar, FaPhone } from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 import SocketService from "../../SocketService";
 import PhoneInput from "react-phone-input-2";
+import ErrorModal from "./AlertModels/ErrorModal";
 
 const UserProfile = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -71,6 +72,7 @@ const UserProfile = ({ token }) => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const storedEmail = sessionStorage.getItem("Email");
+  const [showModal, setShowModal] = useState(false);
   // Function to categorize files
   const [currentDate, setCurrentDate] = useState(new Date());
   const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
@@ -101,6 +103,9 @@ const UserProfile = ({ token }) => {
       Address: clientDetails.Address,
     });
     setIsEditing(false);
+  };
+  const handleClose = () => {
+    setShowModal(false);
   };
   const handleChange = (field) => (e) =>
     setFormData({ ...formData, [field]: e.target.value });
@@ -966,8 +971,32 @@ const UserProfile = ({ token }) => {
                 <div className="d-flex align-items-center mb-2">
                   <FontAwesomeIcon icon={faPhone} className="m-2" />
                   <p className="ms-2 m-1">
-                    {formatPhoneNumber(formData.Contact)}
+                    <a
+                      href={`tel:${formData.Contact}`}
+                      onClick={(e) => {
+                        const isMobileOrTablet =
+                          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                            navigator.userAgent
+                          );
+                        if (!isMobileOrTablet) {
+                          e.preventDefault();
+                          setShowModal(true);
+                        }
+                      }}
+                      style={{
+                        textDecoration: "none",
+                        color: "inherit",
+                        cursor: "pointer",
+                      }}
+                    >
+                      {formatPhoneNumber(formData.Contact)}
+                    </a>
                   </p>
+                  <ErrorModal
+                    show={showModal}
+                    handleClose={handleClose}
+                    message={"Device Not Support Phone Calling"}
+                  />
                 </div>
 
                 {/* Address */}
