@@ -309,13 +309,13 @@ const Dashboard = () => {
                 action: () => handlescreen2(11),
               }
               : null,
-            // decodedToken?.Role === "admin"
-            //   ? {
-            //     icon: faTasks,
-            //     label: "Task Management",
-            //     action: () => handlescreen2(13),
-            //   }
-            //   : null,
+            decodedToken?.Role === "admin"
+              ? {
+                icon: faTasks,
+                label: "Task Management",
+                action: () => handlescreen2(13),
+              }
+              : null,
             // decodedToken?.Role === "admin"
             //   ? {
             //     icon: faStreetView,
@@ -442,7 +442,7 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-          {/* <button
+          <button
                   className="btn me-2 "
                   onClick={() => {
                     handlescreen2(14);
@@ -451,7 +451,7 @@ const Dashboard = () => {
                   
                 >
                   View Task
-                </button> */}
+                </button>
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
                 <button

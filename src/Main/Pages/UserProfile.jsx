@@ -457,6 +457,7 @@ const UserProfile = ({ token }) => {
         Contact: response.data.clientDetails?.Contact || "",
         Address: response.data.clientDetails?.Address || "",
       });
+      setFiles(response.data?.clientDetails?.Files)
       setSelectedFile(null);
       setLoading(false);
     } catch (err) {
