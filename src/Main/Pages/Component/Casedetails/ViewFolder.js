@@ -491,35 +491,101 @@ const ViewFolder = ({ token }) => {
 
 
     const handleDownload = async (fileId, fileName) => {
-        try {
-            const response = await fetch(`${ApiEndPoint}downloadFileFromFolder/${fileId}`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({}), // No email needed anymore
-            });
+        if (IsPersonal) {
+            console.log("Download Response JSON:",fileId);
 
-            console.log("Raw Response:", response);
+            try {
+                const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
+                    method: "POST", // Changed to POST to send body
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({}), // Sending email in request body
+                });
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Failed to fetch the file: ${errorText}`);
+                // Log the raw response before processing
+                console.log("Raw Response:", response);
+
+                if (!response.ok) {
+                    const errorText = await response.text(); // Get the error response if available
+                    throw new Error(`Failed to fetch the file: ${errorText}`);
+                }
+
+                // Log the JSON response before downloading (if applicable)
+                const jsonResponse = await response.json();
+                console.log("Download Response JSON:", jsonResponse);
+
+                // Check if the response contains a signed URL instead of a file blob
+                if (jsonResponse.downloadUrl) {
+                    console.log("Signed URL received:", jsonResponse.downloadUrl);
+                    window.open(jsonResponse.downloadUrl, "_blank");
+                    return;
+                }
+
+                // Validate content type
+                const contentType = response.headers.get("Content-Type");
+                console.log("Content-Type:", contentType);
+                if (
+                    !contentType ||
+                    (!contentType.startsWith("application/") &&
+                        contentType !== "application/octet-stream")
+                ) {
+                    throw new Error("Invalid content type: " + contentType);
+                }
+
+                // Process the file blob
+                const blob = await response.blob();
+                console.log("Blob Data:", blob);
+
+                // Create a URL and trigger download
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = fileName || "downloaded_file"; // Default filename if none is provided
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Cleanup
+                setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            } catch (error) {
+                console.error("Error downloading file:", error);
+            }
+        } else {
+
+            try {
+                const response = await fetch(`${ApiEndPoint}downloadFileFromFolder/${fileId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({}), // No email needed anymore
+                });
+
+                console.log("Raw Response:", response);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Failed to fetch the file: ${errorText}`);
+                }
+
+                const jsonResponse = await response.json();
+                console.log("Download Response JSON:", jsonResponse);
+
+                if (jsonResponse.downloadUrl) {
+                    console.log("Signed URL received:", jsonResponse.downloadUrl);
+                    window.open(jsonResponse.downloadUrl, "_blank");
+                    return;
+                }
+
+                throw new Error("Signed URL not received in the response");
+            } catch (error) {
+                console.error("Error downloading file:", error);
             }
 
-            const jsonResponse = await response.json();
-            console.log("Download Response JSON:", jsonResponse);
-
-            if (jsonResponse.downloadUrl) {
-                console.log("Signed URL received:", jsonResponse.downloadUrl);
-                window.open(jsonResponse.downloadUrl, "_blank");
-                return;
-            }
-
-            throw new Error("Signed URL not received in the response");
-        } catch (error) {
-            console.error("Error downloading file:", error);
         }
+
+
     };
 
     const onHide = () => {
