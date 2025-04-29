@@ -43,6 +43,7 @@ import DragAndDrop from "./Component/DragAndDrop";
 import { FaCalendar } from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 import { useSelector } from "react-redux";
+import ErrorModal from "./AlertModels/ErrorModal";
 
 const ViewUser = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -58,6 +59,7 @@ const ViewUser = ({ token }) => {
   const [errorMessage, setErrorMessage] = useState("");
   const storedEmail = sessionStorage.getItem("Email");
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
+  const [showModal, setShowModal] = useState(false);
 
   // Function to categorize files
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -128,7 +130,9 @@ const ViewUser = ({ token }) => {
       return false;
     });
   };
-
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const fileIcons = {
     pdf: faFilePdf, // PDF Files
     doc: faFileWord, // Word Document
@@ -600,16 +604,35 @@ const ViewUser = ({ token }) => {
               </div>
 
               {/* Contact */}
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
+              <div className="d-flex ">
+                <FontAwesomeIcon icon={faPhone} className="m-2" />
                 <p className="ms-2 m-1">
-                  {formatPhoneNumber(clientDetails?.Contact)}
+                  <a
+                    href={`tel:${clientDetails?.Contact}`}
+                    onClick={(e) => {
+                      const isMobileOrTablet =
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                          navigator.userAgent
+                        );
+                      if (!isMobileOrTablet) {
+                        e.preventDefault();
+                        setShowModal(true);
+                      }
+                    }}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {formatPhoneNumber(clientDetails?.Contact)}
+                  </a>
                 </p>
+                <ErrorModal
+                  show={showModal}
+                  handleClose={handleClose}
+                  message={"Device Not Support Phone Calling"}
+                />
               </div>
 
               {/* Address */}

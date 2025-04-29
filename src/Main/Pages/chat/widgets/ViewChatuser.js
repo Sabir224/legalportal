@@ -61,6 +61,7 @@ import { Button, Card, Col, Row, Spinner, Tabs } from "react-bootstrap";
 // import DragAndDrop from "./DragAndDrop";
 import { ApiEndPoint } from "../../Component/utils/utlis";
 import Dropdown from "../../Component/Dropdown";
+import ErrorModal from "../../AlertModels/ErrorModal";
 
 const ContactForm = ({ users, participants }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -79,7 +80,10 @@ const ContactForm = ({ users, participants }) => {
   const [selectedLawyer, setSelectedLawyer] = useState(null);
 
   // Function to categorize files
-
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const onHide = () => {
     setShowUploadModal(false);
     setSelectedFiles([]);
@@ -420,12 +424,38 @@ const ContactForm = ({ users, participants }) => {
           <a
             href={`mailto:${value}`}
             style={{ color: "white", textDecoration: "none" }}
-          >
-            {formatPhoneNumber(label, value)}
-          </a>
+          ></a>
         ) : (
           <span style={isSmall ? { fontSize: 12 } : {}}>
-            {formatPhoneNumber(label, value) || "N/A"}
+            <div className="d-flex ">
+              <p className="ms-2 m-1">
+                <a
+                  href={`tel:${formatPhoneNumber(label, value)}`}
+                  onClick={(e) => {
+                    const isMobileOrTablet =
+                      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                        navigator.userAgent
+                      );
+                    if (!isMobileOrTablet) {
+                      e.preventDefault();
+                      setShowModal(true);
+                    }
+                  }}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  {formatPhoneNumber(label, value) || "N/A"}
+                </a>
+              </p>
+              <ErrorModal
+                show={showModal}
+                handleClose={handleClose}
+                message={"Device Not Support Phone Calling"}
+              />
+            </div>
           </span>
         )}
       </td>

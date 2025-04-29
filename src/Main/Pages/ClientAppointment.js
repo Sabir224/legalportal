@@ -42,6 +42,7 @@ import {
 } from "react-icons/bs";
 import SocketService from "../../SocketService";
 import { useSelector } from "react-redux";
+import ErrorModal from "./AlertModels/ErrorModal";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = ({ token }) => {
@@ -317,7 +318,10 @@ const ClientAppointment = ({ token }) => {
 
   const [isLoading, setIsLoading] = useState(false); // Loader state
   const [isEmailSent, setIsEmailSent] = useState(false); // Email sent confirmation
-
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const handleConfirm = async () => {
     setIsLoading(true);
     // Show loader
@@ -700,6 +704,36 @@ const ClientAppointment = ({ token }) => {
                     {user?.Email}
                   </a>
                 </p>
+              </div>
+              <div className="d-flex">
+                <FontAwesomeIcon icon={faPhone} className="m-2" />
+                <p className="ms-2 m-1">
+                  <a
+                    href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
+                    onClick={(e) => {
+                      const isMobileOrTablet =
+                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                          navigator.userAgent
+                        );
+                      if (!isMobileOrTablet) {
+                        e.preventDefault();
+                        setShowModal(true);
+                      }
+                    }}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {formatPhoneNumber(lawyerDetails?.Contact)}
+                  </a>
+                </p>
+                <ErrorModal
+                  show={showModal}
+                  handleClose={handleClose}
+                  message={"Device Not Support Phone Calling"}
+                />
               </div>
               <div className="d-flex">
                 <FontAwesomeIcon
