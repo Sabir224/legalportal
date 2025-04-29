@@ -30,7 +30,6 @@ import { ApiEndPoint } from "../utils/utlis";
 // //   const [showError, setShowError] = useState(false);
 // //   const [message, setMessage] = useState("");
 
-
 // //   useEffect(() => {
 // //     fetchtask()
 // //   }, []);
@@ -240,7 +239,6 @@ import { ApiEndPoint } from "../utils/utlis";
 
 // // export default TaskList;
 
-
 // import React, { useEffect, useState } from "react";
 // import TaskViewModal from "./TaskViewModal";
 // import TaskEditModal from "./TaskEditModal";
@@ -351,7 +349,6 @@ import { ApiEndPoint } from "../utils/utlis";
 //     }
 //   };
 
-
 //   const [editableTask, setEditableTask] = useState(null);
 //   const [isEditMode, setIsEditMode] = useState(false);
 //   const [task, setTask] = useState(false);
@@ -385,7 +382,6 @@ import { ApiEndPoint } from "../utils/utlis";
 //       setIsEditMode(false);
 //     }
 //   };
-
 
 //   return (
 //     <div className="" style={{ height: "84vh", overflowY: "auto" }}>
@@ -595,10 +591,6 @@ import { ApiEndPoint } from "../utils/utlis";
 // };
 
 // export default TaskList;
-
-
-
-
 
 // import React, { useState } from "react";
 // import { FaPlus } from "react-icons/fa"; // Plus icon
@@ -936,9 +928,6 @@ import { ApiEndPoint } from "../utils/utlis";
 //   );
 // }
 
-
-
-
 import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 
@@ -960,32 +949,28 @@ export default function TaskList() {
     },
   ]);
 
-
-
-
   useEffect(() => {
-    fetchtask()
+    fetchtask();
   }, []);
 
   const fetchtask = async () => {
     try {
-      const response = await fetch(`${ApiEndPoint}getTasksByCase/67fdf45fbff3fdf069fe7420`);
+      const response = await fetch(
+        `${ApiEndPoint}getTasksByCase/680909b4b85bc2a4ded5f43c`
+      );
 
       if (!response.ok) {
-        throw new Error('Error fetching folders');
+        throw new Error("Error fetching folders");
       }
 
       const data = await response.json();
-      console.log("fetch Task", data.tasks);
-      setTodos(data.todos)
-
+      // console.log("fetch Task", data.tasks);
+      setTodos(data.todos);
     } catch (err) {
       // setMessage(err.response?.data?.message || "Error deleting task.");
       //  setShowError(true);
-
     }
   };
-
 
   const [columns, setColumns] = useState([
     { id: "task", label: "Task", type: "text" },
@@ -993,13 +978,13 @@ export default function TaskList() {
       id: "status",
       label: "Status",
       type: "dropdown",
-      options: ["Not Started", "In Progress", "Completed", "Blocked"]
+      options: ["Not Started", "In Progress", "Completed", "Blocked"],
     },
     {
       id: "priority",
       label: "Priority",
       type: "dropdown",
-      options: ["High", "Medium", "Low"]
+      options: ["High", "Medium", "Low"],
     },
   ]);
 
@@ -1014,13 +999,15 @@ export default function TaskList() {
 
   const toggleTask = (taskId) => {
     setOpenTasks((prev) =>
-      prev.includes(taskId) ? prev.filter((id) => id !== taskId) : [...prev, taskId]
+      prev.includes(taskId)
+        ? prev.filter((id) => id !== taskId)
+        : [...prev, taskId]
     );
   };
 
   const saveSubtask = (taskId) => {
     if (!newSubtaskName.trim()) return;
-    console.log("new task add ", taskId)
+    console.log("new task add ", taskId);
     const newSubtask = {
       id: Date.now(),
       task: newSubtaskName,
@@ -1029,7 +1016,7 @@ export default function TaskList() {
     };
 
     // Initialize new column values for the subtask
-    columns.forEach(col => {
+    columns.forEach((col) => {
       if (!newSubtask[col.id]) {
         newSubtask[col.id] = col.type === "checkbox" ? false : "";
       }
@@ -1066,7 +1053,7 @@ export default function TaskList() {
     };
 
     if (newColumnType === "dropdown") {
-      newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
+      newColumn.options = newColumnOptions.split(",").map((opt) => opt.trim());
     }
 
     setColumns((prev) => [...prev, newColumn]);
@@ -1082,32 +1069,37 @@ export default function TaskList() {
         [newId]: newColumnType === "checkbox" ? false : "",
         subtasks: todo.subtasks.map((subtask) => ({
           ...subtask,
-          [newId]: newColumnType === "checkbox" ? false : ""
+          [newId]: newColumnType === "checkbox" ? false : "",
         })),
       }))
     );
   };
 
-
-  const handleFieldChange = (taskId, field, value, isSubtask = false, subtaskId = null) => {
-    setTodos(prev => {
+  const handleFieldChange = (
+    taskId,
+    field,
+    value,
+    isSubtask = false,
+    subtaskId = null
+  ) => {
+    setTodos((prev) => {
       if (isSubtask) {
-        return prev.map(todo => {
+        return prev.map((todo) => {
           if (todo.id === taskId) {
             return {
               ...todo,
-              subtasks: todo.subtasks.map(subtask => {
+              subtasks: todo.subtasks.map((subtask) => {
                 if (subtask.id === subtaskId) {
                   return { ...subtask, [field]: value };
                 }
                 return subtask;
-              })
+              }),
             };
           }
           return todo;
         });
       } else {
-        return prev.map(todo => {
+        return prev.map((todo) => {
           if (todo.id === taskId) {
             return { ...todo, [field]: value };
           }
@@ -1120,17 +1112,17 @@ export default function TaskList() {
   const deleteColumn = (columnId) => {
     if (columns.length <= 1) return; // Don't delete the last column
 
-    setColumns(prev => prev.filter(col => col.id !== columnId));
+    setColumns((prev) => prev.filter((col) => col.id !== columnId));
 
-    setTodos(prev =>
-      prev.map(todo => {
+    setTodos((prev) =>
+      prev.map((todo) => {
         const { [columnId]: deleted, ...restTodo } = todo;
         return {
           ...restTodo,
-          subtasks: todo.subtasks.map(subtask => {
+          subtasks: todo.subtasks.map((subtask) => {
             const { [columnId]: deleted, ...restSubtask } = subtask;
             return restSubtask;
-          })
+          }),
         };
       })
     );
@@ -1144,8 +1136,10 @@ export default function TaskList() {
             value={item[column.id] || ""}
             onChange={(e) => onChange(e.target.value)}
           >
-            {column.options.map(option => (
-              <option key={option} value={option}>{option}</option>
+            {column.options.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
             ))}
           </select>
         );
@@ -1168,9 +1162,16 @@ export default function TaskList() {
     }
   };
 
-
-  const keys = todos?.length > 0 ? Object.keys(todos[0]).filter((key) => (key !== "_id" && key !== "__v" && key !== "subtasks" && key !== "parentId")) : [];
-
+  const keys =
+    todos?.length > 0
+      ? Object.keys(todos[0]).filter(
+          (key) =>
+            key !== "_id" &&
+            key !== "__v" &&
+            key !== "subtasks" &&
+            key !== "parentId"
+        )
+      : [];
 
   return (
     <div className="tasklist-body">
@@ -1320,7 +1321,7 @@ export default function TaskList() {
               <th>Expand</th>
               {keys.map((key) => (
                 <th key={key}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <div style={{ display: "flex", alignItems: "center" }}>
                     <div>{key}</div>
                     <div>
                       <FaTrash
@@ -1333,7 +1334,10 @@ export default function TaskList() {
                 </th>
               ))}
               <th>
-                <FaPlus className="plus-icon" onClick={() => setAddingColumn(true)} />
+                <FaPlus
+                  className="plus-icon"
+                  onClick={() => setAddingColumn(true)}
+                />
               </th>
             </tr>
           </thead>
@@ -1389,57 +1393,69 @@ export default function TaskList() {
 
                 <tr>
                   <td>
-                    <span className="expand-icon" onClick={() => toggleTask(todo.id)}>
-                      {openTasks.includes(todo.id) ? <FaChevronDown /> : <FaChevronRight />}
+                    <span
+                      className="expand-icon"
+                      onClick={() => toggleTask(todo.id)}
+                    >
+                      {openTasks.includes(todo.id) ? (
+                        <FaChevronDown />
+                      ) : (
+                        <FaChevronRight />
+                      )}
                     </span>
                   </td>
 
                   {keys.map((key) => (
                     <td key={key}>
                       {key === "caseId" ? (
-                        todo.caseId?.value.CaseNumber || ''
+                        todo.caseId?.value.CaseNumber || ""
                       ) : key === "createdBy" ? (
-                        todo.createdBy?.value.UserName || ''
+                        todo.createdBy?.value.UserName || ""
                       ) : key === "assignedUsers" ? (
-                        todo.assignedUsers?.value?.map((user) => user.UserName).join(", ")
+                        todo.assignedUsers?.value
+                          ?.map((user) => user.UserName)
+                          .join(", ")
                       ) : key === "createdAt" ? (
-                        todo.createdAt?.value.split('T')[0]
-                      )
-                        : key === "status" ? (
-                          <select
-                            value={todo[key]?.value}
-                            onChange={(e) => handleFieldChange(todo?._id, key, e.target.value)}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="in_progress">In Progress</option>
-                          </select>
-                        ) : key === "dueDate" ? (
-                          <input
-                            type="date"
-                            value={todo[key]?.value ? new Date(todo[key]?.value).toISOString().substr(0, 10) : ''}
-                            onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                          />
-
-                        ) : (
-                          <input
-                            type="text"
-                            value={todo[key].value || ''}
-                            onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                          />
-                        )}
+                        todo.createdAt?.value.split("T")[0]
+                      ) : key === "status" ? (
+                        <select
+                          value={todo[key]?.value}
+                          onChange={(e) =>
+                            handleFieldChange(todo?._id, key, e.target.value)
+                          }
+                        >
+                          <option value="pending">Pending</option>
+                          <option value="completed">Completed</option>
+                          <option value="in_progress">In Progress</option>
+                        </select>
+                      ) : key === "dueDate" ? (
+                        <input
+                          type="date"
+                          value={
+                            todo[key]?.value
+                              ? new Date(todo[key]?.value)
+                                  .toISOString()
+                                  .substr(0, 10)
+                              : ""
+                          }
+                          onChange={(e) =>
+                            handleFieldChange(todo.id, key, e.target.value)
+                          }
+                        />
+                      ) : (
+                        <input
+                          type="text"
+                          value={todo[key].value || ""}
+                          onChange={(e) =>
+                            handleFieldChange(todo.id, key, e.target.value)
+                          }
+                        />
+                      )}
                     </td>
                   ))}
 
                   <td />
                 </tr>
-
-
-
-
-
-
-
 
                 {openTasks.includes(todo.id) && (
                   <tr>
@@ -1449,7 +1465,12 @@ export default function TaskList() {
                           <tr>
                             {keys.map((key) => (
                               <th key={key}>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                  }}
+                                >
                                   <div>{key}</div>
                                 </div>
                               </th>
@@ -1463,41 +1484,67 @@ export default function TaskList() {
                               {keys.map((key) => (
                                 <td key={key}>
                                   {key === "caseId" ? (
-                                    todo.caseId?.value.CaseNumber || ''
+                                    todo.caseId?.value.CaseNumber || ""
                                   ) : key === "createdBy" ? (
-                                    todo.createdBy?.value.UserName || ''
+                                    todo.createdBy?.value.UserName || ""
                                   ) : key === "assignedUsers" ? (
-                                    todo.assignedUsers?.value?.map((user) => user.UserName).join(", ")
+                                    todo.assignedUsers?.value
+                                      ?.map((user) => user.UserName)
+                                      .join(", ")
                                   ) : key === "createdAt" ? (
-                                    todo.createdAt?.value.split('T')[0]
-                                  )
-                                    : key === "status" ? (
-                                      <select
-                                        value={todo[key]?.value}
-                                        onChange={(e) => handleFieldChange(todo?._id, key, e.target.value)}
-                                      >
-                                        <option value="pending">Pending</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="in_progress">In Progress</option>
-                                      </select>
-                                    ) : key === "dueDate" ? (
-                                      <input
-                                        type="date"
-                                        value={todo[key]?.value ? new Date(todo[key]?.value).toISOString().substr(0, 10) : ''}
-                                        onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                                      />
-
-                                    ) : (
-                                      <input
-                                        type="text"
-                                        value={todo[key].value || ''}
-                                        onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                                      />
-                                    )}
+                                    todo.createdAt?.value.split("T")[0]
+                                  ) : key === "status" ? (
+                                    <select
+                                      value={todo[key]?.value}
+                                      onChange={(e) =>
+                                        handleFieldChange(
+                                          todo?._id,
+                                          key,
+                                          e.target.value
+                                        )
+                                      }
+                                    >
+                                      <option value="pending">Pending</option>
+                                      <option value="completed">
+                                        Completed
+                                      </option>
+                                      <option value="in_progress">
+                                        In Progress
+                                      </option>
+                                    </select>
+                                  ) : key === "dueDate" ? (
+                                    <input
+                                      type="date"
+                                      value={
+                                        todo[key]?.value
+                                          ? new Date(todo[key]?.value)
+                                              .toISOString()
+                                              .substr(0, 10)
+                                          : ""
+                                      }
+                                      onChange={(e) =>
+                                        handleFieldChange(
+                                          todo.id,
+                                          key,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  ) : (
+                                    <input
+                                      type="text"
+                                      value={todo[key].value || ""}
+                                      onChange={(e) =>
+                                        handleFieldChange(
+                                          todo.id,
+                                          key,
+                                          e.target.value
+                                        )
+                                      }
+                                    />
+                                  )}
                                 </td>
                               ))}
-
-
                             </tr>
                           ))}
 
@@ -1510,7 +1557,9 @@ export default function TaskList() {
                                   className="subtask-input"
                                   placeholder="Enter Subtask Name"
                                   value={newSubtaskName}
-                                  onChange={(e) => setNewSubtaskName(e.target.value)}
+                                  onChange={(e) =>
+                                    setNewSubtaskName(e.target.value)
+                                  }
                                 />
                                 <button
                                   className="save-subtask-button"
@@ -1537,15 +1586,9 @@ export default function TaskList() {
                     </td>
                   </tr>
                 )}
-
               </React.Fragment>
             ))}
-
-
-
-
           </tbody>
-
         </table>
       </div>
 
@@ -1555,7 +1598,10 @@ export default function TaskList() {
           <div className="modal-content">
             <div className="modal-header">
               <div className="modal-title">Add New Column</div>
-              <button className="close-button" onClick={() => setAddingColumn(false)}>
+              <button
+                className="close-button"
+                onClick={() => setAddingColumn(false)}
+              >
                 &times;
               </button>
             </div>
@@ -1591,7 +1637,10 @@ export default function TaskList() {
               </div>
 
               <div className="modal-footer">
-                <button className="cancel-button" onClick={() => setAddingColumn(false)}>
+                <button
+                  className="cancel-button"
+                  onClick={() => setAddingColumn(false)}
+                >
                   Cancel
                 </button>
                 <button className="add-column-button" onClick={addColumn}>

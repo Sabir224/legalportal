@@ -710,40 +710,15 @@ const ClientAppointment = ({ token }) => {
                 <p className="ms-2 m-1">
                   <a
                     href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
-                    onClick={(e) => {
-                      const isMobileOrTablet =
-                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                          navigator.userAgent
-                        );
-                      if (!isMobileOrTablet) {
-                        e.preventDefault();
-                        setShowModal(true);
-                      }
-                    }}
                     style={{
                       textDecoration: "none",
                       color: "inherit",
-                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
                     {formatPhoneNumber(lawyerDetails?.Contact)}
                   </a>
-                </p>
-                <ErrorModal
-                  show={showModal}
-                  handleClose={handleClose}
-                  message={"Device Not Support Phone Calling"}
-                />
-              </div>
-              <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p className="ms-2 m-1">
-                  {formatPhoneNumber(lawyerDetails?.Contact)}
                 </p>
               </div>
 

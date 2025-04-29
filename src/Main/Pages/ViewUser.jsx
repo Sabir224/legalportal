@@ -604,35 +604,19 @@ const ViewUser = ({ token }) => {
               </div>
 
               {/* Contact */}
-              <div className="d-flex ">
-                <FontAwesomeIcon icon={faPhone} className="m-2" />
-                <p className="ms-2 m-1">
-                  <a
-                    href={`tel:${clientDetails?.Contact}`}
-                    onClick={(e) => {
-                      const isMobileOrTablet =
-                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                          navigator.userAgent
-                        );
-                      if (!isMobileOrTablet) {
-                        e.preventDefault();
-                        setShowModal(true);
-                      }
-                    }}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                      cursor: "pointer",
-                    }}
-                  >
-                    {formatPhoneNumber(clientDetails?.Contact)}
-                  </a>
-                </p>
-                <ErrorModal
-                  show={showModal}
-                  handleClose={handleClose}
-                  message={"Device Not Support Phone Calling"}
-                />
+              <div className="d-flex align-items-center">
+                <a
+                  href={`tel:${clientDetails?.Contact}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPhone} className="me-2" />
+                  <span>{formatPhoneNumber(clientDetails?.Contact)}</span>
+                </a>
               </div>
 
               {/* Address */}

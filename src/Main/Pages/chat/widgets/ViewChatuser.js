@@ -412,55 +412,45 @@ const ContactForm = ({ users, participants }) => {
     if (!value) return "N/A"; // Consistent with your "N/A" fallback
     return value.startsWith("+") ? value : `+${value}`;
   };
-
   const ContactRow = ({ icon, label, value, isEmail, isSmall }) => (
     <tr>
-      <td className="fw-bold text-white">
-        {/* <FontAwesomeIcon icon={icon} className="me-2" /> */}
-        {label}:
-      </td>
+      <td className="fw-bold text-white">{label}:</td>
       <td className="p-2 text-white">
         {isEmail ? (
-          <a
-            href={`mailto:${value}`}
-            style={{ color: "white", textDecoration: "none" }}
-          ></a>
+          value ? (
+            <a
+              href={`mailto:${value}`}
+              style={{ color: "white", textDecoration: "none" }}
+            >
+              {value}
+            </a>
+          ) : (
+            "N/A"
+          )
+        ) : label === "Contact" && value ? (
+          <div className="d-flex" style={isSmall ? { fontSize: 12 } : {}}>
+            <p className="ms-2 m-1">
+              <a
+                href={`tel:${value}`}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                {formatPhoneNumber(label, value)}
+              </a>
+            </p>
+          </div>
+        ) : value ? (
+          <p className="ms-2 m-1">{value}</p>
         ) : (
-          <span style={isSmall ? { fontSize: 12 } : {}}>
-            <div className="d-flex ">
-              <p className="ms-2 m-1">
-                <a
-                  href={`tel:${formatPhoneNumber(label, value)}`}
-                  onClick={(e) => {
-                    const isMobileOrTablet =
-                      /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                        navigator.userAgent
-                      );
-                    if (!isMobileOrTablet) {
-                      e.preventDefault();
-                      setShowModal(true);
-                    }
-                  }}
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    cursor: "pointer",
-                  }}
-                >
-                  {formatPhoneNumber(label, value) || "N/A"}
-                </a>
-              </p>
-              <ErrorModal
-                show={showModal}
-                handleClose={handleClose}
-                message={"Device Not Support Phone Calling"}
-              />
-            </div>
-          </span>
+          "N/A"
         )}
       </td>
     </tr>
   );
+
   return (
     <div className="card container-fluid justify-content-center mr-3 ml-3 p-0">
       <Row className="d-flex justify-content-center m-3 p-0 gap-5">

@@ -1824,35 +1824,21 @@ const LawyerProfile = ({ token }) => {
                   </a>
                 </p>
               </div>
-              <div className="d-flex d-flex">
+              <div className="d-flex">
                 <FontAwesomeIcon icon={faPhone} className="m-2" />
                 <p className="ms-2 m-1">
                   <a
                     href={`tel:${formData.Contact}`}
-                    onClick={(e) => {
-                      const isMobileOrTablet =
-                        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                          navigator.userAgent
-                        );
-                      if (!isMobileOrTablet) {
-                        e.preventDefault();
-                        setShowModal(true);
-                      }
-                    }}
                     style={{
                       textDecoration: "none",
                       color: "inherit",
-                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
                     }}
                   >
-                    {formatPhoneNumber(lawyerDetails?.Contact)}
+                    {formatPhoneNumber(formData.Contact)}
                   </a>
                 </p>
-                <ErrorModal
-                  show={showModal}
-                  handleClose={handleClose}
-                  message={"Device Not Support Phone Calling"}
-                />
               </div>
 
               <div className="d-flex">
