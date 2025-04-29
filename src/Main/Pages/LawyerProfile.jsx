@@ -47,7 +47,7 @@ import PhoneInput from "react-phone-input-2";
 
 import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
 import { faFacebook, faWhatsapp } from "@fortawesome/free-brands-svg-icons";
-import { ApiEndPoint } from "./Component/utils/utlis";
+import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { width } from "@fortawesome/free-solid-svg-icons/faComment";
@@ -1827,7 +1827,9 @@ const LawyerProfile = ({ token }) => {
                   color="white"
                   className="m-2"
                 />
-                <p className="ms-2 m-1">{lawyerDetails?.Contact}</p>
+                <p className="ms-2 m-1">
+                  {formatPhoneNumber(lawyerDetails?.Contact)}
+                </p>
               </div>
 
               <div className="d-flex">

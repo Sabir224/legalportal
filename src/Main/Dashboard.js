@@ -46,7 +46,7 @@ import axios from "axios";
 import { ApiEndPoint, useDecodedToken } from "./Pages/Component/utils/utlis";
 import AddCaseForm from "./Pages/cases/CaseForm";
 import CaseFilingForm from "./Pages/cases/CaseMatter";
-import { useCookies } from "react-cookie";
+import { Cookies, useCookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
 import ViewUser from "./Pages/ViewUser";
 import AddUser from "./Pages/AddUsers/AddUser";
@@ -57,12 +57,14 @@ import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
+import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const authValidator = useAuthValidator(); // Initialize the validator
   const dispatch = useDispatch();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef(null);
@@ -72,7 +74,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [decodedToken, setDecodedToken] = useState(null);
   const hasFetched = useRef(false); // Ref to track if data has been fetched
-  const [cookies] = useCookies(["token"]);
+  const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
   const [viewLawyer, setViewLawyer] = useState(false);
   // console.log("________", cookies.token);
@@ -87,7 +89,53 @@ const Dashboard = () => {
       }
     }
   }, [cookies.token]); // Decode token only when token changes
+  const [isValidating, setIsValidating] = useState(false);
+
+  const validateToken = (decodedToken) => {
+    console.log("Validating token:", decodedToken);
+
+    // Check if token exists and has required structure
+    if (!decodedToken || typeof decodedToken !== "object") {
+      console.log("Invalid token structure - redirecting");
+      removeCookie("token");
+      navigate("/");
+      return false;
+    }
+
+    const currentTime = Date.now() / 1000;
+    const isExpired = decodedToken.exp < currentTime;
+    const hasRequiredFields =
+      decodedToken._id && decodedToken.email && decodedToken.Role;
+
+    console.log(
+      `Validation results - Expired: ${isExpired}, Has fields: ${hasRequiredFields}`
+    );
+
+    if (isExpired || !hasRequiredFields) {
+      console.log("Token invalid - redirecting");
+      removeCookie("token");
+      navigate("/");
+      return false;
+    }
+
+    console.log("Token is valid");
+    return true;
+  };
   useEffect(() => {
+    const interval = setInterval(() => {
+      if (!authValidator.validateToken()) {
+        return;
+      }
+    }, 5 * 60 * 1000); // Check every 5 minutes
+
+    return () => clearInterval(interval);
+  }, [decodedToken]);
+
+  useEffect(() => {
+    if (!authValidator.validateToken()) {
+      return;
+    }
+
     switch (screen) {
       case 0:
         setCurrentScreen(<BasicCase token={decodedToken} />);
@@ -222,7 +270,7 @@ const Dashboard = () => {
   };
   const ScreenHeader = ({ title }) => (
     <div className="d-flex align-items-center">
-      {title !== "Master List" &&
+      {title !== "Master List" && (
         <button
           onClick={handleGoBack}
           style={{
@@ -234,7 +282,7 @@ const Dashboard = () => {
         >
           <FaArrowLeft color="white" />
         </button>
-      }
+      )}
       <span style={{}}>{title}</span>
     </div>
   );
@@ -251,8 +299,9 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
-          } h-100 position-relative`}
+        className={`d-flex flex-column text-white  ${
+          isCollapsed ? "col-1" : "col-2"
+        } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -297,24 +346,24 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                icon: faPerson,
-                label: "View Users",
-                action: () => handlescreen2(9),
-              }
+                  icon: faPerson,
+                  label: "View Users",
+                  action: () => handlescreen2(9),
+                }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                icon: faCcMastercard,
-                label: "Add Case",
-                action: () => handlescreen2(11),
-              }
+                  icon: faCcMastercard,
+                  label: "Add Case",
+                  action: () => handlescreen2(11),
+                }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                icon: faTasks,
-                label: "Task Management",
-                action: () => handlescreen2(13),
-              }
+                  icon: faTasks,
+                  label: "Task Management",
+                  action: () => handlescreen2(13),
+                }
               : null,
             // decodedToken?.Role === "admin"
             //   ? {
@@ -401,8 +450,6 @@ const Dashboard = () => {
               {screen === 14 && (
                 <ScreenHeader title="View Task" onBack={handleBack} />
               )}
-
-
             </h3>
 
             {/* Admin Buttons */}
@@ -442,32 +489,31 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-          <button
-                  className="btn me-2 "
-                  onClick={() => {
-                    handlescreen2(14);
-                  }}
-                  style={{color:"white" , border:'1px solid #c0a262'}}
-                  
-                >
-                  View Task
-                </button>
+            <button
+              className="btn me-2 "
+              onClick={() => {
+                handlescreen2(14);
+              }}
+              style={{ color: "white", border: "1px solid #c0a262" }}
+            >
+              View Task
+            </button>
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-                <button
-                  className="btn me-2"
-                  onClick={() => {
-                    handlescreen2(5);
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    size="1x"
-                    color="white"
-                    className=""
-                  />
-                </button>
-              )}
+              <button
+                className="btn me-2"
+                onClick={() => {
+                  handlescreen2(5);
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUser}
+                  size="1x"
+                  color="white"
+                  className=""
+                />
+              </button>
+            )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"

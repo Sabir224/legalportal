@@ -54,7 +54,7 @@ const SignIn = () => {
         // Wait for token to be stored in cookies
         setTimeout(() => {
           navigate("/Dashboards", { replace: true });
-        }, 1000); // Small delay to ensure token is available before navigation
+        }, 2000); // Small delay to ensure token is available before navigation
       }
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong");
@@ -155,8 +155,9 @@ const SignIn = () => {
             <Col
               sm={12}
               md={isTabletOrSmaller ? 12 : 6}
-              className={`d-flex flex-column justify-content-center ${isTabletOrSmaller ? "text-center" : ""
-                }`}
+              className={`d-flex flex-column justify-content-center ${
+                isTabletOrSmaller ? "text-center" : ""
+              }`}
             >
               <div className="d-flex justify-content-center mb-3">
                 <img
@@ -195,7 +196,7 @@ const SignIn = () => {
                       type="text"
                       className={`form-control ${error ? "is-invalid" : ""}`}
                       required
-                    // className="form-control-lg "
+                      // className="form-control-lg "
                     />
                   </div>
                 </Form.Group>
@@ -213,9 +214,10 @@ const SignIn = () => {
                       placeholder="Enter Password"
                       type="password"
                       required
-                    // className="form-control-lg "
+                      // className="form-control-lg "
                     />
-                    <div className="invalid-feedback">{error}</div> {/* Error message like required */}
+                    <div className="invalid-feedback">{error}</div>{" "}
+                    {/* Error message like required */}
                   </div>
                 </Form.Group>
                 <div style={{ textAlign: "center" }}>

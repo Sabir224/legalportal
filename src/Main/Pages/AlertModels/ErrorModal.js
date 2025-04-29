@@ -19,7 +19,7 @@ const ErrorModal = ({ show, handleClose, message }) => {
       <Modal.Body>
         <p>{message || "Something went wrong. Please try again."}</p>
       </Modal.Body>
-      <Modal.Footer>
+      <Modal.Footer className="d-flex justify-content-center">
         <Button variant="danger" onClick={handleClose}>
           Close
         </Button>
