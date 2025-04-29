@@ -15,12 +15,15 @@
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/thumbnail": "^3.12.0",
     "@reduxjs/toolkit": "^2.6.1",
+    "@tailwindcss/vite": "^4.1.4",
     "axios": "^1.8.2",
     "bootstrap": "^5.3.3",
     "cra-template": "1.2.0",
     "cross-env": "^7.0.3",
     "date-fns-tz": "^3.2.0",
     "font-awesome": "^4.7.0",
+    "jspreadsheet-ce": "^5.0.1",
+    "jsuites": "^5.9.2",
     "jwt-decode": "^4.0.0",
     "luxon": "^3.5.0",
     "papaparse": "^5.4.1",
@@ -77,5 +80,10 @@
   "description": "This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).",
   "main": "index.js",
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^3.4.17"
+  }
 }
