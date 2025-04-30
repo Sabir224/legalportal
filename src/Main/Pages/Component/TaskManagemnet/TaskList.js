@@ -2,6 +2,7 @@
 // // import TaskViewModal from "./TaskViewModal";
 // // import TaskEditModal from "./TaskEditModal";
 import { ApiEndPoint } from "../utils/utlis";
+import axios from 'axios'
 // // import {
 // //   Button,
 // //   Card,
@@ -943,22 +944,7 @@ import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 
 export default function TaskList() {
-  const [todos, setTodos] = useState([
-    {
-      id: 1,
-      task: "Learn React",
-      status: "In Progress",
-      priority: "High",
-      subtasks: [],
-    },
-    {
-      id: 2,
-      task: "Build Project",
-      status: "Not Started",
-      priority: "Medium",
-      subtasks: [],
-    },
-  ]);
+  const [todos, setTodos] = useState([]);
 
 
 
@@ -976,7 +962,7 @@ export default function TaskList() {
       }
 
       const data = await response.json();
-      console.log("fetch Task", data.tasks);
+      console.log("fetch Task", data.todos);
       setTodos(data.todos)
 
     } catch (err) {
@@ -1047,94 +1033,128 @@ export default function TaskList() {
     setNewSubtaskName("");
   };
 
-  const addColumn = () => {
+  const addColumn = async () => {
     if (!newColumnName.trim()) return;
 
-    // Check if the column name already exists
     const newId = newColumnName.toLowerCase().replace(/\s+/g, "-");
+
+    // Check if the column already exists in UI
     const existingColumn = columns.find((column) => column.id === newId);
-
     if (existingColumn) {
-      alert("Column name already exists!");
-      return; // Stop execution if the column name exists
+      alert("⚠️ Column already exists in UI!");
+      return;
     }
 
-    const newColumn = {
-      id: newId,
-      label: newColumnName,
-      type: newColumnType,
-    };
+    try {
+      // Check if the column exists in backend
+      const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${newColumnName}`);
+      if (checkRes.data.exists) {
+        alert("⚠️ Column name already exists in the database!");
+        return;
+      }
 
-    if (newColumnType === "dropdown") {
-      newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
+      const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
+      const url = `${ApiEndPoint}AddColumnInSchema/${newColumnName}/${newColumnType}/${encodedEnum}`;
+      const response = await axios.put(url);
+
+      if (response.status === 200) {
+        alert(`✅ ${response.data.message}`);
+
+        const newColumn = {
+          id: newId,
+          label: newColumnName,
+          type: newColumnType,
+        };
+
+        if (newColumnType === "dropdown") {
+          newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
+        }
+
+        // setColumns((prev) => [...prev, newColumn]);
+        setNewColumnName("");
+        setNewColumnType("text");
+        setNewColumnOptions("");
+        setAddingColumn(false);
+        fetchtask();
+      } else {
+        alert('⚠️ Something went wrong while adding the column.');
+      }
+    } catch (error) {
+      console.error('❌ Error adding column:', error);
+      alert('❌ Failed to add the column.');
     }
-
-    setColumns((prev) => [...prev, newColumn]);
-    setNewColumnName("");
-    setNewColumnType("text");
-    setNewColumnOptions("");
-    setAddingColumn(false);
-
-    // Add default empty value for existing todos and subtasks
-    setTodos((prev) =>
-      prev.map((todo) => ({
-        ...todo,
-        [newId]: newColumnType === "checkbox" ? false : "",
-        subtasks: todo.subtasks.map((subtask) => ({
-          ...subtask,
-          [newId]: newColumnType === "checkbox" ? false : ""
-        })),
-      }))
-    );
   };
 
 
-  const handleFieldChange = (taskId, field, value, isSubtask = false, subtaskId = null) => {
+
+
+  const handleFieldChange = (taskId, field, newValue, isSubtask = false, subtaskId = null) => {
     setTodos(prev => {
-      if (isSubtask) {
-        return prev.map(todo => {
-          if (todo.id === taskId) {
-            return {
-              ...todo,
-              subtasks: todo.subtasks.map(subtask => {
-                if (subtask.id === subtaskId) {
-                  return { ...subtask, [field]: value };
+      return prev.map(todo => {
+        // If task id doesn't match, return the current task as is
+        if (todo.id !== taskId) return todo;
+
+        // If it's a subtask update
+        if (isSubtask && subtaskId) {
+          return {
+            ...todo,
+            subtasks: todo.subtasks.map(subtask => {
+              // If subtask id doesn't match, return subtask as is
+              if (subtask._id?.value !== subtaskId) return subtask;
+
+              // Update the field for the specific subtask
+              return {
+                ...subtask,
+                [field]: {
+                  ...subtask[field],
+                  value: newValue // Update the value of the field
                 }
-                return subtask;
-              })
-            };
+              };
+            })
+          };
+        }
+
+        // If it's a task update, update the field for the task
+        return {
+          ...todo,
+          [field]: {
+            ...todo[field],
+            value: newValue
           }
-          return todo;
-        });
-      } else {
-        return prev.map(todo => {
-          if (todo.id === taskId) {
-            return { ...todo, [field]: value };
-          }
-          return todo;
-        });
-      }
+        };
+      });
     });
   };
 
-  const deleteColumn = (columnId) => {
-    if (columns.length <= 1) return; // Don't delete the last column
 
-    setColumns(prev => prev.filter(col => col.id !== columnId));
 
-    setTodos(prev =>
-      prev.map(todo => {
-        const { [columnId]: deleted, ...restTodo } = todo;
-        return {
-          ...restTodo,
-          subtasks: todo.subtasks.map(subtask => {
-            const { [columnId]: deleted, ...restSubtask } = subtask;
-            return restSubtask;
-          })
-        };
-      })
-    );
+
+
+
+  const deleteColumn = async (columnName) => {
+    const confirmDelete = window.confirm(`Are you sure you want to delete column "${columnName}" from all tasks?`);
+
+    if (!confirmDelete) return;
+
+    try {
+      const response = await axios.delete(`${ApiEndPoint}DeleteColumnByName/${columnName}`);
+
+      if (response.status === 200) {
+        alert(`🗑️ ${response.data.message}`);
+
+        // Optionally remove it from local UI too
+        setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
+
+        fetchtask(); // Refresh task list
+      } else {
+        alert('⚠️ Column deletion failed.');
+      }
+    } catch (error) {
+      console.error("❌ Error deleting column:", error);
+      alert("❌ Failed to delete the column.");
+    }
   };
+
 
   const renderFieldInput = (item, column, onChange) => {
     switch (column.type) {
@@ -1394,7 +1414,7 @@ export default function TaskList() {
                     </span>
                   </td>
 
-                  {keys.map((key) => (
+                  {/* {keys.map((key) => (
                     <td key={key}>
                       {key === "caseId" ? (
                         todo.caseId?.value.CaseNumber || ''
@@ -1429,7 +1449,88 @@ export default function TaskList() {
                           />
                         )}
                     </td>
-                  ))}
+                  ))} */}
+                  {keys.map((key) => {
+                    const field = todo[key];
+                    if (!field) return <td key={key} />;
+
+                    const { value, type, enum: enumOptions, editable = true } = field;
+
+                    let content;
+                    const normalizedType = type?.toLowerCase();
+
+                    // Special fields
+                    if (key === "caseId") {
+                      content = <span>{todo.caseId?.value?.CaseNumber || ''}</span>;
+                    } else if (key === "createdBy") {
+                      content = <span>{todo.createdBy?.value?.UserName || ''}</span>;
+                    } else if (key === "assignedUsers") {
+                      content = (
+                        <span>{todo.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ''}</span>
+                      );
+                    } else if (key === "createdAt") {
+                      content = <span>{(todo.createdAt?.value || '').split('T')[0]}</span>;
+                    }
+
+                    // Non-editable
+                    else if (!editable) {
+                      content = <span>{String(value)}</span>;
+                    }
+
+                    // Enum dropdown
+                    else if (enumOptions) {
+                      content = (
+                        <select
+                          value={value}
+                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                        >
+                          {enumOptions.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      );
+                    }
+
+                    // Boolean checkbox
+                    else if (normalizedType === 'boolean') {
+                      content = (
+                        <input
+                          type="checkbox"
+                          checked={Boolean(value)}
+                          onChange={(e) => handleFieldChange(todo.id, key, e.target.checked)}
+                        />
+                      );
+                    }
+
+                    // Date input
+                    else if (normalizedType === 'date') {
+                      const dateValue = value ? new Date(value).toISOString().split('T')[0] : '';
+                      const today = new Date().toISOString().split('T')[0];
+
+                      content = (
+                        <input
+                          type="date"
+                          value={dateValue}
+                          min={today}
+                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                        />
+                      );
+                    }
+
+                    // Default text input
+                    else {
+                      content = (
+                        <input
+                          type="text"
+                          value={value || ''}
+                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                        />
+                      );
+                    }
+
+                    return <td key={key}>{content}</td>;
+                  })}
+
 
                   <td />
                 </tr>
@@ -1459,47 +1560,98 @@ export default function TaskList() {
                         <tbody>
                           {/* Render existing subtasks */}
                           {todo.subtasks.map((subtask) => (
-                            <tr key={subtask.id}>
-                              {keys.map((key) => (
-                                <td key={key}>
-                                  {key === "caseId" ? (
-                                    todo.caseId?.value.CaseNumber || ''
-                                  ) : key === "createdBy" ? (
-                                    todo.createdBy?.value.UserName || ''
-                                  ) : key === "assignedUsers" ? (
-                                    todo.assignedUsers?.value?.map((user) => user.UserName).join(", ")
-                                  ) : key === "createdAt" ? (
-                                    todo.createdAt?.value.split('T')[0]
-                                  )
-                                    : key === "status" ? (
-                                      <select
-                                        value={todo[key]?.value}
-                                        onChange={(e) => handleFieldChange(todo?._id, key, e.target.value)}
-                                      >
-                                        <option value="pending">Pending</option>
-                                        <option value="completed">Completed</option>
-                                        <option value="in_progress">In Progress</option>
-                                      </select>
-                                    ) : key === "dueDate" ? (
-                                      <input
-                                        type="date"
-                                        value={todo[key]?.value ? new Date(todo[key]?.value).toISOString().substr(0, 10) : ''}
-                                        onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                                      />
+                            <tr key={subtask._id?.value}> {/* Use subtask._id.value here */}
+                              {keys.map((key) => {
+                                const field = subtask[key];
+                                if (!field) return <td key={key} />;
 
-                                    ) : (
-                                      <input
-                                        type="text"
-                                        value={todo[key].value || ''}
-                                        onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                                      />
-                                    )}
-                                </td>
-                              ))}
+                                const { value, type, enum: enumOptions, editable = true } = field;
 
+                                let content;
 
+                                // Special fields like caseId, createdBy, etc.
+                                if (key === "caseId") {
+                                  content = <span>{subtask.caseId?.value?.CaseNumber || ''}</span>;
+                                } else if (key === "createdBy") {
+                                  content = <span>{subtask.createdBy?.value?.UserName || ''}</span>;
+                                } else if (key === "assignedUsers") {
+                                  content = (
+                                    <span>{subtask.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ''}</span>
+                                  );
+                                } else if (key === "createdAt") {
+                                  content = <span>{(subtask.createdAt?.value || '').split('T')[0]}</span>;
+                                }
+
+                                // Non-editable
+                                else if (!editable) {
+                                  content = <span>{String(value)}</span>;
+                                }
+
+                                // Enum dropdown
+                                else if (enumOptions) {
+                                  content = (
+                                    <select
+                                      value={value}
+                                      onChange={(e) =>
+                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                      }
+                                    >
+                                      {enumOptions.map((option) => (
+                                        <option key={option} value={option}>{option}</option>
+                                      ))}
+                                    </select>
+                                  );
+                                }
+
+                                // Boolean checkbox
+                                else if (type === 'boolean') {
+                                  content = (
+                                    <input
+                                      type="checkbox"
+                                      checked={Boolean(value)}
+                                      onChange={(e) =>
+                                        handleFieldChange(todo.id, key, e.target.checked, true, subtask._id?.value) // Pass subtask._id.value here
+                                      }
+                                    />
+                                  );
+                                }
+
+                                // Date input
+                                else if (type === 'Date') {
+                                  const dateValue = value ? new Date(value).toISOString().split('T')[0] : '';
+                                  const today = new Date().toISOString().split('T')[0];
+
+                                  content = (
+                                    <input
+                                      type="date"
+                                      value={dateValue}
+                                      min={today}
+                                      onChange={(e) =>
+                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                      }
+                                    />
+                                  );
+                                }
+
+                                // Default text input
+                                else {
+                                  content = (
+                                    <input
+                                      type="text"
+                                      value={value || ''}
+                                      onChange={(e) =>
+                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                      }
+                                    />
+                                  );
+                                }
+
+                                return <td key={key}>{content}</td>;
+                              })}
                             </tr>
                           ))}
+
+
 
                           {/* Add new subtask input */}
                           {addingSubtaskFor === todo.id ? (
