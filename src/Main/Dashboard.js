@@ -121,20 +121,20 @@ const Dashboard = () => {
     console.log("Token is valid");
     return true;
   };
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!authValidator.validateToken()) {
-        return;
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (!authValidator.validateToken()) {
+  //       return;
+  //     }
+  //   }, 5 * 60 * 1000); // Check every 5 minutes
 
-    return () => clearInterval(interval);
-  }, [decodedToken]);
+  //   return () => clearInterval(interval);
+  // }, []);
 
   useEffect(() => {
-    if (!authValidator.validateToken()) {
-      return;
-    }
+    // if (!authValidator.validateToken()) {
+    //   return;
+    // }
 
     switch (screen) {
       case 0:
@@ -444,9 +444,9 @@ const Dashboard = () => {
               {screen === 12 && (
                 <ScreenHeader title="View Folder" onBack={handleBack} />
               )}
-              {screen === 13 && (
+              {/* {screen === 13 && (
                 <ScreenHeader title="Task Management" onBack={handleBack} />
-              )}
+              )} */}
               {screen === 14 && (
                 <ScreenHeader title="View Task" onBack={handleBack} />
               )}

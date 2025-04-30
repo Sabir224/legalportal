@@ -77,6 +77,7 @@ import {
 } from "react-icons/bs";
 import Dropdown from "./Component/Dropdown";
 import SocketService from "../../SocketService";
+import ErrorModal from "./AlertModels/ErrorModal";
 
 const LawyerProfile = ({ token }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -149,7 +150,10 @@ const LawyerProfile = ({ token }) => {
   const [IsAddpop, setIsAddpop] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedLawyer, setSelectedLawyer] = useState(null);
-
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const showMessage = (msg) => {
     setMessage(msg);
     setTimeout(() => setMessage(""), 2000);
@@ -1821,14 +1825,19 @@ const LawyerProfile = ({ token }) => {
                 </p>
               </div>
               <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
+                <FontAwesomeIcon icon={faPhone} className="m-2" />
                 <p className="ms-2 m-1">
-                  {formatPhoneNumber(lawyerDetails?.Contact)}
+                  <a
+                    href={`tel:${formData.Contact}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {formatPhoneNumber(formData.Contact)}
+                  </a>
                 </p>
               </div>
 

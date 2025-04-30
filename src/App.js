@@ -14,39 +14,52 @@ import { useCookies } from "react-cookie";
 
 import { useEffect } from "react";
 import { useAuthValidator } from "./Main/Pages/Component/utils/validatteToke";
+import { Spinner } from "react-bootstrap";
 
 // Protected Route Component
 const ProtectedRoute = ({ element }) => {
-  const authValidator = useAuthValidator();
-  const [cookies] = useCookies(["token"]);
+  const { validator, tokenChecked } = useAuthValidator();
 
-  // Validate token on initial render and when token changes
-  const isAuthenticated = authValidator.validateToken();
+  if (!tokenChecked) {
+    return (
+      <div
+        style={{
+          height: "100vh",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Spinner color="#36d7b7" size={60} />
+      </div>
+    );
+  }
+
+  const isAuthenticated = validator.validateToken();
 
   return isAuthenticated ? element : <Navigate to="/" replace />;
 };
 
 // Global Token Check Component
 const GlobalTokenValidator = () => {
-  const authValidator = useAuthValidator();
+  const { validator, tokenChecked } = useAuthValidator();
 
   useEffect(() => {
     const handleInteraction = () => {
-      authValidator.validateToken();
+      validator.validateToken();
     };
 
-    // Add event listeners for user activity
-    const events = ["click", "keydown", "mousemove"];
-    events.forEach((event) => {
-      window.addEventListener(event, handleInteraction);
-    });
+    const events = ["click", "keydown"];
+    events.forEach((event) =>
+      window.addEventListener(event, handleInteraction)
+    );
 
     return () => {
-      events.forEach((event) => {
-        window.removeEventListener(event, handleInteraction);
-      });
+      events.forEach((event) =>
+        window.removeEventListener(event, handleInteraction)
+      );
     };
-  }, []);
+  }, [validator]);
 
   return null;
 };

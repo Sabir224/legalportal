@@ -61,6 +61,7 @@ import { Button, Card, Col, Row, Spinner, Tabs } from "react-bootstrap";
 // import DragAndDrop from "./DragAndDrop";
 import { ApiEndPoint } from "../../Component/utils/utlis";
 import Dropdown from "../../Component/Dropdown";
+import ErrorModal from "../../AlertModels/ErrorModal";
 
 const ContactForm = ({ users, participants }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -79,7 +80,10 @@ const ContactForm = ({ users, participants }) => {
   const [selectedLawyer, setSelectedLawyer] = useState(null);
 
   // Function to categorize files
-
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const onHide = () => {
     setShowUploadModal(false);
     setSelectedFiles([]);
@@ -408,29 +412,45 @@ const ContactForm = ({ users, participants }) => {
     if (!value) return "N/A"; // Consistent with your "N/A" fallback
     return value.startsWith("+") ? value : `+${value}`;
   };
-
   const ContactRow = ({ icon, label, value, isEmail, isSmall }) => (
     <tr>
-      <td className="fw-bold text-white">
-        {/* <FontAwesomeIcon icon={icon} className="me-2" /> */}
-        {label}:
-      </td>
+      <td className="fw-bold text-white">{label}:</td>
       <td className="p-2 text-white">
         {isEmail ? (
-          <a
-            href={`mailto:${value}`}
-            style={{ color: "white", textDecoration: "none" }}
-          >
-            {formatPhoneNumber(label, value)}
-          </a>
+          value ? (
+            <a
+              href={`mailto:${value}`}
+              style={{ color: "white", textDecoration: "none" }}
+            >
+              {value}
+            </a>
+          ) : (
+            "N/A"
+          )
+        ) : label === "Contact" && value ? (
+          <div className="d-flex" style={isSmall ? { fontSize: 12 } : {}}>
+            <p className="ms-2 m-1">
+              <a
+                href={`tel:${value}`}
+                style={{
+                  textDecoration: "none",
+                  color: "inherit",
+                  cursor: "pointer",
+                }}
+              >
+                {formatPhoneNumber(label, value)}
+              </a>
+            </p>
+          </div>
+        ) : value ? (
+          <p className="ms-2 m-1">{value}</p>
         ) : (
-          <span style={isSmall ? { fontSize: 12 } : {}}>
-            {formatPhoneNumber(label, value) || "N/A"}
-          </span>
+          "N/A"
         )}
       </td>
     </tr>
   );
+
   return (
     <div className="card container-fluid justify-content-center mr-3 ml-3 p-0">
       <Row className="d-flex justify-content-center m-3 p-0 gap-5">

@@ -42,6 +42,7 @@ import {
 } from "react-icons/bs";
 import SocketService from "../../SocketService";
 import { useSelector } from "react-redux";
+import ErrorModal from "./AlertModels/ErrorModal";
 // import { ApiEndPoint } from "../../utils/utils";
 
 const ClientAppointment = ({ token }) => {
@@ -317,7 +318,10 @@ const ClientAppointment = ({ token }) => {
 
   const [isLoading, setIsLoading] = useState(false); // Loader state
   const [isEmailSent, setIsEmailSent] = useState(false); // Email sent confirmation
-
+  const [showModal, setShowModal] = useState(false);
+  const handleClose = () => {
+    setShowModal(false);
+  };
   const handleConfirm = async () => {
     setIsLoading(true);
     // Show loader
@@ -702,14 +706,19 @@ const ClientAppointment = ({ token }) => {
                 </p>
               </div>
               <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faPhone}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
+                <FontAwesomeIcon icon={faPhone} className="m-2" />
                 <p className="ms-2 m-1">
-                  {formatPhoneNumber(lawyerDetails?.Contact)}
+                  <a
+                    href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    {formatPhoneNumber(lawyerDetails?.Contact)}
+                  </a>
                 </p>
               </div>
 

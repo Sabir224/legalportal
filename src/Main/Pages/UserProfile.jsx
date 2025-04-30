@@ -969,34 +969,18 @@ const UserProfile = ({ token }) => {
 
                 {/* Contact */}
                 <div className="d-flex align-items-center mb-2">
-                  <FontAwesomeIcon icon={faPhone} className="m-2" />
-                  <p className="ms-2 m-1">
-                    <a
-                      href={`tel:${formData.Contact}`}
-                      onClick={(e) => {
-                        const isMobileOrTablet =
-                          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-                            navigator.userAgent
-                          );
-                        if (!isMobileOrTablet) {
-                          e.preventDefault();
-                          setShowModal(true);
-                        }
-                      }}
-                      style={{
-                        textDecoration: "none",
-                        color: "inherit",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {formatPhoneNumber(formData.Contact)}
-                    </a>
-                  </p>
-                  <ErrorModal
-                    show={showModal}
-                    handleClose={handleClose}
-                    message={"Device Not Support Phone Calling"}
-                  />
+                  <a
+                    href={`tel:${formData.Contact}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faPhone} className="me-2" />
+                    <span>{formatPhoneNumber(formData.Contact)}</span>
+                  </a>
                 </div>
 
                 {/* Address */}
