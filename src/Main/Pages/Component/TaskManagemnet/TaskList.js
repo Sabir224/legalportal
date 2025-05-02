@@ -967,11 +967,10 @@ export default function TaskList({ token }) {
   };
 
   const fetchtask = async () => {
-    console.log("caseInfo=",caseInfo)
+    console.log("caseInfo=", caseInfo)
     try {
       const response = await fetch(
-        caseInfo===null ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
-
+        caseInfo === null ? (token?.Role === "admin" ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByUser/${token?._id}`) : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
       );
 
       if (!response.ok) {
@@ -1020,7 +1019,7 @@ export default function TaskList({ token }) {
   const [assignedUserId, setAssignedUserId] = useState([]);
   const [parentId, setParentId] = useState();
   const [users, setUsers] = useState([]); // Fill this from API or props
-
+  const isclient = token?.Role === "client"
   const openModal = (Caseinfo) => {
     console.log("caseId", Caseinfo?._id?.value)
     setParentId(Caseinfo?._id?.value)
@@ -1576,22 +1575,26 @@ export default function TaskList({ token }) {
                 <th key={key}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <div>{key}</div>
-                    <div>
-                      <FaTrash
-                        className="delete-column-icon"
-                        onClick={() => deleteColumn(key)}
-                        title="Delete column"
-                      />
-                    </div>
+                    {(!isclient && key!=="caseId" && key!=="title" && key!=="description" && key!=="assignedUsers" && key!=="createdBy" && key!=="status" && key!=="dueDate") &&
+                      <div>
+                        <FaTrash
+                          className="delete-column-icon"
+                          onClick={() => deleteColumn(key)}
+                          title="Delete column"
+                        />
+                      </div>
+                    }
                   </div>
                 </th>
               ))}
-              <th>
-                <FaPlus
-                  className="plus-icon"
-                  onClick={() => setAddingColumn(true)}
-                />
-              </th>
+              {!isclient &&
+                <th>
+                  <FaPlus
+                    className="plus-icon"
+                    onClick={() => setAddingColumn(true)}
+                  />
+                </th>
+              }
             </tr>
           </thead>
 
@@ -1644,6 +1647,7 @@ export default function TaskList({ token }) {
                             handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
                         >
                           {enumOptions.map((option) => (
                             <option key={option} value={option}>
@@ -1661,6 +1665,8 @@ export default function TaskList({ token }) {
                             handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId);
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
+
                         />
                       );
                     } else if (normalizedType === "date") {
@@ -1677,6 +1683,8 @@ export default function TaskList({ token }) {
                             handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
+
                         />
                       );
                     } else {
@@ -1688,6 +1696,8 @@ export default function TaskList({ token }) {
                             handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
+
                         />
                       );
                     }
@@ -1744,6 +1754,7 @@ export default function TaskList({ token }) {
                                         className="form-select"
                                         defaultValue=""
                                         value={assignedUserId?.UserName}
+                                        disabled={isclient}
 
                                         onChange={(e) => {
                                           setAssignedUserId(e.target.value)
@@ -1772,6 +1783,8 @@ export default function TaskList({ token }) {
                                   content = (
                                     <select
                                       value={value}
+                                      disabled={isclient}
+
                                       onChange={(e) =>
                                         handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
                                       }
@@ -1788,6 +1801,7 @@ export default function TaskList({ token }) {
                                   content = (
                                     <input
                                       type="checkbox"
+                                      disabled={isclient}
                                       checked={Boolean(value)}
                                       onChange={(e) =>
                                         handleSubtaskFieldChange(taskId, key, e.target.checked, subtaskId)
@@ -1802,6 +1816,8 @@ export default function TaskList({ token }) {
                                   content = (
                                     <input
                                       type="date"
+                                      disabled={isclient}
+
                                       value={dateValue}
                                       min={today}
                                       onChange={(e) =>
@@ -1814,6 +1830,8 @@ export default function TaskList({ token }) {
                                   content = (
                                     <input
                                       type="text"
+                                      disabled={isclient}
+
                                       value={value || ""}
                                       onChange={(e) =>
                                         handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
@@ -1828,16 +1846,19 @@ export default function TaskList({ token }) {
                             </tr>
                           ))}
 
-                          <tr>
-                            <td colSpan={keys.length}>
-                              <button
-                                className="add-subtask-button btn btn-sm btn-outline-primary"
-                                onClick={() => handleAddEmptySubtask(todo)}
-                              >
-                                + Add Subtask
-                              </button>
-                            </td>
-                          </tr>
+                          {!isclient &&
+
+                            <tr>
+                              <td colSpan={keys.length}>
+                                <button
+                                  className="add-subtask-button btn btn-sm btn-outline-primary"
+                                  onClick={() => handleAddEmptySubtask(todo)}
+                                >
+                                  + Add Subtask
+                                </button>
+                              </td>
+                            </tr>
+                          }
 
                         </tbody>
 
