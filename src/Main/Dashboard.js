@@ -58,6 +58,7 @@ import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
 import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
+import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -183,6 +184,9 @@ const Dashboard = () => {
         break;
       case 14:
         setCurrentScreen(<TaskList token={decodedToken} />);
+        break;
+      case 15:
+        setCurrentScreen(<AddTask token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -449,6 +453,9 @@ const Dashboard = () => {
               )} */}
               {screen === 14 && (
                 <ScreenHeader title="View Task" onBack={handleBack} />
+              )}
+              {screen === 15 && (
+                <ScreenHeader title="Add Task" onBack={handleBack} />
               )}
             </h3>
 
