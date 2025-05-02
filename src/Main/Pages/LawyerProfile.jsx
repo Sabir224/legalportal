@@ -1825,18 +1825,24 @@ const LawyerProfile = ({ token }) => {
                 </p>
               </div>
               <div className="d-flex">
-                <FontAwesomeIcon icon={faPhone} className="m-2" />
+                <FontAwesomeIcon
+                  icon={faPhone}
+                  size="1x"
+                  className="simple-text m-2"
+                />
                 <p className="ms-2 m-1">
                   <a
-                    href={`tel:${formData.Contact}`}
+                    href={`tel:${lawyerDetails.Contact}`}
+                    className="simple-text"
                     style={{
                       textDecoration: "none",
                       color: "inherit",
                       display: "flex",
                       alignItems: "center",
+                      marginLeft: "10px",
                     }}
                   >
-                    {formatPhoneNumber(formData.Contact)}
+                    {formatPhoneNumber(lawyerDetails.Contact)}
                   </a>
                 </p>
               </div>

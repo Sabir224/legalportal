@@ -976,6 +976,7 @@ const UserProfile = ({ token }) => {
                       color: "inherit",
                       display: "flex",
                       alignItems: "center",
+                      marginLeft: "10px",
                     }}
                   >
                     <FontAwesomeIcon icon={faPhone} className="me-2" />
