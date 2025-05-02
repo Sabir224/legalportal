@@ -146,28 +146,36 @@ const BasicCase = ({ token }) => {
   const getFilteredCases = () => {
     let filteredCases = data;
 
-    // Apply search filter
+    // Apply search filter across multiple fields
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filteredCases = filteredCases.filter((item) =>
-        item.CaseNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        Object.entries(item).some(([key, value]) => {
+          // Skip non-string fields or fields you don't want to search
+          if (
+            typeof value !== "string" ||
+            ["_id", "createdAt", "updatedAt"].includes(key)
+          ) {
+            return false;
+          }
+          return value.toLowerCase().includes(query);
+        })
       );
     }
 
-    // Apply status filter
+    // Apply other filters (status, caseType, priority)...
     if (filters.status && filters.status !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Status === filters.status
       );
     }
 
-    // Apply case type filter
     if (filters.caseType && filters.caseType !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Name === filters.caseType
       );
     }
 
-    // Apply priority filter
     if (filters.priority && filters.priority !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Priority === filters.priority
@@ -185,14 +193,7 @@ const BasicCase = ({ token }) => {
       });
     }
 
-    // Apply pagination
-    const startIndex = (currentPage - 1) * casesPerPage;
-    const paginatedCases = filteredCases.slice(
-      startIndex,
-      startIndex + casesPerPage
-    );
-
-    return paginatedCases;
+    return filteredCases;
   };
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -272,86 +273,344 @@ const BasicCase = ({ token }) => {
     //  loadExcelFile();
   }, []);
 
+  // return (
+  //   <div
+  //     className="container-fluid m-0 p-0"
+  //     style={{ height: "84vh", overflowY: "auto" }}
+  //   >
+  //     {/* Search Input */}
+
+  //     {/* Filters Container */}
+
+  //     <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
+  //       {/* Search Input on the Left */}
+  //       <input
+  //         type="text"
+  //         className="form-control me-3"
+  //         style={{ maxWidth: "250px" }} // Adjust width as needed
+  //         placeholder="Search..."
+  //         value={searchQuery}
+  //         onChange={(e) => handleSearch(e.target.value)}
+  //       />
+
+  //       {/* Filter & Sorting Dropdowns */}
+  //       <div className="d-flex flex-wrap gap-2">
+  //         {/* Status Filter */}
+  //         <select
+  //           className="form-select w-auto"
+  //           onChange={(e) => handleFilterChange("status", e.target.value)}
+  //         >
+  //           <option value="All">All Status</option>
+  //           <option value="Open">Open</option>
+  //           <option value="Closed">Closed</option>
+  //           <option value="Pending">Pending</option>
+  //         </select>
+
+  //         {/* Case Type Filter */}
+  //         <select
+  //           className="form-select w-auto"
+  //           onChange={(e) => handleFilterChange("caseType", e.target.value)}
+  //         >
+  //           <option value="All">All Case Types</option>
+  //           <option value="Civil">Civil</option>
+  //           <option value="Criminal">Criminal</option>
+  //           <option value="Family">Family</option>
+  //         </select>
+
+  //         {/* Priority Filter */}
+  //         <select
+  //           className="form-select w-auto"
+  //           onChange={(e) => handleFilterChange("priority", e.target.value)}
+  //         >
+  //           <option value="All">All Priorities</option>
+  //           <option value="High">High</option>
+  //           <option value="Medium">Medium</option>
+  //           <option value="Low">Low</option>
+  //         </select>
+
+  //         {/* Sorting Options */}
+  //         <select
+  //           className="form-select w-auto"
+  //           onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+  //         >
+  //           <option value="createdAt">Sort by Created Date</option>
+  //           <option value="updatedAt">Sort by Updated Date</option>
+  //           <option value="CaseNumber">Sort by Case Number</option>
+  //         </select>
+
+  //         <select
+  //           className="form-select w-auto"
+  //           onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
+  //         >
+  //           <option value="asc">Ascending</option>
+  //           <option value="desc">Descending</option>
+  //         </select>
+  //       </div>
+  //     </div>
+
+  //     <div className="card mb-3 shadow">
+  //       <div
+  //         className="card-header d-flex justify-content-between align-items-center px-3"
+  //         style={{ height: "8vh" }}
+  //       >
+  //         <span className="col text-start">Status</span>
+  //         <span className="col text-start">Case Number</span>
+  //         <span className="col text-start">Request Number</span>
+  //         <span className="col text-start">Case Type</span>
+  //         <span className="col text-start">Purpose</span>
+  //         <span className="col text-end">Action</span>
+  //       </div>
+
+  //       <div className="card-list p-0">
+  //         {getFilteredCases().map((item, index) => (
+  //           <div key={index}>
+  //             <div
+  //               className="d-flex justify-content-between align-items-center p-3 border-bottom"
+  //               style={{ cursor: "pointer" }}
+  //               onClick={(e) => {
+  //                 if (
+  //                   e.target.tagName !== "INPUT" &&
+  //                   e.target.tagName !== "BUTTON"
+  //                 ) {
+  //                   handleClick(1, item);
+  //                 }
+  //               }}
+  //             >
+  //               <span className="col d-flex align-items-center text-start">
+  //                 <span
+  //                   className={`me-2 rounded-circle ${
+  //                     item.Status.toLowerCase() === "case filed"
+  //                       ? "bg-success"
+  //                       : "bg-danger"
+  //                   }`}
+  //                   style={{
+  //                     width: "10px",
+  //                     height: "10px",
+  //                     display: "inline-block",
+  //                   }}
+  //                 ></span>
+  //                 {item.Status}
+  //               </span>
+  //               <span className="col d-flex align-items-center text-start">
+  //                 {item["CaseNumber"]}
+  //               </span>
+  //               <span className="col d-flex align-items-center text-start">
+  //                 {item["SerialNumber"]}
+  //               </span>
+  //               <span className="col d-flex align-items-center text-start">
+  //                 {item["CaseType"]}
+  //               </span>
+  //               <input
+  //                 className="col w-100"
+  //                 type="text"
+  //                 value={item.notes || ""}
+  //                 onChange={(e) => handleEdit(index, e.target.value)}
+  //                 onClick={(e) => e.stopPropagation()}
+  //               />
+
+  //               {/* Permission Dropdown */}
+  //               <div className="col text-end">
+  //                 <Dropdown
+  //                   show={dropdownOpen === index}
+  //                   onToggle={(isOpen) =>
+  //                     setDropdownOpen(isOpen ? index : null)
+  //                   }
+  //                 >
+  //                   <Dropdown.Toggle
+  //                     variant="custom"
+  //                     size="sm"
+  //                     className="custom-dropdown-toggle"
+  //                     onClick={(e) => {
+  //                       e.stopPropagation();
+  //                       setDropdownOpen(dropdownOpen === index ? null : index);
+  //                     }}
+  //                   ></Dropdown.Toggle>
+
+  //                   <Dropdown.Menu
+  //                     style={{
+  //                       position: "absolute",
+  //                       top: "100%",
+  //                       left: "0",
+  //                       zIndex: 1050,
+  //                       minWidth: "150px",
+  //                       boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
+  //                     }}
+  //                   >
+  //                     {token.Role === "admin" && (
+  //                       <>
+  //                         <Dropdown.Item
+  //                           onClick={(event) => {
+  //                             event.stopPropagation();
+  //                             handleOpenModal(item);
+  //                           }}
+  //                         >
+  //                           Assign Case
+  //                         </Dropdown.Item>
+
+  //                         <Dropdown.Item
+  //                           onClick={async (event) => {
+  //                             event.stopPropagation();
+  //                             setLoaderOpen(true);
+  //                             try {
+  //                               const response = await updateFunction(item);
+  //                               if (response?.success) {
+  //                                 setLoaderOpen(false);
+  //                               }
+  //                             } catch (err) {
+  //                               console.error("Update failed", err);
+  //                               setLoaderOpen(false);
+  //                             }
+  //                           }}
+  //                         >
+  //                           Update Case
+  //                         </Dropdown.Item>
+  //                       </>
+  //                     )}
+
+  //                     <Dropdown.Item>View Details</Dropdown.Item>
+  //                     <Dropdown.Item>Other Action</Dropdown.Item>
+  //                   </Dropdown.Menu>
+  //                 </Dropdown>
+
+  //                 {/* MUI Loader */}
+  //                 {loaderOpen && (
+  //                   <div
+  //                     style={{
+  //                       position: "fixed",
+  //                       top: "50%",
+  //                       left: "50%",
+  //                       transform: "translate(-50%, -50%)",
+  //                       backgroundColor: "#16213e",
+  //                       padding: "24px 32px",
+  //                       borderRadius: "12px",
+  //                       boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
+
+  //                       zIndex: 2000,
+  //                       display: "flex",
+  //                       alignItems: "center",
+  //                       flexDirection: "column",
+  //                     }}
+  //                   >
+  //                     <CircularProgress sx={{ color: "#d2a85a" }} />
+
+  //                     <div
+  //                       style={{
+  //                         marginTop: 16,
+  //                         fontWeight: "500",
+  //                         color: "white",
+  //                       }}
+  //                     >
+  //                       Updating Case...
+  //                     </div>
+  //                   </div>
+  //                 )}
+  //               </div>
+  //             </div>
+  //           </div>
+  //         ))}
+  //       </div>
+  //       {totalPages > 1 && (
+  //         <div
+  //           id="numberbar"
+  //           style={{
+  //             display: "flex",
+  //             justifyContent: "center",
+  //             alignItems: "center",
+  //             position: "sticky",
+  //             bottom: "10px",
+  //             backgroundColor: "#18273e",
+  //             zIndex: 10,
+  //             padding: "10px",
+  //             borderRadius: "8px",
+  //             width: "20%",
+  //             textAlign: "center",
+  //             border: "2px solid #d4af37",
+  //             margin: "auto",
+  //           }}
+  //         >
+  //           <div
+  //             style={{
+  //               display: "flex",
+  //               justifyContent: "center",
+  //               alignItems: "center",
+  //               gap: "10px",
+  //             }}
+  //           >
+  //             <button
+  //               onClick={() => goToPage(currentPage - 1)}
+  //               disabled={currentPage === 1}
+  //               className="first-lastbutton"
+  //             >
+  //               Previous
+  //             </button>
+  //             <input
+  //               value={currentPage}
+  //               min={1}
+  //               max={totalPages}
+  //               onChange={(e) =>
+  //                 goToPage(
+  //                   Math.max(1, Math.min(totalPages, Number(e.target.value)))
+  //                 )
+  //               }
+  //               style={{
+  //                 width: "50px",
+  //                 textAlign: "center",
+  //                 borderRadius: "6px",
+  //                 border: "2px solid #d4af37",
+  //                 backgroundColor: "#18273e",
+  //                 color: "white",
+  //               }}
+  //             />
+  //             <button
+  //               onClick={() => goToPage(currentPage + 1)}
+  //               disabled={currentPage === totalPages}
+  //               className="first-lastbutton"
+  //             >
+  //               Next
+  //             </button>
+  //           </div>
+  //         </div>
+  //       )}
+  //     </div>
+
+  //     {/* Assign Modal */}
+  //     <Modal show={showAssignModal} onHide={handleCloseModal}>
+  //       <Modal.Header closeButton>
+  //         <Modal.Title>Case Permissions</Modal.Title>
+  //       </Modal.Header>
+  //       <Modal.Body>
+  //         <CaseAssignmentForm
+  //           selectedCase={selectedCase}
+  //           casedetails={casedetails}
+  //           onClose={handleCloseModal}
+  //         />
+  //       </Modal.Body>
+  //     </Modal>
+  //   </div>
+  // );
+
   return (
     <div
       className="container-fluid m-0 p-0"
       style={{ height: "84vh", overflowY: "auto" }}
     >
-      {/* Search Input */}
-
-      {/* Filters Container */}
-
-      <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-        {/* Search Input on the Left */}
-        <input
-          type="text"
-          className="form-control me-3"
-          style={{ maxWidth: "250px" }} // Adjust width as needed
-          placeholder="Search..."
-          value={searchQuery}
-          onChange={(e) => handleSearch(e.target.value)}
-        />
-
-        {/* Filter & Sorting Dropdowns */}
-        <div className="d-flex flex-wrap gap-2">
-          {/* Status Filter */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("status", e.target.value)}
-          >
-            <option value="All">All Status</option>
-            <option value="Open">Open</option>
-            <option value="Closed">Closed</option>
-            <option value="Pending">Pending</option>
-          </select>
-
-          {/* Case Type Filter */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("caseType", e.target.value)}
-          >
-            <option value="All">All Case Types</option>
-            <option value="Civil">Civil</option>
-            <option value="Criminal">Criminal</option>
-            <option value="Family">Family</option>
-          </select>
-
-          {/* Priority Filter */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("priority", e.target.value)}
-          >
-            <option value="All">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-
-          {/* Sorting Options */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-          >
-            <option value="createdAt">Sort by Created Date</option>
-            <option value="updatedAt">Sort by Updated Date</option>
-            <option value="CaseNumber">Sort by Case Number</option>
-          </select>
-
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-          >
-            <option value="asc">Ascending</option>
-            <option value="desc">Descending</option>
-          </select>
+      {/* Search and Filters Section */}
+      <div className="row mb-3 g-2 align-items-center px-2">
+        <div className="col-12">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Search..."
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+          />
         </div>
       </div>
 
+      {/* Table Section */}
       <div className="card mb-3 shadow">
-        <div
-          className="card-header d-flex justify-content-between align-items-center px-3"
-          style={{ height: "8vh" }}
-        >
+        {/* Table Header - Hidden on mobile */}
+        <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
           <span className="col text-start">Status</span>
           <span className="col text-start">Case Number</span>
           <span className="col text-start">Request Number</span>
@@ -359,214 +618,267 @@ const BasicCase = ({ token }) => {
           <span className="col text-start">Purpose</span>
           <span className="col text-end">Action</span>
         </div>
-
-        <div className="card-list p-0">
-          {getFilteredCases().map((item, index) => (
-            <div key={index}>
-              <div
-                className="d-flex justify-content-between align-items-center p-3 border-bottom"
-                style={{ cursor: "pointer" }}
-                onClick={(e) => {
-                  if (
-                    e.target.tagName !== "INPUT" &&
-                    e.target.tagName !== "BUTTON"
-                  ) {
-                    handleClick(1, item);
-                  }
-                }}
-              >
-                <span className="col d-flex align-items-center text-start">
-                  <span
-                    className={`me-2 rounded-circle ${
-                      item.Status.toLowerCase() === "case filed"
-                        ? "bg-success"
-                        : "bg-danger"
-                    }`}
-                    style={{
-                      width: "10px",
-                      height: "10px",
-                      display: "inline-block",
-                    }}
-                  ></span>
-                  {item.Status}
-                </span>
-                <span className="col d-flex align-items-center text-start">
-                  {item["CaseNumber"]}
-                </span>
-                <span className="col d-flex align-items-center text-start">
-                  {item["SerialNumber"]}
-                </span>
-                <span className="col d-flex align-items-center text-start">
-                  {item["CaseType"]}
-                </span>
-                <input
-                  className="col w-100"
-                  type="text"
-                  value={item.notes || ""}
-                  onChange={(e) => handleEdit(index, e.target.value)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-
-                {/* Permission Dropdown */}
-                <div className="col text-end">
-                  <Dropdown
-                    show={dropdownOpen === index}
-                    onToggle={(isOpen) =>
-                      setDropdownOpen(isOpen ? index : null)
-                    }
-                  >
-                    <Dropdown.Toggle
-                      variant="custom"
-                      size="sm"
-                      className="custom-dropdown-toggle"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDropdownOpen(dropdownOpen === index ? null : index);
-                      }}
-                    ></Dropdown.Toggle>
-
-                    <Dropdown.Menu
-                      style={{
-                        position: "absolute",
-                        top: "100%",
-                        left: "0",
-                        zIndex: 1050,
-                        minWidth: "150px",
-                        boxShadow: "0px 4px 6px rgba(0,0,0,0.1)",
-                      }}
-                    >
-                      {token.Role === "admin" && (
-                        <>
-                          <Dropdown.Item
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleOpenModal(item);
-                            }}
-                          >
-                            Assign Case
-                          </Dropdown.Item>
-
-                          <Dropdown.Item
-                            onClick={async (event) => {
-                              event.stopPropagation();
-                              setLoaderOpen(true);
-                              try {
-                                const response = await updateFunction(item);
-                                if (response?.success) {
-                                  setLoaderOpen(false);
-                                }
-                              } catch (err) {
-                                console.error("Update failed", err);
-                                setLoaderOpen(false);
-                              }
-                            }}
-                          >
-                            Update Case
-                          </Dropdown.Item>
-                        </>
-                      )}
-
-                      <Dropdown.Item>View Details</Dropdown.Item>
-                      <Dropdown.Item>Other Action</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-
-                  {/* MUI Loader */}
-                  {loaderOpen && (
-                    <div
-                      style={{
-                        position: "fixed",
-                        top: "50%",
-                        left: "50%",
-                        transform: "translate(-50%, -50%)",
-                        backgroundColor: "#16213e",
-                        padding: "24px 32px",
-                        borderRadius: "12px",
-                        boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
-
-                        zIndex: 2000,
-                        display: "flex",
-                        alignItems: "center",
-                        flexDirection: "column",
-                      }}
-                    >
-                      <CircularProgress sx={{ color: "#d2a85a" }} />
-
-                      <div
+        {/* Table Body */}
+        <div className="card-body p-0">
+          {getFilteredCases()
+            .slice((currentPage - 1) * casesPerPage, currentPage * casesPerPage)
+            .map((item, index) => (
+              <div key={index} className="border-bottom">
+                {/* Mobile View */}
+                <div className="d-md-none p-3">
+                  {/* Status and Actions Row */}
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                      <span
+                        className={`rounded-circle ${
+                          item.Status.toLowerCase() === "case filed"
+                            ? "bg-success"
+                            : "bg-danger"
+                        }`}
                         style={{
-                          marginTop: 16,
-                          fontWeight: "500",
-                          color: "white",
+                          width: "12px",
+                          height: "12px",
+                          minWidth: "12px",
+                        }}
+                      />
+                      <span className="badge bg-light text-dark">
+                        {item.Status}
+                      </span>
+                    </div>
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        variant="light"
+                        size="sm"
+                        className="rounded-circle p-0 border"
+                        style={{
+                          width: "28px",
+                          height: "28px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
                         }}
                       >
-                        Updating Case...
-                      </div>
+                        <i className="bi bi-three-dots-vertical"></i>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>{/* dropdown items */}</Dropdown.Menu>
+                    </Dropdown>
+                  </div>
+
+                  {/* Data Fields - Each on its own line */}
+                  <div className="d-flex flex-column gap-2">
+                    {/* Case Number */}
+                    <div className="d-flex">
+                      <span
+                        className="text-muted me-2"
+                        style={{ width: "80px" }}
+                      >
+                        Case #:
+                      </span>
+                      <span className="fw-medium">{item["CaseNumber"]}</span>
                     </div>
-                  )}
+
+                    {/* Request Number - now below Case */}
+                    <div className="d-flex">
+                      <span
+                        className="text-muted me-2"
+                        style={{ width: "80px" }}
+                      >
+                        Request #:
+                      </span>
+                      <span className="fw-medium">{item["SerialNumber"]}</span>
+                    </div>
+
+                    {/* Type */}
+                    <div className="d-flex">
+                      <span
+                        className="text-muted me-2"
+                        style={{ width: "80px" }}
+                      >
+                        Type:
+                      </span>
+                      <span className="badge bg-info text-dark">
+                        {item["CaseType"]}
+                      </span>
+                    </div>
+
+                    {/* Purpose - already on its own line */}
+                    <div>
+                      <div className="text-muted mb-1">Purpose:</div>
+                      <input
+                        className="form-control form-control-sm"
+                        value={item.notes || ""}
+                        onChange={(e) => handleEdit(index, e.target.value)}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {/* Desktop View - Horizontal Layout */}
+                <div
+                  className="d-none d-md-flex justify-content-between align-items-center p-3"
+                  style={{ cursor: "pointer" }}
+                  onClick={(e) => {
+                    if (
+                      e.target.tagName !== "INPUT" &&
+                      e.target.tagName !== "BUTTON"
+                    ) {
+                      handleClick(1, item);
+                    }
+                  }}
+                >
+                  <span className="col d-flex align-items-center text-start">
+                    <span
+                      className={`me-2 rounded-circle ${
+                        item.Status.toLowerCase() === "case filed"
+                          ? "bg-success"
+                          : "bg-danger"
+                      }`}
+                      style={{
+                        width: "10px",
+                        height: "10px",
+                        display: "inline-block",
+                      }}
+                    ></span>
+                    {item.Status}
+                  </span>
+                  <span className="col d-flex align-items-center text-start">
+                    {item["CaseNumber"]}
+                  </span>
+                  <span className="col d-flex align-items-center text-start">
+                    {item["SerialNumber"]}
+                  </span>
+                  <span className="col d-flex align-items-center text-start">
+                    {item["CaseType"]}
+                  </span>
+                  <input
+                    className="col form-control"
+                    type="text"
+                    value={item.notes || ""}
+                    onChange={(e) => handleEdit(index, e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+
+                  {/* Permission Dropdown */}
+                  <div className="col text-end">
+                    <Dropdown
+                      show={dropdownOpen === index}
+                      onToggle={(isOpen) =>
+                        setDropdownOpen(isOpen ? index : null)
+                      }
+                    >
+                      <Dropdown.Toggle
+                        variant="custom"
+                        size="sm"
+                        className="custom-dropdown-toggle"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDropdownOpen(
+                            dropdownOpen === index ? null : index
+                          );
+                        }}
+                      ></Dropdown.Toggle>
+
+                      <Dropdown.Menu>
+                        {token.Role === "admin" && (
+                          <>
+                            <Dropdown.Item
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenModal(item);
+                              }}
+                            >
+                              Assign Case
+                            </Dropdown.Item>
+
+                            <Dropdown.Item
+                              onClick={async (event) => {
+                                event.stopPropagation();
+                                setLoaderOpen(true);
+                                try {
+                                  const response = await updateFunction(item);
+                                  if (response?.success) {
+                                    setLoaderOpen(false);
+                                  }
+                                } catch (err) {
+                                  console.error("Update failed", err);
+                                  setLoaderOpen(false);
+                                }
+                              }}
+                            >
+                              Update Case
+                            </Dropdown.Item>
+                          </>
+                        )}
+
+                        <Dropdown.Item>View Details</Dropdown.Item>
+                        <Dropdown.Item>Other Action</Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
+
+        {/* Pagination - Responsive */}
         {totalPages > 1 && (
-          <div
-            id="numberbar"
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              position: "sticky",
-              bottom: "10px",
-              backgroundColor: "#18273e",
-              zIndex: 10,
-              padding: "10px",
-              borderRadius: "8px",
-              width: "20%",
-              textAlign: "center",
-              border: "2px solid #d4af37",
-              margin: "auto",
-            }}
-          >
+          <div className="p-3">
             <div
+              className="d-flex justify-content-center align-items-center"
               style={{
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
-                gap: "10px",
+                backgroundColor: "#18273e",
+                padding: "10px",
+                borderRadius: "8px",
+                border: "2px solid #d4af37",
+                margin: "auto",
+                maxWidth: "100%",
+                width: "fit-content",
               }}
             >
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="first-lastbutton"
-              >
-                Previous
-              </button>
-              <input
-                value={currentPage}
-                min={1}
-                max={totalPages}
-                onChange={(e) =>
-                  goToPage(
-                    Math.max(1, Math.min(totalPages, Number(e.target.value)))
-                  )
-                }
-                style={{
-                  width: "50px",
-                  textAlign: "center",
-                  borderRadius: "6px",
-                  border: "2px solid #d4af37",
-                  backgroundColor: "#18273e",
-                  color: "white",
-                }}
-              />
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="first-lastbutton"
-              >
-                Next
-              </button>
+              <div className="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                <button
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="btn btn-outline-warning"
+                >
+                  Previous
+                </button>
+                <div className="d-flex align-items-center">
+                  <span className="text-white me-2 d-none d-sm-block">
+                    Page
+                  </span>
+                  <input
+                    value={currentPage}
+                    min={1}
+                    max={totalPages}
+                    onChange={(e) =>
+                      goToPage(
+                        Math.max(
+                          1,
+                          Math.min(totalPages, Number(e.target.value))
+                        )
+                      )
+                    }
+                    className="form-control text-center"
+                    style={{
+                      width: "60px",
+                      border: "2px solid #d4af37",
+                      backgroundColor: "#18273e",
+                      color: "white",
+                    }}
+                  />
+                  <span className="text-white ms-2 d-none d-sm-block">
+                    of {totalPages}
+                  </span>
+                </div>
+                <button
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="btn btn-outline-warning"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -585,6 +897,37 @@ const BasicCase = ({ token }) => {
           />
         </Modal.Body>
       </Modal>
+
+      {/* MUI Loader */}
+      {loaderOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            backgroundColor: "#16213e",
+            padding: "24px 32px",
+            borderRadius: "12px",
+            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
+            zIndex: 2000,
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+          }}
+        >
+          <CircularProgress sx={{ color: "#d2a85a" }} />
+          <div
+            style={{
+              marginTop: 16,
+              fontWeight: "500",
+              color: "white",
+            }}
+          >
+            Updating Case...
+          </div>
+        </div>
+      )}
     </div>
   );
 };
