@@ -29,7 +29,7 @@ import {
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
-import { goBackScreen, screenChange } from "../REDUX/sliece";
+import { Caseinfo, clientEmail, goBackScreen, screenChange } from "../REDUX/sliece";
 import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
@@ -303,9 +303,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${
-          isCollapsed ? "col-1" : "col-2"
-        } h-100 position-relative`}
+        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
+          } h-100 position-relative`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -342,32 +341,54 @@ const Dashboard = () => {
         {/* Sidebar Items */}
         <div className="d-flex flex-column align-items-start px-2 mt-3">
           {[
-            { icon: faHome, label: "Home", action: () => handlescreen2(0) },
+            {
+              icon: faHome, label: "Home", action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                handlescreen2(0)
+              }
+            },
             {
               icon: faMessage,
               label: "Messages",
-              action: () => handlescreen2(3),
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                handlescreen2(3)
+              }
             },
             decodedToken?.Role === "admin"
               ? {
-                  icon: faPerson,
-                  label: "View Users",
-                  action: () => handlescreen2(9),
+                icon: faPerson,
+                label: "View Users",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(9)
                 }
+              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                  icon: faCcMastercard,
-                  label: "Add Case",
-                  action: () => handlescreen2(11),
+                icon: faCcMastercard,
+                label: "Add Case",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(11)
                 }
+              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                  icon: faTasks,
-                  label: "Task Management",
-                  action: () => handlescreen2(13),
-                }
+                icon: faTasks,
+                label: "Task Management",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(13)
+                },
+              }
               : null,
             // decodedToken?.Role === "admin"
             //   ? {
@@ -463,7 +484,12 @@ const Dashboard = () => {
             {decodedToken?.Role === "admin" && screen === 9 && (
               <div
                 className="d-flex align-items-center my-2"
-                onClick={() => handlescreen2(8)}
+                onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+
+                  handlescreen2(8)
+                }}
                 style={{ gap: "10px", cursor: "pointer" }}
               >
                 <FontAwesomeIcon
@@ -480,7 +506,13 @@ const Dashboard = () => {
             {decodedToken?.Role === "admin" && screen === 10 && (
               <div
                 className="d-flex align-items-center my-2"
-                onClick={() => handlescreen2(11)}
+                onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+
+                  handlescreen2(11)
+                }
+                }
                 style={{ gap: "10px", cursor: "pointer" }}
               >
                 <FontAwesomeIcon
@@ -496,35 +528,45 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            <button
-              className="btn me-2 "
-              onClick={() => {
-                handlescreen2(14);
-              }}
-              style={{ color: "white", border: "1px solid #c0a262" }}
-            >
-              View Task
-            </button>
+            {(decodedToken?.Role==="admin" && screen===0) &&
+              <button
+                className="btn me-2 "
+                onClick={() => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(14);
+
+                }}
+                style={{ color: "white", border: "1px solid #c0a262" }}
+              >
+                View Task
+              </button>
+            }
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-              <button
-                className="btn me-2"
-                onClick={() => {
-                  handlescreen2(5);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUser}
-                  size="1x"
-                  color="white"
-                  className=""
-                />
-              </button>
-            )}
+                <button
+                  className="btn me-2"
+                  onClick={() => {
+                    dispatch(Caseinfo(null));
+                    dispatch(clientEmail(null));
+                    handlescreen2(5);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    size="1x"
+                    color="white"
+                    className=""
+                  />
+                </button>
+              )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
                 onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+
                   handlescreen2(4);
                 }}
               >

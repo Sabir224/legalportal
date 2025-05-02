@@ -931,6 +931,7 @@ import axios from 'axios'
 
 import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
+import { useSelector } from "react-redux";
 
 export default function TaskList({ token }) {
   const [todos, setTodos] = useState([]);
@@ -952,7 +953,7 @@ export default function TaskList({ token }) {
   //   }
   // }, [todos]); // Run this only when `todos` update
 
-
+  const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const fetchUsers = async () => {
     try {
       const response = await axios.get(`${ApiEndPoint}getAllUser`);
@@ -966,11 +967,11 @@ export default function TaskList({ token }) {
   };
 
   const fetchtask = async () => {
+    console.log("caseInfo=",caseInfo)
     try {
       const response = await fetch(
-        `${ApiEndPoint}getAllTasksWithDetails`
-        // `${ApiEndPoint}getTasksByCase/67fdf45fbff3fdf069fe7420`
-        
+        caseInfo===null ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
+
       );
 
       if (!response.ok) {
@@ -1282,8 +1283,8 @@ export default function TaskList({ token }) {
         setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
 
         const previousOpenTaskId = openTaskId;
-      await fetchtask()
-      setOpenTaskId(previousOpenTaskId); // Refresh task list
+        await fetchtask()
+        setOpenTaskId(previousOpenTaskId); // Refresh task list
       } else {
         alert('⚠️ Column deletion failed.');
       }
@@ -1349,10 +1350,10 @@ export default function TaskList({ token }) {
       const newSubtask = response.data;
 
       const previousOpenTaskId = openTaskId;
-      console.log("previousOpenTaskId=",previousOpenTaskId)
+      console.log("previousOpenTaskId=", previousOpenTaskId)
       await fetchtask();
       await setOpenTaskId(previousOpenTaskId);
-      console.log("openTaskId=",openTaskId)
+      console.log("openTaskId=", openTaskId)
     } catch (error) {
       console.error("Failed to add subtask:", error);
     }

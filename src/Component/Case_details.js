@@ -593,6 +593,12 @@ const Case_details = ({ token }) => {
     // console.log(global.User);
     dispatch(screenChange(15));
   };
+  const handleViewTask = async () => {
+    // global.lawyerDetails = lawyerDetails[0];
+    // global.User = user;
+    // console.log(global.User);
+    dispatch(screenChange(14));
+  };
 
   const handleButtonClick = (buttonNumber) => {
     alert(`Button ${buttonNumber} clicked!`); // Replace this with your infographic logic
@@ -700,7 +706,20 @@ const Case_details = ({ token }) => {
               </div>
 
             )}
-            {token.Role!=="client" &&
+            <div style={{ textAlign: "center", marginBottom: "10px" }}>
+              <button
+                className="View-button rounded-4 m-1  w-100 px-4 py-2"
+                style={{
+                  boxShadow: "5px 5px 5px gray",
+                  border: "2px solid #d4af37",
+                  borderRadius: "6px",
+                }}
+                onClick={handleViewTask}
+              >
+                View Task
+              </button>
+            </div>
+            {token.Role !== "client" &&
               <div style={{ textAlign: "center", marginBottom: "10px" }}>
                 <button
                   className="View-button rounded-4 m-1  w-100 px-4 py-2"
