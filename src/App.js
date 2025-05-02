@@ -12,15 +12,24 @@ import { useGlobalTokenCheck } from "./Main/Pages/Component/utils/useGlobalToken
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuthValidator } from "./Main/Pages/Component/utils/validatteToke";
 import { Spinner } from "react-bootstrap";
 
 // Protected Route Component
+
 const ProtectedRoute = ({ element }) => {
   const { validator, tokenChecked } = useAuthValidator();
+  const [isAuthenticated, setIsAuthenticated] = useState(null);
 
-  if (!tokenChecked) {
+  useEffect(() => {
+    if (tokenChecked) {
+      const result = validator.validateToken();
+      setIsAuthenticated(result);
+    }
+  }, [tokenChecked, validator]);
+
+  if (!tokenChecked || isAuthenticated === null) {
     return (
       <div
         style={{
@@ -34,8 +43,6 @@ const ProtectedRoute = ({ element }) => {
       </div>
     );
   }
-
-  const isAuthenticated = validator.validateToken();
 
   return isAuthenticated ? element : <Navigate to="/" replace />;
 };

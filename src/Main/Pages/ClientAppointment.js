@@ -162,11 +162,12 @@ const ClientAppointment = ({ token }) => {
       });
 
       setAppoinmentDetails(temp);
-
+      // console.log("Client Data:", caseInfo?.ClientId);
       // 4. Get client details
       const clientDetailsRes = await axios.get(
-        `${ApiEndPoint}getClientDetails/taha.sawar@biit.edu.pk`
+        `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
       );
+      // console.log("Client Data:", clientDetailsRes);
       setClientDetails(clientDetailsRes.data);
     } catch (err) {
       console.error("Error fetching lawyer or client details:", err);
@@ -438,13 +439,15 @@ const ClientAppointment = ({ token }) => {
     const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
       selectedDate
     );
+    console.log("ClientDetails FOr Mails:", ClientDetails);
     let mailmsg = {
       // ClientDetails: ClientDetails.user,
-      ClientDetails: ClientDetails.user,
+      ClientDetails: ClientDetails?.user,
       lawyerDetails: user,
       selectedTime: convertTo12HourFormat(selectedTime),
       formattedDate: formattedDate,
       ClientMessage: ClientMessage,
+      AssignedUsers: caseInfo?.AssignedUsers,
       meetingLink: meeting,
     };
     const requestBody = {

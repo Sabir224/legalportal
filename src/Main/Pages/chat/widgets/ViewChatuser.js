@@ -412,15 +412,33 @@ const ContactForm = ({ users, participants }) => {
     if (!value) return "N/A"; // Consistent with your "N/A" fallback
     return value.startsWith("+") ? value : `+${value}`;
   };
-  const ContactRow = ({ icon, label, value, isEmail, isSmall }) => (
-    <tr>
-      <td className="fw-bold text-white">{label}:</td>
-      <td className="p-2 text-white">
+  const ContactRow = ({ label, value, isEmail, isSmall }) => (
+    <tr className="align-middle" style={{ height: "3rem" }}>
+      {/* Label column */}
+      <td
+        className="text-white fw-bold"
+        style={{
+          width: "200px",
+          verticalAlign: "middle",
+          padding: 0,
+        }}
+      >
+        {label}:
+      </td>
+
+      {/* Value column */}
+      <td
+        className="text-white"
+        style={{
+          verticalAlign: "middle",
+          padding: 0,
+        }}
+      >
         {isEmail ? (
           value ? (
             <a
               href={`mailto:${value}`}
-              style={{ color: "white", textDecoration: "none" }}
+              className="text-white text-decoration-none"
             >
               {value}
             </a>
@@ -428,22 +446,21 @@ const ContactForm = ({ users, participants }) => {
             "N/A"
           )
         ) : label === "Contact" && value ? (
-          <div className="d-flex" style={isSmall ? { fontSize: 12 } : {}}>
-            <p className="ms-2 m-1">
-              <a
-                href={`tel:${value}`}
-                style={{
-                  textDecoration: "none",
-                  color: "inherit",
-                  cursor: "pointer",
-                }}
-              >
-                {formatPhoneNumber(label, value)}
-              </a>
-            </p>
-          </div>
+          <a href={`tel:${value}`} className="text-white text-decoration-none">
+            {formatPhoneNumber(label, value)}
+          </a>
         ) : value ? (
-          <p className="ms-2 m-1">{value}</p>
+          <span
+            style={{
+              display: "inline-block",
+              margin: 0,
+              padding: 0,
+              lineHeight: "1.5",
+              verticalAlign: "middle",
+            }}
+          >
+            {value}
+          </span>
         ) : (
           "N/A"
         )}

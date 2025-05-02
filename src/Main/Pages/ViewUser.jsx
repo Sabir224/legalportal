@@ -614,8 +614,15 @@ const ViewUser = ({ token }) => {
                     alignItems: "center",
                   }}
                 >
-                  <FontAwesomeIcon icon={faPhone} className="me-2" />
-                  <span>{formatPhoneNumber(clientDetails?.Contact)}</span>
+                  <FontAwesomeIcon
+                    icon={faPhone}
+                    size="1x"
+                    color="white"
+                    className="m-2"
+                  />
+                  <p style={{ fontSize: 12 }} className="ms-2 m-1">
+                    {formatPhoneNumber(clientDetails?.Contact)}
+                  </p>
                 </a>
               </div>
 
