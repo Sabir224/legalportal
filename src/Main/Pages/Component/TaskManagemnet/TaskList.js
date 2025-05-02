@@ -932,7 +932,7 @@ import axios from 'axios'
 import React, { useEffect, useState } from "react";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 
-export default function TaskList() {
+export default function TaskList({ token }) {
   const [todos, setTodos] = useState([]);
 
 
@@ -942,10 +942,35 @@ export default function TaskList() {
     fetchtask();
   }, []);
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+  // useEffect(() => {
+  //   const taskExists = todos.some(todo => todo._id === openTaskId);
+  //   if (!taskExists) {
+  //     setOpenTaskId(null); // Close only if task is removed
+  //   }
+  // }, [todos]); // Run this only when `todos` update
+
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${ApiEndPoint}getAllUser`);
+      const allUsers = response.data.users || [];
+      setUsers(allUsers);
+      return allUsers;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+  };
+
   const fetchtask = async () => {
     try {
       const response = await fetch(
-        `${ApiEndPoint}getTasksByCase/680909b4b85bc2a4ded5f43c`
+        `${ApiEndPoint}getAllTasksWithDetails`
+        // `${ApiEndPoint}getTasksByCase/67fdf45fbff3fdf069fe7420`
+        
       );
 
       if (!response.ok) {
@@ -986,13 +1011,72 @@ export default function TaskList() {
   const [newColumnName, setNewColumnName] = useState("");
   const [newColumnType, setNewColumnType] = useState("text");
   const [newColumnOptions, setNewColumnOptions] = useState("");
+  const [isSubtask, setIsSubtask] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  // const [newSubtaskName, setNewSubtaskName] = useState('');
+  const [assignedUserId, setAssignedUserId] = useState([]);
+  const [parentId, setParentId] = useState();
+  const [users, setUsers] = useState([]); // Fill this from API or props
+
+  const openModal = (Caseinfo) => {
+    console.log("caseId", Caseinfo?._id?.value)
+    setParentId(Caseinfo?._id?.value)
+    setSelectedCaseId(Caseinfo?.caseId?.value?._id);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setNewSubtaskName('');
+    setAssignedUserId('');
+  };
+
+  const handleSaveSubtask = async () => {
+    // Validate fields
+    if (!newSubtaskName || !assignedUserId) {
+      alert("Please fill all fields");
+      return;
+    }
+
+    const subtask = {
+      title: newSubtaskName,
+      caseId: selectedCaseId,
+      assignedUsers: assignedUserId,
+      createdBy: token._id,
+      parentId: parentId
+    };
+
+    try {
+      const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
+      console.log('Task added successfully:', response.data);
+
+      // const data = await response.json();
+      // console.log('Subtask saved:', data);
+      const previousOpenTaskId = openTaskId;
+      await fetchtask()
+      setOpenTaskId(previousOpenTaskId);
+
+      closeModal();
+    } catch (error) {
+      console.error('Error saving subtask:', error);
+      alert('Something went wrong while saving the subtask.');
+    }
+  };
+
+
 
   const toggleTask = (taskId) => {
-    setOpenTasks((prev) =>
-      prev.includes(taskId)
-        ? prev.filter((id) => id !== taskId)
-        : [...prev, taskId]
-    );
+    // setOpenTaskId(taskId);
+    setOpenTaskId((prevId) => (prevId === taskId ? null : taskId));
+
+
+    // setOpenTasks((prev) =>
+    //   prev.includes(taskId)
+    //     ? prev.filter((id) => id !== taskId)
+    //     : [...prev, taskId]
+    // );
   };
 
   const saveSubtask = (taskId) => {
@@ -1066,7 +1150,9 @@ export default function TaskList() {
         setNewColumnType("text");
         setNewColumnOptions("");
         setAddingColumn(false);
-        fetchtask();
+        const previousOpenTaskId = openTaskId;
+        await fetchtask()
+        setOpenTaskId(previousOpenTaskId);
       } else {
         alert('⚠️ Something went wrong while adding the column.');
       }
@@ -1079,44 +1165,103 @@ export default function TaskList() {
 
 
 
-  const handleFieldChange = (taskId, field, newValue, isSubtask = false, subtaskId = null) => {
-    setTodos(prev => {
-      return prev.map(todo => {
-        // If task id doesn't match, return the current task as is
-        if (todo.id !== taskId) return todo;
+  // const handleFieldChange = (taskId, field, newValue, isSubtask = false, subtaskId = null) => {
+  //   setTodos(prev => {
+  //     return prev.map(todo => {
+  //       // If task id doesn't match, return the current task as is
+  //       if (todo.id !== taskId) return todo;
 
-        // If it's a subtask update
+  //       // If it's a subtask update
+  //       if (isSubtask && subtaskId) {
+  //         return {
+  //           ...todo,
+  //           subtasks: todo.subtasks.map(subtask => {
+  //             // If subtask id doesn't match, return subtask as is
+  //             if (subtask._id?.value !== subtaskId) return subtask;
+
+  //             // Update the field for the specific subtask
+  //             return {
+  //               ...subtask,
+  //               [field]: {
+  //                 ...subtask[field],
+  //                 value: newValue // Update the value of the field
+  //               }
+  //             };
+  //           })
+  //         };
+  //       }
+
+  //       // If it's a task update, update the field for the task
+  //       return {
+  //         ...todo,
+  //         [field]: {
+  //           ...todo[field],
+  //           value: newValue
+  //         }
+  //       };
+  //     });
+  //   });
+  // };
+
+  const handleFieldChange = (taskId, key, newValue, isSubtask = false, subtaskId = null) => {
+    setTodos((prevTodos) =>
+      prevTodos.map((task) => {
+        // Check for the task being updated
+        if (task._id?.value !== taskId) return task;
+
+        // Subtask update
         if (isSubtask && subtaskId) {
           return {
-            ...todo,
-            subtasks: todo.subtasks.map(subtask => {
-              // If subtask id doesn't match, return subtask as is
+            ...task,
+            subtasks: task.subtasks.map((subtask) => {
               if (subtask._id?.value !== subtaskId) return subtask;
-
-              // Update the field for the specific subtask
               return {
                 ...subtask,
-                [field]: {
-                  ...subtask[field],
-                  value: newValue // Update the value of the field
-                }
+                [key]: {
+                  ...subtask[key],
+                  value: newValue,
+                },
               };
-            })
+            }),
           };
         }
 
-        // If it's a task update, update the field for the task
+        // Main task update
         return {
-          ...todo,
-          [field]: {
-            ...todo[field],
-            value: newValue
-          }
+          ...task,
+          [key]: {
+            ...task[key],
+            value: newValue,
+          },
+        };
+      })
+    );
+  };
+
+  const handleSubtaskFieldChange = (parentTaskId, key, newValue, subtaskId) => {
+    setTodos(prevTasks => {
+      return prevTasks.map(task => {
+        if (task.id !== parentTaskId && task._id?.value !== parentTaskId) return task;
+
+        const updatedSubtasks = task.subtasks.map(subtask => {
+          if (subtask._id?.value !== subtaskId) return subtask;
+
+          return {
+            ...subtask,
+            [key]: {
+              ...subtask[key],
+              value: newValue,
+            },
+          };
+        });
+
+        return {
+          ...task,
+          subtasks: updatedSubtasks,
         };
       });
     });
   };
-
 
 
 
@@ -1136,7 +1281,9 @@ export default function TaskList() {
         // Optionally remove it from local UI too
         setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
 
-        fetchtask(); // Refresh task list
+        const previousOpenTaskId = openTaskId;
+      await fetchtask()
+      setOpenTaskId(previousOpenTaskId); // Refresh task list
       } else {
         alert('⚠️ Column deletion failed.');
       }
@@ -1145,6 +1292,8 @@ export default function TaskList() {
       alert("❌ Failed to delete the column.");
     }
   };
+
+
 
 
   const renderFieldInput = (item, column, onChange) => {
@@ -1181,16 +1330,100 @@ export default function TaskList() {
     }
   };
 
+
+  const createSubtaskApi = async (taskId, subtaskData) => {
+    return await axios.post(`${ApiEndPoint}createTask`, subtaskData);
+  };
+  const handleAddEmptySubtask = async (Taskinfo) => {
+    setSelectedCaseId(Taskinfo?.caseId?.value?._id);
+    console.log("taskId?.caseId?.value?._id", Taskinfo?.caseId?.value?._id)
+    try {
+      const subtask = {
+        caseId: Taskinfo?.caseId?.value?._id,
+        createdBy: token._id,
+        parentId: Taskinfo?._id?.value
+      };
+      console.log("empty sub task", subtask)
+      //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
+      const response = await createSubtaskApi(selectedCaseId, subtask); // backend default fields set kare
+      const newSubtask = response.data;
+
+      const previousOpenTaskId = openTaskId;
+      console.log("previousOpenTaskId=",previousOpenTaskId)
+      await fetchtask();
+      await setOpenTaskId(previousOpenTaskId);
+      console.log("openTaskId=",openTaskId)
+    } catch (error) {
+      console.error("Failed to add subtask:", error);
+    }
+  };
+
+
+
+  const capitalizeFirst = (str) => {
+    if (!str) return "";
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  };
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-          (key) =>
-            key !== "_id" &&
-            key !== "__v" &&
-            key !== "subtasks" &&
-            key !== "parentId"
-        )
+        (key) =>
+          key !== "_id" &&
+          key !== "__v" &&
+          key !== "subtasks" &&
+          key !== "parentId"
+      )
       : [];
+
+  const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
+    // Replace this with your actual API call logic
+    console.log("Blurred & API Call:", { taskId, key, value, isSubtask, subtaskId });
+
+    try {
+      const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
+        taskId,
+        key,
+        value
+      });
+
+      console.log("Task updated:", response.data);
+    } catch (error) {
+      console.error("Failed to update task:", error);
+
+    }
+
+    // Example API call
+    // updateTodoField({
+    //   taskId,
+    //   fieldKey: key,
+    //   newValue: value,
+    //   isSubtask,
+    //   subtaskId,
+    // });
+  };
+
+
+  const handleSubtaskFieldBlur = async (taskId, key, value, subtaskId) => {
+    console.log("Subtask API call on blur", { taskId, key, value, subtaskId });
+    taskId = subtaskId
+
+    try {
+      const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
+        taskId,
+        key,
+        value
+      });
+      const previousOpenTaskId = openTaskId;
+      await fetchtask()
+      setOpenTaskId(previousOpenTaskId);
+      console.log("Task updated:", response.data);
+    } catch (error) {
+      console.error("Failed to update task:", error);
+
+    }
+
+  };
+
 
   return (
     <div className="tasklist-body">
@@ -1364,188 +1597,96 @@ export default function TaskList() {
           <tbody>
             {todos.map((todo) => (
               <React.Fragment key={todo.id}>
-                {/* <tr>
-                  <td>
-                    <span className="expand-icon" onClick={() => toggleTask(todo.id)}>
-                      {openTasks.includes(todo.id) ? <FaChevronDown /> : <FaChevronRight />}
-                    </span>
-                  </td>
-
-                  {keys.map((key) => (
-                    <td key={key}>
-                      {key === "caseId" ? (
-                        todo.caseId?.CaseNumber || ''
-                      ) : key === "createdBy" ? (
-                        todo.createdBy?.UserName || ''
-                      ) : key === "assignedUsers" ? (
-                        todo.assignedUsers?.map((user) => user.UserName).join(", ")
-                      ) : key === "createdAt" ? (
-                        todo.createdAt.split('T')[0]
-                      )
-                        : key === "status" ? (
-                          <select
-                            value={todo[key]}
-                            onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                            <option value="in_progress">In Progress</option>
-                          </select>
-                        ) : key === "dueDate" ? (
-                          <input
-                            type="date"
-                            value={todo[key] ? new Date(todo[key]).toISOString().substr(0, 10) : ''}
-                            onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                          />
-                        ) : (
-                          <input
-                            type="text"
-                            value={todo[key] || ''}
-                            onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
-                          />
-                        )}
-                    </td>
-                  ))}
-
-                  <td />
-                </tr> */}
-
                 <tr>
                   <td>
-                    <span
-                      className="expand-icon"
-                      onClick={() => toggleTask(todo.id)}
-                    >
-                      {openTasks.includes(todo.id) ? (
-                        <FaChevronDown />
-                      ) : (
-                        <FaChevronRight />
-                      )}
+                    <span className="expand-icon" onClick={() => toggleTask(todo._id)}>
+                      {openTaskId?.value === todo._id?.value ? <FaChevronDown /> : <FaChevronRight />}
                     </span>
                   </td>
 
-                  {/* {keys.map((key) => (
-                    <td key={key}>
-                      {key === "caseId" ? (
-                        todo.caseId?.value.CaseNumber || ""
-                      ) : key === "createdBy" ? (
-                        todo.createdBy?.value.UserName || ""
-                      ) : key === "assignedUsers" ? (
-                        todo.assignedUsers?.value
-                          ?.map((user) => user.UserName)
-                          .join(", ")
-                      ) : key === "createdAt" ? (
-                        todo.createdAt?.value.split("T")[0]
-                      ) : key === "status" ? (
-                        <select
-                          value={todo[key]?.value}
-                          onChange={(e) =>
-                            handleFieldChange(todo?._id, key, e.target.value)
-                          }
-                        >
-                          <option value="pending">Pending</option>
-                          <option value="completed">Completed</option>
-                          <option value="in_progress">In Progress</option>
-                        </select>
-                      ) : key === "dueDate" ? (
-                        <input
-                          type="date"
-                          value={
-                            todo[key]?.value
-                              ? new Date(todo[key]?.value)
-                                  .toISOString()
-                                  .substr(0, 10)
-                              : ""
-                          }
-                          onChange={(e) =>
-                            handleFieldChange(todo.id, key, e.target.value)
-                          }
-                        />
-                      ) : (
-                        <input
-                          type="text"
-                          value={todo[key].value || ""}
-                          onChange={(e) =>
-                            handleFieldChange(todo.id, key, e.target.value)
-                          }
-                        />
-                      )}
-                    </td>
-                  ))} */}
                   {keys.map((key) => {
                     const field = todo[key];
                     if (!field) return <td key={key} />;
 
                     const { value, type, enum: enumOptions, editable = true } = field;
-
                     let content;
                     const normalizedType = type?.toLowerCase();
 
-                    // Special fields
+                    const taskId = todo._id?.value || todo.id;
+                    const subtaskId = isSubtask ? taskId : null;
+
+                    const handleBlur = (e) => {
+                      const newValue =
+                        normalizedType === "boolean" ? e.target.checked : e.target.value;
+                      handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                    };
+
                     if (key === "caseId") {
-                      content = <span>{todo.caseId?.value?.CaseNumber || ''}</span>;
+                      content = <span>{todo.caseId?.value?.CaseNumber || ""}</span>;
                     } else if (key === "createdBy") {
-                      content = <span>{todo.createdBy?.value?.UserName || ''}</span>;
+                      content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
                     } else if (key === "assignedUsers") {
                       content = (
-                        <span>{todo.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ''}</span>
+                        <span>
+                          {todo.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ""}
+                        </span>
                       );
                     } else if (key === "createdAt") {
-                      content = <span>{(todo.createdAt?.value || '').split('T')[0]}</span>;
-                    }
-
-                    // Non-editable
-                    else if (!editable) {
+                      content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
+                    } else if (!editable) {
                       content = <span>{String(value)}</span>;
-                    }
-
-                    // Enum dropdown
-                    else if (enumOptions) {
+                    } else if (enumOptions) {
                       content = (
                         <select
                           value={value}
-                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                          onChange={(e) => {
+                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                          }}
+                          onBlur={handleBlur}
                         >
                           {enumOptions.map((option) => (
-                            <option key={option} value={option}>{option}</option>
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
                           ))}
                         </select>
                       );
-                    }
-
-                    // Boolean checkbox
-                    else if (normalizedType === 'boolean') {
+                    } else if (normalizedType === "boolean") {
                       content = (
                         <input
                           type="checkbox"
                           checked={Boolean(value)}
-                          onChange={(e) => handleFieldChange(todo.id, key, e.target.checked)}
+                          onChange={(e) => {
+                            handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId);
+                          }}
+                          onBlur={handleBlur}
                         />
                       );
-                    }
-
-                    // Date input
-                    else if (normalizedType === 'date') {
-                      const dateValue = value ? new Date(value).toISOString().split('T')[0] : '';
-                      const today = new Date().toISOString().split('T')[0];
+                    } else if (normalizedType === "date") {
+                      const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
+                      const today = new Date().toISOString().split("T")[0];
 
                       content = (
                         <input
                           type="date"
+                          placeholder="dd-mm-yyyy"
                           value={dateValue}
                           min={today}
-                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                          onChange={(e) => {
+                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                          }}
+                          onBlur={handleBlur}
                         />
                       );
-                    }
-
-                    // Default text input
-                    else {
+                    } else {
                       content = (
                         <input
                           type="text"
-                          value={value || ''}
-                          onChange={(e) => handleFieldChange(todo.id, key, e.target.value)}
+                          value={value || ""}
+                          onChange={(e) => {
+                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                          }}
+                          onBlur={handleBlur}
                         />
                       );
                     }
@@ -1553,18 +1694,10 @@ export default function TaskList() {
                     return <td key={key}>{content}</td>;
                   })}
 
-
                   <td />
                 </tr>
 
-
-
-
-
-
-
-
-                {openTasks.includes(todo.id) && (
+                {openTaskId?.value === todo._id?.value && (
                   <tr>
                     <td colSpan={columns.length + 2}>
                       <table className="tasklist-todo-table subtask-table">
@@ -1572,12 +1705,7 @@ export default function TaskList() {
                           <tr>
                             {keys.map((key) => (
                               <th key={key}>
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    alignItems: "center",
-                                  }}
-                                >
+                                <div style={{ display: "flex", alignItems: "center" }}>
                                   <div>{key}</div>
                                 </div>
                               </th>
@@ -1585,68 +1713,90 @@ export default function TaskList() {
                           </tr>
                         </thead>
                         <tbody>
-                          {/* Render existing subtasks */}
                           {todo.subtasks.map((subtask) => (
-                            <tr key={subtask._id?.value}> {/* Use subtask._id.value here */}
+                            <tr key={subtask._id?.value}>
                               {keys.map((key) => {
                                 const field = subtask[key];
                                 if (!field) return <td key={key} />;
 
                                 const { value, type, enum: enumOptions, editable = true } = field;
-
                                 let content;
 
-                                // Special fields like caseId, createdBy, etc.
+                                const taskId = todo.id;
+                                const subtaskId = subtask._id?.value;
+                                const normalizedType = type?.toLowerCase();
+
+                                const handleBlur = (e) => {
+                                  const newValue = normalizedType === "boolean" ? e.target.checked : e.target.value;
+                                  handleSubtaskFieldBlur(taskId, key, newValue, subtaskId);
+                                };
+
                                 if (key === "caseId") {
-                                  content = <span>{subtask.caseId?.value?.CaseNumber || ''}</span>;
+                                  content = <span>{subtask.caseId?.value?.CaseNumber || ""}</span>;
                                 } else if (key === "createdBy") {
-                                  content = <span>{subtask.createdBy?.value?.UserName || ''}</span>;
+                                  content = <span>{subtask.createdBy?.value?.UserName || ""}</span>;
                                 } else if (key === "assignedUsers") {
-                                  content = (
-                                    <span>{subtask.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ''}</span>
-                                  );
+                                  const usersList = subtask.assignedUsers?.value || [];
+                                  if (usersList.length === 0) {
+                                    content = (
+                                      <select
+                                        className="form-select"
+                                        defaultValue=""
+                                        value={assignedUserId?.UserName}
+
+                                        onChange={(e) => {
+                                          setAssignedUserId(e.target.value)
+                                          //  handleSubtaskFieldChange(taskId, key, [e.target.value], subtaskId)
+                                        }}
+                                        onBlur={(e) =>
+                                          handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId)
+                                        }
+                                      >
+                                        <option value="">Assign User</option>
+                                        {users.map((user) => (
+                                          <option key={user?._id} value={user._id}>
+                                            {user?.UserName} ({capitalizeFirst(user?.Role)})
+                                          </option>
+                                        ))}
+                                      </select>
+                                    );
+                                  } else {
+                                    content = <span>{usersList.map((u) => u.UserName).join(", ")}</span>;
+                                  }
                                 } else if (key === "createdAt") {
-                                  content = <span>{(subtask.createdAt?.value || '').split('T')[0]}</span>;
-                                }
-
-                                // Non-editable
-                                else if (!editable) {
+                                  content = <span>{(subtask.createdAt?.value || "").split("T")[0]}</span>;
+                                } else if (!editable) {
                                   content = <span>{String(value)}</span>;
-                                }
-
-                                // Enum dropdown
-                                else if (enumOptions) {
+                                } else if (enumOptions) {
                                   content = (
                                     <select
                                       value={value}
                                       onChange={(e) =>
-                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
                                       }
+                                      onBlur={handleBlur}
                                     >
                                       {enumOptions.map((option) => (
-                                        <option key={option} value={option}>{option}</option>
+                                        <option key={option} value={option}>
+                                          {option}
+                                        </option>
                                       ))}
                                     </select>
                                   );
-                                }
-
-                                // Boolean checkbox
-                                else if (type === 'boolean') {
+                                } else if (normalizedType === "boolean") {
                                   content = (
                                     <input
                                       type="checkbox"
                                       checked={Boolean(value)}
                                       onChange={(e) =>
-                                        handleFieldChange(todo.id, key, e.target.checked, true, subtask._id?.value) // Pass subtask._id.value here
+                                        handleSubtaskFieldChange(taskId, key, e.target.checked, subtaskId)
                                       }
+                                      onBlur={handleBlur}
                                     />
                                   );
-                                }
-
-                                // Date input
-                                else if (type === 'Date') {
-                                  const dateValue = value ? new Date(value).toISOString().split('T')[0] : '';
-                                  const today = new Date().toISOString().split('T')[0];
+                                } else if (normalizedType === "date") {
+                                  const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
+                                  const today = new Date().toISOString().split("T")[0];
 
                                   content = (
                                     <input
@@ -1654,21 +1804,20 @@ export default function TaskList() {
                                       value={dateValue}
                                       min={today}
                                       onChange={(e) =>
-                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
                                       }
+                                      onBlur={handleBlur}
                                     />
                                   );
-                                }
-
-                                // Default text input
-                                else {
+                                } else {
                                   content = (
                                     <input
                                       type="text"
-                                      value={value || ''}
+                                      value={value || ""}
                                       onChange={(e) =>
-                                        handleFieldChange(todo.id, key, e.target.value, true, subtask._id?.value) // Pass subtask._id.value here
+                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
                                       }
+                                      onBlur={handleBlur}
                                     />
                                   );
                                 }
@@ -1678,48 +1827,73 @@ export default function TaskList() {
                             </tr>
                           ))}
 
+                          <tr>
+                            <td colSpan={keys.length}>
+                              <button
+                                className="add-subtask-button btn btn-sm btn-outline-primary"
+                                onClick={() => handleAddEmptySubtask(todo)}
+                              >
+                                + Add Subtask
+                              </button>
+                            </td>
+                          </tr>
 
-
-                          {/* Add new subtask input */}
-                          {addingSubtaskFor === todo.id ? (
-                            <tr>
-                              <td colSpan={columns.length}>
-                                <input
-                                  type="text"
-                                  className="subtask-input"
-                                  placeholder="Enter Subtask Name"
-                                  value={newSubtaskName}
-                                  onChange={(e) =>
-                                    setNewSubtaskName(e.target.value)
-                                  }
-                                />
-                                <button
-                                  className="save-subtask-button"
-                                  onClick={() => saveSubtask(todo.id)}
-                                >
-                                  Save
-                                </button>
-                              </td>
-                            </tr>
-                          ) : (
-                            <tr>
-                              <td colSpan={columns.length}>
-                                <button
-                                  className="add-subtask-button"
-                                  onClick={() => setAddingSubtaskFor(todo.id)}
-                                >
-                                  + Add Subtask
-                                </button>
-                              </td>
-                            </tr>
-                          )}
                         </tbody>
+
                       </table>
                     </td>
                   </tr>
                 )}
               </React.Fragment>
             ))}
+
+            {showModal && (
+              <div className="modal fade show d-block" tabIndex="-1">
+                <div className="modal-dialog">
+                  <div className="modal-content">
+                    <div className="modal-header">
+                      <h5 className="modal-title">Add Subtask</h5>
+                      <button type="button" className="btn-close" onClick={closeModal}></button>
+                    </div>
+                    <div className="modal-body">
+                      {/* <div className="mb-3">
+                        <label>Case ID</label>
+                        <input type="text" className="form-control" value={selectedCaseId} readOnly />
+                      </div> */}
+                      <div className="mb-3">
+                        <label>Subtask Name</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={newSubtaskName}
+                          onChange={(e) => setNewSubtaskName(e.target.value)}
+                        />
+                      </div>
+                      <div className="mb-3">
+                        <label>Assign User</label>
+                        <select
+                          className="form-select"
+                          value={assignedUserId.UserName}
+                          onChange={(e) => setAssignedUserId(e.target.value)}
+                        >
+                          <option value="">Select a user</option>
+                          {users.map((user, index) => (
+                            <option key={index} value={user?._id}>
+                              {user?.UserName} ({capitalizeFirst(user?.Role)})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    <div className="modal-footer">
+                      <button className="btn btn-primary" onClick={closeModal}>Cancel</button>
+                      <button className="btn btn-primary" onClick={handleSaveSubtask}>Save</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
           </tbody>
         </table>
       </div>
