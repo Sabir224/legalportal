@@ -945,7 +945,8 @@ export default function TaskList({ token }) {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    // fetchUsers();
+    fetchCases()
   }, []);
   // useEffect(() => {
   //   const taskExists = todos.some(todo => todo._id === openTaskId);
@@ -966,6 +967,8 @@ export default function TaskList({ token }) {
       console.error("Error fetching users:", error);
       return [];
     }
+  };
+  const fetchCases = async () => {
     try {
       const response = await axios.get(`${ApiEndPoint}getcase`);
       const allCases = response.data.data;
