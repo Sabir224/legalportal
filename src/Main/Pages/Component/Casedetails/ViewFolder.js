@@ -110,10 +110,10 @@ const ViewFolder = ({ token }) => {
 
 
         // Fetch folders when the component mounts
-        if (caseInfo._id) {
+        if (caseInfo?._id) {
             fetchFolders();
         }
-    }, [caseInfo._id]);
+    }, [caseInfo?._id]);
 
 
     // const fetchFolders = async () => {
@@ -147,7 +147,7 @@ const ViewFolder = ({ token }) => {
         setLoadingFolders(true);
         setError('');
         try {
-            const response = await fetch(`${ApiEndPoint}getFolders/${caseInfo._id}`);
+            const response = await fetch(`${ApiEndPoint}getFolders/${caseInfo?._id}`);
 
             if (!response.ok) {
                 throw new Error('Error fetching folders');

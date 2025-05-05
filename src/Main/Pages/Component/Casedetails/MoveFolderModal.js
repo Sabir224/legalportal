@@ -15,12 +15,12 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
     const caseInfo = useSelector((state) => state.screen.Caseinfo);
 
     useEffect(() => {
-        if (show && caseInfo._id) {
+        if (show && caseInfo?._id) {
             fetchFolders();
             setFolderPath([]);
             setSelectedFolder(null);
         }
-    }, [show, caseInfo._id]);
+    }, [show, caseInfo?._id]);
 
     const fetchFolders = async () => {
         setLoadingFolders(true);

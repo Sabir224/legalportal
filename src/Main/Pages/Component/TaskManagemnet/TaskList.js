@@ -930,6 +930,7 @@ import axios from 'axios'
 // }
 
 import React, { useEffect, useState } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 import { useSelector } from "react-redux";
 
@@ -954,12 +955,22 @@ export default function TaskList({ token }) {
   // }, [todos]); // Run this only when `todos` update
 
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
-  const fetchUsers = async () => {
+  const fetchUsers = async (taskdetails) => {
+    let id = taskdetails?.caseId?.value?._id
+    console.log("taskdetails", taskdetails?.caseId?.value?._id)
     try {
-      const response = await axios.get(`${ApiEndPoint}getAllUser`);
-      const allUsers = response.data.users || [];
+      const response = await axios.get(`${ApiEndPoint}getCaseAssignedUsersIdsAndUserName/${id}`);
+      const allUsers = response.data.AssignedUsers || [];
       setUsers(allUsers);
-      return allUsers;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+    try {
+      const response = await axios.get(`${ApiEndPoint}getcase`);
+      const allCases = response.data.data;
+      setAllCases(allCases);
+      return allCases;
     } catch (error) {
       console.error("Error fetching users:", error);
       return [];
@@ -1019,7 +1030,48 @@ export default function TaskList({ token }) {
   const [assignedUserId, setAssignedUserId] = useState([]);
   const [parentId, setParentId] = useState();
   const [users, setUsers] = useState([]); // Fill this from API or props
+  const [allCases, setAllCases] = useState([]); // Fill this from API or props
   const isclient = token?.Role === "client"
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newAssignedUserId, setNewAssignedUserId] = useState("");
+
+
+
+  const handleAddNewTask = async (name, caseId) => {
+    if (!caseId) return alert("Please fill all fields");
+
+    // const newTask = {
+    //   taskName: { value: name },
+    //   assignedUsers: { value: [{ _id: userId, UserName: users.find(u => u._id === userId)?.UserName }] },
+    //   createdAt: { value: new Date().toISOString() },
+    //   // add other default fields here
+    //   _id: { value: Date.now().toString() },
+    //   subtasks: [],
+    // };
+
+    try {
+      const subtask = {
+        caseId: caseId,
+        createdBy: token._id,
+      };
+      console.log("empty sub task", subtask)
+      //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
+      const response = await createSubtaskApi(selectedCaseId, subtask); // backend default fields set kare
+      const newSubtask = response.data;
+
+      const previousOpenTaskId = openTaskId;
+      console.log("previousOpenTaskId=", previousOpenTaskId)
+      await fetchtask();
+      await setOpenTaskId(previousOpenTaskId);
+      console.log("openTaskId=", openTaskId)
+    } catch (error) {
+      console.error("Failed to add subtask:", error);
+    }
+    // Update state with new task
+    // setTodos((prev) => [...prev, newTask]);
+  };
+
   const openModal = (Caseinfo) => {
     console.log("caseId", Caseinfo?._id?.value)
     setParentId(Caseinfo?._id?.value)
@@ -1378,6 +1430,7 @@ export default function TaskList({ token }) {
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
     // Replace this with your actual API call logic
     console.log("Blurred & API Call:", { taskId, key, value, isSubtask, subtaskId });
+    console.log("Blurred & API Call value:", { value });
 
     try {
       const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
@@ -1385,11 +1438,11 @@ export default function TaskList({ token }) {
         key,
         value
       });
-
+      setAssignedUserId([])
+      fetchtask()
       console.log("Task updated:", response.data);
     } catch (error) {
       console.error("Failed to update task:", error);
-
     }
 
     // Example API call
@@ -1400,6 +1453,35 @@ export default function TaskList({ token }) {
     //   isSubtask,
     //   subtaskId,
     // });
+  };
+
+
+  const handleDelete = async (taskId) => {
+    // Show confirmation
+    if (!window.confirm("Are you sure you want to delete this task?")) return;
+
+
+
+    try {
+      const response = await fetch(`${ApiEndPoint}deleteTask/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete task");
+      }
+
+      // Optionally: Show success message
+      alert("Task deleted successfully");
+
+      fetchtask()
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Error deleting task");
+    }
+    // Then trigger delete logic
+    // e.g., API call and state update
+    // deleteTask(taskId); // Your logic here
   };
 
 
@@ -1460,6 +1542,7 @@ export default function TaskList({ token }) {
       }
       .expand-icon {
         cursor: pointer;
+        width:10px,
         margin-right: 5px;
       }
       .subtask-table {
@@ -1566,16 +1649,23 @@ export default function TaskList({ token }) {
       }
     `}</style>
 
+
+      <div className="mb-1">
+        <button className="btn btn-success" onClick={() => setShowTaskModal(true)}>
+          + New Task
+        </button>
+      </div>
+
       <div className="tasklist-table-container">
-        <table className="tasklist-todo-table">
+        <table className="tasklist-todo-table ">
           <thead>
             <tr>
-              <th>Expand</th>
+              <th style={{ width: "10px" }}></th>
               {keys.map((key) => (
                 <th key={key}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <div>{key}</div>
-                    {(!isclient && key!=="caseId" && key!=="title" && key!=="description" && key!=="assignedUsers" && key!=="createdBy" && key!=="status" && key!=="dueDate") &&
+                    {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate") &&
                       <div>
                         <FaTrash
                           className="delete-column-icon"
@@ -1598,9 +1688,11 @@ export default function TaskList({ token }) {
             </tr>
           </thead>
 
+
           <tbody>
             {todos.map((todo) => (
               <React.Fragment key={todo.id}>
+
                 <tr>
                   <td>
                     <span className="expand-icon" onClick={() => toggleTask(todo._id)}>
@@ -1623,6 +1715,7 @@ export default function TaskList({ token }) {
                       const newValue =
                         normalizedType === "boolean" ? e.target.checked : e.target.value;
                       handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+
                     };
 
                     if (key === "caseId") {
@@ -1630,11 +1723,33 @@ export default function TaskList({ token }) {
                     } else if (key === "createdBy") {
                       content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
                     } else if (key === "assignedUsers") {
-                      content = (
-                        <span>
-                          {todo.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ""}
-                        </span>
-                      );
+                      const usersList = todo?.assignedUsers?.value || [];
+                      if (usersList?.length === 0) {
+                        content = (
+                          <select
+                            className="form-select"
+                            defaultValue=""
+                            value={assignedUserId?.UserName}
+                            disabled={isclient}
+                            onFocus={() => fetchUsers(todo)}
+                            onChange={(e) => {
+                              setAssignedUserId(e.target.value)
+                              //   handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+
+                            }}
+                            onBlur={handleBlur}
+                          >
+                            <option value="">Assign User</option>
+                            {users.map((user) => (
+                              <option key={user?._id} value={user?.id}>
+                                {user?.UserName} ({capitalizeFirst(user?.Role)})
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      } else {
+                        content = <span>{usersList?.map((u) => u.UserName).join(", ")}</span>;
+                      }
                     } else if (key === "createdAt") {
                       content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
                     } else if (!editable) {
@@ -1666,7 +1781,6 @@ export default function TaskList({ token }) {
                           }}
                           onBlur={handleBlur}
                           disabled={isclient}
-
                         />
                       );
                     } else if (normalizedType === "date") {
@@ -1684,7 +1798,6 @@ export default function TaskList({ token }) {
                           }}
                           onBlur={handleBlur}
                           disabled={isclient}
-
                         />
                       );
                     } else {
@@ -1697,7 +1810,6 @@ export default function TaskList({ token }) {
                           }}
                           onBlur={handleBlur}
                           disabled={isclient}
-
                         />
                       );
                     }
@@ -1705,8 +1817,18 @@ export default function TaskList({ token }) {
                     return <td key={key}>{content}</td>;
                   })}
 
-                  <td />
+                  {/* Delete button column */}
+                  <td>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(todo._id?.value || todo.id)}
+                      disabled={isclient}
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
                 </tr>
+
 
                 {openTaskId?.value === todo._id?.value && (
                   <tr>
@@ -1748,7 +1870,7 @@ export default function TaskList({ token }) {
                                   content = <span>{subtask.createdBy?.value?.UserName || ""}</span>;
                                 } else if (key === "assignedUsers") {
                                   const usersList = subtask.assignedUsers?.value || [];
-                                  if (usersList.length === 0) {
+                                  if (usersList?.length === 0) {
                                     content = (
                                       <select
                                         className="form-select"
@@ -1773,7 +1895,7 @@ export default function TaskList({ token }) {
                                       </select>
                                     );
                                   } else {
-                                    content = <span>{usersList.map((u) => u.UserName).join(", ")}</span>;
+                                    content = <span>{usersList?.map((u) => u.UserName).join(", ")}</span>;
                                   }
                                 } else if (key === "createdAt") {
                                   content = <span>{(subtask.createdAt?.value || "").split("T")[0]}</span>;
@@ -1843,6 +1965,17 @@ export default function TaskList({ token }) {
 
                                 return <td key={key}>{content}</td>;
                               })}
+
+                              <td>
+                                <button
+                                  className="btn btn-sm btn-danger"
+                                  onClick={() => handleDelete(subtask._id?.value)}
+                                  disabled={isclient}
+                                >
+                                  <FaTrash />
+                                </button>
+                              </td>
+
                             </tr>
                           ))}
 
@@ -1859,6 +1992,7 @@ export default function TaskList({ token }) {
                               </td>
                             </tr>
                           }
+
 
                         </tbody>
 
@@ -1979,6 +2113,56 @@ export default function TaskList({ token }) {
           </div>
         </div>
       )}
+      <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Task</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            {/* <Form.Group className="mb-3">
+              <Form.Label>Task Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter task name"
+                value={newTaskName}
+                onChange={(e) => setNewTaskName(e.target.value)}
+              />
+            </Form.Group> */}
+
+            <Form.Group className="mb-3">
+              <Form.Label>Assign Case</Form.Label>
+              <Form.Select
+                value={newAssignedUserId}
+                onChange={(e) => setNewAssignedUserId(e.target.value)}
+              >
+                <option value="">Select a Case</option>
+                {allCases.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.CaseNumber}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowTaskModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              handleAddNewTask(newTaskName, newAssignedUserId);
+              setShowTaskModal(false);
+              setNewTaskName("");
+              setNewAssignedUserId("");
+            }}
+          >
+            Save Task
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 }

@@ -13,12 +13,14 @@ import {
   faNoteSticky,
   faPerson,
   faPersonCane,
+  faPersonCircleCheck,
   faPersonCircleMinus,
   faPersonCirclePlus,
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
   faStreetView,
   faTasks,
+  faTasksAlt,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import {
@@ -106,7 +108,7 @@ const Dashboard = () => {
     const currentTime = Date.now() / 1000;
     const isExpired = decodedToken.exp < currentTime;
     const hasRequiredFields =
-      decodedToken._id && decodedToken.email && decodedToken.Role;
+      decodedToken?._id && decodedToken?.email && decodedToken?.Role;
 
     console.log(
       `Validation results - Expired: ${isExpired}, Has fields: ${hasRequiredFields}`
@@ -359,7 +361,7 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                icon: faPerson,
+                icon: faPersonCircleCheck,
                 label: "View Users",
                 action: () => {
                   dispatch(clientEmail(null));
@@ -379,13 +381,17 @@ const Dashboard = () => {
                 }
               }
               : null,
-            // decodedToken?.Role === "admin"
-            //   ? {
-            //     icon: faStreetView,
-            //     label: "View Client",
-            //     action: () => handlescreen2(10),
-            //   }
-            //   : null,
+            decodedToken?.Role !== "client" ?
+              {
+                icon: faTasksAlt,
+                label: "View Task",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(14);
+                }
+              }
+              : null,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean) // Removes `null` or `false` values
@@ -515,20 +521,6 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            {(screen===0) &&
-              <button
-                className="btn me-2 "
-                onClick={() => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(14);
-
-                }}
-                style={{ color: "white", border: "1px solid #c0a262" }}
-              >
-                View Task
-              </button>
-            }
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
                 <button
