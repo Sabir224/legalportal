@@ -1163,59 +1163,59 @@ export default function TaskList({ token }) {
     setNewSubtaskName("");
   };
 
-  const addColumn = async () => {
-    if (!newColumnName.trim()) return;
+  // const addColumn = async () => {
+  //   if (!newColumnName.trim()) return;
 
-    const newId = newColumnName.toLowerCase().replace(/\s+/g, "-");
+  //   const newId = newColumnName.toLowerCase().replace(/\s+/g, "-");
 
-    // Check if the column already exists in UI
-    const existingColumn = columns.find((column) => column.id === newId);
-    if (existingColumn) {
-      alert("⚠️ Column already exists in UI!");
-      return;
-    }
+  //   // Check if the column already exists in UI
+  //   const existingColumn = columns.find((column) => column.id === newId);
+  //   if (existingColumn) {
+  //     alert("⚠️ Column already exists in UI!");
+  //     return;
+  //   }
 
-    try {
-      // Check if the column exists in backend
-      const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${newColumnName}`);
-      if (checkRes.data.exists) {
-        alert("⚠️ Column name already exists in the database!");
-        return;
-      }
+  //   try {
+  //     // Check if the column exists in backend
+  //     const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${newColumnName}`);
+  //     if (checkRes.data.exists) {
+  //       alert("⚠️ Column name already exists in the database!");
+  //       return;
+  //     }
 
-      const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
-      const url = `${ApiEndPoint}AddColumnInSchema/${newColumnName}/${newColumnType}/${encodedEnum}`;
-      const response = await axios.put(url);
+  //     const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
+  //     const url = `${ApiEndPoint}AddColumnInSchema/${newColumnName}/${newColumnType}/${encodedEnum}`;
+  //     const response = await axios.put(url);
 
-      if (response.status === 200) {
-        alert(`✅ ${response.data.message}`);
+  //     if (response.status === 200) {
+  //       alert(`✅ ${response.data.message}`);
 
-        const newColumn = {
-          id: newId,
-          label: newColumnName,
-          type: newColumnType,
-        };
+  //       const newColumn = {
+  //         id: newId,
+  //         label: newColumnName,
+  //         type: newColumnType,
+  //       };
 
-        if (newColumnType === "dropdown") {
-          newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
-        }
+  //       if (newColumnType === "dropdown") {
+  //         newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
+  //       }
 
-        // setColumns((prev) => [...prev, newColumn]);
-        setNewColumnName("");
-        setNewColumnType("text");
-        setNewColumnOptions("");
-        setAddingColumn(false);
-        const previousOpenTaskId = openTaskId;
-        await fetchtask()
-        setOpenTaskId(previousOpenTaskId);
-      } else {
-        alert('⚠️ Something went wrong while adding the column.');
-      }
-    } catch (error) {
-      console.error('❌ Error adding column:', error);
-      alert('❌ Failed to add the column.');
-    }
-  };
+  //       // setColumns((prev) => [...prev, newColumn]);
+  //       setNewColumnName("");
+  //       setNewColumnType("text");
+  //       setNewColumnOptions("");
+  //       setAddingColumn(false);
+  //       const previousOpenTaskId = openTaskId;
+  //       await fetchtask()
+  //       setOpenTaskId(previousOpenTaskId);
+  //     } else {
+  //       alert('⚠️ Something went wrong while adding the column.');
+  //     }
+  //   } catch (error) {
+  //     console.error('❌ Error adding column:', error);
+  //     alert('❌ Failed to add the column.');
+  //   }
+  // };
 
 
 
@@ -1258,6 +1258,61 @@ export default function TaskList({ token }) {
   //   });
   // };
 
+
+  const addColumn = async () => {
+    const trimmedColumnName = newColumnName.trim(); // Remove both leading and trailing spaces
+    if (!trimmedColumnName) return;
+  
+    const newId = trimmedColumnName.toLowerCase().replace(/\s+/g, "-");
+  
+    // Check if the column already exists in UI
+    const existingColumn = columns.find((column) => column.id === newId);
+    if (existingColumn) {
+      alert("⚠️ Column already exists in UI!");
+      return;
+    }
+  
+    try {
+      // Check if the column exists in backend
+      const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`);
+      if (checkRes.data.exists) {
+        alert("⚠️ Column name already exists in the database!");
+        return;
+      }
+  
+      const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
+      const url = `${ApiEndPoint}AddColumnInSchema/${trimmedColumnName}/${newColumnType}/${encodedEnum}`;
+      const response = await axios.put(url);
+  
+      if (response.status === 200) {
+        alert(`✅ ${response.data.message}`);
+  
+        const newColumn = {
+          id: newId,
+          label: trimmedColumnName,
+          type: newColumnType,
+        };
+  
+        if (newColumnType === "dropdown") {
+          newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
+        }
+  
+        setNewColumnName("");
+        setNewColumnType("text");
+        setNewColumnOptions("");
+        setAddingColumn(false);
+        const previousOpenTaskId = openTaskId;
+        await fetchtask();
+        setOpenTaskId(previousOpenTaskId);
+      } else {
+        alert('⚠️ Something went wrong while adding the column.');
+      }
+    } catch (error) {
+      console.error('❌ Error adding column:', error);
+      alert('❌ Failed to add the column.');
+    }
+  };
+    
   const handleFieldChange = (taskId, key, newValue, isSubtask = false, subtaskId = null) => {
     setTodos((prevTodos) =>
       prevTodos.map((task) => {
