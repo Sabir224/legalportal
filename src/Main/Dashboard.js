@@ -379,17 +379,6 @@ const Dashboard = () => {
                 }
               }
               : null,
-            decodedToken?.Role === "admin"
-              ? {
-                icon: faTasks,
-                label: "Task Management",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(13)
-                },
-              }
-              : null,
             // decodedToken?.Role === "admin"
             //   ? {
             //     icon: faStreetView,
@@ -487,7 +476,6 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
-
                   handlescreen2(8)
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
@@ -509,7 +497,6 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
-
                   handlescreen2(11)
                 }
                 }
@@ -528,7 +515,7 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            {(decodedToken?.Role==="admin" && screen===0) &&
+            {(screen===0) &&
               <button
                 className="btn me-2 "
                 onClick={() => {
