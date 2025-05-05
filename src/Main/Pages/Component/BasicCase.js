@@ -660,7 +660,51 @@ const BasicCase = ({ token }) => {
                       >
                         <i className="bi bi-three-dots-vertical"></i>
                       </Dropdown.Toggle>
-                      <Dropdown.Menu>{/* dropdown items */}</Dropdown.Menu>
+                      <Dropdown.Menu>
+                        {token.Role === "admin" && (
+                          <>
+                            <Dropdown.Item
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleOpenModal(item);
+                              }}
+                            >
+                              Assign Case
+                            </Dropdown.Item>
+
+                            <Dropdown.Item
+                              onClick={async (event) => {
+                                event.stopPropagation();
+                                setLoaderOpen(true);
+                                try {
+                                  const response = await updateFunction(item);
+                                  if (response?.success) {
+                                    setLoaderOpen(false);
+                                  }
+                                } catch (err) {
+                                  console.error("Update failed", err);
+                                  setLoaderOpen(false);
+                                }
+                              }}
+                            >
+                              Update Case
+                            </Dropdown.Item>
+                          </>
+                        )}
+
+                        <Dropdown.Item
+                          onClick={(e) => {
+                            if (
+                              e.target.tagName !== "INPUT" &&
+                              e.target.tagName !== "BUTTON"
+                            ) {
+                              handleClick(1, item);
+                            }
+                          }}
+                        >
+                          View Details
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
                     </Dropdown>
                   </div>
 

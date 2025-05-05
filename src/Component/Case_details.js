@@ -53,6 +53,7 @@ const Case_details = ({ token }) => {
   const [activeButtons, setActiveButtons] = useState({}); // Track button states by ID
   const [sections, setsections] = useState([]); // Track button states by ID
   const [isDataFetched, setIsDataFetched] = useState(false);
+  const [showSidebar, setShowSidebar] = useState(false);
 
   // const sections = [
   //   {
@@ -625,12 +626,26 @@ const Case_details = ({ token }) => {
   ];
   const renderedSections = useMemo(() => {
     return sections.map((section) => (
-      <div key={section.id}>
+      <div key={section.id} className="d-flex justify-content-center mb-2">
         <button
           onClick={() => toggleSection(section.id)}
-          className="px-4 py-2 text-white rounded-4 m-1 w-100 View-furtherdetailsbutton"
           style={{
-            border: "2px solid rgba(0, 0, 0, 0.2)",
+            backgroundColor: "#16213e",
+            color: "white",
+            width: "250px",
+            minWidth: "200px",
+            maxWidth: "300px",
+            padding: "8px 20px",
+            borderRadius: "4px",
+            fontSize: "16px",
+            cursor: "pointer",
+            textAlign: "center",
+            border: activeButtons[section.id]
+              ? "2px solid #d4af37"
+              : "2px solid #16213e",
+            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+            transition: "all 0.3s ease",
+            fontWeight: "500",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.border = "2px solid white";
@@ -638,7 +653,7 @@ const Case_details = ({ token }) => {
           onMouseLeave={(e) => {
             e.currentTarget.style.border = activeButtons[section.id]
               ? "2px solid #d4af37"
-              : "";
+              : "2px solid rgba(0, 0, 0, 0.2)";
           }}
         >
           {section.title}
@@ -647,453 +662,1018 @@ const Case_details = ({ token }) => {
     ));
   }, [sections, activeButtons, toggleSection]);
 
+  // return (
+  //   <div className="container-fluid  m-0 p-0">
+  //     <div className=" row m-0 ">
+  //       <div className="col-md-3">
+  //         {/* <LawyerDetails /> */}
+  //         <div
+  //           className="p-4 rounded"
+  //           style={{
+  //             overflow: "hidden",
+  //             // marginLeft: 5,
+  //             height: "75vh",
+  //             background: "#d3b386",
+  //             boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
+  //           }}
+  //           onWheel={handleScroll} // Add scroll handler for mouse wheel
+  //           ref={scrollRef} // Attach ref for scrolling
+  //         >
+  //           <div style={{ textAlign: "center", marginBottom: "10px" }}>
+  //             <button
+  //               className="View-button rounded-4 m-1  w-100 px-4 py-2"
+  //               style={{
+  //                 boxShadow: "5px 5px 5px gray",
+  //                 border: "2px solid #d4af37",
+  //                 borderRadius: "6px",
+  //               }}
+  //               onClick={handleViewDetails}
+  //             >
+  //               View lawyer
+  //             </button>
+  //           </div>
+  //           <div style={{ textAlign: "center", marginBottom: "10px" }}>
+  //             <button
+  //               className="View-button rounded-4 m-1  w-100 px-4 py-2"
+  //               style={{
+  //                 boxShadow: "5px 5px 5px gray",
+  //                 border: "2px solid #d4af37",
+  //                 borderRadius: "6px",
+  //               }}
+  //               onClick={handleViewFolders}
+  //             >
+  //               View Folders
+  //             </button>
+  //           </div>
+  //           {token?.Role !== "client" && (
+  //             <div style={{ textAlign: "center", marginBottom: "10px" }}>
+  //               <button
+  //                 className="View-button rounded-4 m-1  w-100 px-4 py-2"
+  //                 style={{
+  //                   boxShadow: "5px 5px 5px gray",
+  //                   border: "2px solid #d4af37",
+  //                   borderRadius: "6px",
+  //                 }}
+  //                 onClick={handleViewClientDetails}
+  //               >
+  //                 View Client
+  //               </button>
+  //             </div>
+  //           )}
+  //           <div style={{ textAlign: "center", marginBottom: "10px" }}>
+  //             <button
+  //               className="View-button rounded-4 m-1  w-100 px-4 py-2"
+  //               style={{
+  //                 boxShadow: "5px 5px 5px gray",
+  //                 border: "2px solid #d4af37",
+  //                 borderRadius: "6px",
+  //               }}
+  //               onClick={handleViewTask}
+  //             >
+  //               View Task
+  //             </button>
+  //           </div>
+  //           {token.Role !== "client" && (
+  //             <div style={{ textAlign: "center", marginBottom: "10px" }}>
+  //               <button
+  //                 className="View-button rounded-4 m-1  w-100 px-4 py-2"
+  //                 style={{
+  //                   boxShadow: "5px 5px 5px gray",
+  //                   border: "2px solid #d4af37",
+  //                   borderRadius: "6px",
+  //                 }}
+  //                 onClick={handleAddTask}
+  //               >
+  //                 Add Task
+  //               </button>
+  //             </div>
+  //           )}
+  //           {/* <h6>Further Details</h6> */}
+  //           {loading ? (
+  //             <div className="d-flex justify-content-center align-items-center py-5">
+  //               <div className="text-center">
+  //                 <Spinner animation="border" variant="primary" />
+  //                 <p className="mt-2 mb-0">Loading case details...</p>
+  //               </div>
+  //             </div>
+  //           ) : sections && sections.length > 0 ? (
+  //             <div className=" flex-col gap-2">{renderedSections}</div>
+  //           ) : !loading && isDataFetched && sections.length === 0 ? (
+  //             <div className="d-flex justify-content-center align-items-center py-5">
+  //               <div className="text-center text-danger">
+  //                 <h4>No Sub Details Found</h4>
+  //               </div>
+  //             </div>
+  //           ) : null}
+  //         </div>
+  //       </div>
+
+  //       <div
+  //         className="col-9"
+  //         style={{ maxHeight: "80vh", height: "75vh", overflowY: "auto" }}
+  //       >
+  //         {/* <CaseDetails /> */}
+  //         <div className="row gap-3">
+  //           <div
+  //             className="subject-line col-8"
+  //             style={{
+  //               height: 200,
+  //               boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+  //             }}
+  //           >
+  //             <div
+  //               className="d-flex mb-2 p-0 "
+  //               style={{ color: "#c0a262", fontWeight: "bold" }}
+  //             >
+  //               {/* <div style={{width:50}}> */}
+  //               <FontAwesomeIcon
+  //                 icon={faComment}
+  //                 size={"1x"}
+  //                 color="#c0a262"
+  //                 style={{ marginRight: 10, marginTop: 8 }}
+  //               />
+  //               <div style={{ fontSize: 20 }}>Subject</div>
+  //               {/* </div> */}
+  //             </div>
+  //             <div
+  //               className="datatextcolor"
+  //               style={{
+  //                 // height: 200,
+  //                 // marginLeft: 15,
+  //                 fontSize: 12,
+  //                 color: "white",
+  //               }}
+  //             >
+  //               {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
+  //               <div className="overflow-x-auto">
+  //                 <tbody>
+  //                   {fieldMappings
+  //                     .filter((f) =>
+  //                       ["CaseNumber", "CaseStatus"].includes(f.key)
+  //                     )
+  //                     .map(({ key, label }) =>
+  //                       caseData?.[key] ? (
+  //                         <tr key={key} className="bg-gray-100">
+  //                           <td className=" px-1 py-2 font-bold w-1/7">
+  //                             {label} :
+  //                           </td>
+  //                           <td className=" px-1 py-2 w-1/7">
+  //                             {caseData[key]}
+  //                           </td>
+  //                         </tr>
+  //                       ) : null
+  //                     )}
+  //                 </tbody>
+  //               </div>
+  //             </div>
+  //           </div>
+
+  //           <div
+  //             className="important-points datatextcolor col-3"
+  //             style={{
+  //               height: 270,
+  //               // width: "27%",
+  //               boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+  //             }}
+  //           >
+  //             <div
+  //               className="d-flex m-0"
+  //               style={{ color: "#c0a262", fontWeight: "bold" }}
+  //             >
+  //               {/* <div style={{width:50}}> */}
+  //               <FontAwesomeIcon
+  //                 icon={faMoneyBills}
+  //                 size="1x"
+  //                 color="#c0a262"
+  //                 style={{ marginRight: 10, marginTop: 8 }}
+  //               />
+  //               <div style={{ fontSize: 20 }}>Amount</div>
+  //               {/* </div> */}
+  //             </div>
+  //             <div
+  //               style={{ fontSize: 12 }}
+  //               className="textpositions text-wrap-1 pt-2"
+  //             >
+  //               <div className="overflow-x-auto">
+  //                 <table className="table-auto border-collapse w-100">
+  //                   <tbody>
+  //                     {fieldMappings
+  //                       .filter((f) =>
+  //                         [
+  //                           "ClaimedAmount",
+  //                           "LitigationStage",
+  //                           "TotalClaimedAmount",
+  //                           "CaseBalance",
+  //                         ].includes(f.key)
+  //                       )
+  //                       .map(({ key, label }, index) =>
+  //                         caseData?.[key] ? (
+  //                           <tr
+  //                             key={key}
+  //                             className={index % 2 === 0 ? "bg-gray-100" : ""}
+  //                           >
+  //                             <td className=" px-1 py-2 font-bold">
+  //                               {label} :
+  //                             </td>
+  //                             <td className=" px-1 py-2">{caseData[key]}</td>
+  //                           </tr>
+  //                         ) : null
+  //                       )}
+  //                   </tbody>
+  //                 </table>
+  //               </div>
+  //             </div>
+  //           </div>
+  //           <div className="row m-0 p-0 d-flex gap-3" style={{}}>
+  //             <div
+  //               className="subject-line col-8 datatextcolor"
+  //               style={{
+  //                 marginTop: -70,
+  //                 boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+  //               }}
+  //             >
+  //               {/* <FaCalendarAlt size="3em" color="#4CAF50" /> */}
+  //               <div
+  //                 className=" d-flex mb-2 p-0"
+  //                 style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+  //               >
+  //                 {/* <div style={{width:50}}> */}
+  //                 <FontAwesomeIcon
+  //                   icon={faCalendarAlt}
+  //                   size="1x"
+  //                   color="#c0a262"
+  //                   style={{ marginRight: 10, marginTop: 8 }}
+  //                 />
+  //                 <div style={{ fontSize: 20 }}>Date</div>
+  //                 {/* </div> */}
+  //               </div>
+  //               <div
+  //                 style={{ fontSize: 12 }}
+  //                 className="textpositions text-wrap-1"
+  //               >
+  //                 <div className="overflow-x-auto ">
+  //                   <table className="table-auto border-collapse border border-gray-300  w-100">
+  //                     <tbody>
+  //                       {fieldMappings
+  //                         .filter((f) => f.key.toLowerCase().includes("date"))
+  //                         .map(({ key, label }, index) =>
+  //                           caseData?.[key] ? (
+  //                             <tr
+  //                               key={key}
+  //                               className={index % 2 === 0 ? "bg-gray-100" : ""}
+  //                             >
+  //                               <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
+  //                                 {label}
+  //                               </td>
+  //                               <td className="border border-gray-300 px-1 py-2">
+  //                                 {caseData[key].split("T")[0]}
+  //                               </td>
+  //                             </tr>
+  //                           ) : null
+  //                         )}
+  //                     </tbody>
+  //                   </table>
+  //                 </div>
+  //               </div>
+  //             </div>
+
+  //             <div
+  //               className="grid-item col-3"
+  //               style={{
+  //                 // width: "27%",
+  //                 boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+  //               }}
+  //             >
+  //               <div
+  //                 className="d-flex mb-2 p-0"
+  //                 style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+  //               >
+  //                 {/* <div style={{width:50}}> */}
+  //                 <FontAwesomeIcon
+  //                   icon={faGavel}
+  //                   size="1x"
+  //                   color="#c0a262"
+  //                   style={{ marginRight: 10, marginTop: 10 }}
+  //                 />
+  //                 <div style={{ fontSize: 20 }}>Last Decisions</div>
+  //               </div>
+  //               {/* {caseData.lastDecisions.map((item, index) => ( */}
+  //               {caseData?.LastDecisions && (
+  //                 <div
+  //                   className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
+  //                   style={{ fontSize: 12, overflow: "hidden" }}
+  //                 >
+  //                   {caseData.LastDecisions}
+  //                 </div>
+  //               )}
+
+  //               {/* ))} */}
+  //             </div>
+
+  //             <div
+  //               className="grid-item datatextcolor col-11"
+  //               style={{
+  //                 boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
+  //               }}
+  //             >
+  //               <div
+  //                 className="d-flex mb-2 p-0 gap-2"
+  //                 style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+  //               >
+  //                 {/* <div style={{width:50}}> */}
+  //                 <div>
+  //                   <img
+  //                     src={require(`../Main/Pages/Component/Casedetails/Icons/others.png`)}
+  //                     style={{ height: "30px" }}
+  //                   />
+  //                 </div>
+  //                 <div style={{ fontSize: 20 }}>Others Details</div>
+  //                 {/* </div> */}
+  //               </div>
+  //               <div
+  //                 style={{ fontSize: 12 }}
+  //                 className="textpositions text-wrap-1"
+  //               >
+  //                 <div className="overflow-x-auto">
+  //                   <table className="table-auto border-collapse border border-gray-300 w-100">
+  //                     <tbody>
+  //                       {fieldMappings
+  //                         .filter((f) =>
+  //                           [
+  //                             "AscriptionDescription",
+  //                             "RequestNumber",
+  //                             "CaseCurrentDetails",
+  //                             "RootCaseNumber",
+  //                             "RootDecision",
+  //                             "LitigationStage",
+  //                           ].includes(f.key)
+  //                         )
+  //                         .map(({ key, label }, index) =>
+  //                           caseData?.[key] ? (
+  //                             <tr
+  //                               key={key}
+  //                               className={index % 2 === 0 ? "bg-gray-100" : ""}
+  //                             >
+  //                               <td className="border border-gray-300 px-1 py-2 font-bold">
+  //                                 {label}
+  //                               </td>
+  //                               <td className="border border-gray-300 px-1 py-2">
+  //                                 {caseData[key]}
+  //                               </td>
+  //                             </tr>
+  //                           ) : null
+  //                         )}
+  //                     </tbody>
+  //                   </table>
+  //                 </div>
+  //               </div>
+  //             </div>
+
+  //             {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
+
+  //             {/*
+
+  //             <div className="table-responsive" style={{ fontSize: 12, color: "white" }}>
+  //               <table className="table table-bordered table-sm table-dark">
+  //                 <tbody>
+  //                   {Object.entries(caseData).map(([key, value]) => {
+  //                     if (["_id", "FkCaseId", "__v", "createdAt", "updatedAt"].includes(key)) return null;
+
+  //                     // Format camelCase or PascalCase keys into readable labels
+  //                     const formatKey = key
+  //                       .replace(/([A-Z])/g, " $1") // insert space before capital letters
+  //                       .replace(/^./, str => str.toUpperCase()); // capitalize first letter
+
+  //                     // Format dates if value is a valid ISO string
+  //                     let displayValue = value;
+  //                     if (typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))) {
+  //                       displayValue = new Date(value).toLocaleDateString("en-GB");
+  //                     }
+
+  //                     return (
+  //                       <tr key={key}>
+  //                         <td className="font-weight-bold">{formatKey}</td>
+  //                         <td>{displayValue || "—"}</td>
+  //                       </tr>
+  //                     );
+  //                   })}
+  //                 </tbody>
+  //               </table>
+  //             </div> */}
+  //             {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
+  //             {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
+  //             {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
+
+  //             {sections.map(
+  //               (section) =>
+  //                 activeSections.includes(section.id) && (
+  //                   // <div className="flex-1  border rounded-3">
+  //                   <div
+  //                     key={section.id}
+  //                     className="p-4 border rounded-3 bg-gray-50 shadow"
+  //                     style={{ background: "#16213e", color: "white" }}
+  //                   >
+  //                     <h2
+  //                       className="text-xl font-semibold "
+  //                       style={{ color: "#c0a262" }}
+  //                     >
+  //                       <div className="gap-3 d-flex" style={{ gap: "10px" }}>
+  //                         <div>
+  //                           <img
+  //                             src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)}
+  //                             style={{ height: "30px" }}
+  //                           />
+  //                         </div>
+  //                         <div style={{ marginTop: 6, fontSize: 21 }}>
+  //                           {section.title}
+  //                         </div>
+  //                       </div>
+  //                       {/* <FontAwesomeIcon icon={faMultiply} size="1x" color="#c0a262" style={{ marginRight: 10 }} /> */}
+  //                     </h2>
+  //                     <div>{section.content}</div>
+  //                   </div>
+  //                   // </div>
+  //                 )
+  //             )}
+  //             {/* {activeSections.length === 0 && (
+  //             <p className="text-gray-600">Select a button to view details.</p>
+  //           )} */}
+  //           </div>
+  //         </div>
+  //         {/* </div> */}
+
+  //         {/* </div> */}
+  //       </div>
+  //       {/* </div> */}
+  //     </div>
+  //   </div>
+  // );
+
+  // return (
+  //   <div className="container-fluid m-0 p-0">
+  //     <div className="row m-0">
+  //       {/* Sidebar */}
+  //       <div className="col-12 col-md-3 mb-3 mb-md-0">
+  //         <div
+  //           className="p-4 rounded"
+  //           style={{
+  //             height: "75vh",
+  //             background: "#d3b386",
+  //             overflowY: "auto",
+  //             boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
+  //           }}
+  //           onWheel={handleScroll}
+  //           ref={scrollRef}
+  //         >
+  //           {[
+  //             { label: "View lawyer", onClick: handleViewDetails },
+  //             { label: "View Folders", onClick: handleViewFolders },
+  //             ...(token?.Role !== "client"
+  //               ? [{ label: "View Client", onClick: handleViewClientDetails }]
+  //               : []),
+  //             { label: "View Task", onClick: handleViewTask },
+  //             ...(token?.Role !== "client"
+  //               ? [{ label: "Add Task", onClick: handleAddTask }]
+  //               : []),
+  //           ].map(({ label, onClick }, index) => (
+  //             <div key={index} className="text-center mb-3">
+  //               <button
+  //                 className="w-100 px-4 py-2 rounded-4"
+  //                 style={{
+  //                   boxShadow: "5px 5px 5px gray",
+  //                   border: "2px solid #d4af37",
+  //                   backgroundColor: "white",
+  //                   fontWeight: "bold",
+  //                 }}
+  //                 onClick={onClick}
+  //               >
+  //                 {label}
+  //               </button>
+  //             </div>
+  //           ))}
+
+  //           {loading ? (
+  //             <div className="d-flex justify-content-center align-items-center py-5">
+  //               <div className="text-center">
+  //                 <Spinner animation="border" variant="primary" />
+  //                 <p className="mt-2 mb-0">Loading case details...</p>
+  //               </div>
+  //             </div>
+  //           ) : sections?.length > 0 ? (
+  //             <div className="d-flex flex-column gap-2">{renderedSections}</div>
+  //           ) : isDataFetched ? (
+  //             <div className="d-flex justify-content-center align-items-center py-5">
+  //               <h5 className="text-danger">No Sub Details Found</h5>
+  //             </div>
+  //           ) : null}
+  //         </div>
+  //       </div>
+
+  //       {/* Main Content */}
+  //       <div
+  //         className="col-12 col-md-9"
+  //         style={{ maxHeight: "80vh", overflowY: "auto" }}
+  //       >
+  //         <div className="row g-3">
+  //           {/* Subject Card */}
+  //           <div className="col-12 col-lg-8">
+  //             <div
+  //               className="p-3 datatextcolor"
+  //               style={{ boxShadow: "6px 6px 6px rgba(0,0,0,0.2)" }}
+  //             >
+  //               <div
+  //                 className="d-flex align-items-center mb-2"
+  //                 style={{ color: "#c0a262", fontWeight: "bold" }}
+  //               >
+  //                 <FontAwesomeIcon icon={faComment} className="me-2" />
+  //                 <span style={{ fontSize: 20 }}>Subject</span>
+  //               </div>
+  //               <div
+  //                 className="overflow-auto"
+  //                 style={{ fontSize: 12, color: "white" }}
+  //               >
+  //                 <table className="table table-borderless table-sm w-100">
+  //                   <tbody>
+  //                     {fieldMappings
+  //                       .filter((f) =>
+  //                         ["CaseNumber", "CaseStatus"].includes(f.key)
+  //                       )
+  //                       .map(({ key, label }) =>
+  //                         caseData?.[key] ? (
+  //                           <tr key={key}>
+  //                             <td className="fw-bold">{label}:</td>
+  //                             <td>{caseData[key]}</td>
+  //                           </tr>
+  //                         ) : null
+  //                       )}
+  //                   </tbody>
+  //                 </table>
+  //               </div>
+  //             </div>
+  //           </div>
+
+  //           {/* Amount Card */}
+  //           <div className="col-12 col-lg-4">
+  //             <div
+  //               className="p-3 datatextcolor"
+  //               style={{ boxShadow: "6px 6px 6px rgba(0,0,0,0.2)" }}
+  //             >
+  //               <div
+  //                 className="d-flex align-items-center mb-2"
+  //                 style={{ color: "#c0a262", fontWeight: "bold" }}
+  //               >
+  //                 <FontAwesomeIcon icon={faMoneyBills} className="me-2" />
+  //                 <span style={{ fontSize: 20 }}>Amount</span>
+  //               </div>
+  //               <div className="overflow-auto" style={{ fontSize: 12 }}>
+  //                 <table className="table table-borderless table-sm w-100">
+  //                   <tbody>
+  //                     {fieldMappings
+  //                       .filter((f) =>
+  //                         [
+  //                           "ClaimedAmount",
+  //                           "LitigationStage",
+  //                           "TotalClaimedAmount",
+  //                           "CaseBalance",
+  //                         ].includes(f.key)
+  //                       )
+  //                       .map(({ key, label }) =>
+  //                         caseData?.[key] ? (
+  //                           <tr key={key}>
+  //                             <td className="fw-bold">{label}:</td>
+  //                             <td>{caseData[key]}</td>
+  //                           </tr>
+  //                         ) : null
+  //                       )}
+  //                   </tbody>
+  //                 </table>
+  //               </div>
+  //             </div>
+  //           </div>
+
+  //           {/* Date Card */}
+  //           <div className="col-12">
+  //             <div
+  //               className="p-3 datatextcolor"
+  //               style={{ boxShadow: "6px 6px 6px rgba(0,0,0,0.2)" }}
+  //             >
+  //               <div
+  //                 className="d-flex align-items-center mb-2"
+  //                 style={{ color: "#c0a262", fontWeight: "bold" }}
+  //               >
+  //                 <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+  //                 <span style={{ fontSize: 20 }}>Date</span>
+  //               </div>
+  //               <div className="overflow-auto" style={{ fontSize: 12 }}>
+  //                 <table className="table table-bordered table-sm w-100">
+  //                   <tbody>
+  //                     {fieldMappings
+  //                       .filter((f) => f.key.toLowerCase().includes("date"))
+  //                       .map(({ key, label }) =>
+  //                         caseData?.[key] ? (
+  //                           <tr key={key}>
+  //                             <td className="fw-bold">{label}</td>
+  //                             <td>{caseData[key].split("T")[0]}</td>
+  //                           </tr>
+  //                         ) : null
+  //                       )}
+  //                   </tbody>
+  //                 </table>
+  //               </div>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   </div>
+  // );
+  function renderSidebarContent() {
+    return (
+      <>
+        {[
+          { label: "View lawyer", onClick: handleViewDetails },
+          { label: "View Folders", onClick: handleViewFolders },
+          ...(token?.Role !== "client"
+            ? [{ label: "View Client", onClick: handleViewClientDetails }]
+            : []),
+          { label: "View Task", onClick: handleViewTask },
+          ...(token?.Role !== "client"
+            ? [{ label: "Add Task", onClick: handleAddTask }]
+            : []),
+        ].map(({ label, onClick }, index) => (
+          <div key={index} className="d-flex justify-content-center mb-2">
+            <button
+              style={{
+                backgroundColor: "#16213e",
+                color: "white",
+                width: "250px",
+                minWidth: "200px",
+                maxWidth: "300px",
+                padding: "8px 20px",
+                borderRadius: "4px",
+                fontSize: "16px",
+                cursor: "pointer",
+                textAlign: "center",
+                border: "2px solid #16213e",
+                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                transition: "all 0.3s ease",
+                fontWeight: "500",
+              }}
+              onClick={onClick}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 4px 8px rgba(0, 0, 0, 0.2)";
+                e.currentTarget.style.border = "2px solid #c0a262";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.boxShadow =
+                  "0 4px 6px rgba(0, 0, 0, 0.1)";
+                e.currentTarget.style.border = "2px solid #16213e";
+              }}
+            >
+              {label}
+            </button>
+          </div>
+        ))}
+
+        {loading ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <div className="text-center">
+              <Spinner animation="border" variant="primary" />
+              <p className="mt-2 mb-0">Loading case details...</p>
+            </div>
+          </div>
+        ) : sections && sections.length > 0 ? (
+          <div className="d-flex flex-column align-items-center gap-2">
+            {renderedSections}
+          </div>
+        ) : !loading && isDataFetched && sections.length === 0 ? (
+          <div className="d-flex justify-content-center align-items-center py-5">
+            <div className="text-center text-danger">
+              <h4>No Sub Details Found</h4>
+            </div>
+          </div>
+        ) : null}
+      </>
+    );
+  }
+
   return (
-    <div className="container-fluid  m-0 p-0">
-      <div className=" row m-0 ">
-        <div className="col-md-3">
-          {/* <LawyerDetails /> */}
+    <div
+      className="container-fluid m-0 p-0"
+      style={{
+        maxHeight: "86vh", // yeh maximum height set karega
+        overflowY: "auto", // aur yeh scroll enable karega agar content zyada ho
+        padding: "0 10px",
+      }}
+    >
+      <div className="row m-0 w-80">
+        {/* Left Sidebar Column */}
+        <div className="d-md-none  w-100">
+          <button
+            className="btn btn-primary w-100"
+            onClick={() => setShowSidebar(!showSidebar)}
+          >
+            {showSidebar ? "Hide Menu" : "Show Menu"}
+          </button>
+          {showSidebar && (
+            <div
+              className="p-4 rounded mt-2"
+              style={{
+                background: "#d3b386",
+                boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
+              }}
+            >
+              {/* Sidebar content here */}
+              {renderSidebarContent()}
+            </div>
+          )}
+        </div>
+
+        {/* Sidebar for md and larger */}
+        <div className="col-lg-3 col-md-4 d-none d-md-block p-0">
           <div
             className="p-4 rounded"
             style={{
               overflow: "hidden",
-              // marginLeft: 5,
-              height: "75vh",
+              height: "86vh",
               background: "#d3b386",
               boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
             }}
-            onWheel={handleScroll} // Add scroll handler for mouse wheel
-            ref={scrollRef} // Attach ref for scrolling
+            onWheel={handleScroll}
+            ref={scrollRef}
           >
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <button
-                className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                style={{
-                  boxShadow: "5px 5px 5px gray",
-                  border: "2px solid #d4af37",
-                  borderRadius: "6px",
-                }}
-                onClick={handleViewDetails}
-              >
-                View lawyer
-              </button>
-            </div>
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <button
-                className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                style={{
-                  boxShadow: "5px 5px 5px gray",
-                  border: "2px solid #d4af37",
-                  borderRadius: "6px",
-                }}
-                onClick={handleViewFolders}
-              >
-                View Folders
-              </button>
-            </div>
-            {token?.Role !== "client" && (
-              <div style={{ textAlign: "center", marginBottom: "10px" }}>
-                <button
-                  className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                  style={{
-                    boxShadow: "5px 5px 5px gray",
-                    border: "2px solid #d4af37",
-                    borderRadius: "6px",
-                  }}
-                  onClick={handleViewClientDetails}
-                >
-                  View Client
-                </button>
-              </div>
-
-            )}
-            <div style={{ textAlign: "center", marginBottom: "10px" }}>
-              <button
-                className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                style={{
-                  boxShadow: "5px 5px 5px gray",
-                  border: "2px solid #d4af37",
-                  borderRadius: "6px",
-                }}
-                onClick={handleViewTask}
-              >
-                View Task
-              </button>
-            </div>
-            {token.Role !== "client" &&
-              <div style={{ textAlign: "center", marginBottom: "10px" }}>
-                <button
-                  className="View-button rounded-4 m-1  w-100 px-4 py-2"
-                  style={{
-                    boxShadow: "5px 5px 5px gray",
-                    border: "2px solid #d4af37",
-                    borderRadius: "6px",
-                  }}
-                  onClick={handleAddTask}
-                >
-                  Add Task
-                </button>
-              </div>
-            }
-            {/* <h6>Further Details</h6> */}
-            {loading ? (
-              <div className="d-flex justify-content-center align-items-center py-5">
-                <div className="text-center">
-                  <Spinner animation="border" variant="primary" />
-                  <p className="mt-2 mb-0">Loading case details...</p>
-                </div>
-              </div>
-            ) : sections && sections.length > 0 ? (
-              <div className=" flex-col gap-2">{renderedSections}</div>
-            ) : !loading && isDataFetched && sections.length === 0 ? (
-              <div className="d-flex justify-content-center align-items-center py-5">
-                <div className="text-center text-danger">
-                  <h4>No Sub Details Found</h4>
-                </div>
-              </div>
-            ) : null}
+            {renderSidebarContent()}
           </div>
         </div>
 
-        <div
-          className="col-9"
-          style={{ maxHeight: "80vh", height: "75vh", overflowY: "auto" }}
-        >
-          {/* <CaseDetails /> */}
-          <div className="row gap-3">
-            <div
-              className="subject-line col-8"
-              style={{
-                height: 200,
-                boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              <div
-                className="d-flex mb-2 p-0 "
-                style={{ color: "#c0a262", fontWeight: "bold" }}
-              >
-                {/* <div style={{width:50}}> */}
-                <FontAwesomeIcon
-                  icon={faComment}
-                  size={"1x"}
-                  color="#c0a262"
-                  style={{ marginRight: 10, marginTop: 8 }}
-                />
-                <div style={{ fontSize: 20 }}>Subject</div>
-                {/* </div> */}
-              </div>
-              <div
-                className="datatextcolor"
-                style={{
-                  // height: 200,
-                  // marginLeft: 15,
-                  fontSize: 12,
-                  color: "white",
-                }}
-              >
-                {/* <h8 style={{ textAlign: 'end' }}> {caseData.case_detail.subject}</h8> */}
-                <div className="overflow-x-auto">
-                  <tbody>
+        {/* Main Content Column */}
+        <div className="col-lg-9 col-md-8 col-12 p-0">
+          <div
+            style={{
+              height: "86vh",
+              maxHeight: "86vh",
+              overflowY: "auto",
+              padding: "0 10px",
+            }}
+            className="main-content-container"
+          >
+            <div className="row g-2">
+              {/* First Line - Subject (70%) and Amount (30%) */}
+              <div className="col-lg-8 col-md-7 col-12">
+                <div
+                  className="subject-line p-3"
+                  style={{
+                    height: "100%",
+                    boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                    borderRadius: "8px",
+                    background: "#16213e",
+                  }}
+                >
+                  <div
+                    className="d-flex align-items-center mb-2"
+                    style={{ color: "#c0a262" }}
+                  >
+                    <FontAwesomeIcon icon={faComment} className="me-2" />
+                    <h3 className="m-0" style={{ fontSize: "18px" }}>
+                      Subject
+                    </h3>
+                  </div>
+                  <div className="text-white" style={{ fontSize: "13px" }}>
                     {fieldMappings
                       .filter((f) =>
                         ["CaseNumber", "CaseStatus"].includes(f.key)
                       )
-                      .map(({ key, label }) =>
-                        caseData?.[key] ? (
-                          <tr key={key} className="bg-gray-100">
-                            <td className=" px-1 py-2 font-bold w-1/7">
-                              {label} :
-                            </td>
-                            <td className=" px-1 py-2 w-1/7">
-                              {caseData[key]}
-                            </td>
-                          </tr>
-                        ) : null
+                      .map(
+                        ({ key, label }) =>
+                          caseData?.[key] && (
+                            <div key={key} className="d-flex mb-1">
+                              <span className="fw-bold me-2">{label}:</span>
+                              <span>{caseData[key]}</span>
+                            </div>
+                          )
                       )}
-                  </tbody>
-                </div>
-              </div>
-            </div>
-
-            <div
-              className="important-points datatextcolor col-3"
-              style={{
-                height: 270,
-                // width: "27%",
-                boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              <div
-                className="d-flex m-0"
-                style={{ color: "#c0a262", fontWeight: "bold" }}
-              >
-                {/* <div style={{width:50}}> */}
-                <FontAwesomeIcon
-                  icon={faMoneyBills}
-                  size="1x"
-                  color="#c0a262"
-                  style={{ marginRight: 10, marginTop: 8 }}
-                />
-                <div style={{ fontSize: 20 }}>Amount</div>
-                {/* </div> */}
-              </div>
-              <div
-                style={{ fontSize: 12 }}
-                className="textpositions text-wrap-1 pt-2"
-              >
-                <div className="overflow-x-auto">
-                  <table className="table-auto border-collapse w-100">
-                    <tbody>
-                      {fieldMappings
-                        .filter((f) =>
-                          [
-                            "ClaimedAmount",
-                            "LitigationStage",
-                            "TotalClaimedAmount",
-                            "CaseBalance",
-                          ].includes(f.key)
-                        )
-                        .map(({ key, label }, index) =>
-                          caseData?.[key] ? (
-                            <tr
-                              key={key}
-                              className={index % 2 === 0 ? "bg-gray-100" : ""}
-                            >
-                              <td className=" px-1 py-2 font-bold">
-                                {label} :
-                              </td>
-                              <td className=" px-1 py-2">{caseData[key]}</td>
-                            </tr>
-                          ) : null
-                        )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
-            <div className="row m-0 p-0 d-flex gap-3" style={{}}>
-              <div
-                className="subject-line col-8 datatextcolor"
-                style={{
-                  marginTop: -70,
-                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-                }}
-              >
-                {/* <FaCalendarAlt size="3em" color="#4CAF50" /> */}
-                <div
-                  className=" d-flex mb-2 p-0"
-                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
-                >
-                  {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon
-                    icon={faCalendarAlt}
-                    size="1x"
-                    color="#c0a262"
-                    style={{ marginRight: 10, marginTop: 8 }}
-                  />
-                  <div style={{ fontSize: 20 }}>Date</div>
-                  {/* </div> */}
-                </div>
-                <div
-                  style={{ fontSize: 12 }}
-                  className="textpositions text-wrap-1"
-                >
-                  <div className="overflow-x-auto ">
-                    <table className="table-auto border-collapse border border-gray-300  w-100">
-                      <tbody>
-                        {fieldMappings
-                          .filter((f) => f.key.toLowerCase().includes("date"))
-                          .map(({ key, label }, index) =>
-                            caseData?.[key] ? (
-                              <tr
-                                key={key}
-                                className={index % 2 === 0 ? "bg-gray-100" : ""}
-                              >
-                                <td className="border rounded-2 border-gray-300 px-1 py-2 font-bold">
-                                  {label}
-                                </td>
-                                <td className="border border-gray-300 px-1 py-2">
-                                  {caseData[key].split("T")[0]}
-                                </td>
-                              </tr>
-                            ) : null
-                          )}
-                      </tbody>
-                    </table>
                   </div>
                 </div>
               </div>
 
-              <div
-                className="grid-item col-3"
-                style={{
-                  // width: "27%",
-                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-                }}
-              >
+              <div className="col-lg-4 col-md-5 col-12">
                 <div
-                  className="d-flex mb-2 p-0"
-                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                  className="p-3"
+                  style={{
+                    height: "100%",
+                    boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                    borderRadius: "8px",
+                    background: "#16213e",
+                  }}
                 >
-                  {/* <div style={{width:50}}> */}
-                  <FontAwesomeIcon
-                    icon={faGavel}
-                    size="1x"
-                    color="#c0a262"
-                    style={{ marginRight: 10, marginTop: 10 }}
-                  />
-                  <div style={{ fontSize: 20 }}>Last Decisions</div>
-                </div>
-                {/* {caseData.lastDecisions.map((item, index) => ( */}
-                {caseData?.LastDecisions && (
                   <div
-                    className="datatextcolor px-1 py-2 textpositions text-wrap-1 w-100"
-                    style={{ fontSize: 12, overflow: "hidden" }}
+                    className="d-flex align-items-center mb-2"
+                    style={{ color: "#c0a262" }}
                   >
-                    {caseData.LastDecisions}
+                    <FontAwesomeIcon icon={faMoneyBills} className="me-2" />
+                    <h3 className="m-0" style={{ fontSize: "18px" }}>
+                      Amount
+                    </h3>
                   </div>
-                )}
-
-                {/* ))} */}
+                  <div className="text-white" style={{ fontSize: "13px" }}>
+                    {fieldMappings
+                      .filter((f) =>
+                        [
+                          "ClaimedAmount",
+                          "LitigationStage",
+                          "TotalClaimedAmount",
+                          "CaseBalance",
+                        ].includes(f.key)
+                      )
+                      .map(
+                        ({ key, label }) =>
+                          caseData?.[key] && (
+                            <div key={key} className="d-flex mb-1">
+                              <span className="fw-bold me-2">{label}:</span>
+                              <span>{caseData[key]}</span>
+                            </div>
+                          )
+                      )}
+                  </div>
+                </div>
               </div>
 
-              <div
-                className="grid-item datatextcolor col-11"
-                style={{
-                  boxShadow: "6px 6px 6px rgba(0, 0, 0, 0.2)",
-                }}
-              >
+              {/* Second Line - Other Details (100%) */}
+              <div className="col-12">
                 <div
-                  className="d-flex mb-2 p-0 gap-2"
-                  style={{ color: "#c0a262", fontWeight: "bold", fontSize: 15 }}
+                  className="p-3"
+                  style={{
+                    boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                    borderRadius: "8px",
+                    background: "#16213e",
+                  }}
                 >
-                  {/* <div style={{width:50}}> */}
-                  <div>
+                  <div
+                    className="d-flex align-items-center mb-2"
+                    style={{ color: "#c0a262" }}
+                  >
                     <img
                       src={require(`../Main/Pages/Component/Casedetails/Icons/others.png`)}
-                      style={{ height: "30px" }}
+                      style={{ height: "20px", marginRight: "10px" }}
+                      alt="Other details icon"
                     />
+                    <h3 className="m-0" style={{ fontSize: "18px" }}>
+                      Other Details
+                    </h3>
                   </div>
-                  <div style={{ fontSize: 20 }}>Others Details</div>
-                  {/* </div> */}
-                </div>
-                <div
-                  style={{ fontSize: 12 }}
-                  className="textpositions text-wrap-1"
-                >
-                  <div className="overflow-x-auto">
-                    <table className="table-auto border-collapse border border-gray-300 w-100">
-                      <tbody>
-                        {fieldMappings
-                          .filter((f) =>
-                            [
-                              "AscriptionDescription",
-                              "RequestNumber",
-                              "CaseCurrentDetails",
-                              "RootCaseNumber",
-                              "RootDecision",
-                              "LitigationStage",
-                            ].includes(f.key)
+                  <div
+                    className="row g-2 text-white"
+                    style={{ fontSize: "13px" }}
+                  >
+                    {fieldMappings
+                      .filter((f) =>
+                        [
+                          "AscriptionDescription",
+                          "RequestNumber",
+                          "CaseCurrentDetails",
+                          "RootCaseNumber",
+                          "RootDecision",
+                          "LitigationStage",
+                        ].includes(f.key)
+                      )
+                      .map(
+                        ({ key, label }) =>
+                          caseData?.[key] && (
+                            <div key={key} className="col-md-6 col-12">
+                              <div className="d-flex mb-1">
+                                <span className="fw-bold me-2">{label}:</span>
+                                <span>{caseData[key]}</span>
+                              </div>
+                            </div>
                           )
-                          .map(({ key, label }, index) =>
-                            caseData?.[key] ? (
-                              <tr
-                                key={key}
-                                className={index % 2 === 0 ? "bg-gray-100" : ""}
-                              >
-                                <td className="border border-gray-300 px-1 py-2 font-bold">
-                                  {label}
-                                </td>
-                                <td className="border border-gray-300 px-1 py-2">
-                                  {caseData[key]}
-                                </td>
-                              </tr>
-                            ) : null
-                          )}
-                      </tbody>
-                    </table>
+                      )}
                   </div>
                 </div>
               </div>
 
-              {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
+              {/* Third Line - Dates (50%) and Last Decisions (50%) */}
+              <div className="col-lg-6 col-md-6 col-12">
+                <div
+                  className="p-3 h-100"
+                  style={{
+                    boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                    borderRadius: "8px",
+                    background: "#16213e",
+                    height: "100%",
+                  }}
+                >
+                  <div
+                    className="d-flex align-items-center mb-2"
+                    style={{ color: "#c0a262" }}
+                  >
+                    <FontAwesomeIcon icon={faCalendarAlt} className="me-2" />
+                    <h3 className="m-0" style={{ fontSize: "18px" }}>
+                      Dates
+                    </h3>
+                  </div>
+                  <div className="text-white" style={{ fontSize: "13px" }}>
+                    {fieldMappings
+                      .filter((f) => f.key.toLowerCase().includes("date"))
+                      .map(
+                        ({ key, label }) =>
+                          caseData?.[key] && (
+                            <div key={key} className="d-flex mb-1">
+                              <span className="fw-bold me-2">{label}:</span>
+                              <span>{caseData[key].split("T")[0]}</span>
+                            </div>
+                          )
+                      )}
+                  </div>
+                </div>
+              </div>
 
-              {/* 
+              <div className="col-lg-6 col-md-6 col-12">
+                <div
+                  className="p-3 h-100"
+                  style={{
+                    boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                    borderRadius: "8px",
+                    background: "#16213e",
+                    height: "100%",
+                  }}
+                >
+                  <div
+                    className="d-flex align-items-center mb-2"
+                    style={{ color: "#c0a262" }}
+                  >
+                    <FontAwesomeIcon icon={faGavel} className="me-2" />
+                    <h3 className="m-0" style={{ fontSize: "18px" }}>
+                      Last Decisions
+                    </h3>
+                  </div>
+                  {caseData?.LastDecisions && (
+                    <div className="text-white" style={{ fontSize: "13px" }}>
+                      {caseData.LastDecisions}
+                    </div>
+                  )}
+                </div>
+              </div>
 
-              <div className="table-responsive" style={{ fontSize: 12, color: "white" }}>
-                <table className="table table-bordered table-sm table-dark">
-                  <tbody>
-                    {Object.entries(caseData).map(([key, value]) => {
-                      if (["_id", "FkCaseId", "__v", "createdAt", "updatedAt"].includes(key)) return null;
-
-                      // Format camelCase or PascalCase keys into readable labels
-                      const formatKey = key
-                        .replace(/([A-Z])/g, " $1") // insert space before capital letters
-                        .replace(/^./, str => str.toUpperCase()); // capitalize first letter
-
-                      // Format dates if value is a valid ISO string
-                      let displayValue = value;
-                      if (typeof value === "string" && value.includes("T") && !isNaN(Date.parse(value))) {
-                        displayValue = new Date(value).toLocaleDateString("en-GB");
-                      }
-
-                      return (
-                        <tr key={key}>
-                          <td className="font-weight-bold">{formatKey}</td>
-                          <td>{displayValue || "—"}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div> */}
-              {/* '''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''''' */}
-              {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
-              {/* <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "10px", padding: "20px" }}> */}
-
+              {/* Sections */}
               {sections.map(
                 (section) =>
                   activeSections.includes(section.id) && (
-                    // <div className="flex-1  border rounded-3">
-                    <div
-                      key={section.id}
-                      className="p-4 border rounded-3 bg-gray-50 shadow"
-                      style={{ background: "#16213e", color: "white" }}
-                    >
-                      <h2
-                        className="text-xl font-semibold "
-                        style={{ color: "#c0a262" }}
+                    <div className="col-12" key={section.id}>
+                      <div
+                        className="p-3"
+                        style={{
+                          boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                          borderRadius: "8px",
+                          background: "#16213e",
+                        }}
                       >
-                        <div className="gap-3 d-flex" style={{ gap: "10px" }}>
-                          <div>
-                            <img
-                              src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)}
-                              style={{ height: "30px" }}
-                            />
-                          </div>
-                          <div style={{ marginTop: 6, fontSize: 21 }}>
+                        <div
+                          className="d-flex align-items-center mb-2"
+                          style={{ color: "#c0a262" }}
+                        >
+                          <img
+                            src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)}
+                            style={{ height: "20px", marginRight: "10px" }}
+                            alt={`${section.title} icon`}
+                          />
+                          <h3 className="m-0" style={{ fontSize: "18px" }}>
                             {section.title}
-                          </div>
+                          </h3>
                         </div>
-                        {/* <FontAwesomeIcon icon={faMultiply} size="1x" color="#c0a262" style={{ marginRight: 10 }} /> */}
-                      </h2>
-                      <div>{section.content}</div>
+                        <div
+                          className="text-white"
+                          style={{ fontSize: "13px" }}
+                        >
+                          {section.content}
+                        </div>
+                      </div>
                     </div>
-                    // </div>
                   )
               )}
-              {/* {activeSections.length === 0 && (
-              <p className="text-gray-600">Select a button to view details.</p>
-            )} */}
             </div>
-          </div>
-          {/* </div> */}
 
-          {/* </div> */}
+            <style jsx>{`
+              .main-content-container {
+                height: 100vh;
+              }
+              @media (min-width: 768px) {
+                .main-content-container {
+                  height: 86vh;
+                  max-height: 86vh;
+                }
+              }
+              @media (max-width: 767px) {
+                .main-content-container {
+                  height: 86vh;
+                  max-height: 86vh;
+                }
+              }
+            `}</style>
+          </div>
         </div>
-        {/* </div> */}
       </div>
     </div>
   );
 };
-
 export default Case_details;
