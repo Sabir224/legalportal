@@ -1780,7 +1780,7 @@ export default function TaskList({ token }) {
           <thead>
             <tr>
               <th style={{ width: "10px" }}></th>
-              {keys.map((key) => (
+              {keys?.map((key) => (
                 <th key={key}>
                   <div style={{ display: "flex", alignItems: "center" }}>
                     <div>
@@ -1816,7 +1816,7 @@ export default function TaskList({ token }) {
 
 
           <tbody>
-            {todos.map((todo) => (
+            {todos?.map((todo) => (
               <React.Fragment key={todo.id}>
 
                 <tr>
@@ -1826,7 +1826,7 @@ export default function TaskList({ token }) {
                     </span>
                   </td>
 
-                  {keys.map((key) => {
+                  {keys?.map((key) => {
                     const field = todo[key];
                     if (!field) return <td key={key} />;
 
@@ -1866,7 +1866,7 @@ export default function TaskList({ token }) {
                             onBlur={handleBlur}
                           >
                             <option value="">Assign User</option>
-                            {users.map((user) => (
+                            {users?.map((user) => (
                               <option key={user?._id} value={user?.id}>
                                 {user?.UserName} ({capitalizeFirst(user?.Role)})
                               </option>
@@ -1890,7 +1890,7 @@ export default function TaskList({ token }) {
                           onBlur={handleBlur}
                           disabled={isclient}
                         >
-                          {enumOptions.map((option) => (
+                          {enumOptions?.map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>
@@ -1959,7 +1959,7 @@ export default function TaskList({ token }) {
                       <table className="tasklist-todo-table subtask-table">
                         <thead>
                           <tr>
-                            {keys.map((key) => (
+                            {keys?.map((key) => (
                               <th key={key}>
                                 <div style={{ display: "flex", alignItems: "center" }}>
                                   <div> {key
@@ -1973,9 +1973,9 @@ export default function TaskList({ token }) {
                           </tr>
                         </thead>
                         <tbody>
-                          {todo.subtasks.map((subtask) => (
+                          {todo?.subtasks?.map((subtask) => (
                             <tr key={subtask._id?.value}>
-                              {keys.map((key) => {
+                              {keys?.map((key) => {
                                 const field = subtask[key];
                                 if (!field) return <td key={key} />;
 
@@ -2015,7 +2015,7 @@ export default function TaskList({ token }) {
                                         }
                                       >
                                         <option value="">Assign User</option>
-                                        {users.map((user) => (
+                                        {users?.map((user) => (
                                           <option key={user?._id} value={user._id}>
                                             {user?.UserName} ({capitalizeFirst(user?.Role)})
                                           </option>
@@ -2040,7 +2040,7 @@ export default function TaskList({ token }) {
                                       }
                                       onBlur={handleBlur}
                                     >
-                                      {enumOptions.map((option) => (
+                                      {enumOptions?.map((option) => (
                                         <option key={option} value={option}>
                                           {option}
                                         </option>
@@ -2166,7 +2166,7 @@ export default function TaskList({ token }) {
                           onChange={(e) => setAssignedUserId(e.target.value)}
                         >
                           <option value="">Select a user</option>
-                          {users.map((user, index) => (
+                          {users?.map((user, index) => (
                             <option key={index} value={user?._id}>
                               {user?.UserName} ({capitalizeFirst(user?.Role)})
                             </option>
