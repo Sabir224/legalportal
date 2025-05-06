@@ -1362,32 +1362,26 @@ const Case_details = ({ token }) => {
     <div
       className="container-fluid m-0 p-0"
       style={{
-        maxHeight: "86vh", // yeh maximum height set karega
-        overflowY: "auto", // aur yeh scroll enable karega agar content zyada ho
+        maxHeight: "84vh", // yeh maximum height set karega
+        overflowY: "hidden", // aur yeh scroll enable karega agar content zyada ho
         padding: "0 10px",
       }}
     >
       <div className="row m-0 w-80">
         {/* Left Sidebar Column */}
-        <div className="d-md-none  w-100">
-          <button
-            className="btn btn-primary w-100"
-            onClick={() => setShowSidebar(!showSidebar)}
+        <div className="d-md-none w-100">
+          <div
+            className="p-4 rounded mt-2"
+            style={{
+              background: "#d3b386",
+              boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
+              height: "30vh", // 30% of viewport height
+              overflowY: "auto", // scroll if content exceeds
+            }}
           >
-            {showSidebar ? "Hide Menu" : "Show Menu"}
-          </button>
-          {showSidebar && (
-            <div
-              className="p-4 rounded mt-2"
-              style={{
-                background: "#d3b386",
-                boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.2)",
-              }}
-            >
-              {/* Sidebar content here */}
-              {renderSidebarContent()}
-            </div>
-          )}
+            {/* Sidebar content here */}
+            {renderSidebarContent()}
+          </div>
         </div>
 
         {/* Sidebar for md and larger */}
@@ -1416,7 +1410,6 @@ const Case_details = ({ token }) => {
               overflowY: "auto",
               padding: "0 10px",
             }}
-            className="main-content-container"
           >
             <div className="row g-2">
               {/* First Line - Subject (70%) and Amount (30%) */}

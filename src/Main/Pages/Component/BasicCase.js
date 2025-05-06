@@ -591,8 +591,13 @@ const BasicCase = ({ token }) => {
 
   return (
     <div
-      className="container-fluid m-0 p-0"
-      style={{ height: "84vh", overflowY: "auto" }}
+      className="container-fluid m-0 p-0 w-80"
+      style={{
+        height: "84vh",
+        overflowY: "auto",
+        overflowX: "hidden",
+        maxWidth: "100%",
+      }}
     >
       {/* Search and Filters Section */}
       <div className="row mb-3 g-2 align-items-center px-2">
@@ -625,9 +630,16 @@ const BasicCase = ({ token }) => {
             .map((item, index) => (
               <div key={index} className="border-bottom">
                 {/* Mobile View */}
-                <div className="d-md-none p-3">
+                <div
+                  className="d-md-none p-3"
+                  style={{
+                    overflowX: "hidden",
+                    maxWidth: "100%",
+                    maxHeight: "83vh",
+                  }}
+                >
                   {/* Status and Actions Row */}
-                  <div className="d-flex justify-content-between align-items-center mb-3">
+                  <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-2">
                       <span
                         className={`rounded-circle ${
@@ -671,16 +683,13 @@ const BasicCase = ({ token }) => {
                             >
                               Assign Case
                             </Dropdown.Item>
-
                             <Dropdown.Item
                               onClick={async (event) => {
                                 event.stopPropagation();
                                 setLoaderOpen(true);
                                 try {
                                   const response = await updateFunction(item);
-                                  if (response?.success) {
-                                    setLoaderOpen(false);
-                                  }
+                                  if (response?.success) setLoaderOpen(false);
                                 } catch (err) {
                                   console.error("Update failed", err);
                                   setLoaderOpen(false);
@@ -691,7 +700,6 @@ const BasicCase = ({ token }) => {
                             </Dropdown.Item>
                           </>
                         )}
-
                         <Dropdown.Item
                           onClick={(e) => {
                             if (
@@ -708,35 +716,32 @@ const BasicCase = ({ token }) => {
                     </Dropdown>
                   </div>
 
-                  {/* Data Fields - Each on its own line */}
+                  {/* Data Fields */}
                   <div className="d-flex flex-column gap-2">
-                    {/* Case Number */}
-                    <div className="d-flex">
+                    <div className="d-flex flex-wrap">
                       <span
                         className="text-muted me-2"
-                        style={{ width: "80px" }}
+                        style={{ minWidth: "80px", wordBreak: "break-word" }}
                       >
                         Case #:
                       </span>
                       <span className="fw-medium">{item["CaseNumber"]}</span>
                     </div>
 
-                    {/* Request Number - now below Case */}
-                    <div className="d-flex">
+                    <div className="d-flex flex-wrap">
                       <span
                         className="text-muted me-2"
-                        style={{ width: "80px" }}
+                        style={{ minWidth: "80px", wordBreak: "break-word" }}
                       >
                         Request #:
                       </span>
                       <span className="fw-medium">{item["SerialNumber"]}</span>
                     </div>
 
-                    {/* Type */}
-                    <div className="d-flex">
+                    <div className="d-flex flex-wrap">
                       <span
                         className="text-muted me-2"
-                        style={{ width: "80px" }}
+                        style={{ minWidth: "80px", wordBreak: "break-word" }}
                       >
                         Type:
                       </span>
@@ -745,7 +750,6 @@ const BasicCase = ({ token }) => {
                       </span>
                     </div>
 
-                    {/* Purpose - already on its own line */}
                     <div>
                       <div className="text-muted mb-1">Purpose:</div>
                       <input
@@ -757,6 +761,7 @@ const BasicCase = ({ token }) => {
                     </div>
                   </div>
                 </div>
+
                 {/* Desktop View - Horizontal Layout */}
                 <div
                   className="d-none d-md-flex justify-content-between align-items-center p-3"

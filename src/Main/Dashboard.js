@@ -31,7 +31,12 @@ import {
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
-import { Caseinfo, clientEmail, goBackScreen, screenChange } from "../REDUX/sliece";
+import {
+  Caseinfo,
+  clientEmail,
+  goBackScreen,
+  screenChange,
+} from "../REDUX/sliece";
 import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
@@ -305,20 +310,17 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${isCollapsed ? "col-1" : "col-2"
-          } h-100 position-relative`}
+        className={`sidebar d-flex flex-column text-white position-relative ${
+          isCollapsed ? "col-1" : "col-2"
+        }`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
-          borderRadius: "6px",
-          backgroundColor: "#18273e",
-          transition: "all 0.3s ease",
-          paddingTop: "10px",
         }}
       >
-        {/* Collapse Toggle */}
+        {/* Collapse Toggle - hidden on small screens via CSS */}
         <div
-          className="d-flex justify-content-center align-items-center mb-3"
+          className="sidebar-toggle d-none d-lg-flex justify-content-center align-items-center mb-3"
           onClick={toggleCollapse}
           style={{
             position: "absolute",
@@ -344,11 +346,13 @@ const Dashboard = () => {
         <div className="d-flex flex-column align-items-start px-2 mt-3">
           {[
             {
-              icon: faHome, label: "Home", action: () => {
+              icon: faHome,
+              label: "Home",
+              action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                handlescreen2(0)
-              }
+                handlescreen2(0);
+              },
             },
             {
               icon: faMessage,
@@ -356,45 +360,45 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                handlescreen2(3)
-              }
+                handlescreen2(3);
+              },
             },
             decodedToken?.Role === "admin"
               ? {
-                icon: faPersonCircleCheck,
-                label: "View Users",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(9)
+                  icon: faPersonCircleCheck,
+                  label: "View Users",
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                    handlescreen2(9);
+                  },
                 }
-              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                icon: faCcMastercard,
-                label: "Add Case",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(11)
+                  icon: faCcMastercard,
+                  label: "Add Case",
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                    handlescreen2(11);
+                  },
                 }
-              }
               : null,
-            decodedToken?.Role !== "client" ?
-              {
-                icon: faTasksAlt,
-                label: "View Task",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(14);
+            decodedToken?.Role !== "client"
+              ? {
+                  icon: faTasksAlt,
+                  label: "View Task",
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                    handlescreen2(14);
+                  },
                 }
-              }
               : null,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
-            .filter(Boolean) // Removes `null` or `false` values
+            .filter(Boolean)
             .map((item, index) => (
               <div
                 key={index}
@@ -404,6 +408,7 @@ const Dashboard = () => {
               >
                 <FontAwesomeIcon
                   icon={item.icon}
+                  title={item.label} // Add title for hover effect
                   style={{
                     fontSize: "20px",
                     color: "white",
@@ -412,11 +417,8 @@ const Dashboard = () => {
                 />
                 {!isCollapsed && (
                   <span
-                    className="d-inline-block text-truncate"
-                    style={{
-                      fontSize: "16px",
-                      maxWidth: "150px",
-                    }}
+                    className="sidebar-label d-none d-lg-inline text-truncate"
+                    style={{ fontSize: "16px", maxWidth: "150px" }}
                   >
                     {item.label}
                   </span>
@@ -482,7 +484,7 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
-                  handlescreen2(8)
+                  handlescreen2(8);
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
               >
@@ -503,9 +505,8 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
-                  handlescreen2(11)
-                }
-                }
+                  handlescreen2(11);
+                }}
                 style={{ gap: "10px", cursor: "pointer" }}
               >
                 <FontAwesomeIcon
@@ -523,22 +524,22 @@ const Dashboard = () => {
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-                <button
-                  className="btn me-2"
-                  onClick={() => {
-                    dispatch(Caseinfo(null));
-                    dispatch(clientEmail(null));
-                    handlescreen2(5);
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faUser}
-                    size="1x"
-                    color="white"
-                    className=""
-                  />
-                </button>
-              )}
+              <button
+                className="btn me-2"
+                onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+                  handlescreen2(5);
+                }}
+              >
+                <FontAwesomeIcon
+                  icon={faUser}
+                  size="1x"
+                  color="white"
+                  className=""
+                />
+              </button>
+            )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
