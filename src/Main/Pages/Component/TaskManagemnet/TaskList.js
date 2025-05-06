@@ -931,13 +931,29 @@ import axios from 'axios'
 
 import React, { useEffect, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
+import DatePicker from "react-datepicker";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import SocketService from "../../../../SocketService";
 
 export default function TaskList({ token }) {
   const [todos, setTodos] = useState([]);
 
 
+
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchtask();
+    };
+
+    SocketService.socket.off("TaskManagement", handleMessagesDelivered);
+    SocketService.onTaskManagement(handleMessagesDelivered);
+  }, []);
 
 
   useEffect(() => {
@@ -958,10 +974,12 @@ export default function TaskList({ token }) {
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const fetchUsers = async (taskdetails) => {
     let id = taskdetails?.caseId?.value?._id
-    console.log("taskdetails", taskdetails?.caseId?.value?._id)
+    console.log("taskdetails", taskdetails)
     try {
-      const response = await axios.get(`${ApiEndPoint}getCaseAssignedUsersIdsAndUserName/${id}`);
+      const response = await axios.get(`${ApiEndPoint}getCaseAssignedUsersIdsAndUserName/${taskdetails}`);
       const allUsers = response.data.AssignedUsers || [];
+      console.log("taskdetails", allUsers)
+
       setUsers(allUsers);
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -1037,12 +1055,11 @@ export default function TaskList({ token }) {
   const isclient = token?.Role === "client"
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTaskName, setNewTaskName] = useState("");
-  const [newAssignedUserId, setNewAssignedUserId] = useState("");
+  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState("");
+  const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
 
-
-
-  const handleAddNewTask = async (name, caseId) => {
-    if (!caseId) return alert("Please fill all fields");
+  const handleAddNewTask = async (name, caseId, userid) => {
+    if (!caseId || !userid) return alert("select Must User and Case");
 
     // const newTask = {
     //   taskName: { value: name },
@@ -1053,18 +1070,24 @@ export default function TaskList({ token }) {
     //   subtasks: [],
     // };
 
+    console.log(userid)
     try {
       const subtask = {
         caseId: caseId,
         createdBy: token._id,
+        assignedUsers: [userid]
       };
       console.log("empty sub task", subtask)
       //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
-      const response = await createSubtaskApi(selectedCaseId, subtask); // backend default fields set kare
+      const response = await createSubtaskApi(selectedCaseId, subtask);
       const newSubtask = response.data;
+      SocketService.TaskManagement(newSubtask);
+
+      // backend default fields set kare
 
       const previousOpenTaskId = openTaskId;
       console.log("previousOpenTaskId=", previousOpenTaskId)
+
       await fetchtask();
       await setOpenTaskId(previousOpenTaskId);
       console.log("openTaskId=", openTaskId)
@@ -1262,16 +1285,16 @@ export default function TaskList({ token }) {
   const addColumn = async () => {
     const trimmedColumnName = newColumnName.trim(); // Remove both leading and trailing spaces
     if (!trimmedColumnName) return;
-  
+
     const newId = trimmedColumnName.toLowerCase().replace(/\s+/g, "-");
-  
+
     // Check if the column already exists in UI
     const existingColumn = columns.find((column) => column.id === newId);
     if (existingColumn) {
       alert("⚠️ Column already exists in UI!");
       return;
     }
-  
+
     try {
       // Check if the column exists in backend
       const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`);
@@ -1279,24 +1302,25 @@ export default function TaskList({ token }) {
         alert("⚠️ Column name already exists in the database!");
         return;
       }
-  
+
       const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
       const url = `${ApiEndPoint}AddColumnInSchema/${trimmedColumnName}/${newColumnType}/${encodedEnum}`;
       const response = await axios.put(url);
-  
+
       if (response.status === 200) {
         alert(`✅ ${response.data.message}`);
-  
+        SocketService.TaskManagement(response);
+
         const newColumn = {
           id: newId,
           label: trimmedColumnName,
           type: newColumnType,
         };
-  
+
         if (newColumnType === "dropdown") {
           newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
         }
-  
+
         setNewColumnName("");
         setNewColumnType("text");
         setNewColumnOptions("");
@@ -1312,7 +1336,7 @@ export default function TaskList({ token }) {
       alert('❌ Failed to add the column.');
     }
   };
-    
+
   const handleFieldChange = (taskId, key, newValue, isSubtask = false, subtaskId = null) => {
     setTodos((prevTodos) =>
       prevTodos.map((task) => {
@@ -1387,6 +1411,7 @@ export default function TaskList({ token }) {
 
       if (response.status === 200) {
         alert(`🗑️ ${response.data.message}`);
+        SocketService.TaskManagement(response);
 
         // Optionally remove it from local UI too
         setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
@@ -1457,6 +1482,8 @@ export default function TaskList({ token }) {
       //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
       const response = await createSubtaskApi(selectedCaseId, subtask); // backend default fields set kare
       const newSubtask = response.data;
+      SocketService.TaskManagement(newSubtask);
+
 
       const previousOpenTaskId = openTaskId;
       console.log("previousOpenTaskId=", previousOpenTaskId)
@@ -1497,6 +1524,8 @@ export default function TaskList({ token }) {
         value
       });
       setAssignedUserId([])
+      SocketService.TaskManagement(response);
+
       fetchtask()
       console.log("Task updated:", response.data);
     } catch (error) {
@@ -1529,6 +1558,8 @@ export default function TaskList({ token }) {
         throw new Error("Failed to delete task");
       }
 
+      SocketService.TaskManagement(response);
+
       // Optionally: Show success message
       alert("Task deleted successfully");
 
@@ -1542,26 +1573,56 @@ export default function TaskList({ token }) {
     // deleteTask(taskId); // Your logic here
   };
 
-
   const handleSubtaskFieldBlur = async (taskId, key, value, subtaskId) => {
     console.log("Subtask API call on blur", { taskId, key, value, subtaskId });
-    taskId = subtaskId
+
+    taskId = subtaskId;
+
+    if (key === "date") {
+      try {
+        let dateObj;
+
+        if (typeof value === "string") {
+          // Parse only yyyy-MM-dd format to date with no time
+          const [year, month, day] = value.split("-");
+          dateObj = new Date(Date.UTC(+year, +month - 1, +day)); // UTC midnight
+        } else if (value instanceof Date && !isNaN(value)) {
+          // If already a Date, reset time to midnight
+          dateObj = new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate()));
+        }
+
+        if (!dateObj || isNaN(dateObj)) {
+          console.error("Invalid date value:", value);
+          return;
+        }
+
+        // Send full ISO string to MongoDB (e.g. 2025-05-06T00:00:00.000Z)
+        value = dateObj.toISOString();
+      } catch (e) {
+        console.error("Error parsing date:", e);
+        return;
+      }
+    }
+
+    console.log("API function value:", value);
 
     try {
       const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
         taskId,
         key,
-        value
+        value,
       });
+
+      SocketService.TaskManagement(response);
+
       const previousOpenTaskId = openTaskId;
-      await fetchtask()
+      await fetchtask();
       setOpenTaskId(previousOpenTaskId);
+
       console.log("Task updated:", response.data);
     } catch (error) {
       console.error("Failed to update task:", error);
-
     }
-
   };
 
 
@@ -1722,7 +1783,12 @@ export default function TaskList({ token }) {
               {keys.map((key) => (
                 <th key={key}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <div>{key}</div>
+                    <div>
+                      {key
+                        .split(/(?=[A-Z])/)
+                        .join(" ") // Add space before capital letters
+                        .replace(/^./, (str) => str.toUpperCase())} {/* Format key */}
+                    </div>
                     {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate") &&
                       <div>
                         <FaTrash
@@ -1735,6 +1801,7 @@ export default function TaskList({ token }) {
                   </div>
                 </th>
               ))}
+
               {!isclient &&
                 <th>
                   <FaPlus
@@ -1743,6 +1810,7 @@ export default function TaskList({ token }) {
                   />
                 </th>
               }
+
             </tr>
           </thead>
 
@@ -1846,15 +1914,12 @@ export default function TaskList({ token }) {
                       const today = new Date().toISOString().split("T")[0];
 
                       content = (
-                        <input
-                          type="date"
-                          placeholder="dd-mm-yyyy"
-                          value={dateValue}
-                          min={today}
-                          onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                          }}
-                          onBlur={handleBlur}
+                        <DatePicker
+                          selected={value ? new Date(value) : null}
+                          onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
+                          dateFormat="dd/MM/yyyy"
+                          placeholderText="dd/mm/yyyy"
+                          onBlur={() => handleFieldBlur(taskId, key, value, isSubtask, subtaskId)}
                           disabled={isclient}
                         />
                       );
@@ -1897,7 +1962,11 @@ export default function TaskList({ token }) {
                             {keys.map((key) => (
                               <th key={key}>
                                 <div style={{ display: "flex", alignItems: "center" }}>
-                                  <div>{key}</div>
+                                  <div> {key
+                                    .split(/(?=[A-Z])/)
+                                    .join(" ") // Add space before capital letters
+                                    .replace(/^./, (str) => str.toUpperCase())} {/* Format key */}
+                                  </div>
                                 </div>
                               </th>
                             ))}
@@ -1919,6 +1988,7 @@ export default function TaskList({ token }) {
 
                                 const handleBlur = (e) => {
                                   const newValue = normalizedType === "boolean" ? e.target.checked : e.target.value;
+                                  console.log("handleBlur calling", newValue)
                                   handleSubtaskFieldBlur(taskId, key, newValue, subtaskId);
                                 };
 
@@ -1990,20 +2060,25 @@ export default function TaskList({ token }) {
                                     />
                                   );
                                 } else if (normalizedType === "date") {
-                                  const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
-                                  const today = new Date().toISOString().split("T")[0];
+                                  const dateValue = value ? new Date(value) : null;
+                                  const today = new Date();
 
                                   content = (
-                                    <input
-                                      type="date"
-                                      disabled={isclient}
-
-                                      value={dateValue}
-                                      min={today}
-                                      onChange={(e) =>
-                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
-                                      }
+                                    <DatePicker
+                                      selected={dateValue}
+                                      onChange={(date) => {
+                                        if (date) {
+                                          console.log("date=", date.toISOString())
+                                          handleSubtaskFieldChange(taskId, key, date, subtaskId);
+                                        }
+                                      }}
                                       onBlur={handleBlur}
+                                      // showTimeSelect
+                                      dateFormat="dd-MM-yyyy"
+                                      // timeFormat="HH:mm"
+                                      minDate={today}
+                                      disabled={isclient}
+                                      placeholderText="Select date and time"
                                     />
                                   );
                                 } else {
@@ -2177,46 +2252,62 @@ export default function TaskList({ token }) {
         </Modal.Header>
         <Modal.Body>
           <Form>
-            {/* <Form.Group className="mb-3">
-              <Form.Label>Task Name</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter task name"
-                value={newTaskName}
-                onChange={(e) => setNewTaskName(e.target.value)}
-              />
-            </Form.Group> */}
-
             <Form.Group className="mb-3">
               <Form.Label>Assign Case</Form.Label>
               <Form.Select
-                value={newAssignedUserId}
-                onChange={(e) => setNewAssignedUserId(e.target.value)}
+                value={newAssignedTaskCase}
+                onChange={(e) => {
+                  fetchUsers(e.target.value)
+                  setNewAssignedTaskCase(e.target.value)
+                }}
               >
                 <option value="">Select a Case</option>
-                {allCases.map((user) => (
-                  <option key={user._id} value={user._id}>
-                    {user.CaseNumber}
+                {allCases?.map((user) => (
+                  <option key={user?._id} value={user?._id}>
+                    {user?.CaseNumber}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
+
+            {users?.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Assigned Users</Form.Label>
+                <Form.Select
+                  value={assignedUsersForCase}
+                  onChange={(e) => {
+                    console.log("event e=", e.target.value)
+                    setAssignedUsersForCase(e.target.value)
+                  }}
+                >
+                  <option value="">Select Assigned User</option>
+                  {users?.map((user) => (
+                    <option key={user?.id} value={user?.id}>
+                      {user?.UserName} ({user?.Role})
+                    </option>
+                  ))}
+                </Form.Select>
+              </Form.Group>
+            )}
           </Form>
         </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowTaskModal(false)}>
+        <Modal.Footer >
+
+          <Button className="btn btn-primary" onClick={() => setShowTaskModal(false)}>
             Cancel
           </Button>
           <Button
-            variant="primary"
+            className="btn btn"
             onClick={() => {
-              handleAddNewTask(newTaskName, newAssignedUserId);
+              handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
               setShowTaskModal(false);
               setNewTaskName("");
-              setNewAssignedUserId("");
+              setNewAssignedTaskCase("");
+              setAssignedUsersForCase("")
+              setUsers([])
             }}
           >
-            Save Task
+            Save
           </Button>
         </Modal.Footer>
       </Modal>

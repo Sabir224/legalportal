@@ -1,9 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 // services/SocketService.js
 import { io } from "socket.io-client";
-const ApiBase = "https://portal.aws-legalgroup.com";
+// const ApiBase = "https://portal.aws-legalgroup.com";
 //const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
-//const ApiBase = "http://localhost:5001"; // Use this for local testing
+const ApiBase = "http://localhost:5001"; // Use this for local testing
 
 const socket = io(ApiBase, {
   transports: ["websocket"], // Force WebSocket connection
@@ -183,6 +183,24 @@ const onBookAppointment = (callback) => {
   });
 };
 
+const TaskManagement = (update) => {
+  console.log("Task Updated", update);
+  if (socket.connected) {
+    console.log("task update socket emit")
+    socket.emit("Tasksave", update);
+    
+  } else {
+    console.log("Socket Not Connected_____________");
+  }
+};
+const onTaskManagement = (callback) => {
+  socket.off("TaskManagement");
+  socket.on("TaskManagement", (data) => {
+    console.log("📨 Received TaskManagement event:", data);
+    callback(data);
+  });
+};
+
 // Export functions
 
 export default {
@@ -202,4 +220,6 @@ export default {
   joinChat,
   bookAppointment,
   onBookAppointment,
+  TaskManagement,
+  onTaskManagement
 };
