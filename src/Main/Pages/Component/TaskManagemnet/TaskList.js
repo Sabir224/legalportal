@@ -1791,25 +1791,27 @@ export default function TaskList({ token }) {
                     </div>
                     {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate") &&
                       <div>
-                        <FaTrash
-                          className="delete-column-icon"
-                          onClick={() => deleteColumn(key)}
-                          title="Delete column"
-                        />
+                        {token?.Role === "admin" &&
+                          <FaTrash
+                            className="delete-column-icon"
+                            onClick={() => deleteColumn(key)}
+                            title="Delete column"
+                          />
+                        }
                       </div>
                     }
                   </div>
                 </th>
               ))}
 
-              {!isclient &&
-                <th>
+              <th>
+                {token?.Role === "admin" &&
                   <FaPlus
                     className="plus-icon"
                     onClick={() => setAddingColumn(true)}
                   />
-                </th>
-              }
+                }
+              </th>
 
             </tr>
           </thead>
