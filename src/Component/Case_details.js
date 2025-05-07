@@ -439,7 +439,9 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client"
             ? [{ label: "View Client", onClick: handleViewClientDetails }]
             : []),
-          { label: "View Task", onClick: handleViewTask },
+          ...(token?.Role !== "client"
+            ? [{ label: "View Task", onClick: handleViewTask }]
+            : []),
           ...(token?.Role !== "client"
             ? [{ label: "Add Task", onClick: handleAddTask }]
             : []),
