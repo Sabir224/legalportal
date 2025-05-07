@@ -9,51 +9,70 @@ import ResetPassword from "./Main/Pages/ResetPassword";
 import ForgotPassword from "./Main/Pages/ForgotPassword";
 import { useGlobalTokenCheck } from "./Main/Pages/Component/utils/useGlobalTokenCheck";
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+} from "react-router-dom";
 import { useCookies } from "react-cookie";
 
 import { useEffect, useState } from "react";
-import { useAuthValidator } from "./Main/Pages/Component/utils/validatteToke";
+import { useAuth } from "./Main/Pages/Component/utils/validatteToke";
 import { Spinner } from "react-bootstrap";
-
-// Protected Route Component
-
-const ProtectedRoute = ({ element }) => {
-  const { validator, tokenChecked } = useAuthValidator();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+import CasedetailsWithLink from "./Component/CaseDetailsWithLink";
+import ClientAppointMentWithLink from "./Main/Pages/ClientAppointMentWithLink";
+import ViewFolderWithLink from "./Main/Pages/Component/Casedetails/ViewFolderWithLink";
+const ProtectedRoute = ({ children }) => {
+  const { validateToken, isAuthenticated } = useAuth();
+  const location = useLocation();
+  const [isValidToken, setIsValidToken] = useState(null);
 
   useEffect(() => {
-    if (tokenChecked) {
-      const result = validator.validateToken();
-      setIsAuthenticated(result);
-    }
-  }, [tokenChecked, validator]);
+    const checkAuth = async () => {
+      const isValid = await validateToken();
 
-  if (!tokenChecked || isAuthenticated === null) {
+      if (!isValid) {
+        // Only store if it's not the login or dashboard
+        if (location.pathname !== "/" && location.pathname !== "/Dashboards") {
+          localStorage.setItem("redirectPath", location.pathname);
+        }
+      }
+
+      setIsValidToken(isValid);
+    };
+
+    checkAuth();
+  }, [location.pathname]);
+
+  if (isValidToken === null) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Spinner color="#36d7b7" size={60} />
+      <div className="centered">
+        <Spinner animation="border" />
       </div>
     );
   }
 
-  return isAuthenticated ? element : <Navigate to="/" replace />;
+  if (!isAuthenticated || !isValidToken) {
+    return <Navigate to="/" replace />;
+  }
+
+  return children;
 };
 
-// Global Token Check Component
 const GlobalTokenValidator = () => {
-  const { validator, tokenChecked } = useAuthValidator();
+  const { validateToken } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
+    const redirectPath = localStorage.getItem("redirectPath");
+
+    // Don't validate if user is on the redirect path
+    if (location.pathname === redirectPath) return;
+
     const handleInteraction = () => {
-      validator.validateToken();
+      validateToken();
     };
 
     const events = ["click", "keydown"];
@@ -66,7 +85,7 @@ const GlobalTokenValidator = () => {
         window.removeEventListener(event, handleInteraction)
       );
     };
-  }, [validator]);
+  }, [location.pathname, validateToken]);
 
   return null;
 };
@@ -85,11 +104,43 @@ function App() {
         {/* Protected routes */}
         <Route
           path="/Dashboards"
-          element={<ProtectedRoute element={<Dashboard />} />}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/case/:caseId/:userId"
+          element={
+            <ProtectedRoute>
+              <CasedetailsWithLink />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/client-appointment/:caseId/:userId"
+          element={
+            <ProtectedRoute>
+              <ClientAppointMentWithLink />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/folders/:caseId/:userId"
+          element={
+            <ProtectedRoute>
+              <ViewFolderWithLink />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/CaseDetails"
-          element={<ProtectedRoute element={<Case_details />} />}
+          element={
+            <ProtectedRoute>
+              <Case_details />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

@@ -43,9 +43,10 @@ import {
 import SocketService from "../../SocketService";
 import { useSelector } from "react-redux";
 import ErrorModal from "./AlertModels/ErrorModal";
+import { useParams } from "react-router-dom";
 // import { ApiEndPoint } from "../../utils/utils";
 
-const ClientAppointment = () => {
+const ClientAppointMentWithLink = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -64,6 +65,7 @@ const ClientAppointment = () => {
   const [subject, setSubject] = useState("Meeting Confirmation");
   const [ClientMessage, setClientMessage] = useState("");
   const [selectedslot, setslot] = useState("");
+  const { caseId, userId } = useParams(); // Get from URL
 
   const storedEmail = sessionStorage.getItem("Email");
 
@@ -111,12 +113,12 @@ const ClientAppointment = () => {
 
   const [imageUrl, setImageUrl] = useState("");
 
-  // useEffect(() => {
-  //   fetch("http://172.16.18.250:8080/api/upload") // Replace with your API URL
-  //     .then((response) => response.json())
-  //     .then((data) => setImageUrl(data.imageUrl)) // Adjust based on API response
-  //     .catch((error) => console.error("Error fetching image:", error));
-  // }, []);
+  useEffect(() => {
+    fetch("http://172.16.18.250:8080/api/upload") // Replace with your API URL
+      .then((response) => response.json())
+      .then((data) => setImageUrl(data.imageUrl)) // Adjust based on API response
+      .catch((error) => console.error("Error fetching image:", error));
+  }, []);
 
   const fetchLawyerDetails = async () => {
     setLoading(true);
@@ -125,7 +127,7 @@ const ClientAppointment = () => {
     try {
       // 1. Get lawyer ID from case
       const lawyerIdRes = await axios.get(
-        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
+        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseId}`
       );
       lawyerid = lawyerIdRes.data?.LawyerId;
 
@@ -165,7 +167,7 @@ const ClientAppointment = () => {
       // console.log("Client Data:", caseInfo?.ClientId);
       // 4. Get client details
       const clientDetailsRes = await axios.get(
-        `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
+        `${ApiEndPoint}getClientDetailsByUserId/${userId}`
       );
       // console.log("Client Data:", clientDetailsRes);
       setClientDetails(clientDetailsRes.data);
@@ -943,4 +945,4 @@ const ClientAppointment = () => {
   );
 };
 
-export default ClientAppointment;
+export default ClientAppointMentWithLink;

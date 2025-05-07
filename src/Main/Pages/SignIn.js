@@ -3,7 +3,7 @@ import { BsPerson, BsLock } from "react-icons/bs";
 import Logo from "../Pages/Images/logo.png";
 import ilustration from "../Pages/Images/as.png";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import { Button, Col, Container, Form, Row } from "react-bootstrap";
 import { useMediaQuery } from "react-responsive";
@@ -21,6 +21,7 @@ const SignIn = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [cookies, setCookie, removeCookie] = useCookies(["user"]);
+  const location = useLocation();
 
   const handleNavigation = async (e) => {
     console.log("Clicked on Button");
@@ -49,15 +50,16 @@ const SignIn = () => {
           sameSite: "lax",
         });
 
-        console.log("Token stored in cookies:", data.token);
+        const from = localStorage.getItem("redirectPath") || "/Dashboards";
 
-        // Wait for token to be stored in cookies
+        // Navigate after a short delay
         setTimeout(() => {
-          navigate("/Dashboards", { replace: true });
-        }, 2000); // Small delay to ensure token is available before navigation
+          localStorage.removeItem("redirectPath");
+          navigate(from, { replace: true });
+        }, 2000);
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Something went wrong");
+      setError(err.message || "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -106,52 +108,6 @@ const SignIn = () => {
           }}
         >
           <Row style={{ height: "100%", justifyContent: "center" }}>
-            {/* {!isTabletOrSmaller && (
-            <Col
-              sm={12}
-              md={6}
-              lg={6}
-              className="d-flex align-items-stretch justify-content-center"
-              style={{
-                backgroundColor: "#18273e",
-              }}
-            >
-              <div
-                className="d-flex flex-column justify-content-center align-items-center"
-                style={{ height: "100%", width: "100%" }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                  }}
-                >
-                  <img
-                    src={ilustration}
-                    alt="Login Illustration"
-                    style={{
-                      height: "100%", // Adjusts the height dynamically
-                      width: "100%",
-                      objectFit: "contain",
-                      padding: "20px",
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    flexShrink: 0,
-                    fontSize: 24,
-                    color: "grey",
-                    letterSpacing: 4,
-                  }}
-                >
-                  Ecco Bot
-                </div>
-              </div>
-            </Col>
-          )} */}
             <Col
               sm={12}
               md={isTabletOrSmaller ? 12 : 6}

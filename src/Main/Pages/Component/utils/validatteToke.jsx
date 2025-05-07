@@ -1,9 +1,9 @@
-import { useEffect, useState } from "react";
 import { useCookies } from "react-cookie";
-import { useNavigate } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
-class AuthValidator {
+class AuthService {
   constructor() {
     this.cookies = null;
     this.removeCookie = null;
@@ -16,70 +16,74 @@ class AuthValidator {
     this.navigate = navigate;
   }
 
-  validateToken() {
-    const token = this.cookies?.token;
-
-    if (!token) {
-      // Delay a bit to ensure token is loaded (in case of refresh)
-      setTimeout(() => {
-        const retryToken = this.cookies?.token;
-        if (!retryToken) {
-          console.log("No token found after retry");
-          this.removeCookie("token");
-          this.navigate("/");
-        } else {
-          this.validateToken(); // try again
-        }
-      }, 3000);
-      return false;
-    }
-
+  async validateToken() {
     try {
-      const decodedToken = jwtDecode(token);
+      const token = this.cookies?.token;
 
-      const currentTime = Date.now() / 1000;
-      const isExpired = decodedToken.exp < currentTime;
-      const hasRequiredFields =
-        decodedToken._id && decodedToken.email && decodedToken.Role;
-
-      if (isExpired || !hasRequiredFields) {
-        console.log("Token expired or missing fields");
-        this.removeCookie("token");
-        this.navigate("/");
+      if (!token) {
+        console.log("No token found");
+        this.redirectToLogin();
         return false;
       }
 
-      console.log("Token is valid");
+      const decodedToken = jwtDecode(token);
+      const currentTime = Date.now() / 1000;
+
+      // Check token expiration
+      if (decodedToken.exp < currentTime) {
+        console.log("Token expired");
+        this.redirectToLogin();
+        return false;
+      }
+
+      // Check required fields
+      if (!decodedToken._id || !decodedToken.email || !decodedToken.Role) {
+        console.log("Token missing required fields");
+        this.redirectToLogin();
+        return false;
+      }
+
       return true;
     } catch (error) {
-      console.error("Token decoding failed:", error);
-      this.removeCookie("token");
-      this.navigate("/");
+      console.error("Token validation error:", error);
+      this.redirectToLogin();
       return false;
+    }
+  }
+
+  redirectToLogin() {
+    this.removeCookie("token");
+    this.navigate("/", {
+      state: { from: window.location.pathname },
+      replace: true,
+    });
+  }
+
+  getTokenData() {
+    try {
+      const token = this.cookies?.token;
+      if (!token) return null;
+      return jwtDecode(token);
+    } catch (error) {
+      console.error("Error decoding token:", error);
+      return null;
     }
   }
 }
 
-export const authValidator = new AuthValidator();
+export const authService = new AuthService();
 
-export const useAuthValidator = () => {
+export const useAuth = () => {
   const [cookies, , removeCookie] = useCookies(["token"]);
   const navigate = useNavigate();
-  const [tokenChecked, setTokenChecked] = useState(false);
 
   useEffect(() => {
-    authValidator.initialize(cookies, removeCookie, navigate);
-
-    const interval = setInterval(() => {
-      const result = authValidator.validateToken();
-      if (result !== null) {
-        setTokenChecked(true);
-        clearInterval(interval);
-      }
-    }, 500); // check every 500ms until token is available
-
-    return () => clearInterval(interval);
+    authService.initialize(cookies, removeCookie, navigate);
   }, [cookies, removeCookie, navigate]);
 
-  return { validator: authValidator, tokenChecked };
+  return {
+    validateToken: authService.validateToken.bind(authService),
+    getTokenData: authService.getTokenData.bind(authService),
+    isAuthenticated: !!cookies.token,
+  };
 };
