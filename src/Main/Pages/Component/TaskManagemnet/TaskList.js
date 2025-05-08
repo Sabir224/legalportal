@@ -935,10 +935,57 @@ import DatePicker from "react-datepicker";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import SocketService from "../../../../SocketService";
+import ErrorModal from "../../AlertModels/ErrorModal";
+import ConfirmModal from "../../AlertModels/ConfirmModal";
+import SuccessModal from "../../AlertModels/SuccessModal";
 
 export default function TaskList({ token }) {
-  const [todos, setTodos] = useState([]);
 
+
+
+  const [todos, setTodos] = useState([]);
+  const [openTasks, setOpenTasks] = useState([]);
+  const [addingSubtaskFor, setAddingSubtaskFor] = useState(null);
+  const [newSubtaskName, setNewSubtaskName] = useState("");
+
+  const [addingColumn, setAddingColumn] = useState(false);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [newColumnType, setNewColumnType] = useState("text");
+  const [newColumnOptions, setNewColumnOptions] = useState("");
+  const [isSubtask, setIsSubtask] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  // const [newSubtaskName, setNewSubtaskName] = useState('');
+  const [assignedUserId, setAssignedUserId] = useState([]);
+  const [parentId, setParentId] = useState();
+  const [users, setUsers] = useState([]); // Fill this from API or props
+  const [allCases, setAllCases] = useState([]); // Fill this from API or props
+  const isclient = token?.Role === "client"
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState("");
+  const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
+  const [editingAssignedUser, setEditingAssignedUser] = useState(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState(null);
+  const [editingAssignedSubtaskId, setEditingAssignedSubtaskId] = useState(null);
+
+  const [isCaseInvalid, setIsCaseInvalid] = useState(false);
+  const [isUserInvalid, setIsUserInvalid] = useState(false);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+
+
+  const [showError, setShowError] = useState(false);
+  const [message, setMessage] = useState("");
+
+
+
+  const showSuccess = (msg) => {
+    setSuccessMessage(msg);
+    setShowSuccessModal(true);
+  };
 
 
   useEffect(() => {
@@ -1035,32 +1082,12 @@ export default function TaskList({ token }) {
     },
   ]);
 
-  const [openTasks, setOpenTasks] = useState([]);
-  const [addingSubtaskFor, setAddingSubtaskFor] = useState(null);
-  const [newSubtaskName, setNewSubtaskName] = useState("");
 
-  const [addingColumn, setAddingColumn] = useState(false);
-  const [newColumnName, setNewColumnName] = useState("");
-  const [newColumnType, setNewColumnType] = useState("text");
-  const [newColumnOptions, setNewColumnOptions] = useState("");
-  const [isSubtask, setIsSubtask] = useState(false);
-  const [openTaskId, setOpenTaskId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
-  // const [newSubtaskName, setNewSubtaskName] = useState('');
-  const [assignedUserId, setAssignedUserId] = useState([]);
-  const [parentId, setParentId] = useState();
-  const [users, setUsers] = useState([]); // Fill this from API or props
-  const [allCases, setAllCases] = useState([]); // Fill this from API or props
-  const isclient = token?.Role === "client"
-  const [showTaskModal, setShowTaskModal] = useState(false);
-  const [newTaskName, setNewTaskName] = useState("");
-  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState("");
-  const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
+
+
+
 
   const handleAddNewTask = async (name, caseId, userid) => {
-    if (!caseId || !userid) return alert("select Must User and Case");
-
     // const newTask = {
     //   taskName: { value: name },
     //   assignedUsers: { value: [{ _id: userId, UserName: users.find(u => u._id === userId)?.UserName }] },
@@ -1114,7 +1141,8 @@ export default function TaskList({ token }) {
   const handleSaveSubtask = async () => {
     // Validate fields
     if (!newSubtaskName || !assignedUserId) {
-      alert("Please fill all fields");
+      setMessage("Please fill all fields");
+      setShowError(true)
       return;
     }
 
@@ -1139,7 +1167,8 @@ export default function TaskList({ token }) {
       closeModal();
     } catch (error) {
       console.error('Error saving subtask:', error);
-      alert('Something went wrong while saving the subtask.');
+      setMessage('Something went wrong while saving the subtask.');
+      setShowError(true)
     }
   };
 
@@ -1148,8 +1177,6 @@ export default function TaskList({ token }) {
   const toggleTask = (taskId) => {
     // setOpenTaskId(taskId);
     setOpenTaskId((prevId) => (prevId === taskId ? null : taskId));
-
-
     // setOpenTasks((prev) =>
     //   prev.includes(taskId)
     //     ? prev.filter((id) => id !== taskId)
@@ -1291,7 +1318,8 @@ export default function TaskList({ token }) {
     // Check if the column already exists in UI
     const existingColumn = columns.find((column) => column.id === newId);
     if (existingColumn) {
-      alert("⚠️ Column already exists in UI!");
+      setMessage("⚠️ Column already exists in UI!");
+      setShowError(true)
       return;
     }
 
@@ -1299,7 +1327,8 @@ export default function TaskList({ token }) {
       // Check if the column exists in backend
       const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`);
       if (checkRes.data.exists) {
-        alert("⚠️ Column name already exists in the database!");
+        setMessage("⚠️ Column name already exists in the database!");
+        setShowError(true)
         return;
       }
 
@@ -1308,7 +1337,7 @@ export default function TaskList({ token }) {
       const response = await axios.put(url);
 
       if (response.status === 200) {
-        alert(`✅ ${response.data.message}`);
+        showSuccess(`✅ ${response.data.message}`);
         SocketService.TaskManagement(response);
 
         const newColumn = {
@@ -1329,11 +1358,13 @@ export default function TaskList({ token }) {
         await fetchtask();
         setOpenTaskId(previousOpenTaskId);
       } else {
-        alert('⚠️ Something went wrong while adding the column.');
+        setMessage('⚠️ Something went wrong while adding the column.');
+        setShowError(true)
       }
     } catch (error) {
       console.error('❌ Error adding column:', error);
-      alert('❌ Failed to add the column.');
+      setMessage('❌ Failed to add the column.');
+      setShowError(true)
     }
   };
 
@@ -1401,30 +1432,36 @@ export default function TaskList({ token }) {
 
 
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingColumn, setPendingColumn] = useState(null);
+
   const deleteColumn = async (columnName) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete column "${columnName}" from all tasks?`);
+    setPendingColumn(columnName);
+    setShowConfirm(true);
+  };
 
-    if (!confirmDelete) return;
-
+  const handleConfirmDelete = async () => {
+    setShowConfirm(false);
     try {
-      const response = await axios.delete(`${ApiEndPoint}DeleteColumnByName/${columnName}`);
+      const response = await axios.delete(`${ApiEndPoint}DeleteColumnByName/${pendingColumn}`);
 
       if (response.status === 200) {
-        alert(`🗑️ ${response.data.message}`);
+        showSuccess(`🗑️ ${response.data.message}`);
         SocketService.TaskManagement(response);
-
-        // Optionally remove it from local UI too
-        setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
-
+        setColumns(prev =>
+          prev.filter(col => col.id !== pendingColumn.toLowerCase().replace(/\s+/g, "-"))
+        );
         const previousOpenTaskId = openTaskId;
-        await fetchtask()
-        setOpenTaskId(previousOpenTaskId); // Refresh task list
+        await fetchtask();
+        setOpenTaskId(previousOpenTaskId);
       } else {
-        alert('⚠️ Column deletion failed.');
+        setMessage('⚠️ Column deletion failed.');
+        setShowError(true);
       }
     } catch (error) {
       console.error("❌ Error deleting column:", error);
-      alert("❌ Failed to delete the column.");
+      setMessage("❌ Failed to delete the column.");
+      setShowError(true);
     }
   };
 
@@ -1543,11 +1580,21 @@ export default function TaskList({ token }) {
   };
 
 
-  const handleDelete = async (taskId) => {
-    // Show confirmation
-    if (!window.confirm("Are you sure you want to delete this task?")) return;
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState({ taskId: null, message: "" });
 
 
+  const handleDelete = (taskId) => {
+    setConfirmData({
+      taskId,
+      message: "Are you sure you want to delete this task?",
+    });
+    setShowConfirmModal(true);
+  };
+
+  const confirmDeleteTask = async () => {
+    const { taskId } = confirmData;
+    setShowConfirmModal(false);
 
     try {
       const response = await fetch(`${ApiEndPoint}deleteTask/${taskId}`, {
@@ -1559,19 +1606,15 @@ export default function TaskList({ token }) {
       }
 
       SocketService.TaskManagement(response);
-
-      // Optionally: Show success message
-      alert("Task deleted successfully");
-
-      fetchtask()
+      showSuccess("🗑️ Task deleted successfully");
+      fetchtask();
     } catch (error) {
       console.error("Error deleting task:", error);
-      alert("Error deleting task");
+      setMessage("❌ Error deleting task");
+      setShowError(true);
     }
-    // Then trigger delete logic
-    // e.g., API call and state update
-    // deleteTask(taskId); // Your logic here
   };
+
 
   const handleSubtaskFieldBlur = async (taskId, key, value, subtaskId) => {
     console.log("Subtask API call on blur", { taskId, key, value, subtaskId });
@@ -1852,33 +1895,67 @@ export default function TaskList({ token }) {
                       content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
                     } else if (key === "assignedUsers") {
                       const usersList = todo?.assignedUsers?.value || [];
-                      if (usersList?.length === 0) {
+                      const defaultSelectedId = usersList[0]?.id || "";
+                      const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                      if (editingAssignedUser === taskId) {
                         content = (
                           <select
                             className="form-select"
-                            defaultValue=""
-                            value={assignedUserId?.UserName}
+                            value={currentSelectedId}
                             disabled={isclient}
-                            onFocus={() => fetchUsers(todo)}
+                            autoFocus
+                            onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
                             onChange={(e) => {
-                              setAssignedUserId(e.target.value)
-                              //   handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-
+                              setAssignedUserId(e.target.value);
                             }}
-                            onBlur={handleBlur}
+                            onBlur={(e) => {
+                              const newValue = e.target.value;
+                              handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                              setEditingAssignedUser(null);
+                            }}
                           >
                             <option value="">Assign User</option>
                             {users?.map((user) => (
-                              <option key={user?._id} value={user?.id}>
-                                {user?.UserName} ({capitalizeFirst(user?.Role)})
+                              <option key={user.id} value={user.id}>
+                                {user.UserName} ({capitalizeFirst(user.Role)})
                               </option>
                             ))}
                           </select>
                         );
                       } else {
-                        content = <span>{usersList?.map((u) => u.UserName).join(", ")}</span>;
+                        const isHovered = hoveredTaskId === taskId;
+
+                        content = (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={() => setHoveredTaskId(taskId)}
+                            onMouseLeave={() => setHoveredTaskId(null)}
+                            onClick={() => !isclient && setEditingAssignedUser(taskId)}
+                          >
+                            {usersList.length > 0
+                              ? usersList.map((u) => u.UserName).join(", ")
+                              : "Assign User"}
+                            <i
+                              className="bi bi-pencil"
+                              style={{
+                                marginLeft: "6px",
+                                fontSize: "0.9rem",
+                                opacity: isHovered ? 1 : 0,
+                                transition: "opacity 0.2s ease",
+                                pointerEvents: "none", // prevents interfering with hover
+                              }}
+                            />
+                          </span>
+                        );
                       }
-                    } else if (key === "createdAt") {
+                    }
+
+                    else if (key === "createdAt") {
                       content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
                     } else if (!editable) {
                       content = <span>{String(value)}</span>;
@@ -2000,34 +2077,48 @@ export default function TaskList({ token }) {
                                   content = <span>{subtask.createdBy?.value?.UserName || ""}</span>;
                                 } else if (key === "assignedUsers") {
                                   const usersList = subtask.assignedUsers?.value || [];
-                                  if (usersList?.length === 0) {
+                                  const defaultSelectedId = usersList[0]?.id || "";
+                                  const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                                  if (editingAssignedSubtaskId === subtaskId) {
                                     content = (
                                       <select
                                         className="form-select"
-                                        defaultValue=""
-                                        value={assignedUserId?.UserName}
+                                        value={currentSelectedId}
                                         disabled={isclient}
+                                        autoFocus
+                                        onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
 
                                         onChange={(e) => {
-                                          setAssignedUserId(e.target.value)
-                                          //  handleSubtaskFieldChange(taskId, key, [e.target.value], subtaskId)
+                                          setAssignedUserId(e.target.value);
                                         }}
-                                        onBlur={(e) =>
-                                          handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId)
-                                        }
+                                        onBlur={(e) => {
+                                          handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId);
+                                          setEditingAssignedSubtaskId(null);
+                                        }}
                                       >
                                         <option value="">Assign User</option>
                                         {users?.map((user) => (
-                                          <option key={user?._id} value={user._id}>
-                                            {user?.UserName} ({capitalizeFirst(user?.Role)})
+                                          <option key={user._id} value={user._id}>
+                                            {user.UserName} ({capitalizeFirst(user.Role)})
                                           </option>
                                         ))}
                                       </select>
                                     );
                                   } else {
-                                    content = <span>{usersList?.map((u) => u.UserName).join(", ")}</span>;
+                                    content = (
+                                      <span
+                                        onDoubleClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
+                                        style={{ cursor: !isclient ? "pointer" : "default" }}
+                                      >
+                                        {usersList.length > 0
+                                          ? usersList.map((u) => u.UserName).join(", ")
+                                          : "Assign User"}
+                                      </span>
+                                    );
                                   }
-                                } else if (key === "createdAt") {
+                                }
+                                else if (key === "createdAt") {
                                   content = <span>{(subtask.createdAt?.value || "").split("T")[0]}</span>;
                                 } else if (!editable) {
                                   content = <span>{String(value)}</span>;
@@ -2248,6 +2339,7 @@ export default function TaskList({ token }) {
           </div>
         </div>
       )}
+
       <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Task</Modal.Title>
@@ -2259,9 +2351,10 @@ export default function TaskList({ token }) {
               <Form.Select
                 value={newAssignedTaskCase}
                 onChange={(e) => {
-                  fetchUsers(e.target.value)
-                  setNewAssignedTaskCase(e.target.value)
+                  fetchUsers(e.target.value);
+                  setNewAssignedTaskCase(e.target.value);
                 }}
+                isInvalid={isCaseInvalid}
               >
                 <option value="">Select a Case</option>
                 {allCases?.map((user) => (
@@ -2270,16 +2363,24 @@ export default function TaskList({ token }) {
                   </option>
                 ))}
               </Form.Select>
+              {isCaseInvalid && (
+                <Form.Text className="text-danger">
+                  Please select a case.
+                </Form.Text>
+              )}
             </Form.Group>
 
             {users?.length > 0 && (
               <Form.Group className="mb-3">
                 <Form.Label>Assigned Users</Form.Label>
                 <Form.Select
-                  value={assignedUsersForCase}
+                  value={assignedUsersForCase || ""}
+                  isInvalid={isUserInvalid}
                   onChange={(e) => {
-                    console.log("event e=", e.target.value)
-                    setAssignedUsersForCase(e.target.value)
+                    setAssignedUsersForCase(e.target.value);
+                    if (e.target.value) {
+                      setIsUserInvalid(false); // clear error when valid user selected
+                    }
                   }}
                 >
                   <option value="">Select Assigned User</option>
@@ -2289,30 +2390,84 @@ export default function TaskList({ token }) {
                     </option>
                   ))}
                 </Form.Select>
+                {isUserInvalid && (
+                  <Form.Text className="text-danger">
+                    Please select an assigned user.
+                  </Form.Text>
+                )}
               </Form.Group>
             )}
+
           </Form>
         </Modal.Body>
-        <Modal.Footer >
 
-          <Button className="btn btn-primary" onClick={() => setShowTaskModal(false)}>
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button variant="primary" onClick={() => setShowTaskModal(false)}>
             Cancel
           </Button>
           <Button
-            className="btn btn"
+            variant="primary"
             onClick={() => {
+              let valid = true;
+
+              if (!newAssignedTaskCase) {
+                setIsCaseInvalid(true);
+                valid = false;
+              }
+
+              if (!assignedUsersForCase) {
+                setIsUserInvalid(true);
+                valid = false;
+              }
+
+              if (!valid) return;
+
               handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
               setShowTaskModal(false);
               setNewTaskName("");
               setNewAssignedTaskCase("");
-              setAssignedUsersForCase("")
-              setUsers([])
+              setAssignedUsersForCase(null);
+              setUsers([]);
+              setIsCaseInvalid(false);
+              setIsUserInvalid(false);
             }}
           >
             Save
           </Button>
         </Modal.Footer>
+
       </Modal>
+
+
+      <ErrorModal
+        show={showError}
+        handleClose={() => setShowError(false)}
+        message={message}
+      />
+
+      <ConfirmModal
+        show={showConfirm}
+        title={`Delete Column "${pendingColumn}"`}
+        message={`Are you sure you want to delete column "${pendingColumn}" from all tasks?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowConfirm(false)}
+      />
+
+      <ConfirmModal
+        show={showConfirmModal}
+        title="Delete Task"
+        message={confirmData.message}
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <SuccessModal
+        show={showSuccessModal}
+        handleClose={() => setShowSuccessModal(false)}
+        message={successMessage}
+      />
+
+
 
     </div>
   );

@@ -41,7 +41,7 @@ import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
 import Chat from "./Pages/chat/Chat";
-import { FaArrowLeft, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaWpforms } from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 
@@ -60,12 +60,13 @@ import AddUser from "./Pages/AddUsers/AddUser";
 import ViewUsers from "./Pages/AddUsers/ViewUsers";
 import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
-import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
+import { faAddressBook, faStickyNote } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
 import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
 import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
+import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -194,6 +195,9 @@ const Dashboard = () => {
         break;
       case 15:
         setCurrentScreen(<AddTask token={decodedToken} />);
+        break;
+      case 16:
+        setCurrentScreen(<ClientConsultationForm token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -396,6 +400,16 @@ const Dashboard = () => {
                   },
                 }
               : null,
+              {
+                icon: faStickyNote,
+                label: "Client Consultation Form",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  handlescreen2(16);
+                },
+              }
+            ,
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean)
@@ -474,6 +488,9 @@ const Dashboard = () => {
               )}
               {screen === 15 && (
                 <ScreenHeader title="Add Task" onBack={handleBack} />
+              )}
+              {screen === 16 && (
+                <ScreenHeader title="Client Consultation Form" onBack={handleBack} />
               )}
             </h3>
 
