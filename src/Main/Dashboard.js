@@ -64,7 +64,7 @@ import { faAddressBook, faStickyNote } from "@fortawesome/free-regular-svg-icons
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
-import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
+
 import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
 import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
 
@@ -73,7 +73,7 @@ const Dashboard = () => {
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const authValidator = useAuthValidator(); // Initialize the validator
+
   const dispatch = useDispatch();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef(null);
@@ -81,13 +81,14 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
-  const [decodedToken, setDecodedToken] = useState(null);
+
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
   const [viewLawyer, setViewLawyer] = useState(false);
   // console.log("________", cookies.token);
   // Get the decoded token
+  const [decodedToken, setDecodedToken] = useState(null);
   useEffect(() => {
     if (cookies.token) {
       try {
@@ -278,7 +279,8 @@ const Dashboard = () => {
   };
 
   const handleLogOut = () => {
-    navigate("/", { replace: true }); // ensures it replaces the current entry in the history stack
+    localStorage.removeItem("redirectPath"); // remove stored path
+    navigate("/", { replace: true }); // redirect to login
   };
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

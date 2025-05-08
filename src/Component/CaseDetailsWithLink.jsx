@@ -31,7 +31,7 @@ import { FcMakeDecision } from "react-icons/fc";
 import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { screenChange } from "../REDUX/sliece";
 import { ApiEndPoint } from "../Main/Pages/Component/utils/utlis";
 import PartiesDetails from "../Main/Pages/Component/Casedetails/PartiesDetails";
@@ -46,7 +46,7 @@ import SubCaseDetails from "../Main/Pages/Component/Casedetails/SubCaseDetails";
 import { blue } from "@mui/material/colors";
 import { Spinner } from "react-bootstrap";
 
-const Case_details = ({ token }) => {
+const CasedetailsWithLink = () => {
   const dispatch = useDispatch();
   const [activeSections, setActiveSections] = useState([]);
   const [buttoncolor, setbuttoncolor] = useState([]);
@@ -58,6 +58,9 @@ const Case_details = ({ token }) => {
   const [caseData, setCaseData] = useState("");
   const [user, setUser] = useState("");
   const [lawyerDetails, setLawyersDetails] = useState([]);
+  const navigate = useNavigate();
+  const { caseId, userId } = useParams();
+  console.log("Check link Params", caseId, userId);
 
   const transformData = (apiData) => {
     if (!apiData || apiData.length === 0) return [];
@@ -285,28 +288,24 @@ const Case_details = ({ token }) => {
     }));
   };
 
-  useEffect(() => {
-    fetchCases();
-    fetchLawyerDetails();
-  }, []);
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
 
   // Function to fetch cases
   const fetchCases = async () => {
     setLoading(true);
-    setIsDataFetched(false); // Reset before fetch
-    setsections([]); // Optional: Clear sections before loading
+    setIsDataFetched(false);
+    setsections([]);
 
     try {
       const caseResponse = await axios.get(
-        `${ApiEndPoint}getCaseDetail/${global.CaseId._id}`,
+        `${ApiEndPoint}getCaseDetail/${caseId}`, // Use caseId from URL
         { withCredentials: true }
       );
       setCaseData(caseResponse.data.caseDetails);
 
       const partiesResponse = await axios.get(
-        `${ApiEndPoint}getparties/${global.CaseId._id}`
+        `${ApiEndPoint}getparties/${caseId}` // Use caseId from URL
       );
 
       const transformed = transformData(partiesResponse.data);
@@ -316,11 +315,15 @@ const Case_details = ({ token }) => {
       setError(err.message);
     } finally {
       setTimeout(() => {
-        setLoading(false); // Finish loading after 2 seconds
-        setIsDataFetched(true); // Mark fetch as complete
+        setLoading(false);
+        setIsDataFetched(true);
       }, 1000);
     }
   };
+
+  useEffect(() => {
+    fetchCases();
+  }, [caseId, userId]);
 
   const fetchLawyerDetails = async () => {
     try {
@@ -339,16 +342,23 @@ const Case_details = ({ token }) => {
     }
   };
   const handleViewDetails = async () => {
-    global.lawyerDetails = lawyerDetails[0];
-    global.User = user;
-    console.log(global.User);
-    dispatch(screenChange(2));
+    try {
+      // Navigate to the appointment screen with caseId and userId in the URL
+      navigate(`/client-appointment/${caseId}/${userId}`);
+    } catch (error) {
+      console.error("Error navigating to lawyer details:", error);
+      setError("Failed to navigate to lawyer details");
+    }
   };
+
   const handleViewFolders = async () => {
-    global.lawyerDetails = lawyerDetails[0];
-    global.User = user;
-    console.log(global.User);
-    dispatch(screenChange(12));
+    try {
+      // Similarly for folders if needed
+      navigate(`/folders/${caseId}/${userId}`);
+    } catch (error) {
+      console.error("Error navigating to folders:", error);
+      setError("Failed to navigate to folders");
+    }
   };
   const handleViewClientDetails = async () => {
     // global.lawyerDetails = lawyerDetails[0];
@@ -436,15 +446,6 @@ const Case_details = ({ token }) => {
         {[
           { label: "View lawyer", onClick: handleViewDetails },
           { label: "View Folders", onClick: handleViewFolders },
-          ...(token?.Role !== "client"
-            ? [{ label: "View Client", onClick: handleViewClientDetails }]
-            : []),
-          ...(token?.Role !== "client"
-            ? [{ label: "View Task", onClick: handleViewTask }]
-            : []),
-          ...(token?.Role !== "client"
-            ? [{ label: "Add Task", onClick: handleAddTask }]
-            : []),
         ].map(({ label, onClick }, index) => (
           <div key={index} className="d-flex justify-content-center mb-2">
             <button
@@ -814,4 +815,4 @@ const Case_details = ({ token }) => {
     </div>
   );
 };
-export default Case_details;
+export default CasedetailsWithLink;

@@ -745,9 +745,7 @@ const BasicCase = ({ token }) => {
                       >
                         Type:
                       </span>
-                      <span className="badge bg-info text-dark">
-                        {item["CaseType"]}
-                      </span>
+                      <span className="fw-medium">{item["CaseType"]}</span>
                     </div>
 
                     <div>
