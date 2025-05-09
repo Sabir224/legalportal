@@ -1,69 +1,187 @@
 import React, { useState } from "react";
 
 const PublishedNotices = ({ data }) => {
-    const [expandedNotice, setExpandedNotice] = useState(null);
+  const [expandedNotice, setExpandedNotice] = useState(null);
 
-    const toggleExpandNotice = (noticeId) => {
-        setExpandedNotice(expandedNotice === noticeId ? null : noticeId);
-    };
+  const toggleExpandNotice = (noticeId) => {
+    setExpandedNotice(expandedNotice === noticeId ? null : noticeId);
+  };
 
-    if (!data || !data.body || data.body.length === 0) return <p>No published notices available.</p>;
+  if (!data || !data.body || data.body.length === 0)
+    return <p className="text-white">No published notices available.</p>;
 
-    return (
-        <div className="overflow-x-auto mt-8">
-            <h5 className="text-lg font-semibold mb-4">
-                Published Notices: {data.heading || "N/A"}
-            </h5>
-            <table className="table-fixed w-full border border-gray-400">
-                <thead>
-                    <tr className="bg-gray-200 text-gray-700">
-                        {data.header.map((headerItem, index) => (
-                            <th key={index} className="border border-gray-400 p-2">
-                                {headerItem}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {data.body.map((notice) => (
-                        <React.Fragment key={notice._id}>
-                            <tr className="hover:bg-gray-100">
-                                <td className="p-2">{notice.Notice_Number || "N/A"}</td>
-                                <td className="p-2">{notice.Insertion_Date || "N/A"}</td>
-                                <td className="p-2">{notice.Notice_Type || "N/A"}</td>
-                                <td className="p-2">{notice.Journal_Name || "N/A"}</td>
-                                <td className="p-2">{notice.Journal_Number || "N/A"}</td>
-                                <td className="p-2">{notice.Journal_Issue_Date || "N/A"}</td>
-                                <td
-                                    className="p-2 cursor-pointer text-blue-600 hover:underline"
-                                    onClick={() => toggleExpandNotice(notice._id)}
-                                >
-                                    {expandedNotice === notice._id ? "▲" : "▼"}
-                                </td>
-                            </tr>
-                            {expandedNotice === notice._id && (
-                                <tr className="border border-gray-400">
-                                    <td colSpan={data.header.length}>
-                                        <div className="p-2 bg-gray-100">
-                                            <p className="font-semibold mb-1">Notice Details:</p>
-                                            <div>
-                                                <p><strong>Notice Number:</strong> {notice.Notice_Number || "N/A"}</p>
-                                                <p><strong>Insertion Date:</strong> {notice.Insertion_Date || "N/A"}</p>
-                                                <p><strong>Notice Type:</strong> {notice.Notice_Type || "N/A"}</p>
-                                                <p><strong>Journal Name:</strong> {notice.Journal_Name || "N/A"}</p>
-                                                <p><strong>Journal Number:</strong> {notice.Journal_Number || "N/A"}</p>
-                                                <p><strong>Journal Issue Date:</strong> {notice.Journal_Issue_Date || "N/A"}</p>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </React.Fragment>
-                    ))}
-                </tbody>
-            </table>
-        </div>
-    );
+  return (
+    <div className="mt-4">
+      <h5 className="mb-3 text-white">
+        Published Notices: {data.heading || "N/A"}
+      </h5>
+
+      <div className="table-responsive">
+        <table
+          className="table-auto w-full text-white"
+          style={{
+            backgroundColor: "#16213e",
+            border: "1px solid #fff",
+            borderCollapse: "collapse",
+          }}
+        >
+          <thead>
+            <tr style={{ backgroundColor: "#16213e" }}>
+              {data.header.map((headerItem, index) => (
+                <th
+                  key={index}
+                  style={{
+                    backgroundColor: "#16213e",
+                    border: "1px solid #fff",
+                    padding: "0.75rem",
+                    fontSize: "0.9rem",
+                    fontWeight: "500",
+                  }}
+                >
+                  {headerItem}
+                </th>
+              ))}
+              <th
+                style={{
+                  backgroundColor: "#16213e",
+                  border: "1px solid #fff",
+                  padding: "0.75rem",
+                  fontSize: "0.9rem",
+                  fontWeight: "500",
+                }}
+              >
+                Action
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.body.map((notice) => (
+              <React.Fragment key={notice._id}>
+                <tr style={{ backgroundColor: "#16213e" }}>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Notice_Number || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Insertion_Date || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Notice_Type || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Journal_Name || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Journal_Number || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    {notice.Journal_Issue_Date || "N/A"}
+                  </td>
+                  <td
+                    style={{
+                      border: "1px solid #fff",
+                      padding: "0.75rem",
+                      cursor: "pointer",
+                      textAlign: "center",
+                    }}
+                    onClick={() => toggleExpandNotice(notice._id)}
+                  >
+                    {expandedNotice === notice._id ? (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                      >
+                        <path d="M12 6l-8 12h16z" />
+                      </svg>
+                    ) : (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="white"
+                      >
+                        <path d="M12 18l8-12H4z" />
+                      </svg>
+                    )}
+                  </td>
+                </tr>
+                {expandedNotice === notice._id && (
+                  <tr>
+                    <td
+                      colSpan={data.header.length + 1}
+                      style={{
+                        backgroundColor: "#16213e",
+                        border: "1px solid #fff",
+                        padding: "1rem",
+                      }}
+                    >
+                      <div className="text-white">
+                        <p>
+                          <strong>Notice Number:</strong>{" "}
+                          {notice.Notice_Number || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Insertion Date:</strong>{" "}
+                          {notice.Insertion_Date || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Notice Type:</strong>{" "}
+                          {notice.Notice_Type || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Journal Name:</strong>{" "}
+                          {notice.Journal_Name || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Journal Number:</strong>{" "}
+                          {notice.Journal_Number || "N/A"}
+                        </p>
+                        <p>
+                          <strong>Journal Issue Date:</strong>{" "}
+                          {notice.Journal_Issue_Date || "N/A"}
+                        </p>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 };
 
 export default PublishedNotices;
