@@ -15,6 +15,8 @@ import {
   Route,
   Navigate,
   useLocation,
+  useNavigate,
+  useParams,
 } from "react-router-dom";
 import { useCookies } from "react-cookie";
 
@@ -24,6 +26,31 @@ import { Spinner } from "react-bootstrap";
 import CasedetailsWithLink from "./Component/CaseDetailsWithLink";
 import ClientAppointMentWithLink from "./Main/Pages/ClientAppointMentWithLink";
 import ViewFolderWithLink from "./Main/Pages/Component/Casedetails/ViewFolderWithLink";
+import { useDispatch } from "react-redux";
+import { screenChange } from "./REDUX/sliece";
+function CaseRedirectHandler() {
+  const { caseId, userId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Only proceed if we're on the case redirect path and params exist
+    if (location.pathname.startsWith("/case/") && caseId && userId) {
+      // Store the case information in localStorage
+      localStorage.setItem("pendingCaseId", caseId);
+      localStorage.setItem("pendingUserId", userId);
+      localStorage.setItem("pendingScreenIndex", "1");
+      localStorage.setItem("isPendingCase", "true"); // Flag to indicate we have pending case
+
+      // Navigate to dashboard
+      navigate("/Dashboards");
+    }
+  }, [caseId, userId, navigate, location.pathname]);
+
+  return null;
+}
+
+// Updated ProtectedRoute component
 const ProtectedRoute = ({ children }) => {
   const { validateToken, isAuthenticated } = useAuth();
   const location = useLocation();
@@ -37,6 +64,14 @@ const ProtectedRoute = ({ children }) => {
         // Only store if it's not the login or dashboard
         if (location.pathname !== "/" && location.pathname !== "/Dashboards") {
           localStorage.setItem("redirectPath", location.pathname);
+        }
+      } else {
+        // Clear any pending case data if we're not coming from a case redirect
+        if (!location.pathname.startsWith("/case/")) {
+          localStorage.removeItem("pendingCaseId");
+          localStorage.removeItem("pendingUserId");
+          localStorage.removeItem("pendingScreenIndex");
+          localStorage.removeItem("isPendingCase");
         }
       }
 
@@ -60,7 +95,6 @@ const ProtectedRoute = ({ children }) => {
 
   return children;
 };
-
 const GlobalTokenValidator = () => {
   const { validateToken } = useAuth();
   const location = useLocation();
@@ -114,7 +148,7 @@ function App() {
           path="/case/:caseId/:userId"
           element={
             <ProtectedRoute>
-              <CasedetailsWithLink />
+              <CaseRedirectHandler />
             </ProtectedRoute>
           }
         />

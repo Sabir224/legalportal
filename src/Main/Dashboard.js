@@ -41,7 +41,12 @@ import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
 import Chat from "./Pages/chat/Chat";
-import { FaArrowLeft, FaChevronLeft, FaChevronRight, FaWpforms } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaChevronLeft,
+  FaChevronRight,
+  FaWpforms,
+} from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 
@@ -60,7 +65,10 @@ import AddUser from "./Pages/AddUsers/AddUser";
 import ViewUsers from "./Pages/AddUsers/ViewUsers";
 import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
-import { faAddressBook, faStickyNote } from "@fortawesome/free-regular-svg-icons";
+import {
+  faAddressBook,
+  faStickyNote,
+} from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
@@ -86,6 +94,7 @@ const Dashboard = () => {
   const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
   const [viewLawyer, setViewLawyer] = useState(false);
+
   // console.log("________", cookies.token);
   // Get the decoded token
   const [decodedToken, setDecodedToken] = useState(null);
@@ -140,7 +149,30 @@ const Dashboard = () => {
 
   //   return () => clearInterval(interval);
   // }, []);
+  const hasRun = useRef(false);
+  useEffect(() => {
+    // Retrieve any stored caseId, userId, and screenIndex from localStorage
+    const pendingCaseId = localStorage.getItem("pendingCaseId");
+    const pendingUserId = localStorage.getItem("pendingUserId");
+    const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
+    console.log("________________:", pendingScreenIndex);
+    // If all values exist, dispatch screenChange and clear the storage
+    if (pendingCaseId && pendingUserId && pendingScreenIndex) {
+      // Dispatch action to change to the Case Details screen (index 1)
+      console.log("____________Checkt");
+      handlescreen2(Number(pendingScreenIndex));
+      setCurrentScreen(<Case_details token={decodedToken} />);
 
+      // (Optional) If your Case Details component needs the caseId/userId,
+      // you might dispatch additional actions or set state here.
+      // e.g., dispatch(setCurrentCase(pendingCaseId, pendingUserId));
+
+      // Clear the stored values to avoid repeating the action on future loads
+      // localStorage.removeItem("pendingCaseId");
+      // localStorage.removeItem("pendingUserId");
+      // localStorage.removeItem("pendingScreenIndex");
+    }
+  }, [dispatch]);
   useEffect(() => {
     // if (!authValidator.validateToken()) {
     //   return;
@@ -279,7 +311,12 @@ const Dashboard = () => {
   };
 
   const handleLogOut = () => {
-    localStorage.removeItem("redirectPath"); // remove stored path
+    localStorage.removeItem("pendingCaseId");
+    localStorage.removeItem("pendingUserId");
+    localStorage.removeItem("pendingUserId");
+    localStorage.removeItem("redirectPath");
+    localStorage.removeItem("pendingScreenIndex");
+    removeCookie("token", { path: "/" }); // remove the token cookie
     navigate("/", { replace: true }); // redirect to login
   };
   const toggleCollapse = () => {
@@ -402,16 +439,15 @@ const Dashboard = () => {
                   },
                 }
               : null,
-              {
-                icon: faStickyNote,
-                label: "Client Consultation Form",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  handlescreen2(16);
-                },
-              }
-            ,
+            {
+              icon: faStickyNote,
+              label: "Client Consultation Form",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                handlescreen2(16);
+              },
+            },
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean)
@@ -492,7 +528,10 @@ const Dashboard = () => {
                 <ScreenHeader title="Add Task" onBack={handleBack} />
               )}
               {screen === 16 && (
-                <ScreenHeader title="Client Consultation Form" onBack={handleBack} />
+                <ScreenHeader
+                  title="Client Consultation Form"
+                  onBack={handleBack}
+                />
               )}
             </h3>
 
