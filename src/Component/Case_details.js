@@ -360,12 +360,12 @@ const Case_details = ({ token }) => {
       setsections(transformed);
 
       // Clear pending data if we used it successfully
-      if (pendingCaseData) {
-        localStorage.removeItem("pendingCaseId");
-        localStorage.removeItem("pendingUserId");
-        localStorage.removeItem("pendingScreenIndex");
-        setPendingCaseData(null);
-      }
+      // if (pendingCaseData) {
+      //   localStorage.removeItem("pendingCaseId");
+      //   localStorage.removeItem("pendingUserId");
+      //   localStorage.removeItem("pendingScreenIndex");
+      //   setPendingCaseData(null);
+      // }
     } catch (err) {
       console.error("Error fetching case or party data:", err);
       setError(err.message);

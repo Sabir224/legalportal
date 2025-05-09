@@ -315,13 +315,12 @@ const Dashboard = () => {
   };
 
   const handleLogOut = () => {
+    removeCookie("token", { path: "/" });
+    sessionStorage.clear();
+    localStorage.removeItem("redirectPath");
     localStorage.removeItem("pendingCaseId");
     localStorage.removeItem("pendingUserId");
-    localStorage.removeItem("pendingUserId");
-    localStorage.removeItem("redirectPath");
-    localStorage.removeItem("pendingScreenIndex");
-    removeCookie("token", { path: "/" }); // remove the token cookie
-    navigate("/", { replace: true }); // redirect to login
+    navigate("/", { replace: true });
   };
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);

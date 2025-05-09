@@ -24,8 +24,7 @@ const SignIn = () => {
   const location = useLocation();
 
   const handleNavigation = async (e) => {
-    console.log("Clicked on Button");
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault();
     setError("");
     setLoading(true);
 
@@ -46,21 +45,26 @@ const SignIn = () => {
       if (data.token) {
         setCookie("token", data.token, {
           path: "/",
-          secure: false, // Set to `true` in production with HTTPS
+          secure: process.env.NODE_ENV === "production", // Secure in production
           sameSite: "lax",
         });
 
-        const from = localStorage.getItem("redirectPath") || "/Dashboards";
-        // localStorage.removeItem("pendingCaseId");
-        // localStorage.removeItem("pendingUserId");
-        // Navigate after a short delay
-        setTimeout(() => {
-          localStorage.removeItem("redirectPath");
-          navigate(from, { replace: true }); // ✅ Use `from` here
-        }, 2000);
+        // Store user data in session storage
+        sessionStorage.setItem("userData", JSON.stringify(data.user));
+
+        // Check for pending case redirect first
+        const pendingCaseId = localStorage.getItem("pendingCaseId");
+        const redirectPath = pendingCaseId
+          ? "/Dashboards"
+          : localStorage.getItem("redirectPath") || "/Dashboards";
+
+        // Clear redirect data
+        localStorage.removeItem("redirectPath");
+
+        navigate(redirectPath, { replace: true });
       }
     } catch (err) {
-      setError(err.message || "Something went wrong");
+      setError(err.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -200,8 +204,21 @@ const SignIn = () => {
               {errorMessage && (
                 <p className="text-danger mt-2">{errorMessage}</p>
               )}
-              <div className="mt-3 text-center" style={{ fontSize: 24 }}>
-                <Link className="text-muted" to="/forget-password">
+
+              <div className="mt-3 text-center">
+                <Link
+                  to="/forget-password"
+                  style={{
+                    color: "#18273e",
+                    textDecoration: "none",
+                    fontWeight: "500",
+                    cursor: "pointer", // Ensure cursor changes to pointer
+                  }}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    navigate("/forget-password");
+                  }}
+                >
                   Forgot password?
                 </Link>
               </div>

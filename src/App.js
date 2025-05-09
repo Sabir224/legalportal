@@ -52,44 +52,12 @@ function CaseRedirectHandler() {
 
 // Updated ProtectedRoute component
 const ProtectedRoute = ({ children }) => {
-  const { validateToken, isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
   const location = useLocation();
-  const [isValidToken, setIsValidToken] = useState(null);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      const isValid = await validateToken();
-
-      if (!isValid) {
-        // Only store if it's not the login or dashboard
-        if (location.pathname !== "/" && location.pathname !== "/Dashboards") {
-          localStorage.setItem("redirectPath", location.pathname);
-        }
-      } else {
-        // Clear any pending case data if we're not coming from a case redirect
-        if (!location.pathname.startsWith("/case/")) {
-          localStorage.removeItem("pendingCaseId");
-          localStorage.removeItem("pendingUserId");
-          localStorage.removeItem("pendingScreenIndex");
-          localStorage.removeItem("isPendingCase");
-        }
-      }
-
-      setIsValidToken(isValid);
-    };
-
-    checkAuth();
-  }, [location.pathname]);
-
-  if (isValidToken === null) {
-    return (
-      <div className="centered">
-        <Spinner animation="border" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !isValidToken) {
+  if (!isAuthenticated) {
+    // Save the attempted path for redirect after login
+    localStorage.setItem("redirectPath", location.pathname);
     return <Navigate to="/" replace />;
   }
 
@@ -100,6 +68,19 @@ const GlobalTokenValidator = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // List of public routes that don't need token validation
+    const publicRoutes = [
+      "/",
+      "/signup",
+      "/forget-password",
+      "/reset-password",
+    ];
+
+    // Don't validate on public routes
+    if (publicRoutes.includes(location.pathname)) {
+      return;
+    }
+
     const redirectPath = localStorage.getItem("redirectPath");
 
     // Don't validate if user is on the redirect path
@@ -144,14 +125,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route
-          path="/case/:caseId/:userId"
-          element={
-            <ProtectedRoute>
-              <CaseRedirectHandler />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
         <Route
           path="/client-appointment/:caseId/:userId"
           element={
