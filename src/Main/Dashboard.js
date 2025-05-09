@@ -75,6 +75,7 @@ import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
 
 import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
 import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
+import FormHandover from "./Pages/Component/Case_Forms/FormH";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -231,6 +232,9 @@ const Dashboard = () => {
         break;
       case 16:
         setCurrentScreen(<ClientConsultationForm token={decodedToken} />);
+        break;
+      case 17:
+        setCurrentScreen(<FormHandover token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -446,6 +450,15 @@ const Dashboard = () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
                 handlescreen2(16);
+              },
+            },
+            {
+              icon: faStickyNote,
+              label: "Form Hand Over",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                handlescreen2(17);
               },
             },
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
