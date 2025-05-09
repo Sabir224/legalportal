@@ -96,6 +96,9 @@ const BasicCase = ({ token }) => {
     global.CaseId = item;
     dispatch(Caseinfo(item));
     console.log("  global.CaseId ", item._id);
+    localStorage.removeItem("redirectPath");
+    localStorage.removeItem("pendingCaseId");
+    localStorage.removeItem("pendingUserId");
     dispatch(screenChange(1));
 
     await setcheck(!check);
