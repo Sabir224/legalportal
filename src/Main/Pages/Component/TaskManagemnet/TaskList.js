@@ -1832,7 +1832,7 @@ export default function TaskList({ token }) {
                         .join(" ") // Add space before capital letters
                         .replace(/^./, (str) => str.toUpperCase())} {/* Format key */}
                     </div>
-                    {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate") &&
+                    {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate" && key !== "clientEmail" && key !== "nationality" && key !== "nextHearing") &&
                       <div>
                         {token?.Role === "admin" &&
                           <FaTrash
@@ -2099,8 +2099,8 @@ export default function TaskList({ token }) {
                                       >
                                         <option value="">Assign User</option>
                                         {users?.map((user) => (
-                                          <option key={user._id} value={user._id}>
-                                            {user.UserName} ({capitalizeFirst(user.Role)})
+                                          <option key={user?.id} value={user?.id}>
+                                            {user?.UserName} ({capitalizeFirst(user?.Role)})
                                           </option>
                                         ))}
                                       </select>
@@ -2167,11 +2167,11 @@ export default function TaskList({ token }) {
                                       }}
                                       onBlur={handleBlur}
                                       // showTimeSelect
-                                      dateFormat="dd-MM-yyyy"
+                                      dateFormat="dd-mm-yyyy"
                                       // timeFormat="HH:mm"
                                       minDate={today}
                                       disabled={isclient}
-                                      placeholderText="Select date and time"
+                                      placeholderText="dd/mm/yyyy"
                                     />
                                   );
                                 } else {

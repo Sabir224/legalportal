@@ -28,6 +28,7 @@ import ClientAppointMentWithLink from "./Main/Pages/ClientAppointMentWithLink";
 import ViewFolderWithLink from "./Main/Pages/Component/Casedetails/ViewFolderWithLink";
 import { useDispatch } from "react-redux";
 import { screenChange } from "./REDUX/sliece";
+import ClientConsultationForm from "./Main/Pages/Component/Case_Forms/FormC";
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
   const navigate = useNavigate();
@@ -74,6 +75,7 @@ const GlobalTokenValidator = () => {
       "/signup",
       "/forget-password",
       "/reset-password",
+      "/client-consultation",
     ];
 
     // Don't validate on public routes
@@ -126,6 +128,8 @@ function App() {
           }
         />
         <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
+        <Route path="/client-consultation" element={<ClientConsultationForm />} />
+
         <Route
           path="/client-appointment/:caseId/:userId"
           element={
