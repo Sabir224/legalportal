@@ -51,11 +51,12 @@ const SignIn = () => {
         });
 
         const from = localStorage.getItem("redirectPath") || "/Dashboards";
-
+        // localStorage.removeItem("pendingCaseId");
+        // localStorage.removeItem("pendingUserId");
         // Navigate after a short delay
         setTimeout(() => {
           localStorage.removeItem("redirectPath");
-          navigate(from, { replace: true });
+          navigate(from, { replace: true }); // ✅ Use `from` here
         }, 2000);
       }
     } catch (err) {

@@ -77,10 +77,11 @@ const ClientAppointment = () => {
   const [appointmentDetails, setAppoinmentDetails] = useState(null);
   const [meetingLink, setmeetingLink] = useState(null);
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
+  const [pendingCaseData, setPendingCaseData] = useState(null);
+  const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
   let data;
-  useEffect(() => {
-    fetchLawyerDetails();
-  }, []);
+
   const updateSlotStatus = (slotId) => {
     if (!appointmentDetails) return;
 
@@ -118,14 +119,50 @@ const ClientAppointment = () => {
   //     .catch((error) => console.error("Error fetching image:", error));
   // }, []);
 
+  useEffect(() => {
+    const pendingCaseId = localStorage.getItem("pendingCaseId");
+    const pendingUserId = localStorage.getItem("pendingUserId");
+
+    if (pendingCaseId && pendingUserId) {
+      setPendingCaseData({
+        caseId: pendingCaseId,
+        userId: pendingUserId,
+      });
+      setEffectiveCaseInfo({
+        _id: pendingCaseId,
+        ClientId: pendingUserId,
+      });
+    } else {
+      setEffectiveCaseInfo(reduxCaseInfo);
+    }
+
+    // Initialize user from global if available
+    if (global.User) {
+      setUser(global.User);
+    }
+  }, []);
+
+  // Sync with Redux when not using pending data
+  useEffect(() => {
+    if (!pendingCaseData && reduxCaseInfo) {
+      setEffectiveCaseInfo(reduxCaseInfo);
+    }
+  }, [reduxCaseInfo, pendingCaseData]);
+
   const fetchLawyerDetails = async () => {
     setLoading(true);
     let lawyerid;
 
     try {
+      // Use effectiveCaseInfo instead of direct caseInfo
+      const caseIdToUse = effectiveCaseInfo?._id;
+      if (!caseIdToUse) {
+        throw new Error("Case ID not available");
+      }
+
       // 1. Get lawyer ID from case
       const lawyerIdRes = await axios.get(
-        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
+        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseIdToUse}`
       );
       lawyerid = lawyerIdRes.data?.LawyerId;
 
@@ -151,7 +188,6 @@ const ClientAppointment = () => {
       }
 
       let temp = { ...appointmentsRes.data[0] };
-
       appointmentsRes.data.forEach((element) => {
         if (element.availableSlots) {
           temp.availableSlots = [
@@ -162,13 +198,19 @@ const ClientAppointment = () => {
       });
 
       setAppoinmentDetails(temp);
-      // console.log("Client Data:", caseInfo?.ClientId);
-      // 4. Get client details
+
+      // 4. Get client details - use effectiveCaseInfo.ClientId
       const clientDetailsRes = await axios.get(
-        `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
+        `${ApiEndPoint}getClientDetailsByUserId/${effectiveCaseInfo?.ClientId}`
       );
-      // console.log("Client Data:", clientDetailsRes);
       setClientDetails(clientDetailsRes.data);
+
+      // Clear pending data if we used it successfully
+      if (pendingCaseData) {
+        localStorage.removeItem("pendingCaseId");
+        localStorage.removeItem("pendingUserId");
+        setPendingCaseData(null);
+      }
     } catch (err) {
       console.error("Error fetching lawyer or client details:", err);
       setError(err.message);
@@ -176,6 +218,26 @@ const ClientAppointment = () => {
       setLoading(false);
     }
   };
+
+  // Socket connection effect - now uses effectiveCaseInfo
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchLawyerDetails();
+    };
+
+    SocketService.socket.off("slotHasBooked", handleMessagesDelivered);
+    SocketService.onBookAppointment(handleMessagesDelivered);
+
+    // Initial fetch
+    if (effectiveCaseInfo?._id) {
+      fetchLawyerDetails();
+    }
+  }, [effectiveCaseInfo?._id]);
 
   const generateCalendarDates = () => {
     const dates = [];

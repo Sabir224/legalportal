@@ -59,6 +59,47 @@ const Case_details = ({ token }) => {
   const [user, setUser] = useState("");
   const [lawyerDetails, setLawyersDetails] = useState([]);
 
+  const [pendingCaseData, setPendingCaseData] = useState(null);
+  const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+  useEffect(() => {
+    const pendingCaseId = localStorage.getItem("pendingCaseId");
+    const pendingUserId = localStorage.getItem("pendingUserId");
+    const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
+
+    if (pendingCaseId && pendingUserId && pendingScreenIndex) {
+      setPendingCaseData({
+        caseId: pendingCaseId,
+        userId: pendingUserId,
+        screenIndex: pendingScreenIndex,
+      });
+      setEffectiveCaseInfo({
+        _id: pendingCaseId,
+        ClientId: pendingUserId,
+      });
+    } else {
+      setEffectiveCaseInfo(reduxCaseInfo || global.CaseId);
+    }
+  }, []);
+
+  // Sync with Redux when not using pending data
+  useEffect(() => {
+    if (!pendingCaseData && reduxCaseInfo) {
+      setEffectiveCaseInfo(reduxCaseInfo);
+    }
+  }, [reduxCaseInfo, pendingCaseData]);
+
+  const getCaseId = () => {
+    // Only use pending caseId if available
+    return (
+      pendingCaseData?.caseId || (global.CaseId ? global.CaseId._id : null)
+    );
+  };
+
+  const getUserId = () => {
+    // Only use pending userId if available
+    return pendingCaseData?.userId || (global.User ? global.User._id : null);
+  };
   const transformData = (apiData) => {
     if (!apiData || apiData.length === 0) return [];
 
@@ -285,43 +326,56 @@ const Case_details = ({ token }) => {
     }));
   };
 
-  useEffect(() => {
-    fetchCases();
-    fetchLawyerDetails();
-  }, []);
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
-
+  useEffect(() => {
+    if (effectiveCaseInfo?._id) {
+      fetchCases();
+      fetchLawyerDetails();
+    }
+  }, [effectiveCaseInfo?._id]);
   // Function to fetch cases
   const fetchCases = async () => {
     setLoading(true);
-    setIsDataFetched(false); // Reset before fetch
-    setsections([]); // Optional: Clear sections before loading
+    setIsDataFetched(false);
+    setsections([]);
 
     try {
+      const caseIdToUse = getCaseId();
+      if (!caseIdToUse) {
+        throw new Error("No case ID available");
+      }
+
       const caseResponse = await axios.get(
-        `${ApiEndPoint}getCaseDetail/${global.CaseId._id}`,
+        `${ApiEndPoint}getCaseDetail/${caseIdToUse}`,
         { withCredentials: true }
       );
       setCaseData(caseResponse.data.caseDetails);
 
       const partiesResponse = await axios.get(
-        `${ApiEndPoint}getparties/${global.CaseId._id}`
+        `${ApiEndPoint}getparties/${caseIdToUse}`
       );
 
       const transformed = transformData(partiesResponse.data);
       setsections(transformed);
+
+      // Clear pending data if we used it successfully
+      if (pendingCaseData) {
+        localStorage.removeItem("pendingCaseId");
+        localStorage.removeItem("pendingUserId");
+        localStorage.removeItem("pendingScreenIndex");
+        setPendingCaseData(null);
+      }
     } catch (err) {
       console.error("Error fetching case or party data:", err);
       setError(err.message);
     } finally {
       setTimeout(() => {
-        setLoading(false); // Finish loading after 2 seconds
-        setIsDataFetched(true); // Mark fetch as complete
+        setLoading(false);
+        setIsDataFetched(true);
       }, 1000);
     }
   };
-
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
