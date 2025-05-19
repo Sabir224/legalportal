@@ -8,6 +8,7 @@ import {
   faBookReader,
   faBriefcase,
   faCalendar,
+  faForward,
   faHome,
   faMessage,
   faNoteSticky,
@@ -27,6 +28,7 @@ import {
   faCcMastercard,
   faFacebook,
   faWhatsapp,
+  faWpforms,
 } from "@fortawesome/free-brands-svg-icons";
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
@@ -34,6 +36,7 @@ import BasicCase from "./Pages/Component/BasicCase";
 import {
   Caseinfo,
   clientEmail,
+  FormCDetails,
   goBackScreen,
   screenChange,
 } from "../REDUX/sliece";
@@ -76,6 +79,8 @@ import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
 import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
 import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
 import FormHandover from "./Pages/Component/Case_Forms/FormH";
+import ViewFormC from "./Pages/Component/Case_Forms/ViewFormC";
+import DocumentFormCShow from "./Pages/Component/Case_Forms/DocumentFormCShow";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -235,6 +240,12 @@ const Dashboard = () => {
         break;
       case 17:
         setCurrentScreen(<FormHandover token={decodedToken} />);
+        break;
+      case 18:
+        setCurrentScreen(<ViewFormC token={decodedToken} />);
+        break;
+      case 19:
+        setCurrentScreen(<DocumentFormCShow token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -397,6 +408,8 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
                 handlescreen2(0);
               },
             },
@@ -405,6 +418,8 @@ const Dashboard = () => {
               label: "Messages",
               action: () => {
                 dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
                 dispatch(Caseinfo(null));
                 handlescreen2(3);
               },
@@ -416,6 +431,8 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
                     handlescreen2(9);
                   },
                 }
@@ -427,6 +444,8 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
                     handlescreen2(11);
                   },
                 }
@@ -438,17 +457,30 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
                     handlescreen2(14);
                   },
                 }
               : null,
+            // {
+            //   icon: faStickyNote,
+            //   label: "Client Consultation Form",
+            //   action: () => {
+            //     dispatch(clientEmail(null));
+            //     dispatch(Caseinfo(null));
+            //     handlescreen2(16);
+            //   },
+            // },
             {
-              icon: faStickyNote,
-              label: "Client Consultation Form",
+              icon: faWpforms,
+              label: "View Consultation Form",
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                handlescreen2(16);
+                  dispatch(FormCDetails(null));
+
+                handlescreen2(18);
               },
             },
             {
@@ -457,6 +489,8 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
                 handlescreen2(17);
               },
             },
@@ -545,6 +579,12 @@ const Dashboard = () => {
                   onBack={handleBack}
                 />
               )}
+              {screen === 18 && (
+                <ScreenHeader
+                  title="View Consultation Form"
+                  onBack={handleBack}
+                />
+              )}
             </h3>
 
             {/* Admin Buttons */}
@@ -554,6 +594,7 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
                   handlescreen2(8);
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
@@ -575,6 +616,8 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
                   handlescreen2(11);
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
@@ -599,6 +642,8 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
                   handlescreen2(5);
                 }}
               >
@@ -616,6 +661,7 @@ const Dashboard = () => {
                 onClick={() => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
 
                   handlescreen2(4);
                 }}

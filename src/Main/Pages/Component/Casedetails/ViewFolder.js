@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Modal, Form, Row, Dropdown } from "react-bootstrap";
 import { ApiEndPoint } from "../utils/utlis";
@@ -43,6 +44,8 @@ import ErrorModal from "../../AlertModels/ErrorModal";
 const ViewFolder = ({ token }) => {
   const [folderList, setFolderList] = useState([]);
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
+  const FormCDetails = useSelector((state) => state.screen.FormCDetails);
+
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
@@ -75,6 +78,7 @@ const ViewFolder = ({ token }) => {
   const [deletefileid, setDeletefileId] = useState(null);
   const [deletefolderid, setDeletefolderId] = useState(null);
   const [Isfolderdelete, setIsfolderdelete] = useState(false);
+  const [sortOption, setSortOption] = useState("nameAsc");
 
   const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState("");
@@ -152,16 +156,29 @@ const ViewFolder = ({ token }) => {
 
       // Process main folders
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
-      const personalFolder = {
-        _id: "personal-folder",
-        folderName: "Personal",
-        caseId: caseIdToUse,
-        files: [],
-        parentId: data?.mainfolder?._id || null,
-        isPersonal: true,
-      };
 
-      const finalFolders = [personalFolder, ...fetchedFolders];
+      let customFolder;
+      if (!FormCDetails) {
+        customFolder = {
+          _id: "personal-folder",
+          folderName: "Personal",
+          caseId: caseIdToUse,
+          files: [],
+          parentId: data?.mainfolder?._id || null,
+          isPersonal: true,
+        };
+      } else {
+        customFolder = {
+          _id: "formc-folder",
+          folderName: "FormC Documents",
+          caseId: caseIdToUse,
+          files: [],
+          parentId: data?.mainfolder?._id || null,
+          isFormCDoc: true,
+        };
+      }
+
+      const finalFolders = [customFolder, ...fetchedFolders];
       setFolderList(finalFolders);
       setMainfolderId(data?.mainfolder?._id);
       setMainfolder(data?.mainfolder);
@@ -176,23 +193,32 @@ const ViewFolder = ({ token }) => {
       //   }
     } catch (err) {
       setError(err.message);
-      setFolderList([
-        {
+      let fallbackFolder;
+      if (!FormCDetails) {
+        fallbackFolder = {
           _id: "personal-folder",
           folderName: "Personal",
-          caseId: effectiveCaseInfo?._id,
           files: [],
           isPersonal: true,
-        },
-      ]);
+        };
+      } else {
+        fallbackFolder = {
+          _id: "formc-folder",
+          folderName: "FormC Documents",
+          files: [],
+          isFormCDoc: true,
+        };
+      }
+
+      setFolderList([fallbackFolder]);
     } finally {
       setLoadingFolders(false);
     }
   };
   useEffect(() => {
-    if (effectiveCaseInfo?._id) {
-      fetchFolders();
-    }
+    // if (effectiveCaseInfo?._id) {
+    fetchFolders();
+    // }
   }, [effectiveCaseInfo?._id]);
 
   // Subfolder fetch function
@@ -211,7 +237,28 @@ const ViewFolder = ({ token }) => {
     } finally {
       setLoadingFolders(false);
     }
-  };
+
+
+  }
+  const fetchFormCfile = async () => {
+    setLoadingFolders(true);
+    setError("");
+    try {
+      const response = await fetch(`${ApiEndPoint}getFormCDetailsByEmail/${FormCDetails}`);
+      if (!response.ok) throw new Error("Error fetching subfolders");
+
+      const data = await response.json();
+      setFolderList(Array.isArray(data) ? data : []);
+      console.log("...", data.files)
+      setFiles(data.files);
+    } catch (err) {
+      setError(err.message);
+      setFolderList([]);
+    } finally {
+      setLoadingFolders(false);
+    }
+
+  }
 
   const fileIcons = {
     pdf: faFilePdf, // PDF Files
@@ -1172,6 +1219,20 @@ const ViewFolder = ({ token }) => {
                   </Dropdown.Menu>
                 </Dropdown>
 
+                <div className="d-flex justify-content-end align-items-center mb-2">
+                  <select
+                    className="form-select form-select-sm w-auto"
+                    value={sortOption}
+                    onChange={(e) => setSortOption(e.target.value)}
+                  >
+                    <option value="nameAsc">Folder Name (A-Z)</option>
+                    <option value="nameDesc">Folder Name (Z-A)</option>
+                    <option value="createdAsc">Created Time (Oldest First)</option>
+                    <option value="createdDesc">Created Time (Newest First)</option>
+                  </select>
+                </div>
+
+
                 {/* Upload Button */}
               </div>
             </Card.Header>
@@ -1188,315 +1249,385 @@ const ViewFolder = ({ token }) => {
                 {/* Folders */}
                 {!IsPersonal && (
                   <>
-                    {folderList?.map((folder) => {
-                      const editKey = `edit-${folder._id}`;
-                      const deleteKey = `delete-${folder._id}`;
+                    {[...folderList]
+                      .sort((a, b) => {
+                        const aStartsWithNumber = /^\d+/.test(a.folderName);
+                        const bStartsWithNumber = /^\d+/.test(b.folderName);
 
-                      return (
-                        <Col
-                          key={folder._id}
-                          sm={viewMode === "grid" ? 6 : 12}
-                          md={viewMode === "grid" ? 4 : 12}
-                          lg={viewMode === "grid" ? 3 : 12}
-                        >
-                          <Card
-                            className="p-2"
-                            style={{
-                              background: "#18273e",
-                              border: "1px solid white",
-                              display: "flex",
-                              flexDirection:
-                                viewMode === "list" ? "row" : "column",
-                              alignItems:
-                                viewMode === "list" ? "center" : "flex-start",
-                              cursor: "pointer",
-                              transition: "transform 0.2s, box-shadow 0.2s",
-                            }}
-                            onClick={() => {
-                              folder.folderName === "Personal"
-                                ? fetchClientDocuments()
-                                : fetchsubFolders(folder._id);
-                              setSelectedFolder(folder);
-                              setFolderPath((prevPath) => [
-                                ...prevPath,
-                                folder,
-                              ]);
-                            }}
-                            onMouseEnter={(e) => {
-                              if (viewMode === "grid") {
-                                e.currentTarget.style.transform = "scale(1.05)";
-                                e.currentTarget.style.boxShadow =
-                                  "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (viewMode === "grid") {
-                                e.currentTarget.style.transform = "scale(1)";
-                                e.currentTarget.style.boxShadow = "none";
-                              }
-                            }}
+                        // Group numeric-prefixed folders and non-numeric ones
+                        if (sortOption === "nameAsc") {
+                          if (aStartsWithNumber && !bStartsWithNumber) return -1;
+                          if (!aStartsWithNumber && bStartsWithNumber) return 1;
+
+                          return a.folderName.localeCompare(b.folderName, undefined, {
+                            numeric: true,
+                            sensitivity: "base",
+                          });
+                        }
+
+                        if (sortOption === "nameDesc") {
+                          if (aStartsWithNumber && !bStartsWithNumber) return 1;
+                          if (!aStartsWithNumber && bStartsWithNumber) return -1;
+
+                          return b.folderName.localeCompare(a.folderName, undefined, {
+                            numeric: true,
+                            sensitivity: "base",
+                          });
+                        }
+
+                        if (sortOption === "createdAsc") {
+                          return new Date(a.createdAt) - new Date(b.createdAt);
+                        }
+
+                        if (sortOption === "createdDesc") {
+                          return new Date(b.createdAt) - new Date(a.createdAt);
+                        }
+
+                        return 0;
+                      })?.map((folder) => {
+                        const editKey = `edit-${folder._id}`;
+                        const deleteKey = `delete-${folder._id}`;
+
+                        return (
+                          <Col
+                            key={folder._id}
+                            sm={viewMode === "grid" ? 6 : 12}
+                            md={viewMode === "grid" ? 4 : 12}
+                            lg={viewMode === "grid" ? 3 : 12}
                           >
-                            <div className="d-flex gap-2 justify-content-between align-items-center">
-                              <FontAwesomeIcon
-                                icon={faFolder}
-                                size="2x"
-                                className="mb-2"
-                                style={{
-                                  color: "#d3b386",
-                                  marginRight:
-                                    viewMode === "list" ? "10px" : "0",
-                                }}
-                              />
-                              <div
-                                className="text-truncate"
-                                style={{
-                                  fontSize: "0.9rem",
-                                  color: "white",
-                                  maxWidth: "70%",
-                                }}
-                              >
-                                {folder.folderName}
-                              </div>
-                            </div>
-
-                            <Card.Body
-                              className="p-1 d-flex justify-content-between align-items-center"
-                              style={{ width: "100%" }}
+                            <Card
+                              className="p-2"
+                              style={{
+                                background: "#18273e",
+                                border: "1px solid white",
+                                display: "flex",
+                                flexDirection:
+                                  viewMode === "list" ? "row" : "column",
+                                alignItems:
+                                  viewMode === "list" ? "center" : "flex-start",
+                                cursor: "pointer",
+                                transition: "transform 0.2s, box-shadow 0.2s",
+                              }}
+                              onClick={() => {
+                                folder.folderName === "Personal"
+                                  ? fetchClientDocuments()
+                                  : folder.folderName === "FormC Documents" ? fetchFormCfile() : fetchsubFolders(folder._id);
+                                setSelectedFolder(folder);
+                                setFolderPath((prevPath) => [
+                                  ...prevPath,
+                                  folder,
+                                ]);
+                              }}
+                              onMouseEnter={(e) => {
+                                if (viewMode === "grid") {
+                                  e.currentTarget.style.transform = "scale(1.05)";
+                                  e.currentTarget.style.boxShadow =
+                                    "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                                }
+                              }}
+                              onMouseLeave={(e) => {
+                                if (viewMode === "grid") {
+                                  e.currentTarget.style.transform = "scale(1)";
+                                  e.currentTarget.style.boxShadow = "none";
+                                }
+                              }}
                             >
-                              <div
-                                className="d-flex gap-2 justify-content-end"
+                              <div className="d-flex align-items-center" style={{ width: "100%" }}>
+                                <FontAwesomeIcon icon={faFolder} size="2x" style={{ color: "#d3b386", marginRight: "10px" }} />
+
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div
+                                    style={{
+                                      fontSize: "0.9rem",
+                                      color: "white",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      width: "100%",
+                                    }}
+                                    title={folder.folderName}
+                                  >
+                                    {folder.folderName}
+                                  </div>
+                                </div>
+                              </div>
+
+
+                              <Card.Body
+                                className="p-1 d-flex justify-content-between align-items-center"
                                 style={{ width: "100%" }}
                               >
+                                <div
+                                  className="d-flex gap-2 justify-content-end"
+                                  style={{ width: "100%" }}
+                                >
+                                  <Button
+                                    variant="success"
+                                    size="sm"
+                                    style={{
+                                      background: "#ebbf46",
+                                      // background: "#929cd1",
+                                      border: "none",
+                                      width: "36px",
+                                      height: "36px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      padding: 0,
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openEditModal(folder);
+                                    }}
+                                    disabled={
+                                      folder.folderName === "Personal"
+                                        ? true
+                                        : false
+                                    }
+                                  >
+                                    <FontAwesomeIcon icon={faEdit} />
+                                  </Button>
+                                  <Button
+                                    variant="success"
+                                    size="sm"
+                                    style={{
+                                      background: "#007bff",
+                                      border: "none",
+                                      width: "36px",
+                                      height: "36px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      padding: 0,
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openMoveModal(folder);
+                                    }}
+                                    disabled={
+                                      folder.folderName === "Personal"
+                                        ? true
+                                        : false
+                                    }
+                                  >
+                                    <img
+                                      src={movefolder} // <-- Your folder move image path
+                                      alt="Move Folder"
+                                      style={{ width: "18px", height: "18px" }}
+                                    />
+                                  </Button>
+
+                                  <Button
+                                    variant="danger"
+                                    size="sm"
+                                    style={{
+                                      background: "#dc3545",
+                                      border: "none",
+                                      width: "36px",
+                                      height: "36px",
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      padding: 0,
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      //    handleDeleteFolder(folder._id);
+                                      setDeletefolderId(folder._id);
+                                      setIsfolderdelete(true);
+                                    }}
+                                    disabled={
+                                      folder.folderName === "Personal"
+                                        ? true
+                                        : false
+                                    }
+                                  >
+                                    <FontAwesomeIcon icon={faTrash} />
+                                  </Button>
+                                </div>
+                              </Card.Body>
+                            </Card>
+                          </Col>
+                        );
+                      })}
+                  </>
+                )}
+
+                {/* Files */}
+                {[...files]
+                  .sort((a, b) => {
+                    const aStartsWithNumber = /^\d+/.test(a.fileName);
+                    const bStartsWithNumber = /^\d+/.test(b.fileName);
+
+                    if (sortOption === "nameAsc") {
+                      if (aStartsWithNumber && !bStartsWithNumber) return -1;
+                      if (!aStartsWithNumber && bStartsWithNumber) return 1;
+
+                      return a.fileName.localeCompare(b.fileName, undefined, {
+                        numeric: true,
+                        sensitivity: "base",
+                      });
+                    }
+
+                    if (sortOption === "nameDesc") {
+                      if (aStartsWithNumber && !bStartsWithNumber) return 1;
+                      if (!aStartsWithNumber && bStartsWithNumber) return -1;
+
+                      return b.fileName.localeCompare(a.fileName, undefined, {
+                        numeric: true,
+                        sensitivity: "base",
+                      });
+                    }
+
+                    if (sortOption === "createdAsc") {
+                      return new Date(a.uploadedAt) - new Date(b.uploadedAt);
+                    }
+
+                    if (sortOption === "createdDesc") {
+                      return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+                    }
+
+                    return 0;
+                  })
+                  .map((file, index) => (
+                    <Col
+                      key={index}
+                      sm={viewMode === "grid" ? 6 : 12}
+                      md={viewMode === "grid" ? 4 : 12}
+                      lg={viewMode === "grid" ? 3 : 12}
+                    >
+                      <Card
+                        className="p-2"
+                        style={{
+                          background: "#18273e",
+                          border: "1px solid white",
+                          display: "flex",
+                          flexDirection: viewMode === "list" ? "row" : "column",
+                          alignItems: viewMode === "list" ? "center" : "flex-start",
+                          transition: "transform 0.2s, box-shadow 0.2s",
+                        }}
+                        onMouseEnter={(e) => {
+                          if (viewMode === "grid") {
+                            e.currentTarget.style.transform = "scale(1.05)";
+                            e.currentTarget.style.boxShadow =
+                              "0px 4px 10px rgba(0, 0, 0, 0.8)";
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (viewMode === "grid") {
+                            e.currentTarget.style.transform = "scale(1)";
+                            e.currentTarget.style.boxShadow = "none";
+                          }
+                        }}
+                      >
+
+                        <div className="d-flex gap-2 align-items-center" style={{ width: "100%" }}>
+
+                          <FontAwesomeIcon
+                            icon={getFileTypeIcon(file.fileName)}
+                            size="2x"
+                            className="mb-2"
+                            style={{
+                              color: "#d3b386",
+                              marginRight: viewMode === "list" ? "10px" : "0",
+                            }}
+                          />
+                          <div
+                            style={{
+                              fontSize: "0.9rem",
+                              color: "white",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              width: "100%",
+                            }}
+                          >
+                            {file.fileName}
+                          </div>
+
+                        </div>
+                        <Card.Body
+                          className="p-1 d-flex justify-content-between align-items-center"
+                          style={{ width: "100%" }}
+                        >
+                          <div
+                            className="d-flex gap-2 justify-content-end"
+                            style={{ width: "100%" }}
+                          >
+                            {!IsPersonal && (
+                              <>
                                 <Button
-                                  variant="success"
+                                  variant="danger"
                                   size="sm"
-                                  style={{
-                                    background: "#ebbf46",
-                                    // background: "#929cd1",
-                                    border: "none",
-                                    width: "36px",
-                                    height: "36px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    padding: 0,
-                                  }}
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openEditModal(folder);
+                                    openFileEditModal(file);
                                   }}
-                                  disabled={
-                                    folder.folderName === "Personal"
-                                      ? true
-                                      : false
-                                  }
+                                  style={{
+                                    background: "#ebbf46",
+                                    border: "none",
+                                    padding: "0.25rem 0.5rem",
+                                  }}
                                 >
                                   <FontAwesomeIcon icon={faEdit} />
                                 </Button>
                                 <Button
                                   variant="success"
                                   size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setMoveFileId(file._id);
+                                    openMoveModal(selectedFolder);
+                                  }}
                                   style={{
                                     background: "#007bff",
                                     border: "none",
-                                    width: "36px",
-                                    height: "36px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    padding: 0,
+                                    padding: "0.25rem 0.5rem",
                                   }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openMoveModal(folder);
-                                  }}
-                                  disabled={
-                                    folder.folderName === "Personal"
-                                      ? true
-                                      : false
-                                  }
                                 >
                                   <img
-                                    src={movefolder} // <-- Your folder move image path
+                                    src={movefolder}
                                     alt="Move Folder"
                                     style={{ width: "18px", height: "18px" }}
                                   />
                                 </Button>
-
-                                <Button
-                                  variant="danger"
-                                  size="sm"
-                                  style={{
-                                    background: "#dc3545",
-                                    border: "none",
-                                    width: "36px",
-                                    height: "36px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    padding: 0,
-                                  }}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    //    handleDeleteFolder(folder._id);
-                                    setDeletefolderId(folder._id);
-                                    setIsfolderdelete(true);
-                                  }}
-                                  disabled={
-                                    folder.folderName === "Personal"
-                                      ? true
-                                      : false
-                                  }
-                                >
-                                  <FontAwesomeIcon icon={faTrash} />
-                                </Button>
-                              </div>
-                            </Card.Body>
-                          </Card>
-                        </Col>
-                      );
-                    })}
-                  </>
-                )}
-
-                {/* Files */}
-                {files?.map((file, index) => (
-                  <Col
-                    key={index}
-                    sm={viewMode === "grid" ? 6 : 12}
-                    md={viewMode === "grid" ? 4 : 12}
-                    lg={viewMode === "grid" ? 3 : 12}
-                  >
-                    <Card
-                      className="p-2"
-                      style={{
-                        background: "#18273e",
-                        border: "1px solid white",
-                        display: "flex",
-                        flexDirection: viewMode === "list" ? "row" : "column",
-                        alignItems:
-                          viewMode === "list" ? "center" : "flex-start",
-                        transition: "transform 0.2s, box-shadow 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        if (viewMode === "grid") {
-                          e.currentTarget.style.transform = "scale(1.05)";
-                          e.currentTarget.style.boxShadow =
-                            "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (viewMode === "grid") {
-                          e.currentTarget.style.transform = "scale(1)";
-                          e.currentTarget.style.boxShadow = "none";
-                        }
-                      }}
-                    >
-                      <div className="d-flex gap-2 justify-content-between align-items-center">
-                        <FontAwesomeIcon
-                          icon={getFileTypeIcon(file.fileName)}
-                          size="2x"
-                          className="mb-2"
-                          style={{
-                            color: "#d3b386",
-                            marginRight: viewMode === "list" ? "10px" : "0",
-                          }}
-                        />
-                        <div
-                          className="text-truncate"
-                          style={{
-                            fontSize: "0.9rem",
-                            color: "white",
-                            maxWidth: "70%",
-                          }}
-                        >
-                          {file.fileName}
-                        </div>
-                      </div>
-                      <Card.Body
-                        className="p-1 d-flex justify-content-between align-items-center"
-                        style={{ width: "100%" }}
-                      >
-                        <div
-                          className="d-flex gap-2 justify-content-end"
-                          style={{ width: "100%" }}
-                        >
-                          {!IsPersonal && (
-                            <>
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  openFileEditModal(file);
-                                }}
-                                style={{
-                                  background: "#ebbf46",
-                                  border: "none",
-                                  padding: "0.25rem 0.5rem",
-                                }}
-                              >
-                                <FontAwesomeIcon icon={faEdit} />
-                              </Button>
-                              <Button
-                                variant="success"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setMoveFileId(file._id);
-                                  openMoveModal(selectedFolder);
-                                }}
-                                style={{
-                                  background: "#007bff",
-                                  border: "none",
-                                  padding: "0.25rem 0.5rem",
-                                }}
-                              >
-                                <img
-                                  src={movefolder} // <-- Your folder move image path
-                                  alt="Move Folder"
-                                  style={{ width: "18px", height: "18px" }}
-                                />
-                              </Button>
-                            </>
-                          )}
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() =>
-                              handleDownload(file._id, file.fileName)
-                            }
-                            style={{
-                              background: "#28a745",
-                              border: "none",
-                              padding: "0.25rem 0.5rem",
-                            }}
-                          >
-                            <FontAwesomeIcon icon={faDownload} />
-                          </Button>
-                          {!IsPersonal && (
+                              </>
+                            )}
                             <Button
-                              variant="danger"
+                              variant="success"
                               size="sm"
-                              onClick={() => {
-                                // handleFileDelete(file._id)
-                                setDeletefileId(file._id);
-                                setIsdelete(true);
-                              }}
+                              onClick={() => handleDownload(file._id, file.fileName)}
                               style={{
-                                background: "#dc3545",
+                                background: "#28a745",
                                 border: "none",
                                 padding: "0.25rem 0.5rem",
                               }}
                             >
-                              <FontAwesomeIcon icon={faTrash} />
+                              <FontAwesomeIcon icon={faDownload} />
                             </Button>
-                          )}
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
+                            {!IsPersonal && (
+                              <Button
+                                variant="danger"
+                                size="sm"
+                                onClick={() => {
+                                  setDeletefileId(file._id);
+                                  setIsdelete(true);
+                                }}
+                                style={{
+                                  background: "#dc3545",
+                                  border: "none",
+                                  padding: "0.25rem 0.5rem",
+                                }}
+                              >
+                                <FontAwesomeIcon icon={faTrash} />
+                              </Button>
+                            )}
+                          </div>
+                        </Card.Body>
+                      </Card>
+                    </Col>
+                  ))}
+
 
                 {!folderList?.length && !files?.length && (
                   <Col xs={12}>

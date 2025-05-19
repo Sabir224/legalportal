@@ -6,6 +6,7 @@ const screenSlice = createSlice({
     value: 0, // current screen
     clientEmail: "",
     Caseinfo: null,
+    FormCDetails: null,
     history: [], // screen history stack
   },
   reducers: {
@@ -26,9 +27,12 @@ const screenSlice = createSlice({
     Caseinfo: (state, action) => {
       state.Caseinfo = action.payload;
     },
+    FormCDetails: (state, action) => {
+      state.FormCDetails = action.payload;
+    },
   },
 });
 
-export const { screenChange, goBackScreen, clientEmail, Caseinfo } =
+export const { screenChange, goBackScreen, clientEmail,FormCDetails, Caseinfo } =
   screenSlice.actions;
 export default screenSlice.reducer;
