@@ -4,7 +4,7 @@ import { Alert } from "bootstrap";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
-
+import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAddressCard,
@@ -80,6 +80,7 @@ const ClientAppointment = () => {
   const [pendingCaseData, setPendingCaseData] = useState(null);
   const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+  const [showFiles, setShowFiles] = useState(false);
   let data;
 
   const updateSlotStatus = (slotId) => {
@@ -577,6 +578,433 @@ const ClientAppointment = () => {
       return acc;
     }, {}) || {};
 
+  // return loading ? (
+  //   <div className="d-flex justify-content-center align-items-center vh-100">
+  //     <div className="text-center">
+  //       <Spinner animation="border" variant="primary" />
+  //       <p className="mt-2">Loading Lawyer details...</p>
+  //     </div>
+  //   </div>
+  // ) : lawyerDetails && user && !loading ? (
+  //   <div
+  //     className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
+  //     style={{
+  //       width: "100%",
+  //       height: "85vh",
+  //       overflowY: "auto",
+  //       overflowX: "hidden",
+  //       // padding: 10,
+  //       boxShadow: "5px 0px 5px gray",
+  //     }}
+  //   >
+  //     <div className="row gap-5 justify-content-center ms-1 mt-2">
+  //       {/* <div className="row gap-5 justify-content-center "  > */}
+  //       <div
+  //         className="slots-section col-5 mt-3 mb-3"
+  //         style={{
+  //           boxShadow: "5px 5px 5px gray",
+  //           overflowY: "auto",
+  //           maxHeight: "500px",
+  //           scrollbarWidth: "thin", // For Firefox
+  //           scrollbarColor: "#d2a85a #16213e",
+  //         }}
+  //       >
+  //         <div className="profile-section">
+  //           <div className="d-flex flex-row">
+  //             <img
+  //               style={{
+  //                 border: "2px solid #d4af37",
+  //                 textAlign: "center",
+  //                 padding: "3px",
+  //                 borderRadius: "50%", // Use 50% for a perfect circle
+  //                 width: "100px",
+  //                 height: "100px",
+  //                 display: "flex", // Use flexbox for centering
+  //                 alignItems: "center", // Vertically center the icon
+  //                 justifyContent: "center", // Horizontally center the icon
+  //               }}
+  //               src={
+  //                 user?.ProfilePicture ? (
+  //                   `${user?.ProfilePicture}`
+  //                 ) : (
+  //                   <div
+  //                     className="client-picture mb-3"
+  //                     style={{
+  //                       border: "2px solid #d4af37",
+  //                       textAlign: "center",
+  //                       padding: "3px",
+  //                       borderRadius: "50%", // Use 50% for a perfect circle
+  //                       width: "100px",
+  //                       height: "100px",
+  //                       display: "flex", // Use flexbox for centering
+  //                       alignItems: "center", // Vertically center the icon
+  //                       justifyContent: "center", // Horizontally center the icon
+  //                     }}
+  //                   >
+  //                     <FontAwesomeIcon
+  //                       icon={faUserCircle}
+  //                       className="rounded-circle"
+  //                       style={{ fontSize: "48px" }} // Adjust the size of the icon
+  //                     />
+  //                   </div>
+  //                 )
+  //               }
+  //               alt="Profile"
+  //               className="avatar-img"
+  //             />
+  //             <div className="d-flex flex-column justify-content-center p-2">
+  //               <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
+  //               <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
+  //             </div>
+  //           </div>
+
+  //           <div className="lawyer-details mt-1">
+  //             <div
+  //               className="d-flex"
+  //               style={{ width: "auto", height: "55%", overflowY: "auto" }}
+  //             >
+  //               <p>{lawyerDetails.Bio}</p>
+  //             </div>
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon
+  //                 icon={faMailBulk}
+  //                 size="1x"
+  //                 color="white"
+  //                 className="m-2"
+  //               />
+  //               <p className="ms-2 m-1">
+  //                 <a href={mailtoLink} style={{ color: "white" }}>
+  //                   {user?.Email}
+  //                 </a>
+  //               </p>
+  //             </div>
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon icon={faPhone} className="m-2" />
+  //               <p className="ms-2 m-1">
+  //                 <a
+  //                   href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
+  //                   style={{
+  //                     textDecoration: "none",
+  //                     color: "inherit",
+  //                     display: "flex",
+  //                     alignItems: "center",
+  //                   }}
+  //                 >
+  //                   {formatPhoneNumber(lawyerDetails?.Contact)}
+  //                 </a>
+  //               </p>
+  //             </div>
+
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon
+  //                 icon={faAddressCard}
+  //                 size="1x"
+  //                 color="white"
+  //                 className="m-2"
+  //               />
+  //               <p style={{ height: 50 }} className="ms-2 m-1 ">
+  //                 {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
+  //                 {lawyerDetails?.Address}
+  //               </p>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //       <div
+  //         className="slots-section col-5 mb-3 mt-3"
+  //         style={{
+  //           boxShadow: "5px 5px 5px gray",
+  //           overflowY: "auto",
+  //           maxHeight: "500px",
+  //           scrollbarWidth: "thin", // For Firefox
+  //           scrollbarColor: "#d2a85a #16213e",
+  //         }}
+  //       >
+  //         <div>
+  //           {isPopupVisible && (
+  //             <div className="popup-overlay">
+  //               <div className={popupcolor}>
+  //                 {!isLoading && !isEmailSent && (
+  //                   <>
+  //                     <h3
+  //                       style={{
+  //                         fontSize: "18px",
+  //                         fontWeight: "bold",
+  //                         marginBottom: "5px",
+  //                       }}
+  //                     >
+  //                       {popupmessage}
+  //                     </h3>
+  //                     <textarea
+  //                       placeholder="Text Message (Optional)"
+  //                       value={ClientMessage}
+  //                       onChange={(e) => setClientMessage(e.target.value)}
+  //                       style={{
+  //                         width: "90%",
+  //                         minHeight: "100px", // Adjust height as needed
+  //                         padding: "8px",
+  //                         border: "1px solid #ddd",
+  //                         borderRadius: "6px",
+  //                         margin: "10px 0",
+  //                         resize: "vertical", // Allows resizing if needed
+  //                       }}
+  //                     ></textarea>
+
+  //                     {isPopupVisiblecancel && (
+  //                       <div className="popup-actions d-flex justify-content-center">
+  //                         <button
+  //                           className="confirm-btn"
+  //                           onClick={handleConfirm}
+  //                         >
+  //                           Yes
+  //                         </button>
+  //                         <button
+  //                           className="cancel-btn"
+  //                           onClick={handleClosePopup}
+  //                         >
+  //                           No
+  //                         </button>
+  //                       </div>
+  //                     )}
+  //                   </>
+  //                 )}
+  //                 {isLoading && (
+  //                   <div className="loading-indicator">
+  //                     <p>Sending...</p>
+  //                     <div className="spinner"></div>{" "}
+  //                     {/* You can style a spinner here */}
+  //                   </div>
+  //                 )}
+  //                 {isEmailSent && (
+  //                   <div className="confirmation">
+  //                     <FontAwesomeIcon
+  //                       icon={faCheck}
+  //                       size="3x"
+  //                       color="white"
+  //                       className="m-2"
+  //                     />
+
+  //                     {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+  //                   </div>
+  //                 )}
+  //               </div>
+  //             </div>
+  //           )}
+  //         </div>
+
+  //         {/* Month Selector */}
+  //         <div
+  //           className="d-flex "
+  //           style={{ marginBottom: "2px", justifyContent: "space-between" }}
+  //         >
+  //           <div style={{ color: " #d4af37" }}>
+  //             <h2>Available Slots</h2>
+  //           </div>
+  //         </div>
+
+  //         <div
+  //           style={{
+  //             display: "flex",
+  //             justifyContent: "space-between",
+  //             alignItems: "center",
+  //           }}
+  //         >
+  //           <button className="calender-button" onClick={prevMonth}>
+  //             <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
+  //           </button>
+  //           <h3>
+  //             {currentDate.toLocaleString("default", { month: "long" })}{" "}
+  //             {currentDate.getFullYear()}
+  //           </h3>
+  //           <button onClick={nextMonth} className="calender-button">
+  //             <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
+  //           </button>
+  //         </div>
+
+  //         {/* Days of the Week */}
+  //         <div
+  //           style={{
+  //             display: "flex",
+  //             justifyContent: "space-between",
+  //             fontWeight: "bold",
+  //             marginBottom: "5px",
+  //           }}
+  //         >
+  //           {daysOfWeek.map((day) => (
+  //             <div
+  //               key={day}
+  //               className="Calendarday"
+  //               style={{
+  //                 border: " 1px solid #d2a85a",
+  //                 margin: 3,
+  //                 width: "calc(100% / 7)",
+  //                 textAlign: "center",
+  //               }}
+  //             >
+  //               {day}
+  //             </div>
+  //           ))}
+  //         </div>
+
+  //         <div>
+  //           <div style={{ display: "flex", flexWrap: "wrap" }}>
+  //             {calendarDates.map((date, index) => {
+  //               if (!date) {
+  //                 return (
+  //                   <div
+  //                     key={index}
+  //                     className="calendarEmpty"
+  //                     style={{
+  //                       width: "calc(100% / 7)",
+  //                       height: "40px", // Consistent height for empty cells
+  //                     }}
+  //                   ></div>
+  //                 );
+  //               }
+
+  //               const dateStr = date.toDateString();
+  //               const dateInfo = availableDatesInfo[dateStr] || {};
+  //               const isAvailableDate = dateInfo.isAvailable;
+
+  //               return (
+  //                 <div
+  //                   key={index}
+  //                   onClick={
+  //                     isAvailableDate ? () => handleDateClick(date) : null
+  //                   } // Disable click for unavailable dates
+  //                   className={`calendarDates ${
+  //                     isAvailableDate ? "availableDate" : ""
+  //                   }`}
+  //                   style={{
+  //                     border:
+  //                       selectedDate?.getDate() === date?.getDate()
+  //                         ? "2px solid white"
+  //                         : "2px solid rgb(2, 30, 58)",
+  //                     borderRadius: "5px",
+  //                     color: isAvailableDate ? "" : "gray",
+  //                     cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
+  //                     background:
+  //                       selectedDate?.getDate() === date?.getDate()
+  //                         ? "#d2a85a"
+  //                         : "",
+  //                     // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
+  //                     textAlign: "center",
+  //                     lineHeight: "40px",
+  //                     height: "40px",
+  //                     fontSize: 12, // Ensure consistent height
+  //                   }}
+  //                 >
+  //                   {date.getDate()}
+  //                 </div>
+  //               );
+  //             })}
+  //           </div>
+  //         </div>
+
+  //         <div>
+  //           <div>
+  //             <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
+  //             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+  //               {selectedDate ? (
+  //                 availableSlotsMap[selectedDate.toDateString()]?.map(
+  //                   (slot) => (
+  //                     <button
+  //                       key={slot._id}
+  //                       onClick={() => handleTimeClick(slot.startTime, slot)}
+  //                       className="time-button"
+  //                       style={{
+  //                         padding: "5px 10px",
+  //                         borderRadius: "5px",
+  //                         border: "1px solid #d4af37",
+  //                         background: slot.isBooked
+  //                           ? "green" // Green if booked
+  //                           : selectedTime === slot.startTime
+  //                           ? "#d2a85a" // Golden when selected
+  //                           : "#16213e", // Default background
+  //                         color: "white",
+  //                         cursor: slot.isBooked ? "not-allowed" : "pointer",
+  //                         fontSize: 11,
+  //                         width: 130,
+  //                       }}
+  //                       disabled={slot.isBooked}
+  //                       onMouseEnter={(e) => {
+  //                         if (
+  //                           !slot.isBooked &&
+  //                           selectedTime !== slot.startTime
+  //                         ) {
+  //                           e.target.style.background = "#d2a85a"; // Hover background (light golden)
+  //                         }
+  //                       }}
+  //                       onMouseLeave={(e) => {
+  //                         if (
+  //                           !slot.isBooked &&
+  //                           selectedTime !== slot.startTime
+  //                         ) {
+  //                           e.target.style.background = "#16213e"; // Reset to default
+  //                         }
+  //                       }}
+  //                     >
+  //                       {convertTo12HourFormat(slot.startTime)} -{" "}
+  //                       {convertTo12HourFormat(slot.endTime)}
+  //                     </button>
+  //                   )
+  //                 )
+  //               ) : (
+  //                 <p style={{ color: "gray" }}>
+  //                   Select a date to view available times.
+  //                 </p>
+  //               )}
+  //             </div>
+  //           </div>
+  //         </div>
+
+  //         {selectedTime && (
+  //           <div
+  //             style={{
+  //               position: "fixed",
+  //               bottom: "70px",
+  //               right: "110px",
+  //               zIndex: 1000,
+  //               width: 60,
+  //               height: 60,
+  //               boxShadow: "5px 5px 5px black",
+  //               borderRadius: "50%",
+  //               border: "1px solid #d2a85a",
+  //               display: "flex",
+  //               alignItems: "center",
+  //               justifyContent: "center",
+  //               backgroundColor: " #d2a85a",
+  //             }}
+  //             onMouseEnter={(e) => {
+  //               e.target.style.background = "#16213e"; // Reset to default
+  //             }}
+  //             onMouseLeave={(e) => {
+  //               e.target.style.background = "#d2a85a"; // Hover background (light golden)
+  //             }}
+  //             onClick={() => handleOpenPopup()}
+  //           >
+  //             <BsCalendar2Plus
+  //               style={
+  //                 {
+  //                   //  padding: "15px 20px",
+  //                 }
+  //               }
+  //               color="white"
+  //             />
+  //             {/* </Button> */}
+  //           </div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   </div>
+  // ) : (
+  //   <div className="d-flex justify-content-center align-items-center vh-100">
+  //     <div className="text-center text-danger">
+  //       <h4>No user found</h4>
+  //     </div>
+  //   </div>
+  // );
+
   return loading ? (
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="text-center">
@@ -586,41 +1014,209 @@ const ClientAppointment = () => {
     </div>
   ) : lawyerDetails && user && !loading ? (
     <div
-      className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
+      className="card container-fluid p-0"
       style={{
-        width: "100%",
-        height: "85vh",
-        overflowY: "auto",
+        height: "86vh",
+        maxWidth: "100vw",
         overflowX: "hidden",
-        // padding: 10,
-        boxShadow: "5px 0px 5px gray",
+        overflowY: "auto",
       }}
     >
-      <div className="row gap-5 justify-content-center ms-1 mt-2">
-        {/* <div className="row gap-5 justify-content-center "  > */}
-        <div
-          className="slots-section col-5 mt-3 mb-3"
+      <Row
+        className="m-0 p-0 g-0 g-md-3 justify-content-center"
+        style={{
+          height: "calc(100% - 20px)", // Account for mobile nav height
+          width: "100%",
+          margin: "0 auto",
+        }}
+      >
+        {/* Profile Section */}
+        <Col
+          xs={12}
+          md={5}
+          className={`${showFiles ? "d-none d-md-block me-md-5" : ""} p-1`} // Smaller padding
           style={{
-            boxShadow: "5px 5px 5px gray",
-            overflowY: "auto",
-            maxHeight: "500px",
-            scrollbarWidth: "thin", // For Firefox
-            scrollbarColor: "#d2a85a #16213e",
+            background: "#001f3f",
+            height: "100%",
+            maxHeight: "100%",
+            overflow: "hidden",
           }}
         >
-          <div className="profile-section">
+          {/* Shared Toggle - appears in both sections */}
+          <div
+            className="d-block d-md-none"
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 1,
+              background: "#001f3f",
+              padding: "5px 15px",
+              borderRadius: "20px",
+              border: "1px solid #d3b386",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div className="d-flex justify-content-center align-items-center">
+              <span
+                className={`mx-2 fw-bold`}
+                style={{
+                  color: !showFiles ? "#d3b386" : "white",
+                }}
+              >
+                Profile
+              </span>
+              <div className="form-switch">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  role="switch"
+                  checked={showFiles}
+                  onChange={() => setShowFiles(!showFiles)}
+                  style={{
+                    backgroundColor: "#d3b386",
+
+                    width: "3em",
+                    height: "1.5em",
+                  }}
+                />
+              </div>
+              <span
+                className={`mx-2 fw-bold `}
+                style={{
+                  color: showFiles ? "gold" : "white",
+                }}
+              >
+                Calendar
+              </span>
+            </div>
+          </div>
+          <div className="profile-section p-3 h-100 d-flex flex-column mt-4">
+            {/* Profile Header */}
+            <div className="d-flex flex-column align-items-center text-center mt-3">
+              <div
+                style={{
+                  border: "2px solid #d4af37",
+                  borderRadius: "50%",
+                  width: "100px",
+                  height: "100px",
+                  minWidth: "100px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  position: "relative",
+                  marginBottom: "1rem",
+                }}
+              >
+                {user?.ProfilePicture ? (
+                  <img
+                    src={user.ProfilePicture}
+                    alt="Profile"
+                    className="img-fluid h-100 w-100"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={defaultProfilePic}
+                    alt="Profile"
+                    className="img-fluid h-100 w-100"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
+              </div>
+
+              <div>
+                <h2
+                  className="mb-0"
+                  style={{
+                    wordBreak: "break-word",
+                    fontSize: "clamp(1.2rem, 3vw, 1.5rem)",
+                  }}
+                >
+                  {user?.UserName}
+                </h2>
+                <p className="mb-0" style={{ color: "#d4af37" }}>
+                  {lawyerDetails?.Position}
+                </p>
+              </div>
+            </div>
+
+            {/* Details Section */}
+            <div className="lawyer-details mt-3 flex-grow-1">
+              <div
+                className="mb-2"
+                style={{ maxHeight: "150px", overflowY: "auto" }}
+              >
+                <p>{lawyerDetails.Bio}</p>
+              </div>
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+                <p className="m-0" style={{ wordBreak: "break-word" }}>
+                  <a
+                    href={`mailto:${user?.Email}`}
+                    style={{ color: "white", textDecoration: "none" }}
+                  >
+                    {user?.Email}
+                  </a>
+                </p>
+              </div>
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <a
+                  href={`tel:${formatPhoneNumber(lawyerDetails.Contact)}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPhone} className="me-2" />
+                  <span>{formatPhoneNumber(lawyerDetails.Contact)}</span>
+                </a>
+              </div>
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <FontAwesomeIcon icon={faAddressCard} className="me-2" />
+                <p className="m-0" style={{ wordBreak: "break-word" }}>
+                  <a
+                    href={`http://maps.google.com/?q=${encodeURIComponent(
+                      lawyerDetails?.Address
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{
+                      color: "white",
+                      textDecoration: "none",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {lawyerDetails?.Address}
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="profile-section p-3">
             <div className="d-flex flex-row">
               <img
                 style={{
                   border: "2px solid #d4af37",
                   textAlign: "center",
                   padding: "3px",
-                  borderRadius: "50%", // Use 50% for a perfect circle
+                  borderRadius: "50%",
                   width: "100px",
                   height: "100px",
-                  display: "flex", // Use flexbox for centering
-                  alignItems: "center", // Vertically center the icon
-                  justifyContent: "center", // Horizontally center the icon
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                 }}
                 src={
                   user?.ProfilePicture ? (
@@ -632,18 +1228,18 @@ const ClientAppointment = () => {
                         border: "2px solid #d4af37",
                         textAlign: "center",
                         padding: "3px",
-                        borderRadius: "50%", // Use 50% for a perfect circle
+                        borderRadius: "50%",
                         width: "100px",
                         height: "100px",
-                        display: "flex", // Use flexbox for centering
-                        alignItems: "center", // Vertically center the icon
-                        justifyContent: "center", // Horizontally center the icon
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                       }}
                     >
                       <FontAwesomeIcon
                         icon={faUserCircle}
                         className="rounded-circle"
-                        style={{ fontSize: "48px" }} // Adjust the size of the icon
+                        style={{ fontSize: "48px" }}
                       />
                     </div>
                   )
@@ -701,117 +1297,92 @@ const ClientAppointment = () => {
                   color="white"
                   className="m-2"
                 />
-                <p style={{ height: 50 }} className="ms-2 m-1 ">
-                  {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
+                <p style={{ height: 50 }} className="ms-2 m-1">
                   {lawyerDetails?.Address}
                 </p>
               </div>
             </div>
           </div>
-        </div>
-        <div
-          className="slots-section col-5 mb-3 mt-3"
+        </Col>
+
+        {/* Calendar Section */}
+        <Col
+          xs={12}
+          md={5}
+          lg={5}
+          className={`card border rounded p-3 mb-3 mt-3 ${
+            !showFiles ? "d-none d-md-block" : ""
+          }`}
           style={{
-            boxShadow: "5px 5px 5px gray",
-            overflowY: "auto",
-            maxHeight: "500px",
-            scrollbarWidth: "thin", // For Firefox
-            scrollbarColor: "#d2a85a #16213e",
+            background: "#001f3f",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            maxWidth: "100%",
+            minHeight: "300px",
           }}
         >
-          <div>
-            {isPopupVisible && (
-              <div className="popup-overlay">
-                <div className={popupcolor}>
-                  {!isLoading && !isEmailSent && (
-                    <>
-                      <h3
-                        style={{
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        {popupmessage}
-                      </h3>
-                      <textarea
-                        placeholder="Text Message (Optional)"
-                        value={ClientMessage}
-                        onChange={(e) => setClientMessage(e.target.value)}
-                        style={{
-                          width: "90%",
-                          minHeight: "100px", // Adjust height as needed
-                          padding: "8px",
-                          border: "1px solid #ddd",
-                          borderRadius: "6px",
-                          margin: "10px 0",
-                          resize: "vertical", // Allows resizing if needed
-                        }}
-                      ></textarea>
-
-                      {isPopupVisiblecancel && (
-                        <div className="popup-actions d-flex justify-content-center">
-                          <button
-                            className="confirm-btn"
-                            onClick={handleConfirm}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            className="cancel-btn"
-                            onClick={handleClosePopup}
-                          >
-                            No
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {isLoading && (
-                    <div className="loading-indicator">
-                      <p>Sending...</p>
-                      <div className="spinner"></div>{" "}
-                      {/* You can style a spinner here */}
-                    </div>
-                  )}
-                  {isEmailSent && (
-                    <div className="confirmation">
-                      <FontAwesomeIcon
-                        icon={faCheck}
-                        size="3x"
-                        color="white"
-                        className="m-2"
-                      />
-
-                      {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Month Selector */}
+          {/* Toggle Switch */}
           <div
-            className="d-flex "
-            style={{ marginBottom: "2px", justifyContent: "space-between" }}
+            className="d-block d-md-none"
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 1,
+              background: "#001f3f",
+              padding: "5px 15px",
+              borderRadius: "20px",
+              border: "1px solid #d3b386",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+            }}
           >
-            <div style={{ color: " #d4af37" }}>
-              <h2>Available Slots</h2>
+            <div className="d-flex justify-content-center align-items-center">
+              <span
+                className="mx-2"
+                style={{
+                  color: !showFiles ? "#d3b386" : "white",
+                  fontSize: "clamp(0.7rem, 1vw, 1rem)",
+                }}
+              >
+                Profile
+              </span>
+              <div className="form-switch">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  role="switch"
+                  checked={showFiles}
+                  onChange={() => setShowFiles(!showFiles)}
+                  style={{
+                    backgroundColor: "#d3b386",
+                    width: "3em",
+                    height: "1.5em",
+                  }}
+                />
+              </div>
+              <span
+                className="mx-2"
+                style={{
+                  color: showFiles ? "#d3b386" : "white",
+                  fontSize: "clamp(0.7rem, 1vw, 1rem)",
+                }}
+              >
+                Calendar
+              </span>
             </div>
           </div>
 
+          {/* Header Navigation */}
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
+            className="d-flex justify-content-between align-items-center mt-5"
+            style={{ gap: "10px" }}
           >
             <button className="calender-button" onClick={prevMonth}>
               <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
             </button>
-            <h3>
+            <h3 className=" text-white">
               {currentDate.toLocaleString("default", { month: "long" })}{" "}
               {currentDate.getFullYear()}
             </h3>
@@ -822,147 +1393,148 @@ const ClientAppointment = () => {
 
           {/* Days of the Week */}
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: "bold",
-              marginBottom: "5px",
-            }}
+            className="d-flex justify-content-between font-weight-bold my-2"
+            style={{ gap: "3px" }}
           >
             {daysOfWeek.map((day) => (
               <div
                 key={day}
                 className="Calendarday"
                 style={{
-                  border: " 1px solid #d2a85a",
-                  margin: 3,
+                  border: "1px solid #d2a85a",
                   width: "calc(100% / 7)",
                   textAlign: "center",
+                  color: "white",
+                  fontSize: "clamp(0.6rem, 1.5vw, 0.8rem)",
                 }}
               >
-                {day}
+                {day.substring(0, window.innerWidth < 400 ? 1 : 3)}
               </div>
             ))}
           </div>
 
-          <div>
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {calendarDates.map((date, index) => {
-                if (!date) {
-                  return (
-                    <div
-                      key={index}
-                      className="calendarEmpty"
-                      style={{
-                        width: "calc(100% / 7)",
-                        height: "40px", // Consistent height for empty cells
-                      }}
-                    ></div>
-                  );
-                }
-
-                const dateStr = date.toDateString();
-                const dateInfo = availableDatesInfo[dateStr] || {};
-                const isAvailableDate = dateInfo.isAvailable;
-
+          {/* Calendar Dates */}
+          <div className="d-flex flex-wrap">
+            {calendarDates.map((date, index) => {
+              if (!date) {
                 return (
                   <div
                     key={index}
-                    onClick={
-                      isAvailableDate ? () => handleDateClick(date) : null
-                    } // Disable click for unavailable dates
-                    className={`calendarDates ${
-                      isAvailableDate ? "availableDate" : ""
-                    }`}
+                    className="calendarEmpty"
+                    style={{ width: "calc(100% / 7)", height: "40px" }}
+                  ></div>
+                );
+              }
+
+              const dateStr = date.toDateString();
+              const dateInfo = availableDatesInfo[dateStr] || {};
+              const isAvailableDate = dateInfo.isAvailable;
+
+              return (
+                <div
+                  key={index}
+                  onClick={isAvailableDate ? () => handleDateClick(date) : null}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
+                  style={{
+                    border:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "2px solid white"
+                        : "2px solid rgb(2, 30, 58)",
+                    borderRadius: "5px",
+                    color: isAvailableDate ? "white" : "gray",
+                    cursor: isAvailableDate ? "pointer" : "not-allowed",
+                    background:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "#d2a85a"
+                        : "",
+                    textAlign: "center",
+                    lineHeight: "40px",
+                    height: "40px",
+                    fontSize: "clamp(0.7rem, 2vw, 0.9rem)",
+                    width: "calc(100% / 7)",
+                  }}
+                >
+                  {date.getDate()}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Time Slots */}
+          <div className="mt-3">
+            <h5
+              style={{
+                color: "#d4af37",
+                fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+              }}
+            >
+              Available Times:
+            </h5>
+            <div
+              className="gap-2"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+              }}
+            >
+              {selectedDate ? (
+                availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
+                  <button
+                    key={slot._id}
+                    onClick={() => handleTimeClick(slot.startTime, slot)}
+                    className="time-button"
                     style={{
-                      border:
-                        selectedDate?.getDate() === date?.getDate()
-                          ? "2px solid white"
-                          : "2px solid rgb(2, 30, 58)",
+                      padding: "5px 10px",
                       borderRadius: "5px",
-                      color: isAvailableDate ? "" : "gray",
-                      cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
-                      background:
-                        selectedDate?.getDate() === date?.getDate()
-                          ? "#d2a85a"
-                          : "",
-                      // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
-                      textAlign: "center",
-                      lineHeight: "40px",
-                      height: "40px",
-                      fontSize: 12, // Ensure consistent height
+                      border: "1px solid #d4af37",
+                      background: slot.isBooked
+                        ? "green"
+                        : selectedTime === slot.startTime
+                        ? "#d2a85a"
+                        : "#16213e",
+                      color: "white",
+                      cursor: slot.isBooked ? "not-allowed" : "pointer",
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
+                      width: "100%",
+                    }}
+                    disabled={slot.isBooked}
+                    onMouseEnter={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#d2a85a";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#16213e";
+                      }
                     }}
                   >
-                    {date.getDate()}
-                  </div>
-                );
-              })}
+                    {convertTo12HourFormat(slot.startTime)} -{" "}
+                    {convertTo12HourFormat(slot.endTime)}
+                  </button>
+                ))
+              ) : (
+                <p
+                  style={{
+                    color: "gray",
+                    fontSize: "clamp(0.7rem, 2vw, 0.9rem)",
+                  }}
+                >
+                  Select a date to view available times.
+                </p>
+              )}
             </div>
           </div>
 
-          <div>
-            <div>
-              <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                {selectedDate ? (
-                  availableSlotsMap[selectedDate.toDateString()]?.map(
-                    (slot) => (
-                      <button
-                        key={slot._id}
-                        onClick={() => handleTimeClick(slot.startTime, slot)}
-                        className="time-button"
-                        style={{
-                          padding: "5px 10px",
-                          borderRadius: "5px",
-                          border: "1px solid #d4af37",
-                          background: slot.isBooked
-                            ? "green" // Green if booked
-                            : selectedTime === slot.startTime
-                            ? "#d2a85a" // Golden when selected
-                            : "#16213e", // Default background
-                          color: "white",
-                          cursor: slot.isBooked ? "not-allowed" : "pointer",
-                          fontSize: 11,
-                          width: 130,
-                        }}
-                        disabled={slot.isBooked}
-                        onMouseEnter={(e) => {
-                          if (
-                            !slot.isBooked &&
-                            selectedTime !== slot.startTime
-                          ) {
-                            e.target.style.background = "#d2a85a"; // Hover background (light golden)
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (
-                            !slot.isBooked &&
-                            selectedTime !== slot.startTime
-                          ) {
-                            e.target.style.background = "#16213e"; // Reset to default
-                          }
-                        }}
-                      >
-                        {convertTo12HourFormat(slot.startTime)} -{" "}
-                        {convertTo12HourFormat(slot.endTime)}
-                      </button>
-                    )
-                  )
-                ) : (
-                  <p style={{ color: "gray" }}>
-                    Select a date to view available times.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
+          {/* Floating Button */}
           {selectedTime && (
             <div
               style={{
                 position: "fixed",
                 bottom: "70px",
-                right: "110px",
+                right: "20px",
                 zIndex: 1000,
                 width: 60,
                 height: 60,
@@ -972,29 +1544,86 @@ const ClientAppointment = () => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: " #d2a85a",
+                backgroundColor: "#d2a85a",
               }}
-              onMouseEnter={(e) => {
-                e.target.style.background = "#16213e"; // Reset to default
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = "#d2a85a"; // Hover background (light golden)
-              }}
+              onMouseEnter={(e) => (e.target.style.background = "#16213e")}
+              onMouseLeave={(e) => (e.target.style.background = "#d2a85a")}
               onClick={() => handleOpenPopup()}
             >
-              <BsCalendar2Plus
-                style={
-                  {
-                    //  padding: "15px 20px",
-                  }
-                }
-                color="white"
-              />
-              {/* </Button> */}
+              <BsCalendar2Plus color="white" />
+            </div>
+          )}
+        </Col>
+        <div>
+          {isPopupVisible && (
+            <div className="popup-overlay">
+              <div className={popupcolor}>
+                {!isLoading && !isEmailSent && (
+                  <>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        marginBottom: "5px",
+                        color: "white",
+                      }}
+                    >
+                      {popupmessage}
+                    </h3>
+                    <textarea
+                      placeholder="Text Message (Optional)"
+                      value={ClientMessage}
+                      onChange={(e) => setClientMessage(e.target.value)}
+                      style={{
+                        width: "90%",
+                        minHeight: "100px", // Adjust height as needed
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        borderRadius: "6px",
+                        margin: "10px 0",
+                        resize: "vertical", // Allows resizing if needed
+                      }}
+                    ></textarea>
+
+                    {isPopupVisiblecancel && (
+                      <div className="popup-actions d-flex justify-content-center">
+                        <button className="confirm-btn" onClick={handleConfirm}>
+                          Yes
+                        </button>
+                        <button
+                          className="cancel-btn"
+                          onClick={handleClosePopup}
+                        >
+                          No
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {isLoading && (
+                  <div className="loading-indicator">
+                    <p>Sending...</p>
+                    <div className="spinner"></div>{" "}
+                    {/* You can style a spinner here */}
+                  </div>
+                )}
+                {isEmailSent && (
+                  <div className="confirmation">
+                    <FontAwesomeIcon
+                      icon={faCheck}
+                      size="3x"
+                      color="white"
+                      className="m-2"
+                    />
+
+                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
-      </div>
+      </Row>
     </div>
   ) : (
     <div className="d-flex justify-content-center align-items-center vh-100">
