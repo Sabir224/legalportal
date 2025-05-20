@@ -55,332 +55,522 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Card, Col, Row, Spinner, Tabs } from "react-bootstrap";
 import DragAndDrop from "./DragAndDrop";
 
+// const ContactForm = ({ slotbookuserid }) => {
+//   const [email, setEmail] = useState("raheemakbar999@gmail.com");
+//   const [subject, setSubject] = useState("Meeting Confirmation");
+//   const [clientDetails, setClientDetails] = useState({});
+//   const [usersDetails, setUsersDetails] = useState({});
+//   const [loading, setLoading] = useState(false);
+//   const [files, setFiles] = useState([]); // Uploaded files state
+//   const [selectedFiles, setSelectedFiles] = useState([]); // Selected files before upload
+//   const [showUploadModal, setShowUploadModal] = useState(false); // State to control upload moda
+//   const [uploading, setUploading] = useState(false);
+//   const [uploadSuccess, setUploadSuccess] = useState(false);
+//   const [errorMessage, setErrorMessage] = useState("");
+//   const storedEmail = sessionStorage.getItem("Email");
+//   const [lawyerDetails, setLawyersDetails] = useState(null);
+
+//   // Function to categorize files
+
+//   const onHide = () => {
+//     setShowUploadModal(false);
+//     setSelectedFiles([]);
+//     setUploading(false);
+//     setUploadSuccess(false);
+//     setErrorMessage([]);
+//   };
+//   const getFilesByCategory = (category, files) => {
+//     return files.filter((file) => {
+//       const fileType = getFileType(file.fileName);
+//       if (category === "media") {
+//         return (
+//           fileType === "image" || fileType === "video" || fileType === "audio"
+//         );
+//       }
+//       if (category === "documents") {
+//         return (
+//           fileType !== "image" && fileType !== "video" && fileType !== "audio"
+//         );
+//       }
+//       return false;
+//     });
+//   };
+
+//   const fileIcons = {
+//     pdf: faFilePdf, // PDF Files
+//     doc: faFileWord, // Word Document
+//     docx: faFileWord, // Word Document
+//     txt: faFileText, // Plain Text File
+//     csv: faFileCsv, // CSV File
+//     xls: faFileExcel, // Excel File
+//     xlsx: faFileExcel, // Excel File
+//     ppt: faFilePowerpoint, // PowerPoint File
+//     pptx: faFilePowerpoint, // PowerPoint File
+//     odt: faFileAlt, // OpenDocument Text
+//     ods: faFileExcel, // OpenDocument Spreadsheet
+//     odp: faFilePowerpoint, // OpenDocument Presentation
+//     image: faImage, // Images (jpg, png, svg, etc.)
+//     audio: faMusic, // Audio Files (mp3, wav, etc.)
+//     video: faVideo, // Video Files (mp4, mkv, avi, etc.)
+//     zip: faFileArchive, // Zip Files
+//     rar: faFileArchive, // RAR Files
+//     tar: faFileArchive, // Tar Files
+//     gz: faFileArchive, // GZipped Files
+//     "7z": faFileArchive, // 7z Files
+//     js: faFileCode, // JavaScript Files
+//     jsx: faFileCode, // JavaScript Files
+//     ts: faFileCode, // TypeScript Files
+//     tsx: faFileCode, // TypeScript Files
+//     html: faFileCode, // HTML Files
+//     css: faFileCode, // CSS Files
+//     json: faFileCode, // JSON Files
+//     xml: faFileCode, // XML Files
+//     sql: faFileCode, // SQL Files
+//     py: faFileCode, // Python Files
+//     java: faFileCode, // Java Files
+//     c: faFileCode, // C Language Files
+//     cpp: faFileCode, // C++ Language Files
+//     sh: faFileCode, // Shell Script
+//     other: faFile, // Default File Icon for unknown formats
+//   };
+//   const getFileTypeIcon = (fileName) => {
+//     const extension = fileName.split(".").pop().toLowerCase(); // Extract extension
+//     return fileIcons[extension] || fileIcons["other"]; // Use mapped icon or default
+//   };
+//   const getFileType = (fileName) => {
+//     const extension = fileName.split(".").pop().toLowerCase();
+//     const allowedExtensions = {
+//       image: ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp", "tiff"],
+//       video: ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"],
+//       audio: ["mp3", "wav", "aac", "ogg", "flac", "m4a"],
+//       document: [
+//         "pdf",
+//         "doc",
+//         "docx",
+//         "xls",
+//         "xlsx",
+//         "csv",
+//         "ppt",
+//         "pptx",
+//         "txt",
+//       ],
+//       archive: ["zip", "rar", "7z"],
+//     };
+
+//     for (let [type, extensions] of Object.entries(allowedExtensions)) {
+//       if (extensions.includes(extension)) return type;
+//     }
+
+//     return "other";
+//   };
+
+//   const sizeLimits = {
+//     image: 20 * 1024 * 1024, // 5MB
+//     document: 20 * 1024 * 1024, // 16MB
+//     video: 20 * 1024 * 1024, // 50MB
+//     audio: 20 * 1024 * 1024, // 10MB
+//     archive: 20 * 1024 * 1024, // 50MB
+//   };
+
+//   const validateFileSize = (file) => {
+//     const fileType = getFileType(file.name);
+//     return (
+//       fileType !== "other" &&
+//       file.size <= (sizeLimits[fileType] || 2 * 1024 * 1024)
+//     );
+//   };
+
+//   const handleFileChange = (input) => {
+//     setErrorMessage([]);
+//     let files = Array.isArray(input) ? input : Array.from(input.target.files);
+
+//     let validFiles = [];
+//     let totalFiles = selectedFiles.length; // Track total files
+
+//     let invalidSizeFiles = [];
+//     let invalidTypeFiles = [];
+//     let invalidLengthFiles = [];
+
+//     for (let file of files) {
+//       if (totalFiles > 10) break; // Stop if we reach the limit
+
+//       if (file.name.length > 40) {
+//         // Truncate file name for display
+//         let truncatedName =
+//           file.name.substring(0, 20) + "..." + file.name.slice(-10);
+//         invalidLengthFiles.push(truncatedName); // Store truncated name
+//         continue; // Skip this file
+//       }
+
+//       const fileType = getFileType(file.name);
+//       if (fileType === "other") {
+//         invalidTypeFiles.push(file.name); // Store file name if type is not allowed
+//       } else if (!validateFileSize(file)) {
+//         invalidSizeFiles.push(
+//           `${file.name} (Max ${(
+//             (sizeLimits[fileType] || 2 * 1024 * 1024) /
+//             (1024 * 1024)
+//           ).toFixed(1)}MB)` // Show max limit
+//         );
+//       } else {
+//         validFiles.push(file);
+//         totalFiles++; // Increment total count
+//       }
+//     }
+
+//     let fileLimitExceeded = totalFiles > 10;
+//     if (fileLimitExceeded) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
+//       ]);
+//       validFiles = validFiles.slice(0, 10 - selectedFiles.length);
+//     }
+
+//     if (invalidSizeFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following files exceed the size limit: ${invalidSizeFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     if (invalidTypeFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following file extensions are not allowed: ${invalidTypeFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     if (invalidLengthFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following files have names longer than 40 characters: ${invalidLengthFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
+
+//     if (!Array.isArray(input)) input.target.value = "";
+//   };
+
+//   // Function to handle file upload
+//   const handleFileUpload = async () => {
+//     if (selectedFiles.length === 0) return;
+
+//     setUploading(true);
+//     setUploadSuccess(false);
+
+//     const formData = new FormData();
+//     formData.append("Email", storedEmail);
+
+//     selectedFiles.forEach((file) => {
+//       formData.append("files", file);
+//     });
+
+//     try {
+//       const response = await axios.post(`${ApiEndPoint}upload`, formData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+
+//       console.log("Files response:", response.data);
+
+//       if (response.status === 200) {
+//         setSelectedFiles([]);
+//         setUploadSuccess(true);
+//         setTimeout(() => {
+//           setShowUploadModal(false);
+//           setUploadSuccess(false);
+//         }, 1000); // Hide modal after 2 seconds
+//         fetchClientDetails();
+//         setErrorMessage([]);
+//       }
+//     } catch (error) {
+//       console.error("Error uploading files:", error);
+//     } finally {
+//       setUploading(false);
+//     }
+//   };
+//   const handleFileDelete = async (fileId) => {
+//     try {
+//       const response = await axios.delete(`${ApiEndPoint}/files/${fileId}`);
+
+//       if (response.status === 200) {
+//         setFiles((prevFiles) =>
+//           prevFiles.filter((file) => file._id !== fileId)
+//         );
+//         console.log("File deleted successfully");
+//       }
+//     } catch (error) {
+//       console.error("Error deleting file:", error);
+//     }
+//   };
+
+//   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
+//     subject
+//   )}&body=${encodeURIComponent("")}`;
+//   const [activeTab, setActiveTab] = useState("documents");
+//   const handleDownload = async (fileId, fileName) => {
+//     try {
+//       const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
+//         method: "POST", // Changed to POST to send body
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ Email: storedEmail }), // Sending email in request body
+//       });
+
+//       // Log the raw response before processing
+//       console.log("Raw Response:", response);
+
+//       if (!response.ok) {
+//         const errorText = await response.text(); // Get the error response if available
+//         throw new Error(`Failed to fetch the file: ${errorText}`);
+//       }
+
+//       // Log the JSON response before downloading (if applicable)
+//       const jsonResponse = await response.json();
+//       console.log("Download Response JSON:", jsonResponse);
+
+//       // Check if the response contains a signed URL instead of a file blob
+//       if (jsonResponse.downloadUrl) {
+//         console.log("Signed URL received:", jsonResponse.downloadUrl);
+//         window.open(jsonResponse.downloadUrl, "_blank");
+//         return;
+//       }
+
+//       // Validate content type
+//       const contentType = response.headers.get("Content-Type");
+//       console.log("Content-Type:", contentType);
+//       if (
+//         !contentType ||
+//         (!contentType.startsWith("application/") &&
+//           contentType !== "application/octet-stream")
+//       ) {
+//         throw new Error("Invalid content type: " + contentType);
+//       }
+
+//       // Process the file blob
+//       const blob = await response.blob();
+//       console.log("Blob Data:", blob);
+
+//       // Create a URL and trigger download
+//       const url = window.URL.createObjectURL(blob);
+//       const a = document.createElement("a");
+//       a.href = url;
+//       a.download = fileName || "downloaded_file"; // Default filename if none is provided
+//       document.body.appendChild(a);
+//       a.click();
+//       document.body.removeChild(a);
+
+//       // Cleanup
+//       setTimeout(() => window.URL.revokeObjectURL(url), 100);
+//     } catch (error) {
+//       console.error("Error downloading file:", error);
+//     }
+//   };
+
+// const fetchClientDetails = async () => {
+//   setLoading(true);
+//   let mail = null;
+//   console.log(" enter api calling ", slotbookuserid);
+//   let id = slotbookuserid?.lawyerId
+//     ? slotbookuserid?.lawyerId
+//     : slotbookuserid?.byBook;
+//   let fetchdata = slotbookuserid?.lawyerId
+//     ? "lawyerDetails"
+//     : "clientDetails";
+//   console.log("id", id);
+//   let apifuncation = slotbookuserid?.lawyerId
+//     ? "geLawyerDetails"
+//     : "getClientDetails";
+
+//   try {
+//     const response = await axios.get(`${ApiEndPoint}getUserById/${id}`);
+//     await setUsersDetails(response.data);
+//     await setClientDetails(response.data); // Set the API response to state
+//     console.log("User  Data:", response.data);
+//     mail = response.data?.Email;
+//     setFiles(response.data?.clientDetails?.Files);
+//     console.log("email", mail);
+//     setLoading(false);
+//   } catch (err) {
+//     console.error("Error fetching client details:", err);
+//     setLoading(false);
+//   }
+
+//   try {
+//     const response = await axios.get(
+//       `${ApiEndPoint}getUserById/${slotbookuserid?.FklawyerId}`
+//     );
+//     await setLawyersDetails(response.data);
+//     console.log("lawyers  Data:", response.data);
+//     setLoading(false);
+//   } catch (err) {
+//     console.error("Error fetching client details:", err);
+//     setLoading(false);
+//   }
+
+//   try {
+//     const response = await axios.get(`${ApiEndPoint}${apifuncation}/${mail}`);
+//     // API endpoint
+//     // API endpoint
+
+//     console.log("client data! ", response.data);
+//     setClientDetails(response.data[`${fetchdata}`]);
+//     setLoading(false);
+//   } catch (err) {
+//     setLoading(false);
+//   }
+// };
+//   useEffect(() => {
+//     fetchClientDetails();
+//   }, []);
+//   return (
+//     <div className="card border-0 shadow">
+//       <div
+//         className="card-body p-3 p-md-4"
+//         style={{ backgroundColor: "#16213e", color: "white" }}
+//       >
+//         {/* Header Section */}
+//         <div className="row mb-3">
+//           <div className="col-12 col-md-6 mb-2 mb-md-0">
+//             <h5 className="mb-1 fs-6 fs-md-5">
+//               {slotbookuserid?.lawyerId ? "Lawyer Name:" : "Client Name:"}
+//             </h5>
+//             <h5 className="mb-0 fs-6 fs-md-5">
+//               {usersDetails?.UserName &&
+//                 usersDetails.UserName.charAt(0).toUpperCase() +
+//                   usersDetails.UserName.slice(1)}
+//             </h5>
+//           </div>
+
+//           {lawyerDetails && (
+//             <div className="col-12 col-md-6">
+//               <h6 className="mb-1 fs-6">Lawyer Name:</h6>
+//               <h6 className="mb-0 fs-6">
+//                 {lawyerDetails?.UserName &&
+//                   lawyerDetails.UserName.charAt(0).toUpperCase() +
+//                     lawyerDetails.UserName.slice(1)}
+//               </h6>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Contact Info */}
+//         <div className="mb-4">
+//           <div className="d-flex align-items-center mb-2 flex-wrap">
+//             <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+//             <a
+//               href={`mailto:${usersDetails?.Email}`}
+//               className="text-white text-break small"
+//             >
+//               {usersDetails?.Email}
+//             </a>
+//           </div>
+
+//           <div className="d-flex align-items-center mb-2 flex-wrap">
+// <FontAwesomeIcon icon={faPhone} className="me-2" />
+// <a
+//   href={`tel:${formatPhoneNumber(clientDetails?.Contact)}`}
+//   className="text-white small"
+// >
+//   {formatPhoneNumber(clientDetails?.Contact)}
+// </a>
+//           </div>
+
+//           <div className="d-flex align-items-start flex-wrap mb-3">
+//             <FontAwesomeIcon icon={faAddressCard} className="me-2 mt-1" />
+//             <a
+//               href={`http://maps.google.com/?q=${encodeURIComponent(
+//                 clientDetails?.Address
+//               )}`}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="text-white text-decoration-none small"
+//             >
+//               {clientDetails?.Address}
+//             </a>
+//           </div>
+//         </div>
+
+//         {/* Meeting Time */}
+//         <div className="d-flex align-items-center mb-4">
+//           <FontAwesomeIcon icon={faCalendar} className="me-2" />
+//           <span className="small">
+//             Meeting Time:{" "}
+//             <span className="text-white">
+//               {slotbookuserid.startTime} - {slotbookuserid.endTime}
+//             </span>
+//           </span>
+//         </div>
+
+//         {/* Join Button */}
+//         <div className="text-center">
+//           <a
+//             href={slotbookuserid?.meetingLink}
+//             target="_blank"
+//             rel="noopener noreferrer"
+//             className="btn d-inline-flex align-items-center py-1 px-3 fw-bold fs-6"
+//             style={{ color: "white", backgroundColor: "#d3b386" }}
+//           >
+//             <img
+//               src="https://cdn4.iconfinder.com/data/icons/logos-brands-in-colors/48/google-meet-512.png"
+//               alt="Google Meet"
+//               width="20"
+//               height="20"
+//               className="me-2"
+//             />
+//             Join Meeting
+//           </a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
+
+//------------------------------------------------------
+//---------------------------------------------------------
+
 const ContactForm = ({ slotbookuserid }) => {
-  const [email, setEmail] = useState("raheemakbar999@gmail.com");
-  const [subject, setSubject] = useState("Meeting Confirmation");
   const [clientDetails, setClientDetails] = useState({});
   const [usersDetails, setUsersDetails] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [files, setFiles] = useState([]); // Uploaded files state
-  const [selectedFiles, setSelectedFiles] = useState([]); // Selected files before upload
-  const [showUploadModal, setShowUploadModal] = useState(false); // State to control upload moda
-  const [uploading, setUploading] = useState(false);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const storedEmail = sessionStorage.getItem("Email");
   const [lawyerDetails, setLawyersDetails] = useState(null);
+  const [loading, setLoading] = useState(false);
+  // Removed unused states like email, subject, files, etc., for this display-focused version
+  // Add them back if this component also handles form inputs/file UI
 
-  // Function to categorize files
+  const storedEmail = sessionStorage.getItem("Email"); // Make sure this is relevant and correctly used
 
-  const onHide = () => {
-    setShowUploadModal(false);
-    setSelectedFiles([]);
-    setUploading(false);
-    setUploadSuccess(false);
-    setErrorMessage([]);
-  };
-  const getFilesByCategory = (category, files) => {
-    return files.filter((file) => {
-      const fileType = getFileType(file.fileName);
-      if (category === "media") {
-        return (
-          fileType === "image" || fileType === "video" || fileType === "audio"
-        );
-      }
-      if (category === "documents") {
-        return (
-          fileType !== "image" && fileType !== "video" && fileType !== "audio"
-        );
-      }
-      return false;
-    });
-  };
-
+  // File related constants (not used in the provided JSX but kept from your original code)
   const fileIcons = {
-    pdf: faFilePdf, // PDF Files
-    doc: faFileWord, // Word Document
-    docx: faFileWord, // Word Document
-    txt: faFileText, // Plain Text File
-    csv: faFileCsv, // CSV File
-    xls: faFileExcel, // Excel File
-    xlsx: faFileExcel, // Excel File
-    ppt: faFilePowerpoint, // PowerPoint File
-    pptx: faFilePowerpoint, // PowerPoint File
-    odt: faFileAlt, // OpenDocument Text
-    ods: faFileExcel, // OpenDocument Spreadsheet
-    odp: faFilePowerpoint, // OpenDocument Presentation
-    image: faImage, // Images (jpg, png, svg, etc.)
-    audio: faMusic, // Audio Files (mp3, wav, etc.)
-    video: faVideo, // Video Files (mp4, mkv, avi, etc.)
-    zip: faFileArchive, // Zip Files
-    rar: faFileArchive, // RAR Files
-    tar: faFileArchive, // Tar Files
-    gz: faFileArchive, // GZipped Files
-    "7z": faFileArchive, // 7z Files
-    js: faFileCode, // JavaScript Files
-    jsx: faFileCode, // JavaScript Files
-    ts: faFileCode, // TypeScript Files
-    tsx: faFileCode, // TypeScript Files
-    html: faFileCode, // HTML Files
-    css: faFileCode, // CSS Files
-    json: faFileCode, // JSON Files
-    xml: faFileCode, // XML Files
-    sql: faFileCode, // SQL Files
-    py: faFileCode, // Python Files
-    java: faFileCode, // Java Files
-    c: faFileCode, // C Language Files
-    cpp: faFileCode, // C++ Language Files
-    sh: faFileCode, // Shell Script
-    other: faFile, // Default File Icon for unknown formats
+    /* ... your fileIcons mapping ... */
   };
   const getFileTypeIcon = (fileName) => {
-    const extension = fileName.split(".").pop().toLowerCase(); // Extract extension
-    return fileIcons[extension] || fileIcons["other"]; // Use mapped icon or default
+    /* ... */
   };
   const getFileType = (fileName) => {
-    const extension = fileName.split(".").pop().toLowerCase();
-    const allowedExtensions = {
-      image: ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp", "tiff"],
-      video: ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"],
-      audio: ["mp3", "wav", "aac", "ogg", "flac", "m4a"],
-      document: [
-        "pdf",
-        "doc",
-        "docx",
-        "xls",
-        "xlsx",
-        "csv",
-        "ppt",
-        "pptx",
-        "txt",
-      ],
-      archive: ["zip", "rar", "7z"],
-    };
-
-    for (let [type, extensions] of Object.entries(allowedExtensions)) {
-      if (extensions.includes(extension)) return type;
-    }
-
-    return "other";
+    /* ... */
   };
-
   const sizeLimits = {
-    image: 20 * 1024 * 1024, // 5MB
-    document: 20 * 1024 * 1024, // 16MB
-    video: 20 * 1024 * 1024, // 50MB
-    audio: 20 * 1024 * 1024, // 10MB
-    archive: 20 * 1024 * 1024, // 50MB
+    /* ... */
   };
-
   const validateFileSize = (file) => {
-    const fileType = getFileType(file.name);
-    return (
-      fileType !== "other" &&
-      file.size <= (sizeLimits[fileType] || 2 * 1024 * 1024)
-    );
+    /* ... */
   };
-
-  const handleFileChange = (input) => {
-    setErrorMessage([]);
-    let files = Array.isArray(input) ? input : Array.from(input.target.files);
-
-    let validFiles = [];
-    let totalFiles = selectedFiles.length; // Track total files
-
-    let invalidSizeFiles = [];
-    let invalidTypeFiles = [];
-    let invalidLengthFiles = [];
-
-    for (let file of files) {
-      if (totalFiles > 10) break; // Stop if we reach the limit
-
-      if (file.name.length > 40) {
-        // Truncate file name for display
-        let truncatedName =
-          file.name.substring(0, 20) + "..." + file.name.slice(-10);
-        invalidLengthFiles.push(truncatedName); // Store truncated name
-        continue; // Skip this file
-      }
-
-      const fileType = getFileType(file.name);
-      if (fileType === "other") {
-        invalidTypeFiles.push(file.name); // Store file name if type is not allowed
-      } else if (!validateFileSize(file)) {
-        invalidSizeFiles.push(
-          `${file.name} (Max ${(
-            (sizeLimits[fileType] || 2 * 1024 * 1024) /
-            (1024 * 1024)
-          ).toFixed(1)}MB)` // Show max limit
-        );
-      } else {
-        validFiles.push(file);
-        totalFiles++; // Increment total count
-      }
-    }
-
-    let fileLimitExceeded = totalFiles > 10;
-    if (fileLimitExceeded) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
-      ]);
-      validFiles = validFiles.slice(0, 10 - selectedFiles.length);
-    }
-
-    if (invalidSizeFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following files exceed the size limit: ${invalidSizeFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
-
-    if (invalidTypeFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following file extensions are not allowed: ${invalidTypeFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
-
-    if (invalidLengthFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following files have names longer than 40 characters: ${invalidLengthFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
-
-    setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
-
-    if (!Array.isArray(input)) input.target.value = "";
-  };
-
-  // Function to handle file upload
-  const handleFileUpload = async () => {
-    if (selectedFiles.length === 0) return;
-
-    setUploading(true);
-    setUploadSuccess(false);
-
-    const formData = new FormData();
-    formData.append("Email", storedEmail);
-
-    selectedFiles.forEach((file) => {
-      formData.append("files", file);
-    });
-
-    try {
-      const response = await axios.post(`${ApiEndPoint}upload`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      console.log("Files response:", response.data);
-
-      if (response.status === 200) {
-        setSelectedFiles([]);
-        setUploadSuccess(true);
-        setTimeout(() => {
-          setShowUploadModal(false);
-          setUploadSuccess(false);
-        }, 1000); // Hide modal after 2 seconds
-        fetchClientDetails();
-        setErrorMessage([]);
-      }
-    } catch (error) {
-      console.error("Error uploading files:", error);
-    } finally {
-      setUploading(false);
-    }
-  };
-  const handleFileDelete = async (fileId) => {
-    try {
-      const response = await axios.delete(`${ApiEndPoint}/files/${fileId}`);
-
-      if (response.status === 200) {
-        setFiles((prevFiles) =>
-          prevFiles.filter((file) => file._id !== fileId)
-        );
-        console.log("File deleted successfully");
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-    }
-  };
-
-  const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
-    subject
-  )}&body=${encodeURIComponent("")}`;
-  const [activeTab, setActiveTab] = useState("documents");
-  const handleDownload = async (fileId, fileName) => {
-    try {
-      const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
-        method: "POST", // Changed to POST to send body
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ Email: storedEmail }), // Sending email in request body
-      });
-
-      // Log the raw response before processing
-      console.log("Raw Response:", response);
-
-      if (!response.ok) {
-        const errorText = await response.text(); // Get the error response if available
-        throw new Error(`Failed to fetch the file: ${errorText}`);
-      }
-
-      // Log the JSON response before downloading (if applicable)
-      const jsonResponse = await response.json();
-      console.log("Download Response JSON:", jsonResponse);
-
-      // Check if the response contains a signed URL instead of a file blob
-      if (jsonResponse.downloadUrl) {
-        console.log("Signed URL received:", jsonResponse.downloadUrl);
-        window.open(jsonResponse.downloadUrl, "_blank");
-        return;
-      }
-
-      // Validate content type
-      const contentType = response.headers.get("Content-Type");
-      console.log("Content-Type:", contentType);
-      if (
-        !contentType ||
-        (!contentType.startsWith("application/") &&
-          contentType !== "application/octet-stream")
-      ) {
-        throw new Error("Invalid content type: " + contentType);
-      }
-
-      // Process the file blob
-      const blob = await response.blob();
-      console.log("Blob Data:", blob);
-
-      // Create a URL and trigger download
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = fileName || "downloaded_file"; // Default filename if none is provided
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      // Cleanup
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-    } catch (error) {
-      console.error("Error downloading file:", error);
-    }
-  };
+  // ... other file handling functions (handleFileChange, handleFileUpload, etc.)
 
   const fetchClientDetails = async () => {
     setLoading(true);
     let mail = null;
-    console.log(" enter api calling ", slotbookuserid);
+    // console.log(" enter api calling ", slotbookuserid);
     let id = slotbookuserid?.lawyerId
       ? slotbookuserid?.lawyerId
       : slotbookuserid?.byBook;
@@ -398,7 +588,7 @@ const ContactForm = ({ slotbookuserid }) => {
       await setClientDetails(response.data); // Set the API response to state
       console.log("User  Data:", response.data);
       mail = response.data?.Email;
-      setFiles(response.data?.clientDetails?.Files);
+
       console.log("email", mail);
       setLoading(false);
     } catch (err) {
@@ -430,13 +620,24 @@ const ContactForm = ({ slotbookuserid }) => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchClientDetails();
-  }, []);
+  }, [slotbookuserid]); // Added slotbookuserid as a dependency
+
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center p-5">
+        <div className="spinner-border text-light" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="card border-0 shadow">
       <div
-        className="card-body p-3 p-md-4"
+        className="card-body border-0 p-3 p-md-4"
         style={{ backgroundColor: "#16213e", color: "white" }}
       >
         {/* Header Section */}
@@ -536,31 +737,66 @@ const ContactForm = ({ slotbookuserid }) => {
   );
 };
 const ViewBookLawyerSlot = ({ isOpen, onClose, slotbookuserid }) => {
+  // Create a ref for the modal to access Bootstrap's modal instance
+  const modalRef = useRef(null);
+
+  // Handle the custom close button click
+  const handleCloseClick = () => {
+    onClose(); // Call the parent's onClose handler
+  };
+
   return (
     <Modal
+      ref={modalRef}
       show={isOpen}
       onHide={onClose}
       centered
-      size="lg"
-      className="modal-responsive"
+      size="md"
+      contentClassName="border-0 rounded-4"
     >
-      <Modal.Header closeButton className="border-0 pb-0">
+      <Modal.Header
+        className="border-0 text-white position-relative rounded-top-3"
+        style={{ backgroundColor: "#16213e" }}
+        closeButton={false}
+      >
         <Modal.Title className="visually-hidden">
           Appointment Details
         </Modal.Title>
+        <button
+          type="button"
+          className="position-absolute end-0 me-3 bg-transparent border-0"
+          onClick={handleCloseClick}
+          style={{
+            color: "red",
+            fontSize: "1.5rem",
+            lineHeight: "1",
+            padding: "0.5rem",
+            cursor: "pointer", // Ensure cursor changes to pointer
+          }}
+          aria-label="Close"
+        >
+          &times;
+        </button>
       </Modal.Header>
-      <Modal.Body className="p-0 p-md-3">
-        <div className="container-fluid">
-          <div className="row justify-content-center">
-            <div className="col-12 col-md-10 col-lg-8">
-              <ContactForm slotbookuserid={slotbookuserid} />
+
+      <Modal.Body
+        className="p-0 rounded-bottom-3"
+        style={{ backgroundColor: "#16213e" }}
+      >
+        <div className="p-3">
+          {slotbookuserid ? (
+            <ContactForm slotbookuserid={slotbookuserid} />
+          ) : (
+            <div className="text-white p-4 text-center">
+              No appointment details to display.
             </div>
-          </div>
+          )}
         </div>
       </Modal.Body>
     </Modal>
   );
 };
+
 export const UpdateForm = ({ user }) => {
   const [showWarning, setShowWarning] = useState(false);
   const [show, setShow] = useState(false);

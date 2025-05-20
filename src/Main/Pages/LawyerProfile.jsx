@@ -1164,7 +1164,11 @@ const LawyerProfile = ({ token }) => {
       }
     }
   };
-
+  const isPastDate = (date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+    return date < today;
+  };
   //   return (
   //     <div
   //       className="border rounded row gap-5 justify-content-center ms-1 "
@@ -3538,7 +3542,7 @@ const LawyerProfile = ({ token }) => {
             <Tabs
               activeKey={activeTab}
               onSelect={(k) => setActiveTab(k)}
-              className="mb-3"
+              className="mb-3 justify-content-center"
               variant="primary"
               style={{
                 borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
@@ -3568,6 +3572,7 @@ const LawyerProfile = ({ token }) => {
                   style={{
                     height: "50vh",
                     overflowY: "auto",
+                    overflowX: "hidden",
                   }}
                 >
                   {/* Calendar Navigation */}
@@ -3647,7 +3652,9 @@ const LawyerProfile = ({ token }) => {
                     {calendarDates.map((date, index) => (
                       <div
                         key={index}
-                        onClick={() => date && handleDateClick(date)}
+                        onClick={() =>
+                          !isPastDate(date) && date && handleDateClick(date)
+                        }
                         className={date ? "calendarDates" : ""}
                         style={{
                           aspectRatio: "1",
@@ -3657,15 +3664,24 @@ const LawyerProfile = ({ token }) => {
                               : "1px solid #001f3f"
                             : "none",
                           borderRadius: date ? "5px" : "0px",
-                          cursor: date ? "pointer" : "default",
+                          cursor:
+                            date && !isPastDate(date) ? "pointer" : "default",
                           background: date
                             ? selectedDate?.getDate() === date?.getDate()
                               ? "#d2a85a"
+                              : isPastDate(date)
+                              ? "rgba(255, 255, 255, 0.1)"
                               : ""
                             : "transparent",
+                          backdropFilter:
+                            date && isPastDate(date) ? "blur(4px)" : "none",
+                          WebkitBackdropFilter:
+                            date && isPastDate(date) ? "blur(4px)" : "none",
                           color: date
                             ? selectedDate?.getDate() === date?.getDate()
                               ? "#001f3f"
+                              : isPastDate(date)
+                              ? "#888"
                               : "white"
                             : "transparent",
                           display: "flex",
@@ -3674,6 +3690,7 @@ const LawyerProfile = ({ token }) => {
                           fontSize: "clamp(0.7rem, 2vw, 0.9rem)",
                           padding: "5px",
                           minWidth: "25px",
+                          opacity: date && isPastDate(date) ? 0.6 : 1,
                         }}
                       >
                         {date ? date.getDate() : ""}
@@ -3796,96 +3813,89 @@ const LawyerProfile = ({ token }) => {
                             : "Add New Slot"}
                         </h5>
 
-                        <div
-                          className="d-flex justify-content-center"
-                          style={{
-                            gap: "10px",
-                            alignItems: "center",
-                            marginTop: "10px",
-                          }}
-                        >
-                          {/* Start Time Picker */}
-                          <div style={{ width: "100%" }}>
-                            <label
-                              className="simple-text"
-                              style={{
-                                marginBottom: "5px",
-                                fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
-                              }}
-                            >
-                              Start Time:
-                            </label>
-                            <DatePicker
-                              selected={newStartTime}
-                              onChange={handleStartTimeChange}
-                              showTimeSelect
-                              showTimeSelectOnly
-                              timeIntervals={15}
-                              timeCaption="Time"
-                              dateFormat="h:mm aa"
-                              className="form-control"
-                              style={{
-                                width: "100%",
-                                fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
-                              }}
-                            />
-                          </div>
+                        <div className="container-fluid  justify-content-centermt-3">
+                          <div className="row g-3 align-items-end">
+                            {/* Start Time Picker */}
+                            <div className="col-12 col-lg-4">
+                              <label
+                                className="simple-text mb-1"
+                                style={{
+                                  fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
+                                }}
+                              >
+                                Start Time:
+                              </label>
+                              <div className="d-flex w-100">
+                                <div className="flex-grow-1">
+                                  <DatePicker
+                                    selected={newStartTime}
+                                    onChange={handleStartTimeChange}
+                                    showTimeSelect
+                                    showTimeSelectOnly
+                                    timeIntervals={15}
+                                    timeCaption="Time"
+                                    dateFormat="h:mm aa"
+                                    className="form-control"
+                                  />
+                                </div>
+                              </div>
+                            </div>
 
-                          {/* End Time Picker */}
-                          <div style={{ width: "100%" }}>
-                            <label
-                              className="simple-text"
-                              style={{
-                                marginBottom: "5px",
-                                fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
-                              }}
-                            >
-                              End Time:
-                            </label>
-                            <DatePicker
-                              selected={newEndTime}
-                              onChange={(time) => setNewEndTime(time)}
-                              showTimeSelect
-                              showTimeSelectOnly
-                              timeIntervals={15}
-                              timeCaption="Time"
-                              dateFormat="h:mm aa"
-                              className="form-control"
-                              disabled={editingSlotIndex !== null}
-                              minTime={
-                                newStartTime
-                                  ? new Date(
-                                      newStartTime.getTime() + 15 * 60000
-                                    )
-                                  : new Date()
-                              }
-                              maxTime={new Date().setHours(23, 45)}
-                              style={{
-                                width: "100%",
-                                fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
-                              }}
-                            />
-                          </div>
+                            {/* End Time Picker */}
+                            <div className="col-12 col-lg-4">
+                              <label
+                                className="simple-text mb-1"
+                                style={{
+                                  fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
+                                }}
+                              >
+                                End Time:
+                              </label>
+                              <div className="d-flex w-100">
+                                <div className="flex-grow-1">
+                                  <DatePicker
+                                    selected={newEndTime}
+                                    onChange={(time) => setNewEndTime(time)}
+                                    showTimeSelect
+                                    showTimeSelectOnly
+                                    timeIntervals={15}
+                                    timeCaption="Time"
+                                    dateFormat="h:mm aa"
+                                    className="form-control"
+                                    disabled={editingSlotIndex !== null}
+                                    minTime={
+                                      newStartTime
+                                        ? new Date(
+                                            newStartTime.getTime() + 15 * 60000
+                                          )
+                                        : new Date()
+                                    }
+                                    maxTime={new Date().setHours(23, 45)}
+                                  />
+                                </div>
+                              </div>
+                            </div>
 
-                          {/* Add/Update Button */}
-                          <button
-                            onClick={
-                              editingSlotIndex !== null
-                                ? updateSlot
-                                : handleAddTimeSlot
-                            }
-                            style={{
-                              height: "38px",
-                              borderRadius: "5px",
-                              width: window.innerWidth < 576 ? "100%" : "80px",
-                              marginTop:
-                                window.innerWidth < 576 ? "10px" : "25px",
-                              fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
-                            }}
-                            className="btn btn-primary"
-                          >
-                            {editingSlotIndex !== null ? "Update" : "Add"}
-                          </button>
+                            {/* Add/Update Button */}
+                            <div className="col-12 col-lg-4 d-flex align-items-end">
+                              <button
+                                onClick={
+                                  editingSlotIndex !== null
+                                    ? updateSlot
+                                    : handleAddTimeSlot
+                                }
+                                className="btn btn-primary w-100"
+                                style={{
+                                  fontSize: "clamp(0.8rem, 2vw, 0.9rem)",
+                                  height: "38px",
+                                  borderRadius: "5px",
+                                  backgroundColor: "#d2a85a",
+                                }}
+                              >
+                                {editingSlotIndex !== null ? "Update" : "Add"}
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </>
@@ -3919,6 +3929,7 @@ const LawyerProfile = ({ token }) => {
                     height: "50vh",
                     overflowY: "auto",
                     scrollbarWidth: "thin",
+                    overflowX: "hidden",
                     scrollbarColor: "#d2a85a #16213e",
                   }}
                 >
