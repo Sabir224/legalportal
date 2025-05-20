@@ -651,340 +651,171 @@ export default function ViewFormC({ token }) {
   };
 
   return (
-    <div className="tasklist-body">
-      <style>{`
-      .tasklist-body {
-        padding: 20px;
-        background: #f0f2f5;
-      }
-      .tasklist-table-container {
-        max-height: 500px;
-        overflow: auto;
-        background: white;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-      }
-      .tasklist-todo-table {
-        width: 100%;
-        min-width: 900px;
-        border-collapse: separate;
-        border-spacing: 0;
-      }
-      .tasklist-todo-table th, .tasklist-todo-table td {
-        padding: 10px 14px;
-        border-bottom: 1px solid #eee;
-        text-align: left;
-        white-space: nowrap;
-      }
-      .tasklist-todo-table th {
-        background: #fafafa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        font-weight: bold;
-      }
-      .expand-icon {
-        cursor: pointer;
-        width:10px,
-        margin-right: 5px;
-      }
-      .subtask-table {
-        margin-left: 30px;
-        margin-top: 10px;
-      }
-      .add-subtask-button, .save-subtask-button, .add-column-button {
-        margin-top: 10px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 6px 12px;
-        cursor: pointer;
-      }
-      .add-subtask-button:hover, .save-subtask-button:hover, .add-column-button:hover {
-        background: #0056b3;
-      }
-      .subtask-input, .column-input, .column-type-select, .column-options-input {
-        margin-top: 10px;
-        padding: 6px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
-      .subtask-input, .column-input {
-        width: 300px;
-      }
-      .column-options-input {
-        width: 200px;
-        margin-left: 10px;
-      }
-      .plus-icon {
-        cursor: pointer;
-        font-size: 18px;
-        color: #007bff;
-      }
-      .plus-icon:hover {
-        color: #0056b3;
-      }
-      .delete-column-icon {
-        cursor: pointer;
-        color: #ff4d4f;
-        margin-left: 8px;
-      }
-      .column-type-container {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-      }
-      .column-options-container {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-      }
-      /* Modal styles */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        width: 400px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-      .modal-title {
-        font-size: 18px;
-        font-weight: bold;
-      }
-      .close-button {
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-      }
-      .modal-footer {
-        margin-top: 20px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-      }
-      .cancel-button {
-        background: #f0f0f0;
-        color: #333;
-        border: none;
-        border-radius: 5px;
-        padding: 6px 12px;
-        cursor: pointer;
-      }
-    `}</style>
+    <div className="container-fluid p-0 m-0" style={{ height: "85vh" }}>
+      <div
+        className="d-flex flex-column h-100 bg-white rounded shadow"
+        style={{ overflowX: "auto" ,flex:1}}
+      >
+        <div className="p-3">
+          <button className="btn btn-success" onClick={() => dispatch(screenChange(16))}>
+            + New form
+          </button>
+        </div>
 
-
-      <div className="mb-1">
-        <button className="btn btn-success" onClick={() => dispatch(screenChange(16))}>
-          + New form
-        </button>
-      </div>
-
-      <div className="tasklist-table-container">
-        <table className="tasklist-todo-table ">
-          <thead>
-            <tr>
-              <th style={{ width: "10px" }}></th>
-              {keys?.map((key) => (
-                <th key={key}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    {(key != "userId" && key != "userName") && (
-                      <div>
-                        {key
-                          .split(/(?=[A-Z])/)
-                          .join(" ") // Add space before capital letters
-                          .replace(/^./, (str) => str.toUpperCase())} {/* Format key */}
-                      </div>
-                    )}
-                    {(!isclient && key !== "caseId" && key !== "title" && key !== "description" && key !== "assignedUsers" && key !== "createdBy" && key !== "status" && key !== "dueDate" && key !== "clientEmail" && key !== "nationality" && key !== "nextHearing") &&
-                      <div>
-                        {/* {token?.Role === "admin" &&
-                          <FaTrash
-                            className="delete-column-icon"
-                            onClick={() => deleteColumn(key)}
-                            title="Delete column"
-                          />
-                        } */}
-                      </div>
-                    }
-                  </div>
-                </th>
-              ))}
-
-              <th>
-                {/* {token?.Role === "admin" &&
-                  <FaPlus
-                    className="plus-icon"
-                    onClick={() => setAddingColumn(true)}
-                  />
-                } */}
-
-              </th>
-            </tr>
-          </thead>
-
-
-          <tbody>
-            {todos?.map((todo) => (
-              <React.Fragment key={todo.id}>
-
+        <div className="flex-grow-1 overflow-auto px-3 pb-3">
+          <div className="table-responsive">
+            <table className="table table-bordered table-hover table-sm align-middle">
+              <thead className="table-light sticky-top">
                 <tr>
-                  <td>
-                    <span className="expand-icon" onClick={() => toggleTask(todo._id)}>
-                      {/* {openTaskId?.value === todo._id?.value ? <FaChevronDown /> : <FaChevronRight />} */}
-                    </span>
-                  </td>
-                  {keys?.map((key) => {
-                    const field = todo[key];
-                    if (!field) return <td key={key} />;
+                  <th style={{ width: "10px" }}></th>
+                  {keys?.map((key) => (
+                    <th key={key}>
+                      {(key !== "userId" && key !== "userName") &&
+                        key
+                          .split(/(?=[A-Z])/)
+                          .join(" ")
+                          .replace(/^./, (str) => str.toUpperCase())}
+                    </th>
+                  ))}
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {todos?.map((todo) => (
+                  <tr key={todo.id}>
+                    <td>
+                      <span
+                        className="text-primary fw-bold"
+                        style={{ cursor: "pointer" }}
+                        onClick={() => toggleTask(todo._id)}
+                      >
+                        +
+                      </span>
+                    </td>
 
-                    const { value, type, enum: enumOptions, editable = true } = field;
-                    let content;
-                    const normalizedType = type?.toLowerCase();
+                    {keys?.map((key) => {
+                      const field = todo[key];
+                      if (!field) return <td key={key}></td>;
 
-                    const taskId = todo._id?.value || todo.id;
-                    const subtaskId = isSubtask ? taskId : null;
+                      const { value, type, enum: enumOptions, editable = true } = field;
+                      const taskId = todo._id?.value || todo.id;
+                      const subtaskId = isSubtask ? taskId : null;
+                      const normalizedType = type?.toLowerCase();
 
-                    const handleBlur = (e) => {
-                      const newValue =
-                        normalizedType === "boolean" ? e.target.checked : e.target.value;
-                      handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                    };
+                      const handleBlur = (e) => {
+                        const newValue = normalizedType === "boolean" ? e.target.checked : e.target.value;
+                        handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                      };
 
-                    if (key === "documents") {
-                      const userId = todo.userId?.value;
-                      const userName = todo.userName?.value;
-                      const clientName = todo.clientName?.value || "Client";
-                      const email = todo.email?.value;
+                      let content;
 
-                      content = userId && userName ? (
-                        <span
-                          style={{ color: "#007bff", cursor: "pointer", textDecoration: "underline" }}
-                          onClick={() => handleUserClick(userId, userName)}
-                        >
-                          {userName}
-                        </span>
-                      ) : (
-                        <span
-                          style={{ color: "#007bff", cursor: "pointer", textDecoration: "underline" }}
-                          onClick={() => handleClientClick(email)}
-                        >
-                          {clientName}
-                        </span>
-                      );
-                    }
+                      if (key === "documents") {
+                        const userId = todo.userId?.value;
+                        const userName = todo.userName?.value;
+                        const clientName = todo.clientName?.value || "Client";
+                        const email = todo.email?.value;
 
-                    else if (key === "caseId") {
-                      content = <span>{todo.caseId?.value?.CaseNumber || ""}</span>;
-                    } else if (key === "createdBy") {
-                      content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
-                    } else if (key === "assignedUsers") {
-                      // ... (unchanged logic for assignedUsers)
-                    } else if (key === "createdAt") {
-                      content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
-                    } else if (!editable) {
-                      content = <span>{String(value)}</span>;
-                    } else if (enumOptions) {
-                      content = (
-                        <select
-                          value={value}
-                          onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                          }}
-                          onBlur={handleBlur}
-                          disabled={isclient}
-                        >
-                          {enumOptions?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      );
-                    } else if (normalizedType === "boolean") {
-                      content = (
-                        <input
-                          type="checkbox"
-                          checked={Boolean(value)}
-                          onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId);
-                          }}
-                          onBlur={handleBlur}
-                          disabled={isclient}
-                        />
-                      );
-                    } else if (normalizedType === "date") {
-                      const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
-                      content = (
-                        <DatePicker
-                          selected={value ? new Date(value) : null}
-                          onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
-                          dateFormat="dd/MM/yyyy"
-                          placeholderText="dd/mm/yyyy"
-                          onBlur={() => handleFieldBlur(taskId, key, value, isSubtask, subtaskId)}
-                          disabled={isclient}
-                        />
-                      );
-                    } else {
-                      if (key === "userId" || key === "userName") {
-                        content = <></>; // Or use: return <td key={key} />; if you want to skip the cell entirely
-                      } else {
+                        content = userId && userName ? (
+                          <span
+                            className="text-primary text-decoration-underline"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleUserClick(userId, userName)}
+                          >
+                            {userName}
+                          </span>
+                        ) : (
+                          <span
+                            className="text-primary text-decoration-underline"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => handleClientClick(email)}
+                          >
+                            {clientName}
+                          </span>
+                        );
+                      } else if (key === "caseId") {
+                        content = <span>{todo.caseId?.value?.CaseNumber || ""}</span>;
+                      } else if (key === "createdBy") {
+                        content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
+                      } else if (key === "createdAt") {
+                        content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
+                      } else if (!editable) {
+                        content = <span>{String(value)}</span>;
+                      } else if (enumOptions) {
                         content = (
+                          <select
+                            className="form-select form-select-sm"
+                            value={value}
+                            onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
+                            onBlur={handleBlur}
+                            disabled={isclient}
+                          >
+                            {enumOptions.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      } else if (normalizedType === "boolean") {
+                        content = (
+                          <div className="form-check">
+                            <input
+                              className="form-check-input"
+                              type="checkbox"
+                              checked={Boolean(value)}
+                              onChange={(e) => handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)}
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                            />
+                          </div>
+                        );
+                      } else if (normalizedType === "date") {
+                        content = (
+                          <DatePicker
+                            className="form-control form-control-sm"
+                            selected={value ? new Date(value) : null}
+                            onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            onBlur={() => handleFieldBlur(taskId, key, value, isSubtask, subtaskId)}
+                            disabled={isclient}
+                          />
+                        );
+                      } else {
+                        content = (key === "userId" || key === "userName") ? (
+                          <></>
+                        ) : (
                           <input
                             type="text"
+                            className="form-control form-control-sm"
                             value={value || ""}
-                            onChange={(e) => {
-                              handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                            }}
+                            onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
                             onBlur={handleBlur}
-                            disabled={isclient || key == "email" ? true : false}
+                            disabled={isclient || key === "email"}
                           />
                         );
                       }
-                    }
 
+                      return <td key={key}>{content}</td>;
+                    })}
 
-                    return <td key={key}>{content}</td>;
-                  })}
-
-
-                  {/* Delete button column */}
-                  <td>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(todo._id?.value || todo.id)}
-                      disabled={isclient}
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
-              </React.Fragment>
-            ))}
-
-
-          </tbody>
-        </table>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(todo._id?.value || todo.id)}
+                        disabled={isclient}
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
+
 
       {/* Column Add Modal */}
       {addingColumn && (
@@ -1172,7 +1003,6 @@ export default function ViewFormC({ token }) {
         handleClose={() => setShowSuccessModal(false)}
         message={successMessage}
       />
-
 
 
     </div>
