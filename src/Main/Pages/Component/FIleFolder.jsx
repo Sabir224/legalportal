@@ -29,6 +29,7 @@ const FilesSection = ({
   handleFileUpload,
   errorMessage,
   isMobile,
+  isUser,
 }) => {
   const getFileTypeIcon = (fileName) => {
     const extension = fileName.split(".").pop().toLowerCase();
@@ -129,7 +130,13 @@ const FilesSection = ({
                       : file.fileName}
                   </Card.Text>
 
-                  <div className="d-flex justify-content-between">
+                  <div
+                    className={`d-flex${
+                      isUser
+                        ? " justify-content-between"
+                        : " justify-content-center"
+                    }`}
+                  >
                     <Button
                       variant="outline-success"
                       size="sm"
@@ -142,18 +149,20 @@ const FilesSection = ({
                     >
                       <FontAwesomeIcon icon={faDownload} />
                     </Button>
-                    <Button
-                      variant="outline-danger"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFileDelete(file._id);
-                      }}
-                      className="p-1"
-                      style={{ minWidth: "32px" }}
-                    >
-                      <FontAwesomeIcon icon={faTrash} />
-                    </Button>
+                    {isUser && (
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFileDelete(file._id);
+                        }}
+                        className="p-1"
+                        style={{ minWidth: "32px" }}
+                      >
+                        <FontAwesomeIcon icon={faTrash} />
+                      </Button>
+                    )}
                   </div>
                 </Card.Body>
               </Card>
@@ -162,33 +171,37 @@ const FilesSection = ({
         </Row>
       </div>
 
-      <div
-        style={{
-          position: "fixed",
-          bottom: isMobile ? "80px" : "70px", // More space on large screen
-          right: isMobile ? "30px" : "100px", // More space on large screen
-          zIndex: 1050,
-        }}
-      >
-        <Button
-          variant="primary"
-          className="rounded-circle"
-          onClick={() => setShowUploadModal(true)}
+      {isUser && (
+        <div
           style={{
-            width: "48px",
-            height: "48px",
-            padding: "0",
-            backgroundColor: "#d3b386",
-            border: "none",
-            boxShadow: "0 4px 10px rgba(0, 0, 0, 0.4)",
-            transition: "transform 0.2s ease-in-out",
+            position: "fixed",
+            bottom: isMobile ? "80px" : "70px",
+            right: isMobile ? "30px" : "100px",
+            zIndex: 9999, // Ensure it's always visible
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.1)")}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
         >
-          <FontAwesomeIcon icon={faUpload} />
-        </Button>
-      </div>
+          <Button
+            variant="primary"
+            className="rounded-circle"
+            onClick={() => setShowUploadModal(true)}
+            style={{
+              width: "48px",
+              height: "48px",
+              padding: "0",
+              backgroundColor: "#d3b386",
+              border: "none",
+              boxShadow: "0 4px 10px rgba(0, 0, 0, 0.4)",
+              transition: "transform 0.2s ease-in-out",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.transform = "scale(1.1)")
+            }
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          >
+            <FontAwesomeIcon icon={faUpload} />
+          </Button>
+        </div>
+      )}
 
       {showUploadModal && (
         <DragAndDrop

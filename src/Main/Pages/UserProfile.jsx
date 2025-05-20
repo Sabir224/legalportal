@@ -95,12 +95,12 @@ const UserProfile = ({ token }) => {
   const [updatespecifcslot, setupdateslot] = useState();
   const [IsCalenderView, setCalenderView] = useState(false);
   const [showFilesSection, setShowFilesSection] = useState(true); // Default to show files
-
+  const [showFiles, setShowFiles] = useState(false);
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [showFiles, setShowFiles] = useState(false);
+
   const [formData, setFormData] = useState({
     UserName: "",
     Email: "",
@@ -2051,23 +2051,27 @@ const UserProfile = ({ token }) => {
             }}
           >
             {/* Desktop/Tablet Tabs - Only shown on medium+ screens */}
-            <div className="d-none d-md-flex justify-content-around mb-3">
+            <div className="d-none d-md-flex justify-content-around mb-3 mt-1">
               <button
-                className={`btn btn-link ${
-                  showFilesSection ? "text-warning" : "text-white"
-                }`}
+                className={`btn btn-link `}
                 onClick={() => setShowFilesSection(true)}
-                style={{ textDecoration: "none" }}
+                style={{
+                  textDecoration: "none",
+
+                  color: showFilesSection ? "#d2a85a" : "white",
+                }}
               >
                 <FaFolderOpen size="1.5em" className="me-2" />
                 Files
               </button>
               <button
-                className={`btn btn-link ${
-                  !showFilesSection ? "text-warning" : "text-white"
-                }`}
+                className={`btn btn-link`}
                 onClick={() => setShowFilesSection(false)}
-                style={{ textDecoration: "none" }}
+                style={{
+                  textDecoration: "none",
+
+                  color: !showFilesSection ? "#d2a85a" : "white",
+                }}
               >
                 <FaCalendar size="1.5em" className="me-2" />
                 Meetings
@@ -2085,6 +2089,7 @@ const UserProfile = ({ token }) => {
                     handleFileDelete={handleFileDelete}
                     setShowUploadModal={setShowUploadModal}
                     isMobile={true}
+                    isUser={true}
                   />
                 </div>
 

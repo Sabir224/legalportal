@@ -1023,23 +1023,26 @@ const ClientAppointment = () => {
       }}
     >
       <Row
-        className="m-0 p-0 g-0 g-md-3 justify-content-center"
+        className="m-0 p-1 gap-3 gap-md-5 justify-content-center"
         style={{
-          height: "calc(100% - 20px)", // Account for mobile nav height
-          width: "100%",
-          margin: "0 auto",
+          height: "84vh",
         }}
       >
         {/* Profile Section */}
         <Col
           xs={12}
           md={5}
-          className={`${showFiles ? "d-none d-md-block me-md-5" : ""} p-1`} // Smaller padding
+          lg={5}
+          className={`card border rounded d-flex flex-column mb-3 mt-3 p-1 ${
+            showFiles ? "d-none d-md-block" : ""
+          }`}
           style={{
             background: "#001f3f",
-            height: "100%",
-            maxHeight: "100%",
-            overflow: "hidden",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            minHeight: "300px",
+            maxWidth: "100%",
           }}
         >
           {/* Shared Toggle - appears in both sections */}
@@ -1200,105 +1203,6 @@ const ClientAppointment = () => {
                   >
                     {lawyerDetails?.Address}
                   </a>
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="profile-section p-3">
-            <div className="d-flex flex-row">
-              <img
-                style={{
-                  border: "2px solid #d4af37",
-                  textAlign: "center",
-                  padding: "3px",
-                  borderRadius: "50%",
-                  width: "100px",
-                  height: "100px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                src={
-                  user?.ProfilePicture ? (
-                    `${user?.ProfilePicture}`
-                  ) : (
-                    <div
-                      className="client-picture mb-3"
-                      style={{
-                        border: "2px solid #d4af37",
-                        textAlign: "center",
-                        padding: "3px",
-                        borderRadius: "50%",
-                        width: "100px",
-                        height: "100px",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                      }}
-                    >
-                      <FontAwesomeIcon
-                        icon={faUserCircle}
-                        className="rounded-circle"
-                        style={{ fontSize: "48px" }}
-                      />
-                    </div>
-                  )
-                }
-                alt="Profile"
-                className="avatar-img"
-              />
-              <div className="d-flex flex-column justify-content-center p-2">
-                <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
-                <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
-              </div>
-            </div>
-
-            <div className="lawyer-details mt-1">
-              <div
-                className="d-flex"
-                style={{ width: "auto", height: "55%", overflowY: "auto" }}
-              >
-                <p>{lawyerDetails.Bio}</p>
-              </div>
-              <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faMailBulk}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p className="ms-2 m-1">
-                  <a href={mailtoLink} style={{ color: "white" }}>
-                    {user?.Email}
-                  </a>
-                </p>
-              </div>
-              <div className="d-flex">
-                <FontAwesomeIcon icon={faPhone} className="m-2" />
-                <p className="ms-2 m-1">
-                  <a
-                    href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
-                    style={{
-                      textDecoration: "none",
-                      color: "inherit",
-                      display: "flex",
-                      alignItems: "center",
-                    }}
-                  >
-                    {formatPhoneNumber(lawyerDetails?.Contact)}
-                  </a>
-                </p>
-              </div>
-
-              <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faAddressCard}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p style={{ height: 50 }} className="ms-2 m-1">
-                  {lawyerDetails?.Address}
                 </p>
               </div>
             </div>

@@ -488,8 +488,10 @@ const Case_details = ({ token }) => {
     return (
       <>
         {[
-          { label: "View lawyer", onClick: handleViewDetails },
-          { label: "View Folders", onClick: handleViewFolders },
+          ...(token?.Role !== "lawyer"
+            ? [{ label: "View lawyer", onClick: handleViewDetails }]
+            : []),
+
           ...(token?.Role !== "client"
             ? [{ label: "View Client", onClick: handleViewClientDetails }]
             : []),
