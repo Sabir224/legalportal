@@ -176,8 +176,9 @@ const FilesSection = ({
           style={{
             position: "fixed",
             bottom: isMobile ? "80px" : "70px",
-            right: isMobile ? "30px" : "100px",
-            zIndex: 9999, // Ensure it's always visible
+            right: isMobile ? "20px" : "100px",
+
+            zIndex: 1050, // Ensure it's always visible
           }}
         >
           <Button

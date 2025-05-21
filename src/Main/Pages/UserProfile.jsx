@@ -2087,7 +2087,15 @@ const UserProfile = ({ token }) => {
                     files={files}
                     handleDownload={handleDownload}
                     handleFileDelete={handleFileDelete}
+                    showUploadModal={showUploadModal} // This was missing
                     setShowUploadModal={setShowUploadModal}
+                    onHide={() => setShowUploadModal(false)} // Add this
+                    handleFileChange={handleFileChange}
+                    uploading={uploading}
+                    uploadSuccess={uploadSuccess}
+                    selectedFiles={selectedFiles}
+                    handleFileUpload={handleFileUpload}
+                    errorMessage={errorMessage}
                     isMobile={true}
                     isUser={true}
                   />
@@ -2099,8 +2107,17 @@ const UserProfile = ({ token }) => {
                     files={files}
                     handleDownload={handleDownload}
                     handleFileDelete={handleFileDelete}
+                    showUploadModal={showUploadModal} // This was missing
                     setShowUploadModal={setShowUploadModal}
+                    onHide={() => setShowUploadModal(false)} // Add this
+                    handleFileChange={handleFileChange}
+                    uploading={uploading}
+                    uploadSuccess={uploadSuccess}
+                    selectedFiles={selectedFiles}
+                    handleFileUpload={handleFileUpload}
+                    errorMessage={errorMessage}
                     isMobile={false}
+                    isUser={true}
                   />
                 </div>
               </div>
