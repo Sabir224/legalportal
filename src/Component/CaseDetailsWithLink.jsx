@@ -31,7 +31,7 @@ import { FcMakeDecision } from "react-icons/fc";
 import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { screenChange } from "../REDUX/sliece";
 import { ApiEndPoint } from "../Main/Pages/Component/utils/utlis";
 import PartiesDetails from "../Main/Pages/Component/Casedetails/PartiesDetails";
@@ -46,7 +46,7 @@ import SubCaseDetails from "../Main/Pages/Component/Casedetails/SubCaseDetails";
 import { blue } from "@mui/material/colors";
 import { Spinner } from "react-bootstrap";
 
-const Case_details = ({ token }) => {
+const CasedetailsWithLink = () => {
   const dispatch = useDispatch();
   const [activeSections, setActiveSections] = useState([]);
   const [buttoncolor, setbuttoncolor] = useState([]);
@@ -58,48 +58,10 @@ const Case_details = ({ token }) => {
   const [caseData, setCaseData] = useState("");
   const [user, setUser] = useState("");
   const [lawyerDetails, setLawyersDetails] = useState([]);
+  const navigate = useNavigate();
+  const { caseId, userId } = useParams();
+  console.log("Check link Params", caseId, userId);
 
-  const [pendingCaseData, setPendingCaseData] = useState(null);
-  const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
-  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
-  useEffect(() => {
-    const pendingCaseId = localStorage.getItem("pendingCaseId");
-    const pendingUserId = localStorage.getItem("pendingUserId");
-    const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
-
-    if (pendingCaseId && pendingUserId && pendingScreenIndex) {
-      setPendingCaseData({
-        caseId: pendingCaseId,
-        userId: pendingUserId,
-        screenIndex: pendingScreenIndex,
-      });
-      setEffectiveCaseInfo({
-        _id: pendingCaseId,
-        ClientId: pendingUserId,
-      });
-    } else {
-      setEffectiveCaseInfo(reduxCaseInfo || global.CaseId);
-    }
-  }, []);
-
-  // Sync with Redux when not using pending data
-  useEffect(() => {
-    if (!pendingCaseData && reduxCaseInfo) {
-      setEffectiveCaseInfo(reduxCaseInfo);
-    }
-  }, [reduxCaseInfo, pendingCaseData]);
-
-  const getCaseId = () => {
-    // Only use pending caseId if available
-    return (
-      pendingCaseData?.caseId || (global.CaseId ? global.CaseId._id : null)
-    );
-  };
-
-  const getUserId = () => {
-    // Only use pending userId if available
-    return pendingCaseData?.userId || (global.User ? global.User._id : null);
-  };
   const transformData = (apiData) => {
     if (!apiData || apiData.length === 0) return [];
 
@@ -328,12 +290,7 @@ const Case_details = ({ token }) => {
 
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
-  useEffect(() => {
-    if (effectiveCaseInfo?._id) {
-      fetchCases();
-      fetchLawyerDetails();
-    }
-  }, [effectiveCaseInfo?._id]);
+
   // Function to fetch cases
   const fetchCases = async () => {
     setLoading(true);
@@ -341,31 +298,18 @@ const Case_details = ({ token }) => {
     setsections([]);
 
     try {
-      const caseIdToUse = getCaseId();
-      if (!caseIdToUse) {
-        throw new Error("No case ID available");
-      }
-
       const caseResponse = await axios.get(
-        `${ApiEndPoint}getCaseDetail/${caseIdToUse}`,
+        `${ApiEndPoint}getCaseDetail/${caseId}`, // Use caseId from URL
         { withCredentials: true }
       );
       setCaseData(caseResponse.data.caseDetails);
 
       const partiesResponse = await axios.get(
-        `${ApiEndPoint}getparties/${caseIdToUse}`
+        `${ApiEndPoint}getparties/${caseId}` // Use caseId from URL
       );
 
       const transformed = transformData(partiesResponse.data);
       setsections(transformed);
-
-      // Clear pending data if we used it successfully
-      // if (pendingCaseData) {
-      //   localStorage.removeItem("pendingCaseId");
-      //   localStorage.removeItem("pendingUserId");
-      //   localStorage.removeItem("pendingScreenIndex");
-      //   setPendingCaseData(null);
-      // }
     } catch (err) {
       console.error("Error fetching case or party data:", err);
       setError(err.message);
@@ -376,6 +320,11 @@ const Case_details = ({ token }) => {
       }, 1000);
     }
   };
+
+  useEffect(() => {
+    fetchCases();
+  }, [caseId, userId]);
+
   const fetchLawyerDetails = async () => {
     try {
       const response = await axios.get(
@@ -393,16 +342,23 @@ const Case_details = ({ token }) => {
     }
   };
   const handleViewDetails = async () => {
-    global.lawyerDetails = lawyerDetails[0];
-    global.User = user;
-    console.log(global.User);
-    dispatch(screenChange(2));
+    try {
+      // Navigate to the appointment screen with caseId and userId in the URL
+      navigate(`/client-appointment/${caseId}/${userId}`);
+    } catch (error) {
+      console.error("Error navigating to lawyer details:", error);
+      setError("Failed to navigate to lawyer details");
+    }
   };
+
   const handleViewFolders = async () => {
-    global.lawyerDetails = lawyerDetails[0];
-    global.User = user;
-    console.log(global.User);
-    dispatch(screenChange(12));
+    try {
+      // Similarly for folders if needed
+      navigate(`/folders/${caseId}/${userId}`);
+    } catch (error) {
+      console.error("Error navigating to folders:", error);
+      setError("Failed to navigate to folders");
+    }
   };
   const handleViewClientDetails = async () => {
     // global.lawyerDetails = lawyerDetails[0];
@@ -488,19 +444,8 @@ const Case_details = ({ token }) => {
     return (
       <>
         {[
-          ...(token?.Role !== "lawyer"
-            ? [{ label: "View lawyer", onClick: handleViewDetails }]
-            : []),
-
-          ...(token?.Role !== "client"
-            ? [{ label: "View Client", onClick: handleViewClientDetails }]
-            : []),
-          ...(token?.Role !== "client"
-            ? [{ label: "View Task", onClick: handleViewTask }]
-            : []),
-          ...(token?.Role !== "client"
-            ? [{ label: "Add Task", onClick: handleAddTask }]
-            : []),
+          { label: "View lawyer", onClick: handleViewDetails },
+          { label: "View Folders", onClick: handleViewFolders },
         ].map(({ label, onClick }, index) => (
           <div key={index} className="d-flex justify-content-center mb-2">
             <button
@@ -870,4 +815,4 @@ const Case_details = ({ token }) => {
     </div>
   );
 };
-export default Case_details;
+export default CasedetailsWithLink;

@@ -1,3 +1,857 @@
+// import {
+//   faFileAlt,
+//   faFilePdf,
+//   faFileWord,
+//   faFileExcel,
+//   faFilePowerpoint,
+//   faFileText,
+//   faImage,
+//   faMusic,
+//   faVideo,
+//   faFileArchive,
+//   faFileCode,
+//   faFileCsv,
+//   faFile,
+//   faDownload,
+//   faTrash,
+//   faUpload,
+//   faUserCircle,
+//   faMailBulk,
+//   faPhone,
+//   faAddressCard,
+//   faCheckCircle,
+//   faSpinner,
+//   faArrowRight,
+//   faArrowLeft,
+// } from "@fortawesome/free-solid-svg-icons";
+// import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+// import { useEffect, useState } from "react";
+// import {
+//   Button,
+//   Card,
+//   Col,
+//   Modal,
+//   Row,
+//   Spinner,
+//   Tab,
+//   Tabs,
+// } from "react-bootstrap";
+// import "../../style/userProfile.css";
+// import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
+// import axios from "axios";
+// import DragAndDrop from "./Component/DragAndDrop";
+// import { FaCalendar } from "react-icons/fa";
+// import ViewBookLawyerSlot from "./Component/ViewBookSlot";
+// import { useSelector } from "react-redux";
+// import ErrorModal from "./AlertModels/ErrorModal";
+
+// const ViewUser = ({ token }) => {
+//   const [email, setEmail] = useState("raheemakbar999@gmail.com");
+//   const [subject, setSubject] = useState("Meeting Confirmation");
+//   const [clientDetails, setClientDetails] = useState({});
+//   const [usersDetails, setUsersDetails] = useState({});
+//   const [loading, setLoading] = useState(false);
+//   const [files, setFiles] = useState([]); // Uploaded files state
+//   const [selectedFiles, setSelectedFiles] = useState([]); // Selected files before upload
+//   const [showUploadModal, setShowUploadModal] = useState(false); // State to control upload moda
+//   const [uploading, setUploading] = useState(false);
+//   const [uploadSuccess, setUploadSuccess] = useState(false);
+//   const [errorMessage, setErrorMessage] = useState("");
+//   const storedEmail = sessionStorage.getItem("Email");
+//   const caseInfo = useSelector((state) => state.screen.Caseinfo);
+//   const [showModal, setShowModal] = useState(false);
+
+//   // Function to categorize files
+//   const [currentDate, setCurrentDate] = useState(new Date());
+//   const [DatabaseappointmentDetails, setDataAppointmentDetails] = useState();
+//   const [selectedDate, setSelectedDate] = useState();
+//   const [slotbookuserid, setslotbookuserid] = useState("");
+//   const [newStartTime, setNewStartTime] = useState(null);
+//   const [newEndTime, setNewEndTime] = useState(null);
+//   const [editingSlotIndex, setEditingSlotIndex] = useState(null);
+//   const [updatespecifcslot, setupdateslot] = useState();
+//   const [IsCalenderView, setCalenderView] = useState(false);
+
+//   const [selectedSlot, setSelectedSlot] = useState(null);
+//   const [selectedTime, setSelectedTime] = useState(null);
+
+//   const generateCalendarDates = () => {
+//     const dates = [];
+//     const year = currentDate.getFullYear();
+//     const month = currentDate.getMonth();
+
+//     // Get the first day of the month
+//     const firstDay = new Date(year, month, 1).getDay();
+
+//     // Get the number of days in the month
+//     const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+//     // Fill the first week with empty slots until the first day
+//     for (let i = 0; i < firstDay; i++) {
+//       dates.push(null);
+//     }
+
+//     // Add all the days of the month
+//     for (let day = 1; day <= daysInMonth; day++) {
+//       dates.push(new Date(year, month, day));
+//     }
+
+//     return dates;
+//   };
+
+//   const ExistSlotsMap =
+//     DatabaseappointmentDetails?.availableSlots?.reduce((acc, slot) => {
+//       const dateStr = new Date(slot.date).toDateString();
+//       acc[dateStr] = slot.slots;
+//       return acc;
+//     }, {}) || {};
+//   const calendarDates = generateCalendarDates();
+
+//   const onHide = () => {
+//     setShowUploadModal(false);
+//     setSelectedFiles([]);
+//     setUploading(false);
+//     setUploadSuccess(false);
+//     setErrorMessage([]);
+//   };
+//   const getFilesByCategory = (category, files) => {
+//     return files.filter((file) => {
+//       const fileType = getFileType(file.fileName);
+//       if (category === "media") {
+//         return (
+//           fileType === "image" || fileType === "video" || fileType === "audio"
+//         );
+//       }
+//       if (category === "documents") {
+//         return (
+//           fileType !== "image" && fileType !== "video" && fileType !== "audio"
+//         );
+//       }
+//       return false;
+//     });
+//   };
+//   const handleClose = () => {
+//     setShowModal(false);
+//   };
+//   const fileIcons = {
+//     pdf: faFilePdf, // PDF Files
+//     doc: faFileWord, // Word Document
+//     docx: faFileWord, // Word Document
+//     txt: faFileText, // Plain Text File
+//     csv: faFileCsv, // CSV File
+//     xls: faFileExcel, // Excel File
+//     xlsx: faFileExcel, // Excel File
+//     ppt: faFilePowerpoint, // PowerPoint File
+//     pptx: faFilePowerpoint, // PowerPoint File
+//     odt: faFileAlt, // OpenDocument Text
+//     ods: faFileExcel, // OpenDocument Spreadsheet
+//     odp: faFilePowerpoint, // OpenDocument Presentation
+//     image: faImage, // Images (jpg, png, svg, etc.)
+//     audio: faMusic, // Audio Files (mp3, wav, etc.)
+//     video: faVideo, // Video Files (mp4, mkv, avi, etc.)
+//     zip: faFileArchive, // Zip Files
+//     rar: faFileArchive, // RAR Files
+//     tar: faFileArchive, // Tar Files
+//     gz: faFileArchive, // GZipped Files
+//     "7z": faFileArchive, // 7z Files
+//     js: faFileCode, // JavaScript Files
+//     jsx: faFileCode, // JavaScript Files
+//     ts: faFileCode, // TypeScript Files
+//     tsx: faFileCode, // TypeScript Files
+//     html: faFileCode, // HTML Files
+//     css: faFileCode, // CSS Files
+//     json: faFileCode, // JSON Files
+//     xml: faFileCode, // XML Files
+//     sql: faFileCode, // SQL Files
+//     py: faFileCode, // Python Files
+//     java: faFileCode, // Java Files
+//     c: faFileCode, // C Language Files
+//     cpp: faFileCode, // C++ Language Files
+//     sh: faFileCode, // Shell Script
+//     other: faFile, // Default File Icon for unknown formats
+//   };
+//   const getFileTypeIcon = (fileName) => {
+//     const extension = fileName.split(".").pop().toLowerCase(); // Extract extension
+//     return fileIcons[extension] || fileIcons["other"]; // Use mapped icon or default
+//   };
+//   const getFileType = (fileName) => {
+//     const extension = fileName.split(".").pop().toLowerCase();
+//     const allowedExtensions = {
+//       image: ["jpg", "jpeg", "png", "gif", "bmp", "svg", "webp", "tiff"],
+//       video: ["mp4", "avi", "mov", "wmv", "flv", "mkv", "webm"],
+//       audio: ["mp3", "wav", "aac", "ogg", "flac", "m4a"],
+//       document: [
+//         "pdf",
+//         "doc",
+//         "docx",
+//         "xls",
+//         "xlsx",
+//         "csv",
+//         "ppt",
+//         "pptx",
+//         "txt",
+//       ],
+//       archive: ["zip", "rar", "7z"],
+//     };
+
+//     for (let [type, extensions] of Object.entries(allowedExtensions)) {
+//       if (extensions.includes(extension)) return type;
+//     }
+
+//     return "other";
+//   };
+
+//   const sizeLimits = {
+//     image: 20 * 1024 * 1024, // 5MB
+//     document: 20 * 1024 * 1024, // 16MB
+//     video: 20 * 1024 * 1024, // 50MB
+//     audio: 20 * 1024 * 1024, // 10MB
+//     archive: 20 * 1024 * 1024, // 50MB
+//   };
+
+//   const validateFileSize = (file) => {
+//     const fileType = getFileType(file.name);
+//     return (
+//       fileType !== "other" &&
+//       file.size <= (sizeLimits[fileType] || 2 * 1024 * 1024)
+//     );
+//   };
+
+//   const handleFileChange = (input) => {
+//     setErrorMessage([]);
+//     let files = Array.isArray(input) ? input : Array.from(input.target.files);
+
+//     let validFiles = [];
+//     let totalFiles = selectedFiles.length; // Track total files
+
+//     let invalidSizeFiles = [];
+//     let invalidTypeFiles = [];
+//     let invalidLengthFiles = [];
+
+//     for (let file of files) {
+//       if (totalFiles > 10) break; // Stop if we reach the limit
+
+//       if (file.name.length > 40) {
+//         // Truncate file name for display
+//         let truncatedName =
+//           file.name.substring(0, 20) + "..." + file.name.slice(-10);
+//         invalidLengthFiles.push(truncatedName); // Store truncated name
+//         continue; // Skip this file
+//       }
+
+//       const fileType = getFileType(file.name);
+//       if (fileType === "other") {
+//         invalidTypeFiles.push(file.name); // Store file name if type is not allowed
+//       } else if (!validateFileSize(file)) {
+//         invalidSizeFiles.push(
+//           `${file.name} (Max ${(
+//             (sizeLimits[fileType] || 2 * 1024 * 1024) /
+//             (1024 * 1024)
+//           ).toFixed(1)}MB)` // Show max limit
+//         );
+//       } else {
+//         validFiles.push(file);
+//         totalFiles++; // Increment total count
+//       }
+//     }
+
+//     let fileLimitExceeded = totalFiles > 10;
+//     if (fileLimitExceeded) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
+//       ]);
+//       validFiles = validFiles.slice(0, 10 - selectedFiles.length);
+//     }
+
+//     if (invalidSizeFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following files exceed the size limit: ${invalidSizeFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     if (invalidTypeFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following file extensions are not allowed: ${invalidTypeFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     if (invalidLengthFiles.length > 0) {
+//       setErrorMessage((prevErrors) => [
+//         ...prevErrors,
+//         `The following files have names longer than 40 characters: ${invalidLengthFiles.join(
+//           ", "
+//         )}`,
+//       ]);
+//     }
+
+//     setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
+
+//     if (!Array.isArray(input)) input.target.value = "";
+//   };
+
+//   // Function to handle file upload
+//   const handleFileUpload = async () => {
+//     if (selectedFiles.length === 0) return;
+
+//     setUploading(true);
+//     setUploadSuccess(false);
+
+//     const formData = new FormData();
+//     formData.append("Email", token.email);
+
+//     selectedFiles.forEach((file) => {
+//       formData.append("files", file);
+//     });
+
+//     try {
+//       const response = await axios.post(`${ApiEndPoint}upload`, formData, {
+//         headers: {
+//           "Content-Type": "multipart/form-data",
+//         },
+//       });
+
+//       console.log("Files response:", response.data);
+
+//       if (response.status === 200) {
+//         setSelectedFiles([]);
+//         setUploadSuccess(true);
+//         setTimeout(() => {
+//           setShowUploadModal(false);
+//           setUploadSuccess(false);
+//         }, 1000); // Hide modal after 2 seconds
+//         fetchClientDetails();
+//         setErrorMessage([]);
+//       }
+//     } catch (error) {
+//       console.error("Error uploading files:", error);
+//     } finally {
+//       setUploading(false);
+//     }
+//   };
+//   const handleFileDelete = async (fileId) => {
+//     try {
+//       const response = await axios.delete(`${ApiEndPoint}/files/${fileId}`);
+
+//       if (response.status === 200) {
+//         setFiles((prevFiles) =>
+//           prevFiles.filter((file) => file._id !== fileId)
+//         );
+//         console.log("File deleted successfully");
+//       }
+//     } catch (error) {
+//       console.error("Error deleting file:", error);
+//     }
+//   };
+
+//   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
+//     subject
+//   )}&body=${encodeURIComponent("")}`;
+//   const [activeTab, setActiveTab] = useState("documents");
+//   const handleDownload = async (fileId, fileName) => {
+//     try {
+//       const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
+//         method: "POST", // Changed to POST to send body
+//         headers: {
+//           "Content-Type": "application/json",
+//         },
+//         body: JSON.stringify({ Email: token.email }), // Sending email in request body
+//       });
+
+//       // Log the raw response before processing
+//       console.log("Raw Response:", response);
+
+//       if (!response.ok) {
+//         const errorText = await response.text(); // Get the error response if available
+//         throw new Error(`Failed to fetch the file: ${errorText}`);
+//       }
+
+//       // Log the JSON response before downloading (if applicable)
+//       const jsonResponse = await response.json();
+//       console.log("Download Response JSON:", jsonResponse);
+
+//       // Check if the response contains a signed URL instead of a file blob
+//       if (jsonResponse.downloadUrl) {
+//         console.log("Signed URL received:", jsonResponse.downloadUrl);
+//         window.open(jsonResponse.downloadUrl, "_blank");
+//         return;
+//       }
+
+//       // Validate content type
+//       const contentType = response.headers.get("Content-Type");
+//       console.log("Content-Type:", contentType);
+//       if (
+//         !contentType ||
+//         (!contentType.startsWith("application/") &&
+//           contentType !== "application/octet-stream")
+//       ) {
+//         throw new Error("Invalid content type: " + contentType);
+//       }
+
+//       // Process the file blob
+//       const blob = await response.blob();
+//       console.log("Blob Data:", blob);
+
+//       // Create a URL and trigger download
+//       const url = window.URL.createObjectURL(blob);
+//       const a = document.createElement("a");
+//       a.href = url;
+//       a.download = fileName || "downloaded_file"; // Default filename if none is provided
+//       document.body.appendChild(a);
+//       a.click();
+//       document.body.removeChild(a);
+
+//       // Cleanup
+//       setTimeout(() => window.URL.revokeObjectURL(url), 100);
+//     } catch (error) {
+//       console.error("Error downloading file:", error);
+//     }
+//   };
+
+//   const convertTo12HourFormat = (time) => {
+//     let [hours, minutes] = time.split(":").map(Number);
+//     let period = hours >= 12 ? "PM" : "AM";
+//     hours = hours % 12 || 12; // Convert 0 to 12 for AM times
+//     return `${hours}:${minutes.toString().padStart(2, "0")} ${period}`;
+//   };
+//   const fetchClientDetails = async () => {
+//     setLoading(true);
+//     try {
+//       // Fetch client details
+//       const clientRes = await axios.get(
+//         `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
+//       );
+
+//       if (clientRes.data) {
+//         setUsersDetails(clientRes.data.user);
+//         setClientDetails(clientRes.data.clientDetails);
+//         setFiles(clientRes.data.clientDetails.Files);
+//       }
+
+//       // Fetch appointment details
+//       const appointmentRes = await axios.get(
+//         `${ApiEndPoint}GetClientBookAppointments/${token?._id}`
+//       );
+
+//       if (!appointmentRes.data || appointmentRes.data.length === 0) {
+//         throw new Error("No appointment data found");
+//       }
+
+//       let temp = {
+//         FkLawyerId: appointmentRes.data[0].FkLawyerId,
+//         availableSlots: {},
+//       };
+
+//       appointmentRes.data.forEach((element) => {
+//         if (element.availableSlots) {
+//           element.availableSlots.forEach((slot) => {
+//             if (!temp.availableSlots[slot.date]) {
+//               temp.availableSlots[slot.date] = [];
+//             }
+
+//             temp.availableSlots[slot.date] = [
+//               ...temp.availableSlots[slot.date],
+//               ...slot.slots.map((s) => ({
+//                 startTime: convertTo12HourFormat(s.startTime),
+//                 endTime: convertTo12HourFormat(s.endTime),
+//                 isBooked: s.isBooked,
+//                 byBook: s.byBook,
+//                 lawyerId: s.lawyerId,
+//                 meetingLink: s.meetingLink,
+//                 _id: s._id,
+//               })),
+//             ];
+//           });
+//         }
+//       });
+
+//       temp.availableSlots = Object.entries(temp.availableSlots).map(
+//         ([date, slots]) => ({
+//           date,
+//           slots,
+//         })
+//       );
+
+//       setDataAppointmentDetails(temp);
+//     } catch (err) {
+//       console.error("Error fetching client or appointment details:", err);
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   const handleBookTimeClick = (slot) => {
+//     setCalenderView(true);
+//   };
+
+//   const handleTimeClick = (time) => {
+//     setSelectedTime(time);
+//   };
+//   useEffect(() => {
+//     if (caseInfo?.ClientId) {
+//       fetchClientDetails();
+//     }
+//   }, [caseInfo?.ClientId]);
+
+//   const prevMonth = () => {
+//     setSelectedDate();
+//     setCurrentDate(
+//       new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1)
+//     );
+//   };
+
+//   // Move to the next month
+//   const nextMonth = () => {
+//     setSelectedDate();
+//     setCurrentDate(
+//       new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1)
+//     );
+//   };
+
+//   return loading ? (
+//     <div className="d-flex justify-content-center align-items-center vh-100">
+//       <div className="text-center">
+//         <Spinner animation="border" variant="primary" />
+//         <p className="mt-2">Loading client details...</p>
+//       </div>
+//     </div>
+//   ) : caseInfo?.ClientId && clientDetails && usersDetails && !loading ? (
+//     <div
+//       className="card container-fluid justify-content-center mr-3 ml-3 p-0"
+//       style={{
+//         height: "86vh",
+//       }}
+//     >
+//       <Row className="d-flex justify-content-center m-3 p-0 gap-5">
+//         {" "}
+//         {/* Left Column: User Profile */}
+//         <Col
+//           sm={12}
+//           md={6}
+//           className="card border rounded d-flex flex-column mb-3"
+//           style={{
+//             background: "#001f3f",
+//             width: "45%",
+//             backdropFilter: "blur(10px)", // Glass effect
+//             boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
+//             border: "1px solid rgba(255, 255, 255, 0.1)", // Slight border for contrast
+//           }}
+//         >
+//           <div className="client-section p-3 text-white">
+//             {/* Client Picture */}
+//             <div
+//               className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
+//             >
+//               {/* Profile Icon */}
+//               <div
+//                 className="client-picture"
+//                 style={{
+//                   border: "2px solid #d4af37",
+//                   textAlign: "center",
+//                   padding: "10px",
+//                   borderRadius: "50%", // Circle shape
+//                   width: "100px",
+//                   height: "100px",
+//                   display: "flex",
+//                   alignItems: "center",
+//                   justifyContent: "center",
+//                 }}
+//               >
+//                 <FontAwesomeIcon
+//                   icon={faUserCircle}
+//                   className="rounded-circle"
+//                   style={{ fontSize: "48px" }} // Icon size
+//                 />
+//               </div>
+
+//               {/* Username */}
+//               <div className="ms-3">
+//                 <h2>{usersDetails.UserName}</h2>
+//               </div>
+//             </div>
+//             {/* Client Details */}
+//             <div className="client-details">
+//               {/* Bio */}
+//               {/* <div
+//                 className="d-flex"
+//                 style={{ width: "auto", overflowY: "auto" }}
+//               >
+//                 <p>{clientDetails.Bio}</p>
+//               </div> */}
+
+//               {/* Email */}
+//               <div className="d-flex align-items-center">
+//                 <FontAwesomeIcon
+//                   icon={faMailBulk}
+//                   size="1x"
+//                   color="white"
+//                   className="m-2"
+//                 />
+//                 <p className="ms-2 m-1">
+//                   <a
+//                     href={`mailto:${usersDetails.Email}`}
+//                     style={{ color: "white" }}
+//                   >
+//                     {usersDetails.Email}
+//                   </a>
+//                 </p>
+//               </div>
+
+//               {/* Contact */}
+//               <div className="d-flex align-items-center">
+//                 <a
+//                   href={`tel:${clientDetails?.Contact}`}
+//                   style={{
+//                     textDecoration: "none",
+//                     color: "inherit",
+//                     display: "flex",
+//                     alignItems: "center",
+//                   }}
+//                 >
+//                   <FontAwesomeIcon
+//                     icon={faPhone}
+//                     size="1x"
+//                     color="white"
+//                     className="m-2"
+//                   />
+//                   <p style={{ fontSize: 12 }} className="ms-2 m-1">
+//                     {formatPhoneNumber(clientDetails?.Contact)}
+//                   </p>
+//                 </a>
+//               </div>
+
+//               {/* Address */}
+//               <div className="d-flex align-items-center">
+//                 <FontAwesomeIcon
+//                   icon={faAddressCard}
+//                   size="1x"
+//                   color="white"
+//                   className="m-2"
+//                 />
+//                 <p style={{ fontSize: 12 }} className="ms-2 m-1">
+//                   {clientDetails.Address}
+//                 </p>
+//               </div>
+//             </div>
+//           </div>
+//         </Col>
+//         {/* Right Column: Files and Docs */}
+//         <Col
+//           sm={12}
+//           md={6}
+//           className="card border rounded p-3 mb-3"
+//           style={{
+//             background: "#001f3f",
+//             width: "45%",
+//             backdropFilter: "blur(10px)",
+//             boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
+//             border: "1px solid rgba(255, 255, 255, 0.2)",
+//             transition: "transform 0.2s, box-shadow 0.2s",
+//           }}
+//         >
+//           <h4 className="text-white mb-4" style={{ fontWeight: "600" }}>
+//             File and Docs
+//           </h4>
+
+//           <Tabs
+//             activeKey={activeTab}
+//             onSelect={(k) => setActiveTab(k)}
+//             className="mb-3"
+//             variant="primary"
+//             style={{
+//               borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+//               color: "white",
+//             }}
+//           >
+//             <Tab
+//               eventKey="documents"
+//               title={
+//                 <span
+//                   style={{
+//                     background:
+//                       activeTab === "documents" ? "#d3b386" : "transparent",
+//                     padding: "8px 8px",
+//                     borderRadius: "5px",
+//                     color: "white",
+//                   }}
+//                 >
+//                   Documents 📄
+//                 </span>
+//               }
+//             >
+//               <Row
+//                 className="g-3"
+//                 style={{
+//                   height: "50vh",
+//                   overflow: "auto",
+//                 }}
+//               >
+//                 {getFilesByCategory("documents", files).map((file, index) => (
+//                   <Col key={index} sm={6} md={4} lg={3}>
+//                     <Card
+//                       className="text-white bg-dark p-2"
+//                       style={{
+//                         background: "white",
+//                         border: "1px solid white",
+//                         transition: "transform 0.2s, box-shadow 0.2s",
+//                       }}
+//                       onMouseEnter={(e) => {
+//                         e.currentTarget.style.transform = "scale(1.05)";
+//                         e.currentTarget.style.boxShadow =
+//                           "0px 4px 10px rgba(0, 0, 0, 0.8)";
+//                       }}
+//                       onMouseLeave={(e) => {
+//                         e.currentTarget.style.transform = "scale(1)";
+//                         e.currentTarget.style.boxShadow = "none";
+//                       }}
+//                     >
+//                       <FontAwesomeIcon
+//                         icon={getFileTypeIcon(file.fileName)} // Default icon if not found
+//                         size="2x"
+//                         className="mb-2"
+//                         style={{ color: "#d3b386" }}
+//                       />
+//                       <Card.Body className="p-1">
+//                         <Card.Text
+//                           className="text-truncate"
+//                           style={{ fontSize: "0.9rem" }}
+//                         >
+//                           {file.fileName}
+//                           {file._id}
+//                         </Card.Text>
+//                         <div className="d-flex justify-content-center">
+//                           <Button
+//                             variant="success"
+//                             size="sm"
+//                             onClick={() =>
+//                               handleDownload(file._id, file.fileName)
+//                             }
+//                             style={{ background: "#28a745", border: "none" }}
+//                           >
+//                             <FontAwesomeIcon icon={faDownload} />
+//                           </Button>
+//                           {/* <Button
+//                                                         variant="danger"
+//                                                         size="sm"
+//                                                         onClick={() => handleFileDelete(file._id)}
+//                                                         style={{ background: "#dc3545", border: "none" }}
+//                                                     >
+//                                                         <FontAwesomeIcon icon={faTrash} />
+//                                                     </Button> */}
+//                         </div>
+//                       </Card.Body>
+//                     </Card>
+//                   </Col>
+//                 ))}
+//               </Row>
+//             </Tab>
+
+//             <Tab
+//               eventKey="media"
+//               title={
+//                 <span
+//                   style={{
+//                     background:
+//                       activeTab === "media" ? "#d3b386" : "transparent",
+//                     padding: "8px 8px",
+//                     borderRadius: "5px",
+//                     color: "white",
+//                   }}
+//                 >
+//                   Media Files 🎬
+//                 </span>
+//               }
+//             >
+//               <Row
+//                 className="g-3"
+//                 style={{
+//                   height: "50vh",
+//                   overflow: "auto",
+//                 }}
+//               >
+//                 {getFilesByCategory("media", files).map((file, index) => (
+//                   <Col key={index} sm={6} md={4} lg={3}>
+//                     <Card
+//                       className="text-white bg-dark p-2"
+//                       style={{
+//                         background: "white",
+//                         border: "1px solid white",
+//                         transition: "transform 0.2s, box-shadow 0.2s",
+//                       }}
+//                       onMouseEnter={(e) => {
+//                         e.currentTarget.style.transform = "scale(1.05)";
+//                         e.currentTarget.style.boxShadow =
+//                           "0px 4px 10px rgba(0, 0, 0, 0.8)";
+//                       }}
+//                       onMouseLeave={(e) => {
+//                         e.currentTarget.style.transform = "scale(1)";
+//                         e.currentTarget.style.boxShadow = "none";
+//                       }}
+//                     >
+//                       {/* File Preview for Images */}
+//                       <FontAwesomeIcon
+//                         icon={getFileTypeIcon(file.fileName)} // Default icon if not found
+//                         size="2x"
+//                         className="mb-2"
+//                         style={{ color: "#d3b386" }}
+//                       />
+
+//                       <Card.Body className="p-1">
+//                         <Card.Text
+//                           className="text-truncate"
+//                           style={{ fontSize: "0.9rem" }}
+//                         >
+//                           {file.fileName}
+//                         </Card.Text>
+//                         <div className="d-flex justify-content-center">
+//                           <Button
+//                             variant="success"
+//                             size="sm"
+//                             onClick={() =>
+//                               handleDownload(file._id, file.fileName)
+//                             }
+//                             style={{ background: "#28a745", border: "none" }}
+//                           >
+//                             <FontAwesomeIcon icon={faDownload} />
+//                           </Button>
+//                           {/* <Button
+//                                                         variant="danger"
+//                                                         size="sm"
+//                                                         onClick={() => handleFileDelete(file._id)}
+//                                                         style={{ background: "#dc3545", border: "none" }}
+//                                                     >
+//                                                         <FontAwesomeIcon icon={faTrash} />
+//                                                     </Button> */}
+//                         </div>
+//                       </Card.Body>
+//                     </Card>
+//                   </Col>
+//                 ))}
+//               </Row>
+//             </Tab>
+//           </Tabs>
+//           {/* Floating Upload Icon */}
+//         </Col>
+//       </Row>
+
+//       {/* <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} /> */}
+//     </div>
+//   ) : (
+//     <div className="d-flex justify-content-center align-items-center vh-100">
+//       <div className="text-center text-danger">
+//         <h4>No user found</h4>
+//       </div>
+//     </div>
+//   );
+// };
+// export default ViewUser;
+
 import {
   faFileAlt,
   faFilePdf,
@@ -23,6 +877,7 @@ import {
   faSpinner,
   faArrowRight,
   faArrowLeft,
+  faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useEffect, useState } from "react";
@@ -40,11 +895,17 @@ import "../../style/userProfile.css";
 import { ApiEndPoint, formatPhoneNumber } from "./Component/utils/utlis";
 import axios from "axios";
 import DragAndDrop from "./Component/DragAndDrop";
-import { FaCalendar } from "react-icons/fa";
+import {
+  FaCalendar,
+  FaFolderOpen,
+  FaPaperclip,
+  FaPhotoVideo,
+} from "react-icons/fa";
 import ViewBookLawyerSlot from "./Component/ViewBookSlot";
 import { useSelector } from "react-redux";
 import ErrorModal from "./AlertModels/ErrorModal";
-
+import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
+import FilesSection from "./Component/FIleFolder";
 const ViewUser = ({ token }) => {
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
@@ -74,6 +935,8 @@ const ViewUser = ({ token }) => {
 
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
+  const [showFiles, setShowFiles] = useState(false);
+  const [showFilesSection, setShowFilesSection] = useState(true); // Default to show files
 
   const generateCalendarDates = () => {
     const dates = [];
@@ -523,324 +1386,296 @@ const ViewUser = ({ token }) => {
     </div>
   ) : caseInfo?.ClientId && clientDetails && usersDetails && !loading ? (
     <div
-      className="card container-fluid justify-content-center mr-3 ml-3 p-0"
+      className="container-fluid p-0 "
       style={{
         height: "86vh",
+        width: "100%",
+        overflow: "hidden",
       }}
     >
-      <Row className="d-flex justify-content-center m-3 p-0 gap-5">
-        {" "}
-        {/* Left Column: User Profile */}
+      {/* Mobile Navigation - Ultra Compact for iPhone SE */}
+      <div
+        className="d-block d-md-none sticky-top"
+        style={{
+          zIndex: 1000,
+          backgroundColor: "#001f3f",
+          padding: "6px 0", // Reduced vertical padding
+          borderBottom: "1px solid rgba(255,255,255,0.1)",
+        }}
+      >
+        <div className="d-flex justify-content-around px-0">
+          {" "}
+          {/* Removed horizontal padding */}
+          <button
+            className="btn btn-link p-0 text-white" // Removed padding
+            onClick={() => {
+              setShowFiles(false);
+              setShowFilesSection(false);
+            }}
+            style={{
+              minWidth: "60px", // Smaller minimum width
+              textDecoration: "none",
+              borderRadius: "6px",
+              backgroundColor:
+                !showFiles && !showFilesSection
+                  ? "rgba(211, 179, 134, 0.2)"
+                  : "transparent",
+            }}
+          >
+            <div className="d-flex flex-column align-items-center">
+              <FontAwesomeIcon
+                icon={faUser}
+                size="xs" // Extra small icon
+                color={!showFiles && !showFilesSection ? "#d3b386" : "white"}
+              />
+              <small style={{ fontSize: "0.6rem", marginTop: "2px" }}>
+                Profile
+              </small>{" "}
+              {/* Smaller text */}
+            </div>
+          </button>
+          <button
+            className="btn btn-link p-0 text-white"
+            onClick={() => {
+              setShowFiles(true);
+              setShowFilesSection(true);
+            }}
+            style={{
+              minWidth: "60px",
+              textDecoration: "none",
+              borderRadius: "6px",
+              backgroundColor:
+                showFiles && showFilesSection
+                  ? "rgba(211, 179, 134, 0.2)"
+                  : "transparent",
+            }}
+          >
+            <div className="d-flex flex-column align-items-center">
+              <FaFolderOpen
+                size="1em" // Relative sizing
+                color={showFiles && showFilesSection ? "#d3b386" : "white"}
+              />
+              <small style={{ fontSize: "0.6rem", marginTop: "2px" }}>
+                Files
+              </small>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <Row
+        className="m-0 p-0 g-0 g-md-3 justify-content-center"
+        style={{
+          height: "calc(100% - 20px)", // Account for mobile nav height
+          width: "100%",
+          margin: "0 auto",
+        }}
+      >
+        {/* Left Column: User Profile - Always shown on large screens, conditionally on small */}
         <Col
-          sm={12}
-          md={6}
-          className="card border rounded d-flex flex-column mb-3"
+          xs={12}
+          md={5}
+          className={`${showFiles ? "d-none d-md-block me-md-5" : ""} p-1`} // Smaller padding
           style={{
-            background: "#001f3f",
-            width: "45%",
-            backdropFilter: "blur(10px)", // Glass effect
-            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)", // Dark shadow for depth
-            border: "1px solid rgba(255, 255, 255, 0.1)", // Slight border for contrast
+            height: "100%",
+            maxHeight: "100%",
+            overflow: "hidden",
           }}
         >
-          <div className="client-section p-3 text-white">
-            {/* Client Picture */}
+          <div
+            className="card h-100"
+            style={{
+              background: "#001f3f",
+              border: "1px solid rgba(255,255,255,0.1)",
+              margin: "0",
+            }}
+          >
             <div
-              className="d-flex align-items-center mb-3" // Flexbox for horizontal alignment
+              className="client-section p-3 text-white"
+              style={{ height: "100%", marginTop: "50px" }}
             >
-              {/* Profile Icon */}
-              <div
-                className="client-picture"
-                style={{
-                  border: "2px solid #d4af37",
-                  textAlign: "center",
-                  padding: "10px",
-                  borderRadius: "50%", // Circle shape
-                  width: "100px",
-                  height: "100px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUserCircle}
-                  className="rounded-circle"
-                  style={{ fontSize: "48px" }} // Icon size
-                />
-              </div>
-
-              {/* Username */}
-              <div className="ms-3">
-                <h2>{usersDetails.UserName}</h2>
-              </div>
-            </div>
-            {/* Client Details */}
-            <div className="client-details">
-              {/* Bio */}
-              {/* <div
-                className="d-flex"
-                style={{ width: "auto", overflowY: "auto" }}
-              >
-                <p>{clientDetails.Bio}</p>
-              </div> */}
-
-              {/* Email */}
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={faMailBulk}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p className="ms-2 m-1">
-                  <a
-                    href={`mailto:${usersDetails.Email}`}
-                    style={{ color: "white" }}
+              {/* Header */}
+              <div className="d-flex justify-content-between align-items-center mb-3">
+                <div className="d-flex align-items-center flex-wrap">
+                  <div
+                    style={{
+                      border: "2px solid #d4af37",
+                      borderRadius: "50%",
+                      width: "100px",
+                      height: "100px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      position: "relative",
+                    }}
                   >
-                    {usersDetails.Email}
-                  </a>
-                </p>
+                    {usersDetails?.ProfilePicture ? (
+                      <img
+                        src={usersDetails.ProfilePicture}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={defaultProfilePic}
+                        alt="Profile"
+                        style={{
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                        }}
+                      />
+                    )}
+                  </div>
+
+                  <div className="ms-3">
+                    <h2 style={{ wordBreak: "break-word" }}>
+                      {usersDetails?.UserName}
+                    </h2>
+                  </div>
+                </div>
               </div>
 
-              {/* Contact */}
-              <div className="d-flex align-items-center">
-                <a
-                  href={`tel:${clientDetails?.Contact}`}
-                  style={{
-                    textDecoration: "none",
-                    color: "inherit",
-                    display: "flex",
-                    alignItems: "center",
-                  }}
-                >
-                  <FontAwesomeIcon
-                    icon={faPhone}
-                    size="1x"
-                    color="white"
-                    className="m-2"
-                  />
-                  <p style={{ fontSize: 12 }} className="ms-2 m-1">
-                    {formatPhoneNumber(clientDetails?.Contact)}
+              {/* Details Section */}
+              <div className="client-details">
+                {/* Email */}
+                <div className="d-flex align-items-center mb-2">
+                  <FontAwesomeIcon icon={faMailBulk} className="m-2" />
+                  <p className="ms-2 m-1" style={{ wordBreak: "break-word" }}>
+                    <a
+                      href={`mailto:${usersDetails?.Email}`}
+                      style={{ color: "white", textDecoration: "none" }}
+                    >
+                      {usersDetails?.Email}
+                    </a>
                   </p>
-                </a>
-              </div>
+                </div>
 
-              {/* Address */}
-              <div className="d-flex align-items-center">
-                <FontAwesomeIcon
-                  icon={faAddressCard}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p style={{ fontSize: 12 }} className="ms-2 m-1">
-                  {clientDetails.Address}
-                </p>
+                {/* Contact */}
+                <div className="d-flex align-items-center mb-2">
+                  <a
+                    href={`tel:${formatPhoneNumber(clientDetails?.Contact)}`}
+                    style={{
+                      textDecoration: "none",
+                      color: "inherit",
+                      display: "flex",
+                      alignItems: "center",
+                      marginLeft: "10px",
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faPhone} className="me-2" />
+                    <span>{formatPhoneNumber(clientDetails?.Contact)}</span>
+                  </a>
+                </div>
+
+                {/* Address */}
+                <div className="d-flex align-items-center mb-2">
+                  <FontAwesomeIcon icon={faAddressCard} className="m-2" />
+                  <p className="ms-2 m-1" style={{ wordBreak: "break-word" }}>
+                    <a
+                      href={`http://maps.google.com/?q=${encodeURIComponent(
+                        clientDetails?.Address
+                      )}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "white", textDecoration: "none" }}
+                    >
+                      {clientDetails?.Address}
+                    </a>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </Col>
-        {/* Right Column: Files and Docs */}
+
+        {/* Right Column: Files and Docs - Always shown on large screens, conditionally on small */}
         <Col
-          sm={12}
-          md={6}
-          className="card border rounded p-3 mb-3"
+          xs={12}
+          md={5}
+          className={`${!showFiles ? "d-none d-md-block ms-md-5" : ""} p-1`}
           style={{
-            background: "#001f3f",
-            width: "45%",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
-            border: "1px solid rgba(255, 255, 255, 0.2)",
-            transition: "transform 0.2s, box-shadow 0.2s",
+            height: "100%",
+            maxHeight: "100%",
+            overflow: "hidden",
           }}
         >
-          <h4 className="text-white mb-4" style={{ fontWeight: "600" }}>
-            File and Docs
-          </h4>
-
-          <Tabs
-            activeKey={activeTab}
-            onSelect={(k) => setActiveTab(k)}
-            className="mb-3"
-            variant="primary"
+          <div
+            className="card h-100"
             style={{
-              borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
-              color: "white",
+              background: "#001f3f",
+              border: "1px solid rgba(255,255,255,0.1)",
+              margin: "0",
             }}
           >
-            <Tab
-              eventKey="documents"
-              title={
-                <span
-                  style={{
-                    background:
-                      activeTab === "documents" ? "#d3b386" : "transparent",
-                    padding: "8px 8px",
-                    borderRadius: "5px",
-                    color: "white",
-                  }}
-                >
-                  Documents 📄
-                </span>
-              }
-            >
-              <Row
-                className="g-3"
+            {/* Desktop/Tablet Tabs - Only shown on medium+ screens */}
+            <div className="d-none d-md-flex justify-content-around mb-3 mt-1">
+              <button
+                className={`btn btn-link `}
+                onClick={() => setShowFilesSection(true)}
                 style={{
-                  height: "50vh",
-                  overflow: "auto",
+                  textDecoration: "none",
+
+                  color: showFilesSection ? "#d2a85a" : "white",
                 }}
               >
-                {getFilesByCategory("documents", files).map((file, index) => (
-                  <Col key={index} sm={6} md={4} lg={3}>
-                    <Card
-                      className="text-white bg-dark p-2"
-                      style={{
-                        background: "white",
-                        border: "1px solid white",
-                        transition: "transform 0.2s, box-shadow 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(1.05)";
-                        e.currentTarget.style.boxShadow =
-                          "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      <FontAwesomeIcon
-                        icon={getFileTypeIcon(file.fileName)} // Default icon if not found
-                        size="2x"
-                        className="mb-2"
-                        style={{ color: "#d3b386" }}
-                      />
-                      <Card.Body className="p-1">
-                        <Card.Text
-                          className="text-truncate"
-                          style={{ fontSize: "0.9rem" }}
-                        >
-                          {file.fileName}
-                          {file._id}
-                        </Card.Text>
-                        <div className="d-flex justify-content-center">
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() =>
-                              handleDownload(file._id, file.fileName)
-                            }
-                            style={{ background: "#28a745", border: "none" }}
-                          >
-                            <FontAwesomeIcon icon={faDownload} />
-                          </Button>
-                          {/* <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleFileDelete(file._id)}
-                                                        style={{ background: "#dc3545", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faTrash} />
-                                                    </Button> */}
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Tab>
+                <FaFolderOpen size="1.5em" className="me-2" />
+                Files
+              </button>
+            </div>
 
-            <Tab
-              eventKey="media"
-              title={
-                <span
-                  style={{
-                    background:
-                      activeTab === "media" ? "#d3b386" : "transparent",
-                    padding: "8px 8px",
-                    borderRadius: "5px",
-                    color: "white",
-                  }}
-                >
-                  Media Files 🎬
-                </span>
-              }
-            >
-              <Row
-                className="g-3"
-                style={{
-                  height: "50vh",
-                  overflow: "auto",
-                }}
-              >
-                {getFilesByCategory("media", files).map((file, index) => (
-                  <Col key={index} sm={6} md={4} lg={3}>
-                    <Card
-                      className="text-white bg-dark p-2"
-                      style={{
-                        background: "white",
-                        border: "1px solid white",
-                        transition: "transform 0.2s, box-shadow 0.2s",
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = "scale(1.05)";
-                        e.currentTarget.style.boxShadow =
-                          "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = "scale(1)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
-                    >
-                      {/* File Preview for Images */}
-                      <FontAwesomeIcon
-                        icon={getFileTypeIcon(file.fileName)} // Default icon if not found
-                        size="2x"
-                        className="mb-2"
-                        style={{ color: "#d3b386" }}
-                      />
+            {/* Conditional Rendering of Sections */}
+            <div className="p-1">
+              {/* Mobile version */}
+              <div className="d-block d-md-none">
+                <FilesSection
+                  files={files}
+                  handleDownload={handleDownload}
+                  handleFileDelete={handleFileDelete}
+                  setShowUploadModal={setShowUploadModal}
+                  isMobile={true}
+                />
+              </div>
 
-                      <Card.Body className="p-1">
-                        <Card.Text
-                          className="text-truncate"
-                          style={{ fontSize: "0.9rem" }}
-                        >
-                          {file.fileName}
-                        </Card.Text>
-                        <div className="d-flex justify-content-center">
-                          <Button
-                            variant="success"
-                            size="sm"
-                            onClick={() =>
-                              handleDownload(file._id, file.fileName)
-                            }
-                            style={{ background: "#28a745", border: "none" }}
-                          >
-                            <FontAwesomeIcon icon={faDownload} />
-                          </Button>
-                          {/* <Button
-                                                        variant="danger"
-                                                        size="sm"
-                                                        onClick={() => handleFileDelete(file._id)}
-                                                        style={{ background: "#dc3545", border: "none" }}
-                                                    >
-                                                        <FontAwesomeIcon icon={faTrash} />
-                                                    </Button> */}
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
-                ))}
-              </Row>
-            </Tab>
-          </Tabs>
-          {/* Floating Upload Icon */}
+              {/* Desktop version */}
+              <div className="d-none d-md-block">
+                <FilesSection
+                  files={files}
+                  handleDownload={handleDownload}
+                  handleFileDelete={handleFileDelete}
+                  setShowUploadModal={setShowUploadModal}
+                  isMobile={false}
+                  isUser={false}
+                />
+              </div>
+            </div>
+          </div>
         </Col>
       </Row>
+      {/* Floating Upload Icon - Conditionally Rendered */}
 
-      {/* <ViewBookLawyerSlot isOpen={IsCalenderView} onClose={(value) => setCalenderView(value)} slotbookuserid={slotbookuserid} /> */}
+      {/* Modals */}
+      {/* <DragAndDrop
+            showModal={showUploadModal}
+            onHide={onHide}
+            handleFileChange={handleFileChange}
+            uploading={uploading}
+            uploadSuccess={uploadSuccess}
+            selectedFiles={selectedFiles}
+            handleFileUpload={handleFileUpload}
+            errorMessage={errorMessage}
+          /> */}
+
+      <ViewBookLawyerSlot
+        isOpen={IsCalenderView}
+        onClose={(value) => setCalenderView(value)}
+        slotbookuserid={slotbookuserid}
+      />
     </div>
   ) : (
     <div className="d-flex justify-content-center align-items-center vh-100">

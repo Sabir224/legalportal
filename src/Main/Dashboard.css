@@ -347,3 +347,28 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #a07d4f;
 }
+/*  */
+/* Sidebar base styling */
+.sidebar {
+  background-color: #18273e;
+  border-radius: 6px;
+  padding-top: 10px;
+  transition: all 0.3s ease;
+  height: 100%;
+}
+
+/* On small screens (below lg), force collapsed width */
+@media (max-width: 991.98px) {
+  .sidebar {
+    min-width: 50px !important;
+    max-width: 50px !important;
+  }
+
+  .sidebar-toggle {
+    display: none !important;
+  }
+
+  .sidebar-label {
+    display: none !important;
+  }
+}

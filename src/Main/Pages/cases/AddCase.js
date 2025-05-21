@@ -259,11 +259,11 @@ const AddCase = () => {
                 {[
                     { label: "Case Id", icon: <Bs123 />, state: PreviewCaseId },
                     { label: "Case Number", icon: <Bs123 />, state: casenumber, setState: setCaseNumber },
-                    { label: "Client Name", icon: <BsPerson />, state: selectedclientdetails.UserName, setState: setClientname },
+                    { label: "Client Name", icon: <BsPerson />, state: selectedclientdetails?.UserName, setState: setClientname },
                     { label: "Case Type", icon: <BsType />, state: casetype, setState: setCaseType },
                     { label: "Description (Optional)", icon: <FaAudioDescription />, state: discription, setState: setDiscription },
                     // { label: "Priority", icon: <FaLock />, state: confirmPassword, setState: setConfirmPassword },
-                    { label: "Client Email", icon: <FaRegEnvelope />, state: selectedclientdetails.Email },
+                    { label: "Client Email", icon: <FaRegEnvelope />, state: selectedclientdetails?.Email },
                     // { label: "Language", icon: <FaGlobe />, state: language, setState: setLanguage },
                     // selectedRole !== "client" && { label: "Location", icon: <FaMapMarkedAlt />, state: location, setState: setLocation },
                     // selectedRole !== "client" && { label: "Expertise", icon: <FaBriefcase />, state: expertise, setState: setExpertise },

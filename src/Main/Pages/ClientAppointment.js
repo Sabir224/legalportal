@@ -4,7 +4,7 @@ import { Alert } from "bootstrap";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
-
+import defaultProfilePic from "../Pages/Component/assets/icons/person.png";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faAddressCard,
@@ -45,7 +45,7 @@ import { useSelector } from "react-redux";
 import ErrorModal from "./AlertModels/ErrorModal";
 // import { ApiEndPoint } from "../../utils/utils";
 
-const ClientAppointment = ({ token }) => {
+const ClientAppointment = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -77,10 +77,12 @@ const ClientAppointment = ({ token }) => {
   const [appointmentDetails, setAppoinmentDetails] = useState(null);
   const [meetingLink, setmeetingLink] = useState(null);
   const options = { weekday: "long", month: "long", day: "numeric" }; // Format options
+  const [pendingCaseData, setPendingCaseData] = useState(null);
+  const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+  const [showFiles, setShowFiles] = useState(false);
   let data;
-  useEffect(() => {
-    fetchLawyerDetails();
-  }, []);
+
   const updateSlotStatus = (slotId) => {
     if (!appointmentDetails) return;
 
@@ -111,21 +113,57 @@ const ClientAppointment = ({ token }) => {
 
   const [imageUrl, setImageUrl] = useState("");
 
+  // useEffect(() => {
+  //   fetch("http://172.16.18.250:8080/api/upload") // Replace with your API URL
+  //     .then((response) => response.json())
+  //     .then((data) => setImageUrl(data.imageUrl)) // Adjust based on API response
+  //     .catch((error) => console.error("Error fetching image:", error));
+  // }, []);
+
   useEffect(() => {
-    fetch("http://172.16.18.250:8080/api/upload") // Replace with your API URL
-      .then((response) => response.json())
-      .then((data) => setImageUrl(data.imageUrl)) // Adjust based on API response
-      .catch((error) => console.error("Error fetching image:", error));
+    const pendingCaseId = localStorage.getItem("pendingCaseId");
+    const pendingUserId = localStorage.getItem("pendingUserId");
+
+    if (pendingCaseId && pendingUserId) {
+      setPendingCaseData({
+        caseId: pendingCaseId,
+        userId: pendingUserId,
+      });
+      setEffectiveCaseInfo({
+        _id: pendingCaseId,
+        ClientId: pendingUserId,
+      });
+    } else {
+      setEffectiveCaseInfo(reduxCaseInfo);
+    }
+
+    // Initialize user from global if available
+    if (global.User) {
+      setUser(global.User);
+    }
   }, []);
+
+  // Sync with Redux when not using pending data
+  useEffect(() => {
+    if (!pendingCaseData && reduxCaseInfo) {
+      setEffectiveCaseInfo(reduxCaseInfo);
+    }
+  }, [reduxCaseInfo, pendingCaseData]);
 
   const fetchLawyerDetails = async () => {
     setLoading(true);
     let lawyerid;
 
     try {
+      // Use effectiveCaseInfo instead of direct caseInfo
+      const caseIdToUse = effectiveCaseInfo?._id;
+      if (!caseIdToUse) {
+        throw new Error("Case ID not available");
+      }
+
       // 1. Get lawyer ID from case
       const lawyerIdRes = await axios.get(
-        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseInfo?._id}`
+        `${ApiEndPoint}getCaseClientAndLawyerIds/${caseIdToUse}`
       );
       lawyerid = lawyerIdRes.data?.LawyerId;
 
@@ -151,7 +189,6 @@ const ClientAppointment = ({ token }) => {
       }
 
       let temp = { ...appointmentsRes.data[0] };
-
       appointmentsRes.data.forEach((element) => {
         if (element.availableSlots) {
           temp.availableSlots = [
@@ -162,13 +199,19 @@ const ClientAppointment = ({ token }) => {
       });
 
       setAppoinmentDetails(temp);
-      // console.log("Client Data:", caseInfo?.ClientId);
-      // 4. Get client details
+
+      // 4. Get client details - use effectiveCaseInfo.ClientId
       const clientDetailsRes = await axios.get(
-        `${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`
+        `${ApiEndPoint}getClientDetailsByUserId/${effectiveCaseInfo?.ClientId}`
       );
-      // console.log("Client Data:", clientDetailsRes);
       setClientDetails(clientDetailsRes.data);
+
+      // Clear pending data if we used it successfully
+      if (pendingCaseData) {
+        localStorage.removeItem("pendingCaseId");
+        localStorage.removeItem("pendingUserId");
+        setPendingCaseData(null);
+      }
     } catch (err) {
       console.error("Error fetching lawyer or client details:", err);
       setError(err.message);
@@ -176,6 +219,26 @@ const ClientAppointment = ({ token }) => {
       setLoading(false);
     }
   };
+
+  // Socket connection effect - now uses effectiveCaseInfo
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchLawyerDetails();
+    };
+
+    SocketService.socket.off("slotHasBooked", handleMessagesDelivered);
+    SocketService.onBookAppointment(handleMessagesDelivered);
+
+    // Initial fetch
+    if (effectiveCaseInfo?._id) {
+      fetchLawyerDetails();
+    }
+  }, [effectiveCaseInfo?._id]);
 
   const generateCalendarDates = () => {
     const dates = [];
@@ -239,28 +302,6 @@ const ClientAppointment = ({ token }) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
-
-  // const sendEmail = (e) => {
-  //   e.preventDefault();
-
-  //   window.Email.send({
-  //     Host: 'smtp.your-email-provider.com', // e.g., smtp.gmail.com
-  //     Username: 'your-email@example.com',  // Your email
-  //     Password: 'your-email-password',    // Your email password
-  //     To: 'recipient-email@example.com',  // Recipient email
-  //     From: formData.email,               // Sender email (from form)
-  //     Subject: `Message from ${formData.name}`,
-  //     Body: formData.message,
-  //   })
-  //     .then(() => {
-  //       alert('Email sent successfully!');
-  //       setFormData({ name: '', email: '', message: '' }); // Reset form
-  //     })
-  //     .catch((error) => {
-  //       console.error('Email send failed:', error);
-  //       alert('Failed to send email. Please try again.');
-  //     });
-  // };
 
   const months = ["January", "February", "March", "April"];
   const days = [
@@ -372,21 +413,6 @@ const ClientAppointment = ({ token }) => {
     const selectedStartTime = new Date(`${meetingDate}T${startTime}:00`);
     const selectedEndTime = new Date(`${meetingDate}T${endTime}:00`);
     console.log("startTime :", selectedStartTime);
-
-    // Meeting details
-    //  const preserveLocalTimeISO = (date) => {
-    //   return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString();
-    // };
-
-    // // Preserve the original time while formatting as ISO
-    // const meetingDetails = {
-    //   summary: "Scheduled Meeting",
-    //   startTime: preserveLocalTimeISO(selectedStartTime), // Keeps time unchanged
-    //   endTime: preserveLocalTimeISO(selectedEndTime),
-    //   timeZone: "Asia/Dubai", // UAE Time Zone
-    // };
-
-    // console.log("Meeting Details:", meetingDetails);
 
     // Meeting details
     const meetingDetails = {
@@ -537,51 +563,6 @@ const ClientAppointment = ({ token }) => {
     }
   };
 
-  // data = {
-  //   _id: "6793988d3743e4374be812ae",
-  //   FkLawyerId: {
-  //     _id: "678cef7dd814e650e7fe5544",
-  //   },
-  //   availableSlots: [
-  //     {
-  //       date: "2025-01-25",
-  //       slots: [
-  //         {
-  //           startTime: "10:00",
-  //           endTime: "11:00",
-  //           isBooked: false,
-  //           _id: "6793988d3743e4374be812b0",
-  //         },
-  //         {
-  //           startTime: "11:00",
-  //           endTime: "12:00",
-  //           isBooked: false,
-  //           _id: "6793988d3743e4374be812b1",
-  //         },
-  //       ],
-  //       _id: "6793988d3743e4374be812af",
-  //     },
-  //     {
-  //       date: "2025-01-26",
-  //       slots: [
-  //         {
-  //           startTime: "14:00",
-  //           endTime: "15:00",
-  //           isBooked: true,
-  //           _id: "6793988d3743e4374be812b3",
-  //         },
-  //         {
-  //           startTime: "15:00",
-  //           endTime: "16:00",
-  //           isBooked: false,
-  //           _id: "6793988d3743e4374be812b4",
-  //         },
-  //       ],
-  //       _id: "6793988d3743e4374be812b2",
-  //     },
-  //   ],
-  //   __v: 0,
-  // };
   const availableSlotsMap =
     appointmentDetails?.availableSlots?.reduce((acc, slot) => {
       const dateStr = new Date(slot.date).toDateString();
@@ -597,6 +578,433 @@ const ClientAppointment = ({ token }) => {
       return acc;
     }, {}) || {};
 
+  // return loading ? (
+  //   <div className="d-flex justify-content-center align-items-center vh-100">
+  //     <div className="text-center">
+  //       <Spinner animation="border" variant="primary" />
+  //       <p className="mt-2">Loading Lawyer details...</p>
+  //     </div>
+  //   </div>
+  // ) : lawyerDetails && user && !loading ? (
+  //   <div
+  //     className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
+  //     style={{
+  //       width: "100%",
+  //       height: "85vh",
+  //       overflowY: "auto",
+  //       overflowX: "hidden",
+  //       // padding: 10,
+  //       boxShadow: "5px 0px 5px gray",
+  //     }}
+  //   >
+  //     <div className="row gap-5 justify-content-center ms-1 mt-2">
+  //       {/* <div className="row gap-5 justify-content-center "  > */}
+  //       <div
+  //         className="slots-section col-5 mt-3 mb-3"
+  //         style={{
+  //           boxShadow: "5px 5px 5px gray",
+  //           overflowY: "auto",
+  //           maxHeight: "500px",
+  //           scrollbarWidth: "thin", // For Firefox
+  //           scrollbarColor: "#d2a85a #16213e",
+  //         }}
+  //       >
+  //         <div className="profile-section">
+  //           <div className="d-flex flex-row">
+  //             <img
+  //               style={{
+  //                 border: "2px solid #d4af37",
+  //                 textAlign: "center",
+  //                 padding: "3px",
+  //                 borderRadius: "50%", // Use 50% for a perfect circle
+  //                 width: "100px",
+  //                 height: "100px",
+  //                 display: "flex", // Use flexbox for centering
+  //                 alignItems: "center", // Vertically center the icon
+  //                 justifyContent: "center", // Horizontally center the icon
+  //               }}
+  //               src={
+  //                 user?.ProfilePicture ? (
+  //                   `${user?.ProfilePicture}`
+  //                 ) : (
+  //                   <div
+  //                     className="client-picture mb-3"
+  //                     style={{
+  //                       border: "2px solid #d4af37",
+  //                       textAlign: "center",
+  //                       padding: "3px",
+  //                       borderRadius: "50%", // Use 50% for a perfect circle
+  //                       width: "100px",
+  //                       height: "100px",
+  //                       display: "flex", // Use flexbox for centering
+  //                       alignItems: "center", // Vertically center the icon
+  //                       justifyContent: "center", // Horizontally center the icon
+  //                     }}
+  //                   >
+  //                     <FontAwesomeIcon
+  //                       icon={faUserCircle}
+  //                       className="rounded-circle"
+  //                       style={{ fontSize: "48px" }} // Adjust the size of the icon
+  //                     />
+  //                   </div>
+  //                 )
+  //               }
+  //               alt="Profile"
+  //               className="avatar-img"
+  //             />
+  //             <div className="d-flex flex-column justify-content-center p-2">
+  //               <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
+  //               <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
+  //             </div>
+  //           </div>
+
+  //           <div className="lawyer-details mt-1">
+  //             <div
+  //               className="d-flex"
+  //               style={{ width: "auto", height: "55%", overflowY: "auto" }}
+  //             >
+  //               <p>{lawyerDetails.Bio}</p>
+  //             </div>
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon
+  //                 icon={faMailBulk}
+  //                 size="1x"
+  //                 color="white"
+  //                 className="m-2"
+  //               />
+  //               <p className="ms-2 m-1">
+  //                 <a href={mailtoLink} style={{ color: "white" }}>
+  //                   {user?.Email}
+  //                 </a>
+  //               </p>
+  //             </div>
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon icon={faPhone} className="m-2" />
+  //               <p className="ms-2 m-1">
+  //                 <a
+  //                   href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
+  //                   style={{
+  //                     textDecoration: "none",
+  //                     color: "inherit",
+  //                     display: "flex",
+  //                     alignItems: "center",
+  //                   }}
+  //                 >
+  //                   {formatPhoneNumber(lawyerDetails?.Contact)}
+  //                 </a>
+  //               </p>
+  //             </div>
+
+  //             <div className="d-flex">
+  //               <FontAwesomeIcon
+  //                 icon={faAddressCard}
+  //                 size="1x"
+  //                 color="white"
+  //                 className="m-2"
+  //               />
+  //               <p style={{ height: 50 }} className="ms-2 m-1 ">
+  //                 {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
+  //                 {lawyerDetails?.Address}
+  //               </p>
+  //             </div>
+  //           </div>
+  //         </div>
+  //       </div>
+  //       <div
+  //         className="slots-section col-5 mb-3 mt-3"
+  //         style={{
+  //           boxShadow: "5px 5px 5px gray",
+  //           overflowY: "auto",
+  //           maxHeight: "500px",
+  //           scrollbarWidth: "thin", // For Firefox
+  //           scrollbarColor: "#d2a85a #16213e",
+  //         }}
+  //       >
+  //         <div>
+  //           {isPopupVisible && (
+  //             <div className="popup-overlay">
+  //               <div className={popupcolor}>
+  //                 {!isLoading && !isEmailSent && (
+  //                   <>
+  //                     <h3
+  //                       style={{
+  //                         fontSize: "18px",
+  //                         fontWeight: "bold",
+  //                         marginBottom: "5px",
+  //                       }}
+  //                     >
+  //                       {popupmessage}
+  //                     </h3>
+  //                     <textarea
+  //                       placeholder="Text Message (Optional)"
+  //                       value={ClientMessage}
+  //                       onChange={(e) => setClientMessage(e.target.value)}
+  //                       style={{
+  //                         width: "90%",
+  //                         minHeight: "100px", // Adjust height as needed
+  //                         padding: "8px",
+  //                         border: "1px solid #ddd",
+  //                         borderRadius: "6px",
+  //                         margin: "10px 0",
+  //                         resize: "vertical", // Allows resizing if needed
+  //                       }}
+  //                     ></textarea>
+
+  //                     {isPopupVisiblecancel && (
+  //                       <div className="popup-actions d-flex justify-content-center">
+  //                         <button
+  //                           className="confirm-btn"
+  //                           onClick={handleConfirm}
+  //                         >
+  //                           Yes
+  //                         </button>
+  //                         <button
+  //                           className="cancel-btn"
+  //                           onClick={handleClosePopup}
+  //                         >
+  //                           No
+  //                         </button>
+  //                       </div>
+  //                     )}
+  //                   </>
+  //                 )}
+  //                 {isLoading && (
+  //                   <div className="loading-indicator">
+  //                     <p>Sending...</p>
+  //                     <div className="spinner"></div>{" "}
+  //                     {/* You can style a spinner here */}
+  //                   </div>
+  //                 )}
+  //                 {isEmailSent && (
+  //                   <div className="confirmation">
+  //                     <FontAwesomeIcon
+  //                       icon={faCheck}
+  //                       size="3x"
+  //                       color="white"
+  //                       className="m-2"
+  //                     />
+
+  //                     {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+  //                   </div>
+  //                 )}
+  //               </div>
+  //             </div>
+  //           )}
+  //         </div>
+
+  //         {/* Month Selector */}
+  //         <div
+  //           className="d-flex "
+  //           style={{ marginBottom: "2px", justifyContent: "space-between" }}
+  //         >
+  //           <div style={{ color: " #d4af37" }}>
+  //             <h2>Available Slots</h2>
+  //           </div>
+  //         </div>
+
+  //         <div
+  //           style={{
+  //             display: "flex",
+  //             justifyContent: "space-between",
+  //             alignItems: "center",
+  //           }}
+  //         >
+  //           <button className="calender-button" onClick={prevMonth}>
+  //             <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
+  //           </button>
+  //           <h3>
+  //             {currentDate.toLocaleString("default", { month: "long" })}{" "}
+  //             {currentDate.getFullYear()}
+  //           </h3>
+  //           <button onClick={nextMonth} className="calender-button">
+  //             <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
+  //           </button>
+  //         </div>
+
+  //         {/* Days of the Week */}
+  //         <div
+  //           style={{
+  //             display: "flex",
+  //             justifyContent: "space-between",
+  //             fontWeight: "bold",
+  //             marginBottom: "5px",
+  //           }}
+  //         >
+  //           {daysOfWeek.map((day) => (
+  //             <div
+  //               key={day}
+  //               className="Calendarday"
+  //               style={{
+  //                 border: " 1px solid #d2a85a",
+  //                 margin: 3,
+  //                 width: "calc(100% / 7)",
+  //                 textAlign: "center",
+  //               }}
+  //             >
+  //               {day}
+  //             </div>
+  //           ))}
+  //         </div>
+
+  //         <div>
+  //           <div style={{ display: "flex", flexWrap: "wrap" }}>
+  //             {calendarDates.map((date, index) => {
+  //               if (!date) {
+  //                 return (
+  //                   <div
+  //                     key={index}
+  //                     className="calendarEmpty"
+  //                     style={{
+  //                       width: "calc(100% / 7)",
+  //                       height: "40px", // Consistent height for empty cells
+  //                     }}
+  //                   ></div>
+  //                 );
+  //               }
+
+  //               const dateStr = date.toDateString();
+  //               const dateInfo = availableDatesInfo[dateStr] || {};
+  //               const isAvailableDate = dateInfo.isAvailable;
+
+  //               return (
+  //                 <div
+  //                   key={index}
+  //                   onClick={
+  //                     isAvailableDate ? () => handleDateClick(date) : null
+  //                   } // Disable click for unavailable dates
+  //                   className={`calendarDates ${
+  //                     isAvailableDate ? "availableDate" : ""
+  //                   }`}
+  //                   style={{
+  //                     border:
+  //                       selectedDate?.getDate() === date?.getDate()
+  //                         ? "2px solid white"
+  //                         : "2px solid rgb(2, 30, 58)",
+  //                     borderRadius: "5px",
+  //                     color: isAvailableDate ? "" : "gray",
+  //                     cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
+  //                     background:
+  //                       selectedDate?.getDate() === date?.getDate()
+  //                         ? "#d2a85a"
+  //                         : "",
+  //                     // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
+  //                     textAlign: "center",
+  //                     lineHeight: "40px",
+  //                     height: "40px",
+  //                     fontSize: 12, // Ensure consistent height
+  //                   }}
+  //                 >
+  //                   {date.getDate()}
+  //                 </div>
+  //               );
+  //             })}
+  //           </div>
+  //         </div>
+
+  //         <div>
+  //           <div>
+  //             <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
+  //             <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+  //               {selectedDate ? (
+  //                 availableSlotsMap[selectedDate.toDateString()]?.map(
+  //                   (slot) => (
+  //                     <button
+  //                       key={slot._id}
+  //                       onClick={() => handleTimeClick(slot.startTime, slot)}
+  //                       className="time-button"
+  //                       style={{
+  //                         padding: "5px 10px",
+  //                         borderRadius: "5px",
+  //                         border: "1px solid #d4af37",
+  //                         background: slot.isBooked
+  //                           ? "green" // Green if booked
+  //                           : selectedTime === slot.startTime
+  //                           ? "#d2a85a" // Golden when selected
+  //                           : "#16213e", // Default background
+  //                         color: "white",
+  //                         cursor: slot.isBooked ? "not-allowed" : "pointer",
+  //                         fontSize: 11,
+  //                         width: 130,
+  //                       }}
+  //                       disabled={slot.isBooked}
+  //                       onMouseEnter={(e) => {
+  //                         if (
+  //                           !slot.isBooked &&
+  //                           selectedTime !== slot.startTime
+  //                         ) {
+  //                           e.target.style.background = "#d2a85a"; // Hover background (light golden)
+  //                         }
+  //                       }}
+  //                       onMouseLeave={(e) => {
+  //                         if (
+  //                           !slot.isBooked &&
+  //                           selectedTime !== slot.startTime
+  //                         ) {
+  //                           e.target.style.background = "#16213e"; // Reset to default
+  //                         }
+  //                       }}
+  //                     >
+  //                       {convertTo12HourFormat(slot.startTime)} -{" "}
+  //                       {convertTo12HourFormat(slot.endTime)}
+  //                     </button>
+  //                   )
+  //                 )
+  //               ) : (
+  //                 <p style={{ color: "gray" }}>
+  //                   Select a date to view available times.
+  //                 </p>
+  //               )}
+  //             </div>
+  //           </div>
+  //         </div>
+
+  //         {selectedTime && (
+  //           <div
+  //             style={{
+  //               position: "fixed",
+  //               bottom: "70px",
+  //               right: "110px",
+  //               zIndex: 1000,
+  //               width: 60,
+  //               height: 60,
+  //               boxShadow: "5px 5px 5px black",
+  //               borderRadius: "50%",
+  //               border: "1px solid #d2a85a",
+  //               display: "flex",
+  //               alignItems: "center",
+  //               justifyContent: "center",
+  //               backgroundColor: " #d2a85a",
+  //             }}
+  //             onMouseEnter={(e) => {
+  //               e.target.style.background = "#16213e"; // Reset to default
+  //             }}
+  //             onMouseLeave={(e) => {
+  //               e.target.style.background = "#d2a85a"; // Hover background (light golden)
+  //             }}
+  //             onClick={() => handleOpenPopup()}
+  //           >
+  //             <BsCalendar2Plus
+  //               style={
+  //                 {
+  //                   //  padding: "15px 20px",
+  //                 }
+  //               }
+  //               color="white"
+  //             />
+  //             {/* </Button> */}
+  //           </div>
+  //         )}
+  //       </div>
+  //     </div>
+  //   </div>
+  // ) : (
+  //   <div className="d-flex justify-content-center align-items-center vh-100">
+  //     <div className="text-center text-danger">
+  //       <h4>No user found</h4>
+  //     </div>
+  //   </div>
+  // );
+
   return loading ? (
     <div className="d-flex justify-content-center align-items-center vh-100">
       <div className="text-center">
@@ -606,243 +1014,279 @@ const ClientAppointment = ({ token }) => {
     </div>
   ) : lawyerDetails && user && !loading ? (
     <div
-      className="border rounded flex gap-5 justify-content-center ms-1 mt-2"
+      className="card container-fluid p-0"
       style={{
-        width: "100%",
-        height: "85vh",
-        overflowY: "auto",
+        height: "86vh",
+        maxWidth: "100vw",
         overflowX: "hidden",
-        // padding: 10,
-        boxShadow: "5px 0px 5px gray",
+        overflowY: "auto",
       }}
     >
-      <div
-        className="row gap-5 justify-content-center ms-1 mt-2"
-        style={
-          {
-            // width: "100%",
-            // height: "85vh",
-            // overflowY: "auto",
-            // padding: 10,
-            // boxShadow: "5px 5px 5px gray",
-          }
-        }
+      <Row
+        className="m-0 p-1 gap-3 gap-md-5 justify-content-center"
+        style={{
+          height: "84vh",
+        }}
       >
-        {/* <div className="row gap-5 justify-content-center "  > */}
-        <div
-          className="slots-section col-5 mt-3 mb-3"
+        {/* Profile Section */}
+        <Col
+          xs={12}
+          md={5}
+          lg={5}
+          className={`card border rounded d-flex flex-column mb-3 mt-3 p-1 ${
+            showFiles ? "d-none d-md-block" : ""
+          }`}
           style={{
-            boxShadow: "5px 5px 5px gray",
-            overflowY: "auto",
-            maxHeight: "500px",
-            scrollbarWidth: "thin", // For Firefox
-            scrollbarColor: "#d2a85a #16213e",
+            background: "#001f3f",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 8px rgba(0, 0, 0, 0.6)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            minHeight: "300px",
+            maxWidth: "100%",
           }}
         >
-          <div className="profile-section">
-            <div className="d-flex flex-row">
-              <img
+          {/* Shared Toggle - appears in both sections */}
+          <div
+            className="d-block d-md-none"
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 1,
+              background: "#001f3f",
+              padding: "5px 15px",
+              borderRadius: "20px",
+              border: "1px solid #d3b386",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+            }}
+          >
+            <div className="d-flex justify-content-center align-items-center">
+              <span
+                className={`mx-2 fw-bold`}
+                style={{
+                  color: !showFiles ? "#d3b386" : "white",
+                }}
+              >
+                Profile
+              </span>
+              <div className="form-switch">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  role="switch"
+                  checked={showFiles}
+                  onChange={() => setShowFiles(!showFiles)}
+                  style={{
+                    backgroundColor: "#d3b386",
+
+                    width: "3em",
+                    height: "1.5em",
+                  }}
+                />
+              </div>
+              <span
+                className={`mx-2 fw-bold `}
+                style={{
+                  color: showFiles ? "gold" : "white",
+                }}
+              >
+                Calendar
+              </span>
+            </div>
+          </div>
+          <div className="profile-section p-3 h-100 d-flex flex-column mt-4">
+            {/* Profile Header */}
+            <div className="d-flex flex-column align-items-center text-center mt-3">
+              <div
                 style={{
                   border: "2px solid #d4af37",
-                  textAlign: "center",
-                  padding: "3px",
-                  borderRadius: "50%", // Use 50% for a perfect circle
+                  borderRadius: "50%",
                   width: "100px",
                   height: "100px",
-                  display: "flex", // Use flexbox for centering
-                  alignItems: "center", // Vertically center the icon
-                  justifyContent: "center", // Horizontally center the icon
+                  minWidth: "100px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  overflow: "hidden",
+                  position: "relative",
+                  marginBottom: "1rem",
                 }}
-                src={
-                  user?.ProfilePicture ? (
-                    `${user?.ProfilePicture}`
-                  ) : (
-                    <div
-                      className="client-picture mb-3"
-                      style={{
-                        border: "2px solid #d4af37",
-                        textAlign: "center",
-                        padding: "3px",
-                        borderRadius: "50%", // Use 50% for a perfect circle
-                        width: "100px",
-                        height: "100px",
-                        display: "flex", // Use flexbox for centering
-                        alignItems: "center", // Vertically center the icon
-                        justifyContent: "center", // Horizontally center the icon
-                      }}
-                    >
-                      <FontAwesomeIcon
-                        icon={faUserCircle}
-                        className="rounded-circle"
-                        style={{ fontSize: "48px" }} // Adjust the size of the icon
-                      />
-                    </div>
-                  )
-                }
-                alt="Profile"
-                className="avatar-img"
-              />
-              <div className="d-flex flex-column justify-content-center p-2">
-                <h2 style={{ color: " #d4af37" }}>{user?.UserName}</h2>
-                <p style={{ color: "#d4af37" }}>{lawyerDetails?.Position}</p>
+              >
+                {user?.ProfilePicture ? (
+                  <img
+                    src={user.ProfilePicture}
+                    alt="Profile"
+                    className="img-fluid h-100 w-100"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <img
+                    src={defaultProfilePic}
+                    alt="Profile"
+                    className="img-fluid h-100 w-100"
+                    style={{
+                      objectFit: "cover",
+                    }}
+                  />
+                )}
+              </div>
+
+              <div>
+                <h2
+                  className="mb-0"
+                  style={{
+                    wordBreak: "break-word",
+                    fontSize: "clamp(1.2rem, 3vw, 1.5rem)",
+                  }}
+                >
+                  {user?.UserName}
+                </h2>
+                <p className="mb-0" style={{ color: "#d4af37" }}>
+                  {lawyerDetails?.Position}
+                </p>
               </div>
             </div>
 
-            <div className="lawyer-details mt-1">
+            {/* Details Section */}
+            <div className="lawyer-details mt-3 flex-grow-1">
               <div
-                className="d-flex"
-                style={{ width: "auto", height: "55%", overflowY: "auto" }}
+                className="mb-2"
+                style={{ maxHeight: "150px", overflowY: "auto" }}
               >
                 <p>{lawyerDetails.Bio}</p>
               </div>
-              <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faMailBulk}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p className="ms-2 m-1">
-                  <a href={mailtoLink} style={{ color: "white" }}>
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+                <p className="m-0" style={{ wordBreak: "break-word" }}>
+                  <a
+                    href={`mailto:${user?.Email}`}
+                    style={{ color: "white", textDecoration: "none" }}
+                  >
                     {user?.Email}
                   </a>
                 </p>
               </div>
-              <div className="d-flex">
-                <FontAwesomeIcon icon={faPhone} className="m-2" />
-                <p className="ms-2 m-1">
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <a
+                  href={`tel:${formatPhoneNumber(lawyerDetails.Contact)}`}
+                  style={{
+                    textDecoration: "none",
+                    color: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPhone} className="me-2" />
+                  <span>{formatPhoneNumber(lawyerDetails.Contact)}</span>
+                </a>
+              </div>
+
+              <div className="d-flex align-items-center mb-2 flex-wrap">
+                <FontAwesomeIcon icon={faAddressCard} className="me-2" />
+                <p className="m-0" style={{ wordBreak: "break-word" }}>
                   <a
-                    href={`tel:${formatPhoneNumber(lawyerDetails?.Contact)}`}
+                    href={`http://maps.google.com/?q=${encodeURIComponent(
+                      lawyerDetails?.Address
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     style={{
+                      color: "white",
                       textDecoration: "none",
-                      color: "inherit",
-                      display: "flex",
-                      alignItems: "center",
+                      cursor: "pointer",
                     }}
                   >
-                    {formatPhoneNumber(lawyerDetails?.Contact)}
+                    {lawyerDetails?.Address}
                   </a>
                 </p>
               </div>
-
-              <div className="d-flex">
-                <FontAwesomeIcon
-                  icon={faAddressCard}
-                  size="1x"
-                  color="white"
-                  className="m-2"
-                />
-                <p style={{ height: 50 }} className="ms-2 m-1 ">
-                  {/* Address: [Your Name], [Street Address], [Apartment/Suite Number], [City], [State] [ZIP Code], [Country] */}
-                  {lawyerDetails?.Address}
-                </p>
-              </div>
             </div>
           </div>
-        </div>
-        <div
-          className="slots-section col-5 mb-3 mt-3"
+        </Col>
+
+        {/* Calendar Section */}
+        <Col
+          xs={12}
+          md={5}
+          lg={5}
+          className={`card border rounded p-3 mb-3 mt-3 ${
+            !showFiles ? "d-none d-md-block" : ""
+          }`}
           style={{
-            boxShadow: "5px 5px 5px gray",
-            overflowY: "auto",
-            maxHeight: "500px",
-            scrollbarWidth: "thin", // For Firefox
-            scrollbarColor: "#d2a85a #16213e",
+            background: "#001f3f",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0px 4px 15px rgba(0, 0, 0, 0.5)",
+            border: "1px solid rgba(255, 255, 255, 0.2)",
+            maxWidth: "100%",
+            minHeight: "300px",
           }}
         >
-          <div>
-            {isPopupVisible && (
-              <div className="popup-overlay">
-                <div className={popupcolor}>
-                  {!isLoading && !isEmailSent && (
-                    <>
-                      <h3
-                        style={{
-                          fontSize: "18px",
-                          fontWeight: "bold",
-                          marginBottom: "5px",
-                        }}
-                      >
-                        {popupmessage}
-                      </h3>
-                      <textarea
-                        placeholder="Text Message (Optional)"
-                        value={ClientMessage}
-                        onChange={(e) => setClientMessage(e.target.value)}
-                        style={{
-                          width: "90%",
-                          minHeight: "100px", // Adjust height as needed
-                          padding: "8px",
-                          border: "1px solid #ddd",
-                          borderRadius: "6px",
-                          margin: "10px 0",
-                          resize: "vertical", // Allows resizing if needed
-                        }}
-                      ></textarea>
-
-                      {isPopupVisiblecancel && (
-                        <div className="popup-actions d-flex justify-content-center">
-                          <button
-                            className="confirm-btn"
-                            onClick={handleConfirm}
-                          >
-                            Yes
-                          </button>
-                          <button
-                            className="cancel-btn"
-                            onClick={handleClosePopup}
-                          >
-                            No
-                          </button>
-                        </div>
-                      )}
-                    </>
-                  )}
-                  {isLoading && (
-                    <div className="loading-indicator">
-                      <p>Sending...</p>
-                      <div className="spinner"></div>{" "}
-                      {/* You can style a spinner here */}
-                    </div>
-                  )}
-                  {isEmailSent && (
-                    <div className="confirmation">
-                      <FontAwesomeIcon
-                        icon={faCheck}
-                        size="3x"
-                        color="white"
-                        className="m-2"
-                      />
-
-                      {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Month Selector */}
+          {/* Toggle Switch */}
           <div
-            className="d-flex "
-            style={{ marginBottom: "2px", justifyContent: "space-between" }}
+            className="d-block d-md-none"
+            style={{
+              position: "absolute",
+              top: "10px",
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 1,
+              background: "#001f3f",
+              padding: "5px 15px",
+              borderRadius: "20px",
+              border: "1px solid #d3b386",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.3)",
+            }}
           >
-            <div style={{ color: " #d4af37" }}>
-              <h2>Available Slots</h2>
+            <div className="d-flex justify-content-center align-items-center">
+              <span
+                className="mx-2"
+                style={{
+                  color: !showFiles ? "#d3b386" : "white",
+                  fontSize: "clamp(0.7rem, 1vw, 1rem)",
+                }}
+              >
+                Profile
+              </span>
+              <div className="form-switch">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  role="switch"
+                  checked={showFiles}
+                  onChange={() => setShowFiles(!showFiles)}
+                  style={{
+                    backgroundColor: "#d3b386",
+                    width: "3em",
+                    height: "1.5em",
+                  }}
+                />
+              </div>
+              <span
+                className="mx-2"
+                style={{
+                  color: showFiles ? "#d3b386" : "white",
+                  fontSize: "clamp(0.7rem, 1vw, 1rem)",
+                }}
+              >
+                Calendar
+              </span>
             </div>
           </div>
 
+          {/* Header Navigation */}
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-            }}
+            className="d-flex justify-content-between align-items-center mt-5"
+            style={{ gap: "10px" }}
           >
             <button className="calender-button" onClick={prevMonth}>
               <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
             </button>
-            <h3>
+            <h3 className=" text-white">
               {currentDate.toLocaleString("default", { month: "long" })}{" "}
               {currentDate.getFullYear()}
             </h3>
@@ -853,147 +1297,148 @@ const ClientAppointment = ({ token }) => {
 
           {/* Days of the Week */}
           <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              fontWeight: "bold",
-              marginBottom: "5px",
-            }}
+            className="d-flex justify-content-between font-weight-bold my-2"
+            style={{ gap: "3px" }}
           >
             {daysOfWeek.map((day) => (
               <div
                 key={day}
                 className="Calendarday"
                 style={{
-                  border: " 1px solid #d2a85a",
-                  margin: 3,
+                  border: "1px solid #d2a85a",
                   width: "calc(100% / 7)",
                   textAlign: "center",
+                  color: "white",
+                  fontSize: "clamp(0.6rem, 1.5vw, 0.8rem)",
                 }}
               >
-                {day}
+                {day.substring(0, window.innerWidth < 400 ? 1 : 3)}
               </div>
             ))}
           </div>
 
-          <div>
-            <div style={{ display: "flex", flexWrap: "wrap" }}>
-              {calendarDates.map((date, index) => {
-                if (!date) {
-                  return (
-                    <div
-                      key={index}
-                      className="calendarEmpty"
-                      style={{
-                        width: "calc(100% / 7)",
-                        height: "40px", // Consistent height for empty cells
-                      }}
-                    ></div>
-                  );
-                }
-
-                const dateStr = date.toDateString();
-                const dateInfo = availableDatesInfo[dateStr] || {};
-                const isAvailableDate = dateInfo.isAvailable;
-
+          {/* Calendar Dates */}
+          <div className="d-flex flex-wrap">
+            {calendarDates.map((date, index) => {
+              if (!date) {
                 return (
                   <div
                     key={index}
-                    onClick={
-                      isAvailableDate ? () => handleDateClick(date) : null
-                    } // Disable click for unavailable dates
-                    className={`calendarDates ${
-                      isAvailableDate ? "availableDate" : ""
-                    }`}
+                    className="calendarEmpty"
+                    style={{ width: "calc(100% / 7)", height: "40px" }}
+                  ></div>
+                );
+              }
+
+              const dateStr = date.toDateString();
+              const dateInfo = availableDatesInfo[dateStr] || {};
+              const isAvailableDate = dateInfo.isAvailable;
+
+              return (
+                <div
+                  key={index}
+                  onClick={isAvailableDate ? () => handleDateClick(date) : null}
+                  className={`calendarDates ${
+                    isAvailableDate ? "availableDate" : ""
+                  }`}
+                  style={{
+                    border:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "2px solid white"
+                        : "2px solid rgb(2, 30, 58)",
+                    borderRadius: "5px",
+                    color: isAvailableDate ? "white" : "gray",
+                    cursor: isAvailableDate ? "pointer" : "not-allowed",
+                    background:
+                      selectedDate?.getDate() === date?.getDate()
+                        ? "#d2a85a"
+                        : "",
+                    textAlign: "center",
+                    lineHeight: "40px",
+                    height: "40px",
+                    fontSize: "clamp(0.7rem, 2vw, 0.9rem)",
+                    width: "calc(100% / 7)",
+                  }}
+                >
+                  {date.getDate()}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Time Slots */}
+          <div className="mt-3">
+            <h5
+              style={{
+                color: "#d4af37",
+                fontSize: "clamp(0.9rem, 2vw, 1.1rem)",
+              }}
+            >
+              Available Times:
+            </h5>
+            <div
+              className="gap-2"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+              }}
+            >
+              {selectedDate ? (
+                availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
+                  <button
+                    key={slot._id}
+                    onClick={() => handleTimeClick(slot.startTime, slot)}
+                    className="time-button"
                     style={{
-                      border:
-                        selectedDate?.getDate() === date?.getDate()
-                          ? "2px solid white"
-                          : "2px solid rgb(2, 30, 58)",
+                      padding: "5px 10px",
                       borderRadius: "5px",
-                      color: isAvailableDate ? "" : "gray",
-                      cursor: isAvailableDate ? "pointer" : "not-allowed", // Indicate disabled dates
-                      background:
-                        selectedDate?.getDate() === date?.getDate()
-                          ? "#d2a85a"
-                          : "",
-                      // color: selectedDate?.getDate() === date?.getDate() ? 'black' : "",
-                      textAlign: "center",
-                      lineHeight: "40px",
-                      height: "40px",
-                      fontSize: 12, // Ensure consistent height
+                      border: "1px solid #d4af37",
+                      background: slot.isBooked
+                        ? "green"
+                        : selectedTime === slot.startTime
+                        ? "#d2a85a"
+                        : "#16213e",
+                      color: "white",
+                      cursor: slot.isBooked ? "not-allowed" : "pointer",
+                      fontSize: "clamp(0.7rem, 2vw, 0.8rem)",
+                      width: "100%",
+                    }}
+                    disabled={slot.isBooked}
+                    onMouseEnter={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#d2a85a";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!slot.isBooked && selectedTime !== slot.startTime) {
+                        e.target.style.background = "#16213e";
+                      }
                     }}
                   >
-                    {date.getDate()}
-                  </div>
-                );
-              })}
+                    {convertTo12HourFormat(slot.startTime)} -{" "}
+                    {convertTo12HourFormat(slot.endTime)}
+                  </button>
+                ))
+              ) : (
+                <p
+                  style={{
+                    color: "gray",
+                    fontSize: "clamp(0.7rem, 2vw, 0.9rem)",
+                  }}
+                >
+                  Select a date to view available times.
+                </p>
+              )}
             </div>
           </div>
 
-          <div>
-            <div>
-              <h5 style={{ color: " #d4af37" }}>Available Times:</h5>
-              <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                {selectedDate ? (
-                  availableSlotsMap[selectedDate.toDateString()]?.map(
-                    (slot) => (
-                      <button
-                        key={slot._id}
-                        onClick={() => handleTimeClick(slot.startTime, slot)}
-                        className="time-button"
-                        style={{
-                          padding: "5px 10px",
-                          borderRadius: "5px",
-                          border: "1px solid #d4af37",
-                          background: slot.isBooked
-                            ? "green" // Green if booked
-                            : selectedTime === slot.startTime
-                            ? "#d2a85a" // Golden when selected
-                            : "#16213e", // Default background
-                          color: "white",
-                          cursor: slot.isBooked ? "not-allowed" : "pointer",
-                          fontSize: 11,
-                          width: 130,
-                        }}
-                        disabled={slot.isBooked}
-                        onMouseEnter={(e) => {
-                          if (
-                            !slot.isBooked &&
-                            selectedTime !== slot.startTime
-                          ) {
-                            e.target.style.background = "#d2a85a"; // Hover background (light golden)
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (
-                            !slot.isBooked &&
-                            selectedTime !== slot.startTime
-                          ) {
-                            e.target.style.background = "#16213e"; // Reset to default
-                          }
-                        }}
-                      >
-                        {convertTo12HourFormat(slot.startTime)} -{" "}
-                        {convertTo12HourFormat(slot.endTime)}
-                      </button>
-                    )
-                  )
-                ) : (
-                  <p style={{ color: "gray" }}>
-                    Select a date to view available times.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
+          {/* Floating Button */}
           {selectedTime && (
             <div
               style={{
                 position: "fixed",
                 bottom: "70px",
-                right: "110px",
+                right: "20px",
                 zIndex: 1000,
                 width: 60,
                 height: 60,
@@ -1003,29 +1448,86 @@ const ClientAppointment = ({ token }) => {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: " #d2a85a",
+                backgroundColor: "#d2a85a",
               }}
-              onMouseEnter={(e) => {
-                e.target.style.background = "#16213e"; // Reset to default
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.background = "#d2a85a"; // Hover background (light golden)
-              }}
+              onMouseEnter={(e) => (e.target.style.background = "#16213e")}
+              onMouseLeave={(e) => (e.target.style.background = "#d2a85a")}
               onClick={() => handleOpenPopup()}
             >
-              <BsCalendar2Plus
-                style={
-                  {
-                    //  padding: "15px 20px",
-                  }
-                }
-                color="white"
-              />
-              {/* </Button> */}
+              <BsCalendar2Plus color="white" />
+            </div>
+          )}
+        </Col>
+        <div>
+          {isPopupVisible && (
+            <div className="popup-overlay">
+              <div className={popupcolor}>
+                {!isLoading && !isEmailSent && (
+                  <>
+                    <h3
+                      style={{
+                        fontSize: "18px",
+                        fontWeight: "bold",
+                        marginBottom: "5px",
+                        color: "white",
+                      }}
+                    >
+                      {popupmessage}
+                    </h3>
+                    <textarea
+                      placeholder="Text Message (Optional)"
+                      value={ClientMessage}
+                      onChange={(e) => setClientMessage(e.target.value)}
+                      style={{
+                        width: "90%",
+                        minHeight: "100px", // Adjust height as needed
+                        padding: "8px",
+                        border: "1px solid #ddd",
+                        borderRadius: "6px",
+                        margin: "10px 0",
+                        resize: "vertical", // Allows resizing if needed
+                      }}
+                    ></textarea>
+
+                    {isPopupVisiblecancel && (
+                      <div className="popup-actions d-flex justify-content-center">
+                        <button className="confirm-btn" onClick={handleConfirm}>
+                          Yes
+                        </button>
+                        <button
+                          className="cancel-btn"
+                          onClick={handleClosePopup}
+                        >
+                          No
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+                {isLoading && (
+                  <div className="loading-indicator">
+                    <p>Sending...</p>
+                    <div className="spinner"></div>{" "}
+                    {/* You can style a spinner here */}
+                  </div>
+                )}
+                {isEmailSent && (
+                  <div className="confirmation">
+                    <FontAwesomeIcon
+                      icon={faCheck}
+                      size="3x"
+                      color="white"
+                      className="m-2"
+                    />
+
+                    {/* <h3>✔ Meeting Scheduled Successfully!</h3> */}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
-      </div>
+      </Row>
     </div>
   ) : (
     <div className="d-flex justify-content-center align-items-center vh-100">

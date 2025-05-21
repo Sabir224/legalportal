@@ -930,12 +930,75 @@ import axios from 'axios'
 // }
 
 import React, { useEffect, useState } from "react";
+import { Button, Form, Modal } from "react-bootstrap";
+import DatePicker from "react-datepicker";
 import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import SocketService from "../../../../SocketService";
+import ErrorModal from "../../AlertModels/ErrorModal";
+import ConfirmModal from "../../AlertModels/ConfirmModal";
+import SuccessModal from "../../AlertModels/SuccessModal";
 
 export default function TaskList({ token }) {
+
   const [todos, setTodos] = useState([]);
+  const [openTasks, setOpenTasks] = useState([]);
+  const [addingSubtaskFor, setAddingSubtaskFor] = useState(null);
+  const [newSubtaskName, setNewSubtaskName] = useState("");
+
+  const [addingColumn, setAddingColumn] = useState(false);
+  const [newColumnName, setNewColumnName] = useState("");
+  const [newColumnType, setNewColumnType] = useState("text");
+  const [newColumnOptions, setNewColumnOptions] = useState("");
+  const [isSubtask, setIsSubtask] = useState(false);
+  const [openTaskId, setOpenTaskId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCaseId, setSelectedCaseId] = useState(null);
+  // const [newSubtaskName, setNewSubtaskName] = useState('');
+  const [assignedUserId, setAssignedUserId] = useState([]);
+  const [parentId, setParentId] = useState();
+  const [users, setUsers] = useState([]); // Fill this from API or props
+  const [allCases, setAllCases] = useState([]); // Fill this from API or props
+  const isclient = token?.Role === "client"
+  const [showTaskModal, setShowTaskModal] = useState(false);
+  const [newTaskName, setNewTaskName] = useState("");
+  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState("");
+  const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
+  const [editingAssignedUser, setEditingAssignedUser] = useState(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState(null);
+  const [editingAssignedSubtaskId, setEditingAssignedSubtaskId] = useState(null);
+
+  const [isCaseInvalid, setIsCaseInvalid] = useState(false);
+  const [isUserInvalid, setIsUserInvalid] = useState(false);
+
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
 
+  const [showError, setShowError] = useState(false);
+  const [message, setMessage] = useState("");
+
+
+
+  const showSuccess = (msg) => {
+    setSuccessMessage(msg);
+    setShowSuccessModal(true);
+  };
+
+
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log("🔌 Connecting to socket...");
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      fetchtask();
+    };
+
+    SocketService.socket.off("TaskManagement", handleMessagesDelivered);
+    SocketService.onTaskManagement(handleMessagesDelivered);
+  }, []);
 
 
   useEffect(() => {
@@ -943,22 +1006,32 @@ export default function TaskList({ token }) {
   }, []);
 
   useEffect(() => {
-    fetchUsers();
+    // fetchUsers();
+    fetchCases()
   }, []);
-  // useEffect(() => {
-  //   const taskExists = todos.some(todo => todo._id === openTaskId);
-  //   if (!taskExists) {
-  //     setOpenTaskId(null); // Close only if task is removed
-  //   }
-  // }, [todos]); // Run this only when `todos` update
 
 
-  const fetchUsers = async () => {
+  const caseInfo = useSelector((state) => state.screen.Caseinfo);
+  const fetchUsers = async (taskdetails) => {
+    let id = taskdetails?.caseId?.value?._id
+    console.log("taskdetails", taskdetails)
     try {
-      const response = await axios.get(`${ApiEndPoint}getAllUser`);
-      const allUsers = response.data.users || [];
+      const response = await axios.get(`${ApiEndPoint}getCaseAssignedUsersIdsAndUserName/${taskdetails}`);
+      const allUsers = response.data.AssignedUsers || [];
+      console.log("taskdetails", allUsers)
+
       setUsers(allUsers);
-      return allUsers;
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      return [];
+    }
+  };
+  const fetchCases = async () => {
+    try {
+      const response = await axios.get(`${ApiEndPoint}getcase`);
+      const allCases = response.data.data;
+      setAllCases(allCases);
+      return allCases;
     } catch (error) {
       console.error("Error fetching users:", error);
       return [];
@@ -966,11 +1039,10 @@ export default function TaskList({ token }) {
   };
 
   const fetchtask = async () => {
+    console.log("caseInfo=", caseInfo)
     try {
       const response = await fetch(
-        `${ApiEndPoint}getAllTasksWithDetails`
-        // `${ApiEndPoint}getTasksByCase/67fdf45fbff3fdf069fe7420`
-        
+        caseInfo === null ? (token?.Role === "admin" ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByUser/${token?._id}`) : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
       );
 
       if (!response.ok) {
@@ -1003,22 +1075,41 @@ export default function TaskList({ token }) {
     },
   ]);
 
-  const [openTasks, setOpenTasks] = useState([]);
-  const [addingSubtaskFor, setAddingSubtaskFor] = useState(null);
-  const [newSubtaskName, setNewSubtaskName] = useState("");
 
-  const [addingColumn, setAddingColumn] = useState(false);
-  const [newColumnName, setNewColumnName] = useState("");
-  const [newColumnType, setNewColumnType] = useState("text");
-  const [newColumnOptions, setNewColumnOptions] = useState("");
-  const [isSubtask, setIsSubtask] = useState(false);
-  const [openTaskId, setOpenTaskId] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCaseId, setSelectedCaseId] = useState(null);
-  // const [newSubtaskName, setNewSubtaskName] = useState('');
-  const [assignedUserId, setAssignedUserId] = useState([]);
-  const [parentId, setParentId] = useState();
-  const [users, setUsers] = useState([]); // Fill this from API or props
+
+
+
+
+  const handleAddNewTask = async (name, caseId, userid) => {
+
+
+    console.log(userid)
+    try {
+      const subtask = {
+        caseId: caseId,
+        createdBy: token._id,
+        assignedUsers: [userid]
+      };
+      console.log("empty sub task", subtask)
+      //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
+      const response = await createSubtaskApi(selectedCaseId, subtask);
+      const newSubtask = response.data;
+      SocketService.TaskManagement(newSubtask);
+
+      // backend default fields set kare
+
+      const previousOpenTaskId = openTaskId;
+      console.log("previousOpenTaskId=", previousOpenTaskId)
+
+      await fetchtask();
+      await setOpenTaskId(previousOpenTaskId);
+      console.log("openTaskId=", openTaskId)
+    } catch (error) {
+      console.error("Failed to add subtask:", error);
+    }
+    // Update state with new task
+    // setTodos((prev) => [...prev, newTask]);
+  };
 
   const openModal = (Caseinfo) => {
     console.log("caseId", Caseinfo?._id?.value)
@@ -1036,7 +1127,8 @@ export default function TaskList({ token }) {
   const handleSaveSubtask = async () => {
     // Validate fields
     if (!newSubtaskName || !assignedUserId) {
-      alert("Please fill all fields");
+      setMessage("Please fill all fields");
+      setShowError(true)
       return;
     }
 
@@ -1061,7 +1153,8 @@ export default function TaskList({ token }) {
       closeModal();
     } catch (error) {
       console.error('Error saving subtask:', error);
-      alert('Something went wrong while saving the subtask.');
+      setMessage('Something went wrong while saving the subtask.');
+      setShowError(true)
     }
   };
 
@@ -1071,12 +1164,6 @@ export default function TaskList({ token }) {
     // setOpenTaskId(taskId);
     setOpenTaskId((prevId) => (prevId === taskId ? null : taskId));
 
-
-    // setOpenTasks((prev) =>
-    //   prev.includes(taskId)
-    //     ? prev.filter((id) => id !== taskId)
-    //     : [...prev, taskId]
-    // );
   };
 
   const saveSubtask = (taskId) => {
@@ -1108,36 +1195,41 @@ export default function TaskList({ token }) {
     setNewSubtaskName("");
   };
 
-  const addColumn = async () => {
-    if (!newColumnName.trim()) return;
 
-    const newId = newColumnName.toLowerCase().replace(/\s+/g, "-");
+  const addColumn = async () => {
+    const trimmedColumnName = newColumnName.trim(); // Remove both leading and trailing spaces
+    if (!trimmedColumnName) return;
+
+    const newId = trimmedColumnName.toLowerCase().replace(/\s+/g, "-");
 
     // Check if the column already exists in UI
     const existingColumn = columns.find((column) => column.id === newId);
     if (existingColumn) {
-      alert("⚠️ Column already exists in UI!");
+      setMessage("⚠️ Column already exists in UI!");
+      setShowError(true)
       return;
     }
 
     try {
       // Check if the column exists in backend
-      const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${newColumnName}`);
+      const checkRes = await axios.get(`${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`);
       if (checkRes.data.exists) {
-        alert("⚠️ Column name already exists in the database!");
+        setMessage("⚠️ Column name already exists in the database!");
+        setShowError(true)
         return;
       }
 
       const encodedEnum = newColumnType === "dropdown" ? encodeURIComponent(newColumnOptions) : '';
-      const url = `${ApiEndPoint}AddColumnInSchema/${newColumnName}/${newColumnType}/${encodedEnum}`;
+      const url = `${ApiEndPoint}AddColumnInSchema/${trimmedColumnName}/${newColumnType}/${encodedEnum}`;
       const response = await axios.put(url);
 
       if (response.status === 200) {
-        alert(`✅ ${response.data.message}`);
+        showSuccess(`✅ ${response.data.message}`);
+        SocketService.TaskManagement(response);
 
         const newColumn = {
           id: newId,
-          label: newColumnName,
+          label: trimmedColumnName,
           type: newColumnType,
         };
 
@@ -1145,63 +1237,23 @@ export default function TaskList({ token }) {
           newColumn.options = newColumnOptions.split(',').map(opt => opt.trim());
         }
 
-        // setColumns((prev) => [...prev, newColumn]);
         setNewColumnName("");
         setNewColumnType("text");
         setNewColumnOptions("");
         setAddingColumn(false);
         const previousOpenTaskId = openTaskId;
-        await fetchtask()
+        await fetchtask();
         setOpenTaskId(previousOpenTaskId);
       } else {
-        alert('⚠️ Something went wrong while adding the column.');
+        setMessage('⚠️ Something went wrong while adding the column.');
+        setShowError(true)
       }
     } catch (error) {
       console.error('❌ Error adding column:', error);
-      alert('❌ Failed to add the column.');
+      setMessage('❌ Failed to add the column.');
+      setShowError(true)
     }
   };
-
-
-
-
-  // const handleFieldChange = (taskId, field, newValue, isSubtask = false, subtaskId = null) => {
-  //   setTodos(prev => {
-  //     return prev.map(todo => {
-  //       // If task id doesn't match, return the current task as is
-  //       if (todo.id !== taskId) return todo;
-
-  //       // If it's a subtask update
-  //       if (isSubtask && subtaskId) {
-  //         return {
-  //           ...todo,
-  //           subtasks: todo.subtasks.map(subtask => {
-  //             // If subtask id doesn't match, return subtask as is
-  //             if (subtask._id?.value !== subtaskId) return subtask;
-
-  //             // Update the field for the specific subtask
-  //             return {
-  //               ...subtask,
-  //               [field]: {
-  //                 ...subtask[field],
-  //                 value: newValue // Update the value of the field
-  //               }
-  //             };
-  //           })
-  //         };
-  //       }
-
-  //       // If it's a task update, update the field for the task
-  //       return {
-  //         ...todo,
-  //         [field]: {
-  //           ...todo[field],
-  //           value: newValue
-  //         }
-  //       };
-  //     });
-  //   });
-  // };
 
   const handleFieldChange = (taskId, key, newValue, isSubtask = false, subtaskId = null) => {
     setTodos((prevTodos) =>
@@ -1267,29 +1319,36 @@ export default function TaskList({ token }) {
 
 
 
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [pendingColumn, setPendingColumn] = useState(null);
+
   const deleteColumn = async (columnName) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete column "${columnName}" from all tasks?`);
+    setPendingColumn(columnName);
+    setShowConfirm(true);
+  };
 
-    if (!confirmDelete) return;
-
+  const handleConfirmDelete = async () => {
+    setShowConfirm(false);
     try {
-      const response = await axios.delete(`${ApiEndPoint}DeleteColumnByName/${columnName}`);
+      const response = await axios.delete(`${ApiEndPoint}DeleteColumnByName/${pendingColumn}`);
 
       if (response.status === 200) {
-        alert(`🗑️ ${response.data.message}`);
-
-        // Optionally remove it from local UI too
-        setColumns(prev => prev.filter(col => col.id !== columnName.toLowerCase().replace(/\s+/g, "-")));
-
+        showSuccess(`🗑️ ${response.data.message}`);
+        SocketService.TaskManagement(response);
+        setColumns(prev =>
+          prev.filter(col => col.id !== pendingColumn.toLowerCase().replace(/\s+/g, "-"))
+        );
         const previousOpenTaskId = openTaskId;
-      await fetchtask()
-      setOpenTaskId(previousOpenTaskId); // Refresh task list
+        await fetchtask();
+        setOpenTaskId(previousOpenTaskId);
       } else {
-        alert('⚠️ Column deletion failed.');
+        setMessage('⚠️ Column deletion failed.');
+        setShowError(true);
       }
     } catch (error) {
       console.error("❌ Error deleting column:", error);
-      alert("❌ Failed to delete the column.");
+      setMessage("❌ Failed to delete the column.");
+      setShowError(true);
     }
   };
 
@@ -1347,12 +1406,14 @@ export default function TaskList({ token }) {
       //  const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
       const response = await createSubtaskApi(selectedCaseId, subtask); // backend default fields set kare
       const newSubtask = response.data;
+      SocketService.TaskManagement(newSubtask);
+
 
       const previousOpenTaskId = openTaskId;
-      console.log("previousOpenTaskId=",previousOpenTaskId)
+      console.log("previousOpenTaskId=", previousOpenTaskId)
       await fetchtask();
       await setOpenTaskId(previousOpenTaskId);
-      console.log("openTaskId=",openTaskId)
+      console.log("openTaskId=", openTaskId)
     } catch (error) {
       console.error("Failed to add subtask:", error);
     }
@@ -1377,7 +1438,8 @@ export default function TaskList({ token }) {
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
     // Replace this with your actual API call logic
-    console.log("Blurred & API Call:", { taskId, key, value, isSubtask, subtaskId });
+    console.log("Blurred & API Call for next:", { taskId, key, value, isSubtask, subtaskId });
+    console.log("Blurred & API Call value date :", { value });
 
     try {
       const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
@@ -1385,11 +1447,13 @@ export default function TaskList({ token }) {
         key,
         value
       });
+      setAssignedUserId([])
+      SocketService.TaskManagement(response);
 
+      fetchtask()
       console.log("Task updated:", response.data);
     } catch (error) {
       console.error("Failed to update task:", error);
-
     }
 
     // Example API call
@@ -1403,25 +1467,66 @@ export default function TaskList({ token }) {
   };
 
 
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [confirmData, setConfirmData] = useState({ taskId: null, message: "" });
+
+
+  const handleDelete = (taskId) => {
+    setConfirmData({
+      taskId,
+      message: "Are you sure you want to delete this task?",
+    });
+    setShowConfirmModal(true);
+  };
+
+  const confirmDeleteTask = async () => {
+    const { taskId } = confirmData;
+    setShowConfirmModal(false);
+
+    try {
+      const response = await fetch(`${ApiEndPoint}deleteTask/${taskId}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete task");
+      }
+
+      SocketService.TaskManagement(response);
+      showSuccess("🗑️ Task deleted successfully");
+      fetchtask();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      setMessage("❌ Error deleting task");
+      setShowError(true);
+    }
+  };
+
+
   const handleSubtaskFieldBlur = async (taskId, key, value, subtaskId) => {
     console.log("Subtask API call on blur", { taskId, key, value, subtaskId });
-    taskId = subtaskId
+
+    taskId = subtaskId;
+
+   
 
     try {
       const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
         taskId,
         key,
-        value
+        value,
       });
+
+      SocketService.TaskManagement(response);
+
       const previousOpenTaskId = openTaskId;
-      await fetchtask()
+      await fetchtask();
       setOpenTaskId(previousOpenTaskId);
+
       console.log("Task updated:", response.data);
     } catch (error) {
       console.error("Failed to update task:", error);
-
     }
-
   };
 
 
@@ -1433,14 +1538,14 @@ export default function TaskList({ token }) {
         background: #f0f2f5;
       }
       .tasklist-table-container {
-        max-height: 500px;
+     
         overflow: auto;
         background: white;
         border-radius: 10px;
         border: 1px solid #ddd;
       }
       .tasklist-todo-table {
-        width: 100%;
+      
         min-width: 900px;
         border-collapse: separate;
         border-spacing: 0;
@@ -1460,6 +1565,7 @@ export default function TaskList({ token }) {
       }
       .expand-icon {
         cursor: pointer;
+        width:10px,
         margin-right: 5px;
       }
       .subtask-table {
@@ -1566,45 +1672,81 @@ export default function TaskList({ token }) {
       }
     `}</style>
 
+
+      <div className="mb-1">
+        <button className="btn btn-success" onClick={() => setShowTaskModal(true)}>
+          + New Task
+        </button>
+      </div>
+
       <div className="tasklist-table-container">
         <table className="tasklist-todo-table">
           <thead>
             <tr>
-              <th>Expand</th>
-              {keys.map((key) => (
+              <th style={{ width: "10px" }}></th>
+              {keys?.map((key) => (
                 <th key={key}>
                   <div style={{ display: "flex", alignItems: "center" }}>
-                    <div>{key}</div>
                     <div>
-                      <FaTrash
-                        className="delete-column-icon"
-                        onClick={() => deleteColumn(key)}
-                        title="Delete column"
-                      />
+                      {key
+                        .split(/(?=[A-Z])/)
+                        .join(" ")
+                        .replace(/^./, (str) => str.toUpperCase())}
                     </div>
+                    {(!isclient &&
+                      key !== "caseId" &&
+                      key !== "title" &&
+                      key !== "description" &&
+                      key !== "assignedUsers" &&
+                      key !== "createdBy" &&
+                      key !== "status" &&
+                      key !== "dueDate" &&
+                      key !== "clientEmail" &&
+                      key !== "nationality" &&
+                      key !== "nextHearing") && (
+                        <div>
+                          {token?.Role === "admin" && (
+                            <FaTrash
+                              className="delete-column-icon"
+                              onClick={() => deleteColumn(key)}
+                              title="Delete column"
+                            />
+                          )}
+                        </div>
+                      )}
                   </div>
                 </th>
               ))}
+
               <th>
-                <FaPlus
-                  className="plus-icon"
-                  onClick={() => setAddingColumn(true)}
-                />
+                {token?.Role === "admin" && (
+                  <FaPlus
+                    className="plus-icon"
+                    onClick={() => setAddingColumn(true)}
+                  />
+                )}
               </th>
             </tr>
           </thead>
 
           <tbody>
-            {todos.map((todo) => (
-              <React.Fragment key={todo.id}>
+            {todos?.map((todo) => (
+              <React.Fragment key={todo._id?.value || todo.id}>
                 <tr>
                   <td>
-                    <span className="expand-icon" onClick={() => toggleTask(todo._id)}>
-                      {openTaskId?.value === todo._id?.value ? <FaChevronDown /> : <FaChevronRight />}
+                    <span
+                      className="expand-icon"
+                      onClick={() => toggleTask(todo._id?.value || todo.id)}
+                    >
+                      {openTaskId === (todo._id?.value || todo.id) ? (
+                        <FaChevronDown />
+                      ) : (
+                        <FaChevronRight />
+                      )}
                     </span>
                   </td>
 
-                  {keys.map((key) => {
+                  {keys?.map((key) => {
                     const field = todo[key];
                     if (!field) return <td key={key} />;
 
@@ -1617,22 +1759,92 @@ export default function TaskList({ token }) {
 
                     const handleBlur = (e) => {
                       const newValue =
-                        normalizedType === "boolean" ? e.target.checked : e.target.value;
+                        normalizedType === "boolean"
+                          ? e.target.checked
+                          : e.target.value;
                       handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
                     };
 
                     if (key === "caseId") {
-                      content = <span>{todo.caseId?.value?.CaseNumber || ""}</span>;
-                    } else if (key === "createdBy") {
-                      content = <span>{todo.createdBy?.value?.UserName || ""}</span>;
-                    } else if (key === "assignedUsers") {
                       content = (
-                        <span>
-                          {todo.assignedUsers?.value?.map((user) => user.UserName).join(", ") || ""}
-                        </span>
+                        <span>{todo.caseId?.value?.CaseNumber || ""}</span>
                       );
+                    } else if (key === "createdBy") {
+                      content = (
+                        <span>{todo.createdBy?.value?.UserName || ""}</span>
+                      );
+                    } else if (key === "assignedUsers") {
+                      const usersList = todo?.assignedUsers?.value || [];
+                      const defaultSelectedId = usersList[0]?.id || "";
+                      const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                      if (editingAssignedUser === taskId) {
+                        content = (
+                          <select
+                            className="form-select"
+                            value={currentSelectedId}
+                            disabled={isclient}
+                            autoFocus
+                            onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                            onChange={(e) => {
+                              setAssignedUserId(e.target.value);
+                            }}
+                            onBlur={(e) => {
+                              const newValue = e.target.value;
+                              handleFieldBlur(
+                                taskId,
+                                key,
+                                newValue,
+                                isSubtask,
+                                subtaskId
+                              );
+                              setEditingAssignedUser(null);
+                            }}
+                          >
+                            <option value="">Assign User</option>
+                            {users?.map((user) => (
+                              <option key={user.id} value={user.id}>
+                                {user.UserName} ({capitalizeFirst(user.Role)})
+                              </option>
+                            ))}
+                          </select>
+                        );
+                      } else {
+                        const isHovered = hoveredTaskId === taskId;
+
+                        content = (
+                          <span
+                            style={{
+                              display: "inline-flex",
+                              alignItems: "center",
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={() => setHoveredTaskId(taskId)}
+                            onMouseLeave={() => setHoveredTaskId(null)}
+                            onClick={() =>
+                              !isclient && setEditingAssignedUser(taskId)
+                            }
+                          >
+                            {usersList.length > 0
+                              ? usersList.map((u) => u.UserName).join(", ")
+                              : "Assign User"}
+                            <i
+                              className="bi bi-pencil"
+                              style={{
+                                marginLeft: "6px",
+                                fontSize: "0.9rem",
+                                opacity: isHovered ? 1 : 0,
+                                transition: "opacity 0.2s ease",
+                                pointerEvents: "none",
+                              }}
+                            />
+                          </span>
+                        );
+                      }
                     } else if (key === "createdAt") {
-                      content = <span>{(todo.createdAt?.value || "").split("T")[0]}</span>;
+                      content = (
+                        <span>{(todo.createdAt?.value || "").split("T")[0]}</span>
+                      );
                     } else if (!editable) {
                       content = <span>{String(value)}</span>;
                     } else if (enumOptions) {
@@ -1640,11 +1852,18 @@ export default function TaskList({ token }) {
                         <select
                           value={value}
                           onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                            handleFieldChange(
+                              taskId,
+                              key,
+                              e.target.value,
+                              isSubtask,
+                              subtaskId
+                            );
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
                         >
-                          {enumOptions.map((option) => (
+                          {enumOptions?.map((option) => (
                             <option key={option} value={option}>
                               {option}
                             </option>
@@ -1657,25 +1876,36 @@ export default function TaskList({ token }) {
                           type="checkbox"
                           checked={Boolean(value)}
                           onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId);
+                            handleFieldChange(
+                              taskId,
+                              key,
+                              e.target.checked,
+                              isSubtask,
+                              subtaskId
+                            );
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
                         />
                       );
                     } else if (normalizedType === "date") {
-                      const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
+                      const dateValue = value
+                        ? new Date(value).toISOString().split("T")[0]
+                        : "";
                       const today = new Date().toISOString().split("T")[0];
 
                       content = (
-                        <input
-                          type="date"
-                          placeholder="dd-mm-yyyy"
-                          value={dateValue}
-                          min={today}
-                          onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                          }}
-                          onBlur={handleBlur}
+                        <DatePicker
+                          selected={value ? new Date(value) : null}
+                          onChange={(date) =>
+                            handleFieldChange(taskId, key, date, isSubtask, subtaskId)
+                          }
+                          dateFormat="dd/MM/yyyy"
+                          placeholderText="dd/mm/yyyy"
+                          onBlur={() =>
+                            handleFieldBlur(taskId, key, value, isSubtask, subtaskId)
+                          }
+                          disabled={isclient}
                         />
                       );
                     } else {
@@ -1684,9 +1914,16 @@ export default function TaskList({ token }) {
                           type="text"
                           value={value || ""}
                           onChange={(e) => {
-                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                            handleFieldChange(
+                              taskId,
+                              key,
+                              e.target.value,
+                              isSubtask,
+                              subtaskId
+                            );
                           }}
                           onBlur={handleBlur}
+                          disabled={isclient}
                         />
                       );
                     }
@@ -1694,153 +1931,264 @@ export default function TaskList({ token }) {
                     return <td key={key}>{content}</td>;
                   })}
 
-                  <td />
+                  <td>
+                    <button
+                      className="btn btn-sm btn-danger"
+                      onClick={() => handleDelete(todo._id?.value || todo.id)}
+                      disabled={isclient}
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
                 </tr>
 
-                {openTaskId?.value === todo._id?.value && (
+                {openTaskId === (todo._id?.value || todo.id) && (
                   <tr>
-                    <td colSpan={columns.length + 2}>
-                      <table className="tasklist-todo-table subtask-table">
-                        <thead>
-                          <tr>
-                            {keys.map((key) => (
-                              <th key={key}>
-                                <div style={{ display: "flex", alignItems: "center" }}>
-                                  <div>{key}</div>
-                                </div>
-                              </th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {todo.subtasks.map((subtask) => (
-                            <tr key={subtask._id?.value}>
-                              {keys.map((key) => {
-                                const field = subtask[key];
-                                if (!field) return <td key={key} />;
+                    <td colSpan={keys.length + 2}>
+                      <div className="subtask-container">
+                        <table className="tasklist-todo-table subtask-table">
+                          <thead>
+                            <tr>
+                              {keys?.map((key) => (
+                                <th key={key}>
+                                  <div style={{ display: "flex", alignItems: "center" }}>
+                                    <div>
+                                      {key
+                                        .split(/(?=[A-Z])/)
+                                        .join(" ")
+                                        .replace(/^./, (str) => str.toUpperCase())}
+                                    </div>
+                                  </div>
+                                </th>
+                              ))}
+                              <th>Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {todo?.subtasks?.map((subtask) => (
+                              <tr key={subtask._id?.value}>
+                                {keys?.map((key) => {
+                                  const field = subtask[key];
+                                  if (!field) return <td key={key} />;
 
-                                const { value, type, enum: enumOptions, editable = true } = field;
-                                let content;
+                                  const {
+                                    value,
+                                    type,
+                                    enum: enumOptions,
+                                    editable = true,
+                                  } = field;
+                                  let content;
 
-                                const taskId = todo.id;
-                                const subtaskId = subtask._id?.value;
-                                const normalizedType = type?.toLowerCase();
+                                  const taskId = todo._id?.value || todo.id;
+                                  const subtaskId = subtask._id?.value;
+                                  const normalizedType = type?.toLowerCase();
 
-                                const handleBlur = (e) => {
-                                  const newValue = normalizedType === "boolean" ? e.target.checked : e.target.value;
-                                  handleSubtaskFieldBlur(taskId, key, newValue, subtaskId);
-                                };
+                                  const handleBlur = (e) => {
+                                    const newValue =
+                                      normalizedType === "boolean"
+                                        ? e.target.checked
+                                        : e.target.value;
+                                        
+                                    handleSubtaskFieldBlur(
+                                      taskId,
+                                      key,
+                                      newValue,
+                                      subtaskId
+                                    );
+                                  };
 
-                                if (key === "caseId") {
-                                  content = <span>{subtask.caseId?.value?.CaseNumber || ""}</span>;
-                                } else if (key === "createdBy") {
-                                  content = <span>{subtask.createdBy?.value?.UserName || ""}</span>;
-                                } else if (key === "assignedUsers") {
-                                  const usersList = subtask.assignedUsers?.value || [];
-                                  if (usersList.length === 0) {
+                                  if (key === "caseId") {
+                                    content = (
+                                      <span>
+                                        {subtask.caseId?.value?.CaseNumber || ""}
+                                      </span>
+                                    );
+                                  } else if (key === "createdBy") {
+                                    content = (
+                                      <span>
+                                        {subtask.createdBy?.value?.UserName || ""}
+                                      </span>
+                                    );
+                                  } else if (key === "assignedUsers") {
+                                    const usersList = subtask.assignedUsers?.value || [];
+                                    const defaultSelectedId = usersList[0]?.id || "";
+                                    const currentSelectedId =
+                                      assignedUserId || defaultSelectedId;
+
+                                    if (editingAssignedSubtaskId === subtaskId) {
+                                      content = (
+                                        <select
+                                          className="form-select"
+                                          value={currentSelectedId}
+                                          disabled={isclient}
+                                          autoFocus
+                                          onFocus={() =>
+                                            fetchUsers(todo?.caseId?.value?._id)
+                                          }
+                                          onChange={(e) => {
+                                            setAssignedUserId(e.target.value);
+                                          }}
+                                          onBlur={(e) => {
+                                            handleSubtaskFieldBlur(
+                                              taskId,
+                                              key,
+                                              [e.target.value],
+                                              subtaskId
+                                            );
+                                            setEditingAssignedSubtaskId(null);
+                                          }}
+                                        >
+                                          <option value="">Assign User</option>
+                                          {users?.map((user) => (
+                                            <option key={user?.id} value={user?.id}>
+                                              {user?.UserName} (
+                                              {capitalizeFirst(user?.Role)})
+                                            </option>
+                                          ))}
+                                        </select>
+                                      );
+                                    } else {
+                                      content = (
+                                        <span
+                                          onDoubleClick={() =>
+                                            !isclient &&
+                                            setEditingAssignedSubtaskId(subtaskId)
+                                          }
+                                          style={{
+                                            cursor: !isclient ? "pointer" : "default",
+                                          }}
+                                        >
+                                          {usersList.length > 0
+                                            ? usersList.map((u) => u.UserName).join(", ")
+                                            : "Assign User"}
+                                        </span>
+                                      );
+                                    }
+                                  } else if (key === "createdAt") {
+                                    content = (
+                                      <span>
+                                        {(subtask.createdAt?.value || "").split("T")[0]}
+                                      </span>
+                                    );
+                                  } else if (!editable) {
+                                    content = <span>{String(value)}</span>;
+                                  } else if (enumOptions) {
                                     content = (
                                       <select
-                                        className="form-select"
-                                        defaultValue=""
-                                        value={assignedUserId?.UserName}
-
-                                        onChange={(e) => {
-                                          setAssignedUserId(e.target.value)
-                                          //  handleSubtaskFieldChange(taskId, key, [e.target.value], subtaskId)
-                                        }}
-                                        onBlur={(e) =>
-                                          handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId)
+                                        value={value}
+                                        disabled={isclient}
+                                        onChange={(e) =>
+                                          handleSubtaskFieldChange(
+                                            taskId,
+                                            key,
+                                            e.target.value,
+                                            subtaskId
+                                          )
                                         }
+                                        onBlur={handleBlur}
                                       >
-                                        <option value="">Assign User</option>
-                                        {users.map((user) => (
-                                          <option key={user?._id} value={user._id}>
-                                            {user?.UserName} ({capitalizeFirst(user?.Role)})
+                                        {enumOptions?.map((option) => (
+                                          <option key={option} value={option}>
+                                            {option}
                                           </option>
                                         ))}
                                       </select>
                                     );
+                                  } else if (normalizedType === "boolean") {
+                                    content = (
+                                      <input
+                                        type="checkbox"
+                                        disabled={isclient}
+                                        checked={Boolean(value)}
+                                        onChange={(e) =>
+                                          handleSubtaskFieldChange(
+                                            taskId,
+                                            key,
+                                            e.target.checked,
+                                            subtaskId
+                                          )
+                                        }
+                                        onBlur={handleBlur}
+                                      />
+                                    );
+                                  } else if (normalizedType === "date") {
+                                   // const dateValue = value ? new Date(value) : null;
+                                    const today = new Date();
+
+                                    content = (
+                                      <DatePicker
+                                        selected={value ? new Date(value) : null}
+                                        onChange={(date) => {
+                                          console.log("on change due date =",date)
+                                          if (date) {
+                                            handleSubtaskFieldChange(
+                                              taskId,
+                                              key,
+                                              date,
+                                              subtaskId
+                                            );
+                                          }
+                                        }}
+                                        onBlur={()=>  handleSubtaskFieldBlur(
+                                      taskId,
+                                      key,
+                                      value,
+                                      subtaskId
+                                    )}
+                                        dateFormat="dd-MM-yyyy"
+                                        minDate={today}
+                                        disabled={isclient}
+                                        placeholderText="dd/mm/yyyy"
+                                      />
+                                    );
                                   } else {
-                                    content = <span>{usersList.map((u) => u.UserName).join(", ")}</span>;
+                                    content = (
+                                      <input
+                                        type="text"
+                                        disabled={isclient}
+                                        value={value || ""}
+                                        onChange={(e) =>
+                                          handleSubtaskFieldChange(
+                                            taskId,
+                                            key,
+                                            e.target.value,
+                                            subtaskId
+                                          )
+                                        }
+                                        onBlur={handleBlur}
+                                      />
+                                    );
                                   }
-                                } else if (key === "createdAt") {
-                                  content = <span>{(subtask.createdAt?.value || "").split("T")[0]}</span>;
-                                } else if (!editable) {
-                                  content = <span>{String(value)}</span>;
-                                } else if (enumOptions) {
-                                  content = (
-                                    <select
-                                      value={value}
-                                      onChange={(e) =>
-                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                    >
-                                      {enumOptions.map((option) => (
-                                        <option key={option} value={option}>
-                                          {option}
-                                        </option>
-                                      ))}
-                                    </select>
-                                  );
-                                } else if (normalizedType === "boolean") {
-                                  content = (
-                                    <input
-                                      type="checkbox"
-                                      checked={Boolean(value)}
-                                      onChange={(e) =>
-                                        handleSubtaskFieldChange(taskId, key, e.target.checked, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                    />
-                                  );
-                                } else if (normalizedType === "date") {
-                                  const dateValue = value ? new Date(value).toISOString().split("T")[0] : "";
-                                  const today = new Date().toISOString().split("T")[0];
 
-                                  content = (
-                                    <input
-                                      type="date"
-                                      value={dateValue}
-                                      min={today}
-                                      onChange={(e) =>
-                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                    />
-                                  );
-                                } else {
-                                  content = (
-                                    <input
-                                      type="text"
-                                      value={value || ""}
-                                      onChange={(e) =>
-                                        handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                    />
-                                  );
-                                }
+                                  return <td key={key}>{content}</td>;
+                                })}
+                                <td>
+                                  <button
+                                    className="btn btn-sm btn-danger"
+                                    onClick={() => handleDelete(subtask._id?.value)}
+                                    disabled={isclient}
+                                  >
+                                    <FaTrash />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
 
-                                return <td key={key}>{content}</td>;
-                              })}
-                            </tr>
-                          ))}
-
-                          <tr>
-                            <td colSpan={keys.length}>
-                              <button
-                                className="add-subtask-button btn btn-sm btn-outline-primary"
-                                onClick={() => handleAddEmptySubtask(todo)}
-                              >
-                                + Add Subtask
-                              </button>
-                            </td>
-                          </tr>
-
-                        </tbody>
-
-                      </table>
+                            {!isclient && (
+                              <tr>
+                                <td colSpan={keys.length + 1}>
+                                  <button
+                                    className="add-subtask-button btn btn-sm btn-outline-primary"
+                                    onClick={() => handleAddEmptySubtask(todo)}
+                                  >
+                                    + Add Subtask
+                                  </button>
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
                     </td>
                   </tr>
                 )}
@@ -1853,13 +2201,13 @@ export default function TaskList({ token }) {
                   <div className="modal-content">
                     <div className="modal-header">
                       <h5 className="modal-title">Add Subtask</h5>
-                      <button type="button" className="btn-close" onClick={closeModal}></button>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        onClick={closeModal}
+                      ></button>
                     </div>
                     <div className="modal-body">
-                      {/* <div className="mb-3">
-                        <label>Case ID</label>
-                        <input type="text" className="form-control" value={selectedCaseId} readOnly />
-                      </div> */}
                       <div className="mb-3">
                         <label>Subtask Name</label>
                         <input
@@ -1873,11 +2221,11 @@ export default function TaskList({ token }) {
                         <label>Assign User</label>
                         <select
                           className="form-select"
-                          value={assignedUserId.UserName}
+                          value={assignedUserId?.UserName}
                           onChange={(e) => setAssignedUserId(e.target.value)}
                         >
                           <option value="">Select a user</option>
-                          {users.map((user, index) => (
+                          {users?.map((user, index) => (
                             <option key={index} value={user?._id}>
                               {user?.UserName} ({capitalizeFirst(user?.Role)})
                             </option>
@@ -1886,14 +2234,17 @@ export default function TaskList({ token }) {
                       </div>
                     </div>
                     <div className="modal-footer">
-                      <button className="btn btn-primary" onClick={closeModal}>Cancel</button>
-                      <button className="btn btn-primary" onClick={handleSaveSubtask}>Save</button>
+                      <button className="btn btn-primary" onClick={closeModal}>
+                        Cancel
+                      </button>
+                      <button className="btn btn-primary" onClick={handleSaveSubtask}>
+                        Save
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
             )}
-
           </tbody>
         </table>
       </div>
@@ -1957,6 +2308,136 @@ export default function TaskList({ token }) {
           </div>
         </div>
       )}
+
+      <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Task</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Assign Case</Form.Label>
+              <Form.Select
+                value={newAssignedTaskCase}
+                onChange={(e) => {
+                  fetchUsers(e.target.value);
+                  setNewAssignedTaskCase(e.target.value);
+                }}
+                isInvalid={isCaseInvalid}
+              >
+                <option value="">Select a Case</option>
+                {allCases?.map((user) => (
+                  <option key={user?._id} value={user?._id}>
+                    {user?.CaseNumber}
+                  </option>
+                ))}
+              </Form.Select>
+              {isCaseInvalid && (
+                <Form.Text className="text-danger">
+                  Please select a case.
+                </Form.Text>
+              )}
+            </Form.Group>
+
+            {users?.length > 0 && (
+              <Form.Group className="mb-3">
+                <Form.Label>Assigned Users</Form.Label>
+                <Form.Select
+                  value={assignedUsersForCase || ""}
+                  isInvalid={isUserInvalid}
+                  onChange={(e) => {
+                    setAssignedUsersForCase(e.target.value);
+                    if (e.target.value) {
+                      setIsUserInvalid(false); // clear error when valid user selected
+                    }
+                  }}
+                >
+                  <option value="">Select Assigned User</option>
+                  {users?.map((user) => (
+                    <option key={user?.id} value={user?.id}>
+                      {user?.UserName} ({user?.Role})
+                    </option>
+                  ))}
+                </Form.Select>
+                {isUserInvalid && (
+                  <Form.Text className="text-danger">
+                    Please select an assigned user.
+                  </Form.Text>
+                )}
+              </Form.Group>
+            )}
+
+          </Form>
+        </Modal.Body>
+
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button variant="primary" onClick={() => setShowTaskModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              let valid = true;
+
+              if (!newAssignedTaskCase) {
+                setIsCaseInvalid(true);
+                valid = false;
+              }
+
+              if (!assignedUsersForCase) {
+                setIsUserInvalid(true);
+                valid = false;
+              }
+
+              if (!valid) return;
+
+              handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
+              setShowTaskModal(false);
+              setNewTaskName("");
+              setNewAssignedTaskCase("");
+              setAssignedUsersForCase(null);
+              setUsers([]);
+              setIsCaseInvalid(false);
+              setIsUserInvalid(false);
+            }}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+
+      </Modal>
+
+
+      <ErrorModal
+        show={showError}
+        handleClose={() => setShowError(false)}
+        message={message}
+      />
+
+      <ConfirmModal
+        show={showConfirm}
+        title={`Delete Column "${pendingColumn}"`}
+        message={`Are you sure you want to delete column "${pendingColumn}" from all tasks?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowConfirm(false)}
+      />
+
+      <ConfirmModal
+        show={showConfirmModal}
+        title="Delete Task"
+        message={confirmData.message}
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setShowConfirmModal(false)}
+      />
+
+      <SuccessModal
+        show={showSuccessModal}
+        handleClose={() => setShowSuccessModal(false)}
+        message={successMessage}
+      />
+
+
+
     </div>
   );
 }

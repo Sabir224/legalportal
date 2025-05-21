@@ -19,11 +19,14 @@ const SuccessModal = ({ show, handleClose, message }) => {
       <Modal.Body>
         <p>{message || "Operation completed successfully."}</p>
       </Modal.Body>
+      <div className='d-flex justify-content-center'>
+
       <Modal.Footer>
         <Button variant="success" onClick={handleClose}>
           Okay
         </Button>
       </Modal.Footer>
+      </div>
     </Modal>
   );
 };

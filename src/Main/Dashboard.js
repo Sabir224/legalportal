@@ -8,33 +8,48 @@ import {
   faBookReader,
   faBriefcase,
   faCalendar,
+  faForward,
   faHome,
   faMessage,
   faNoteSticky,
   faPerson,
   faPersonCane,
+  faPersonCircleCheck,
   faPersonCircleMinus,
   faPersonCirclePlus,
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
   faStreetView,
   faTasks,
+  faTasksAlt,
   faUser,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faCcMastercard,
   faFacebook,
   faWhatsapp,
+  faWpforms,
 } from "@fortawesome/free-brands-svg-icons";
 import Case_details from "../Component/Case_details";
 import { useDispatch, useSelector } from "react-redux";
 import BasicCase from "./Pages/Component/BasicCase";
-import { goBackScreen, screenChange } from "../REDUX/sliece";
+import {
+  Caseinfo,
+  clientEmail,
+  FormCDetails,
+  goBackScreen,
+  screenChange,
+} from "../REDUX/sliece";
 import LawyerProfile from "./Pages/LawyerProfile";
 
 import { useNavigate } from "react-router-dom";
 import Chat from "./Pages/chat/Chat";
-import { FaArrowLeft, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import {
+  FaArrowLeft,
+  FaChevronLeft,
+  FaChevronRight,
+  FaWpforms,
+} from "react-icons/fa";
 import UserProfile from "./Pages/UserProfile";
 import ChatVat from "./Pages/NewChat/Chat";
 
@@ -53,19 +68,26 @@ import AddUser from "./Pages/AddUsers/AddUser";
 import ViewUsers from "./Pages/AddUsers/ViewUsers";
 import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
-import { faAddressBook } from "@fortawesome/free-regular-svg-icons";
+import {
+  faAddressBook,
+  faStickyNote,
+} from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
 import Task from "./Pages/Component/TaskManagemnet/Task";
 import TaskList from "./Pages/Component/TaskManagemnet/TaskList";
-import { useAuthValidator } from "./Pages/Component/utils/validatteToke";
+
 import AddTask from "./Pages/Component/TaskManagemnet/AddTask";
+import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
+import FormHandover from "./Pages/Component/Case_Forms/FormH";
+import ViewFormC from "./Pages/Component/Case_Forms/ViewFormC";
+import DocumentFormCShow from "./Pages/Component/Case_Forms/DocumentFormCShow";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const authValidator = useAuthValidator(); // Initialize the validator
+
   const dispatch = useDispatch();
   const [isSheetOpen, setSheetOpen] = useState(false);
   const sheetRef = useRef(null);
@@ -73,13 +95,15 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
-  const [decodedToken, setDecodedToken] = useState(null);
+
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
   const [viewLawyer, setViewLawyer] = useState(false);
+
   // console.log("________", cookies.token);
   // Get the decoded token
+  const [decodedToken, setDecodedToken] = useState(null);
   useEffect(() => {
     if (cookies.token) {
       try {
@@ -106,7 +130,7 @@ const Dashboard = () => {
     const currentTime = Date.now() / 1000;
     const isExpired = decodedToken.exp < currentTime;
     const hasRequiredFields =
-      decodedToken._id && decodedToken.email && decodedToken.Role;
+      decodedToken?._id && decodedToken?.email && decodedToken?.Role;
 
     console.log(
       `Validation results - Expired: ${isExpired}, Has fields: ${hasRequiredFields}`
@@ -131,7 +155,30 @@ const Dashboard = () => {
 
   //   return () => clearInterval(interval);
   // }, []);
+  const hasRun = useRef(false);
+  useEffect(() => {
+    // Retrieve any stored caseId, userId, and screenIndex from localStorage
+    const pendingCaseId = localStorage.getItem("pendingCaseId");
+    const pendingUserId = localStorage.getItem("pendingUserId");
+    const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
+    console.log("________________:", pendingScreenIndex);
+    // If all values exist, dispatch screenChange and clear the storage
+    if (pendingCaseId && pendingUserId && pendingScreenIndex) {
+      // Dispatch action to change to the Case Details screen (index 1)
+      console.log("____________Checkt");
+      handlescreen2(Number(pendingScreenIndex));
+      setCurrentScreen(<Case_details token={decodedToken} />);
 
+      // (Optional) If your Case Details component needs the caseId/userId,
+      // you might dispatch additional actions or set state here.
+      // e.g., dispatch(setCurrentCase(pendingCaseId, pendingUserId));
+
+      // Clear the stored values to avoid repeating the action on future loads
+      // localStorage.removeItem("pendingCaseId");
+      // localStorage.removeItem("pendingUserId");
+      // localStorage.removeItem("pendingScreenIndex");
+    }
+  }, [dispatch]);
   useEffect(() => {
     // if (!authValidator.validateToken()) {
     //   return;
@@ -187,6 +234,18 @@ const Dashboard = () => {
         break;
       case 15:
         setCurrentScreen(<AddTask token={decodedToken} />);
+        break;
+      case 16:
+        setCurrentScreen(<ClientConsultationForm token={decodedToken} />);
+        break;
+      case 17:
+        setCurrentScreen(<FormHandover token={decodedToken} />);
+        break;
+      case 18:
+        setCurrentScreen(<ViewFormC token={decodedToken} />);
+        break;
+      case 19:
+        setCurrentScreen(<DocumentFormCShow token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -267,7 +326,12 @@ const Dashboard = () => {
   };
 
   const handleLogOut = () => {
-    navigate("/", { replace: true }); // ensures it replaces the current entry in the history stack
+    removeCookie("token", { path: "/" });
+    sessionStorage.clear();
+    localStorage.removeItem("redirectPath");
+    localStorage.removeItem("pendingCaseId");
+    localStorage.removeItem("pendingUserId");
+    navigate("/", { replace: true });
   };
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -299,25 +363,21 @@ const Dashboard = () => {
   return (
     <div
       className="d-flex w-99 gap-3 m-1"
-      style={{ height: "96vh", overflowY: "auto" }}
+      style={{ height: "96vh", overflow: "hidden" }}
     >
       {/* Sidebar */}
       <div
-        className={`d-flex flex-column text-white  ${
+        className={`sidebar d-flex flex-column text-white position-relative ${
           isCollapsed ? "col-1" : "col-2"
-        } h-100 position-relative`}
+        }`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
-          borderRadius: "6px",
-          backgroundColor: "#18273e",
-          transition: "all 0.3s ease",
-          paddingTop: "10px",
         }}
       >
-        {/* Collapse Toggle */}
+        {/* Collapse Toggle - hidden on small screens via CSS */}
         <div
-          className="d-flex justify-content-center align-items-center mb-3"
+          className="sidebar-toggle d-none d-lg-flex justify-content-center align-items-center mb-3"
           onClick={toggleCollapse}
           style={{
             position: "absolute",
@@ -342,43 +402,101 @@ const Dashboard = () => {
         {/* Sidebar Items */}
         <div className="d-flex flex-column align-items-start px-2 mt-3">
           {[
-            { icon: faHome, label: "Home", action: () => handlescreen2(0) },
+            {
+              icon: faHome,
+              label: "Home",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                handlescreen2(0);
+              },
+            },
             {
               icon: faMessage,
               label: "Messages",
-              action: () => handlescreen2(3),
+              action: () => {
+                dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
+                dispatch(Caseinfo(null));
+                handlescreen2(3);
+              },
             },
             decodedToken?.Role === "admin"
               ? {
-                  icon: faPerson,
+                  icon: faPersonCircleCheck,
                   label: "View Users",
-                  action: () => handlescreen2(9),
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                    handlescreen2(9);
+                  },
                 }
               : null,
             decodedToken?.Role === "admin"
               ? {
                   icon: faCcMastercard,
                   label: "Add Case",
-                  action: () => handlescreen2(11),
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                    handlescreen2(11);
+                  },
                 }
               : null,
-            decodedToken?.Role === "admin"
+            decodedToken?.Role !== "client"
               ? {
-                  icon: faTasks,
-                  label: "Task Management",
-                  action: () => handlescreen2(13),
+                  icon: faTasksAlt,
+                  label: "View Task",
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                    handlescreen2(14);
+                  },
                 }
               : null,
-            // decodedToken?.Role === "admin"
-            //   ? {
-            //     icon: faStreetView,
-            //     label: "View Client",
-            //     action: () => handlescreen2(10),
-            //   }
-            //   : null,
+            // {
+            //   icon: faStickyNote,
+            //   label: "Client Consultation Form",
+            //   action: () => {
+            //     dispatch(clientEmail(null));
+            //     dispatch(Caseinfo(null));
+            //     handlescreen2(16);
+            //   },
+            // },
+            {
+              icon: faWpforms,
+              label: "View Consultation Form",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                handlescreen2(18);
+              },
+            },
+            {
+              icon: faStickyNote,
+              label: "Form Hand Over",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                handlescreen2(17);
+              },
+            },
             { icon: faPowerOff, label: "Logout", action: handleLogOut },
           ]
-            .filter(Boolean) // Removes `null` or `false` values
+            .filter(Boolean)
             .map((item, index) => (
               <div
                 key={index}
@@ -388,6 +506,7 @@ const Dashboard = () => {
               >
                 <FontAwesomeIcon
                   icon={item.icon}
+                  title={item.label} // Add title for hover effect
                   style={{
                     fontSize: "20px",
                     color: "white",
@@ -396,11 +515,8 @@ const Dashboard = () => {
                 />
                 {!isCollapsed && (
                   <span
-                    className="d-inline-block text-truncate"
-                    style={{
-                      fontSize: "16px",
-                      maxWidth: "150px",
-                    }}
+                    className="sidebar-label d-none d-lg-inline text-truncate"
+                    style={{ fontSize: "16px", maxWidth: "150px" }}
                   >
                     {item.label}
                   </span>
@@ -457,13 +573,30 @@ const Dashboard = () => {
               {screen === 15 && (
                 <ScreenHeader title="Add Task" onBack={handleBack} />
               )}
+              {screen === 16 && (
+                <ScreenHeader
+                  title="Client Consultation Form"
+                  onBack={handleBack}
+                />
+              )}
+              {screen === 18 && (
+                <ScreenHeader
+                  title="View Consultation Form"
+                  onBack={handleBack}
+                />
+              )}
             </h3>
 
             {/* Admin Buttons */}
             {decodedToken?.Role === "admin" && screen === 9 && (
               <div
                 className="d-flex align-items-center my-2"
-                onClick={() => handlescreen2(8)}
+                onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+                  handlescreen2(8);
+                }}
                 style={{ gap: "10px", cursor: "pointer" }}
               >
                 <FontAwesomeIcon
@@ -480,7 +613,13 @@ const Dashboard = () => {
             {decodedToken?.Role === "admin" && screen === 10 && (
               <div
                 className="d-flex align-items-center my-2"
-                onClick={() => handlescreen2(11)}
+                onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
+                  handlescreen2(11);
+                }}
                 style={{ gap: "10px", cursor: "pointer" }}
               >
                 <FontAwesomeIcon
@@ -496,20 +635,15 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            <button
-              className="btn me-2 "
-              onClick={() => {
-                handlescreen2(14);
-              }}
-              style={{ color: "white", border: "1px solid #c0a262" }}
-            >
-              View Task
-            </button>
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
               <button
                 className="btn me-2"
                 onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
                   handlescreen2(5);
                 }}
               >
@@ -525,6 +659,10 @@ const Dashboard = () => {
               <button
                 className="btn"
                 onClick={() => {
+                  dispatch(Caseinfo(null));
+                  dispatch(clientEmail(null));
+                  dispatch(FormCDetails(null));
+
                   handlescreen2(4);
                 }}
               >

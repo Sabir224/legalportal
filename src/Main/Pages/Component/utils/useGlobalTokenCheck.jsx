@@ -1,32 +1,32 @@
 import { useEffect } from "react";
 import { useCookies } from "react-cookie";
-import { useAuthValidator } from "./validatteToke";
+import { useAuth } from "./validatteToke";
 
 export const useGlobalTokenCheck = () => {
-  const authValidator = useAuthValidator();
+  const { validateToken } = useAuth();
   const [cookies] = useCookies(["token"]);
 
   useEffect(() => {
     let timeoutId;
-    const debounceDelay = 1000; // 1 second debounce
+    const debounceDelay = 1000;
 
     const handleInteraction = () => {
       clearTimeout(timeoutId);
       timeoutId = setTimeout(() => {
-        authValidator.validateToken();
+        validateToken();
       }, debounceDelay);
     };
 
     const events = ["click", "keydown", "touchstart"];
-    events.forEach((event) => {
-      document.addEventListener(event, handleInteraction);
-    });
+    events.forEach((event) =>
+      document.addEventListener(event, handleInteraction)
+    );
 
     return () => {
       clearTimeout(timeoutId);
-      events.forEach((event) => {
-        document.removeEventListener(event, handleInteraction);
-      });
+      events.forEach((event) =>
+        document.removeEventListener(event, handleInteraction)
+      );
     };
-  }, [cookies.token]);
+  }, [cookies.token, validateToken]);
 };

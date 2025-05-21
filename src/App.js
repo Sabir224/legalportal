@@ -12,51 +12,87 @@ import ResetPassword from "./Main/Pages/ResetPassword";
 import ForgotPassword from "./Main/Pages/ForgotPassword";
 import { useGlobalTokenCheck } from "./Main/Pages/Component/utils/useGlobalTokenCheck";
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import { useCookies } from "react-cookie";
 
 import { useEffect, useState } from "react";
-import { useAuthValidator } from "./Main/Pages/Component/utils/validatteToke";
+import { useAuth } from "./Main/Pages/Component/utils/validatteToke";
 import { Spinner } from "react-bootstrap";
-
-// Protected Route Component
-
-const ProtectedRoute = ({ element }) => {
-  const { validator, tokenChecked } = useAuthValidator();
-  const [isAuthenticated, setIsAuthenticated] = useState(null);
+import CasedetailsWithLink from "./Component/CaseDetailsWithLink";
+import ClientAppointMentWithLink from "./Main/Pages/ClientAppointMentWithLink";
+import ViewFolderWithLink from "./Main/Pages/Component/Casedetails/ViewFolderWithLink";
+import { useDispatch } from "react-redux";
+import { screenChange } from "./REDUX/sliece";
+import ClientConsultationForm from "./Main/Pages/Component/Case_Forms/FormC";
+function CaseRedirectHandler() {
+  const { caseId, userId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-    if (tokenChecked) {
-      const result = validator.validateToken();
-      setIsAuthenticated(result);
-    }
-  }, [tokenChecked, validator]);
+    // Only proceed if we're on the case redirect path and params exist
+    if (location.pathname.startsWith("/case/") && caseId && userId) {
+      // Store the case information in localStorage
+      localStorage.setItem("pendingCaseId", caseId);
+      localStorage.setItem("pendingUserId", userId);
+      localStorage.setItem("pendingScreenIndex", "1");
+      localStorage.setItem("isPendingCase", "true"); // Flag to indicate we have pending case
 
-  if (!tokenChecked || isAuthenticated === null) {
-    return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Spinner color="#36d7b7" size={60} />
-      </div>
-    );
+      // Navigate to dashboard
+      navigate("/Dashboards");
+    }
+  }, [caseId, userId, navigate, location.pathname]);
+
+  return null;
+}
+
+// Updated ProtectedRoute component
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated } = useAuth();
+  const location = useLocation();
+
+  if (!isAuthenticated) {
+    // Save the attempted path for redirect after login
+    localStorage.setItem("redirectPath", location.pathname);
+    return <Navigate to="/" replace />;
   }
 
-  return isAuthenticated ? element : <Navigate to="/" replace />;
+  return children;
 };
-
-// Global Token Check Component
 const GlobalTokenValidator = () => {
-  const { validator, tokenChecked } = useAuthValidator();
+  const { validateToken } = useAuth();
+  const location = useLocation();
 
   useEffect(() => {
+    // List of public routes that don't need token validation
+    const publicRoutes = [
+      "/",
+      "/signup",
+      "/forget-password",
+      "/reset-password",
+      "/client-consultation",
+    ];
+
+    // Don't validate on public routes
+    if (publicRoutes.includes(location.pathname)) {
+      return;
+    }
+
+    const redirectPath = localStorage.getItem("redirectPath");
+
+    // Don't validate if user is on the redirect path
+    if (location.pathname === redirectPath) return;
+
     const handleInteraction = () => {
-      validator.validateToken();
+      validateToken();
     };
 
     const events = ["click", "keydown"];
@@ -69,7 +105,7 @@ const GlobalTokenValidator = () => {
         window.removeEventListener(event, handleInteraction)
       );
     };
-  }, [validator]);
+  }, [location.pathname, validateToken]);
 
   return null;
 };
@@ -91,11 +127,38 @@ function App() {
         {/* Protected routes */}
         <Route
           path="/Dashboards"
-          element={<ProtectedRoute element={<Dashboard />} />}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
+        <Route path="/client-consultation" element={<ClientConsultationForm />} />
+
+        <Route
+          path="/client-appointment/:caseId/:userId"
+          element={
+            <ProtectedRoute>
+              <ClientAppointMentWithLink />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/folders/:caseId/:userId"
+          element={
+            <ProtectedRoute>
+              <ViewFolderWithLink />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/CaseDetails"
-          element={<ProtectedRoute element={<Case_details />} />}
+          element={
+            <ProtectedRoute>
+              <Case_details />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </BrowserRouter>

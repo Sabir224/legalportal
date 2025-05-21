@@ -91,3 +91,24 @@
   /*overflow-y: auto;
   overflow-x: hidden; */
 }
+.fixed-button {
+  width: 250px !important;
+  min-width: 200px !important;
+  max-width: 300px !important;
+  box-shadow: 5px 5px 5px gray !important;
+  border: 2px solid #d4af37 !important;
+  border-radius: 10px !important;
+}
+.subject-box {
+  box-shadow: 4px 4px 6px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: #16213e;
+  padding: 1rem;
+  min-height: 100%;
+}
+
+@media (min-width: 768px) {
+  .fixed-button {
+    width: 260px !important;
+  }
+}
