@@ -491,6 +491,7 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "lawyer"
             ? [{ label: "View lawyer", onClick: handleViewDetails }]
             : []),
+          ...[{ label: "View Folder", onClick: handleViewFolders }],
 
           ...(token?.Role !== "client"
             ? [{ label: "View Client", onClick: handleViewClientDetails }]

@@ -45,7 +45,7 @@ const ViewFolder = ({ token }) => {
   const [folderList, setFolderList] = useState([]);
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const FormCDetails = useSelector((state) => state.screen.FormCDetails);
-
+  console.log("FormCDetails", FormCDetails)
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
@@ -244,7 +244,7 @@ const ViewFolder = ({ token }) => {
     setLoadingFolders(true);
     setError("");
     try {
-      const response = await fetch(`${ApiEndPoint}getFormCDetailsByEmail/${FormCDetails}`);
+      const response = await fetch(`${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`);
       if (!response.ok) throw new Error("Error fetching subfolders");
 
       const data = await response.json();
@@ -489,11 +489,19 @@ const ViewFolder = ({ token }) => {
   const [activeTab, setActiveTab] = useState("documents");
 
   const handleDownload = async (fileId, fileName) => {
+    console.log("file name",fileId)
+
+    // let apiaddress = FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}download/${fileId}`
+
+    let apiaddress = IsPersonal ?  `${ApiEndPoint}download/${fileId}` : FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}downloadFileFromFolder/${fileId}`
+    console.log("file apiaddress",apiaddress)
     if (IsPersonal) {
       console.log("Download Response JSON:", fileId);
 
       try {
-        const response = await fetch(`${ApiEndPoint}download/${fileId}`, {
+       
+       
+        const response = await fetch(apiaddress, {
           method: "POST", // Changed to POST to send body
           headers: {
             "Content-Type": "application/json",
@@ -552,7 +560,7 @@ const ViewFolder = ({ token }) => {
     } else {
       try {
         const response = await fetch(
-          `${ApiEndPoint}downloadFileFromFolder/${fileId}`,
+          apiaddress,
           {
             method: "POST",
             headers: {
@@ -1137,7 +1145,7 @@ const ViewFolder = ({ token }) => {
 
               {/* Right side: All buttons */}
               <div className="d-flex align-items-center gap-2">
-                {!IsPersonal && (
+                {(!IsPersonal && !FormCDetails) && (
                   <div className="d-flex align-items-center gap-2">
                     <Button
                       variant="primary"
@@ -1382,7 +1390,7 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : false
+                                        : folder.folderName === "FormC Documents" ? true : false
                                     }
                                   >
                                     <FontAwesomeIcon icon={faEdit} />
@@ -1407,7 +1415,7 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : false
+                                        : folder.folderName === "FormC Documents" ? true : false
                                     }
                                   >
                                     <img
@@ -1439,7 +1447,7 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : false
+                                        : folder.folderName === "FormC Documents" ? true : false
                                     }
                                   >
                                     <FontAwesomeIcon icon={faTrash} />
@@ -1554,7 +1562,7 @@ const ViewFolder = ({ token }) => {
                             className="d-flex gap-2 justify-content-end"
                             style={{ width: "100%" }}
                           >
-                            {!IsPersonal && (
+                            {(!IsPersonal && !FormCDetails) && (
                               <>
                                 <Button
                                   variant="danger"
@@ -1605,7 +1613,7 @@ const ViewFolder = ({ token }) => {
                             >
                               <FontAwesomeIcon icon={faDownload} />
                             </Button>
-                            {!IsPersonal && (
+                            {(!IsPersonal && !FormCDetails) && (
                               <Button
                                 variant="danger"
                                 size="sm"
