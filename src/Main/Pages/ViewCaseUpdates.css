@@ -1,0 +1,181 @@
+/* ViewCaseUpdates.css */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: linear-gradient(to bottom right, #0e1a2b, #1f2f47);
+  color: #fff;
+  overflow: hidden;
+}
+
+/* Layout */
+.updates-wrapper {
+  padding: 20px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.page-title {
+  font-size: 30px;
+  color: #c09b55;
+  font-weight: bold;
+  margin-bottom: 16px;
+}
+
+/* Update list */
+.updates-container {
+  width: 100%;
+  max-width: 800px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 14px;
+  flex-grow: 1;
+  overflow-y: auto;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(6px);
+  margin-bottom: 24px;
+}
+
+.updates-container::-webkit-scrollbar {
+  width: 8px;
+}
+.updates-container::-webkit-scrollbar-thumb {
+  background: #c09b55;
+  border-radius: 6px;
+}
+
+/* Cards */
+.update-card {
+  background: #fff;
+  color: #1f2f47;
+  padding: 16px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.update-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.update-message {
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.update-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #6c7a90;
+}
+
+/* Form */
+.update-form-section {
+  background: #fff;
+  color: #1f2f47;
+  width: 100%;
+  max-width: 800px;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.toggle-form-btn {
+  background-color: #c09b55;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+.toggle-form-btn:hover {
+  background-color: #a38244;
+}
+
+.update-case-form .form-group {
+  margin-bottom: 18px;
+}
+.update-case-form label {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+.update-case-form select,
+.update-case-form textarea {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+
+/* Button */
+button[type="submit"] {
+  background-color: #c09b55;
+  color: #fff;
+  font-weight: bold;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+button[type="submit"]:hover {
+  background-color: #a38244;
+}
+
+/* Toast */
+.toast-notification {
+  margin-top: 12px;
+  font-weight: 600;
+  color: green;
+}
+
+.loading-text {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.no-updates-text {
+  color: #c09b55;
+  font-weight: bold;
+  font-size: 15px;
+}
+
+/* Toggle */
+.add-update-toggle {
+  background: #c09b55;
+  color: #1f2f47;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+.add-update-toggle:hover {
+  background: #a38244;
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .update-card,
+  .update-form-section,
+  .updates-container {
+    max-width: 95%;
+    padding: 16px;
+  }
+}
