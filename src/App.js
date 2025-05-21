@@ -3,7 +3,10 @@ import "./App.css";
 
 import Dashboard from "./Main/Dashboard";
 import Case_details from "./Component/Case_details";
+//import UpdateCase from './Main/Pages/UpdateCase/UpdateCase';
+//import FAQ from "./Main/Pages/FAQ/FAQ";
 import SignIn from "./Main/Pages/SignIn";
+//import ViewCaseUpdates from "./Main/Pages/ViewCaseUpdates";
 import SignUp_Screen from "./Main/Pages/SignUp_Screen";
 import ResetPassword from "./Main/Pages/ResetPassword";
 import ForgotPassword from "./Main/Pages/ForgotPassword";
@@ -114,6 +117,9 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<SignIn />} />
+       {/*<Route path="/" element={<FAQ />} />*/}
+        {/*<Route path="/" element={<UpdateCase />}/>*/}
+        {/*<Route path="/" element={<ViewCaseUpdates />}/>*/}
         <Route path="/SignUp" element={<SignUp_Screen />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />

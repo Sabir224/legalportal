@@ -7,6 +7,7 @@ import React, { useEffect, useState } from "react";
 import { toZonedTime, format, formatInTimeZone } from "date-fns-tz";
 import { isToday, isYesterday, isThisWeek, parseISO } from "date-fns";
 import { Cookies, useCookies } from "react-cookie";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 export const icons = {
   user: user,
 };
@@ -81,7 +82,21 @@ export const formatPhoneNumber = (value) => {
   if (!value) return "N/A";
   return value.startsWith("+") ? value : `+${value}`;
 };
-// export const ApiEndPoint = "https://portal.aws-legalgroup.com/api/";
+
+export const theme = createTheme({
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 576,
+      md: 768,
+      lg: 992,
+      xl: 1200,
+      xxl: 1400, // optional
+    },
+  },
+});
+
+export const ApiEndPoint = "https://portal.aws-legalgroup.com/api/";
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
 export const ApiEndPoint = "http://localhost:5001/api/";
 
