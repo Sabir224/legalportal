@@ -1,0 +1,173 @@
+/* ✅ Enhanced Container and Background */
+.update-case-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
+  background: linear-gradient(135deg, #0e1a2b, #1f2f47);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ✅ Form Container with Improved Design */
+.update-case-form {
+  width: 90%;
+  max-width: 1200px;
+  min-height: 750px;
+  background: #ffffff;
+  padding: 3rem 3.5rem;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+/* ✅ Form Labels with Icons */
+.update-case-form label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 0.5rem;
+}
+
+.update-case-form label svg {
+  font-size: 1.5rem;
+  color: #c09b55;
+}
+
+/* ✅ Inputs and Textarea with Better Styling */
+.update-case-form input,
+.update-case-form select,
+.update-case-form textarea {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  margin-top: 0.4rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  background: #f9f9f9;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.update-case-form input:focus,
+.update-case-form select:focus,
+.update-case-form textarea:focus {
+  border-color: #c09b55;
+  outline: none;
+  box-shadow: 0 0 10px rgba(192, 155, 85, 0.2);
+}
+
+.update-case-form textarea {
+  resize: vertical;
+  min-height: 150px;
+}
+
+/* ✅ Enhanced Button Styling */
+.update-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 3rem;
+}
+
+.update-case-form button {
+  width: 220px;
+  padding: 0.85rem 1.5rem;
+  background-color: #c09b55;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.update-case-form button:hover {
+  background-color: #a78345;
+  transform: translateY(-4px);
+  box-shadow: 0 12px 25px rgba(167, 131, 69, 0.3);
+}
+
+/* ✅ Floating Toast Notification */
+.toast-notification {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #e6f4ea;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+  padding: 1rem 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  font-weight: bold;
+  font-size: 1rem;
+  z-index: 9999;
+  animation: fadeInOut 3s ease-in-out forwards;
+}
+
+/* ✅ Animation for Toast */
+@keyframes fadeInOut {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  10%, 90% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+}
+
+/* ✅ Responsive Design */
+@media (max-width: 1024px) {
+  .update-case-form {
+    max-width: 95%;
+    padding: 3rem;
+  }
+
+  .update-case-form button {
+    width: 180px;
+  }
+}
+
+@media (max-width: 768px) {
+  .update-case-form {
+    padding: 2.5rem;
+  }
+
+  .update-case-form button {
+    width: 100%;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .update-case-form {
+    padding: 2rem;
+    border-radius: 16px;
+  }
+
+  .update-button-wrapper {
+    margin-top: 2rem;
+  }
+
+  .update-case-form button {
+    width: 100%;
+    padding: 0.7rem;
+  }
+}
