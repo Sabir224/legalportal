@@ -84,6 +84,7 @@ import ViewFormC from "./Pages/Component/Case_Forms/ViewFormC";
 import DocumentFormCShow from "./Pages/Component/Case_Forms/DocumentFormCShow";
 import { AlertProvider } from "../Component/AlertContext";
 import GlobalAlert from "../Component/GlobalAlert";
+import ViewCaseUpdates from "./Pages/ViewCaseUpdates";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -254,6 +255,9 @@ const Dashboard = () => {
         break;
       case 19:
         setCurrentScreen(<DocumentFormCShow token={decodedToken} />);
+        break;
+      case 20:
+        setCurrentScreen(<ViewCaseUpdates token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -573,6 +577,9 @@ const Dashboard = () => {
               {screen === 11 && <ScreenHeader title="Add Case" />}
               {screen === 12 && (
                 <ScreenHeader title="View Folder" onBack={handleBack} />
+              )}
+              {screen === 20 && (
+                <ScreenHeader title="Case Update" onBack={handleBack} />
               )}
               {/* {screen === 13 && (
                 <ScreenHeader title="Task Management" onBack={handleBack} />
