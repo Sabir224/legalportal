@@ -412,7 +412,7 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                dispatch(FormCDetails(null));
 
                 handlescreen2(0);
               },
@@ -422,7 +422,7 @@ const Dashboard = () => {
               label: "Messages",
               action: () => {
                 dispatch(clientEmail(null));
-                  dispatch(FormCDetails(null));
+                dispatch(FormCDetails(null));
 
                 dispatch(Caseinfo(null));
                 handlescreen2(3);
@@ -435,7 +435,7 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                    dispatch(FormCDetails(null));
 
                     handlescreen2(9);
                   },
@@ -448,7 +448,7 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                    dispatch(FormCDetails(null));
 
                     handlescreen2(11);
                   },
@@ -461,7 +461,7 @@ const Dashboard = () => {
                   action: () => {
                     dispatch(clientEmail(null));
                     dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                    dispatch(FormCDetails(null));
 
                     handlescreen2(14);
                   },
@@ -478,11 +478,11 @@ const Dashboard = () => {
             // },
             {
               icon: faWpforms,
-              label: "View Consultation Form",
+              label: "Form C List",
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                dispatch(FormCDetails(null));
 
                 handlescreen2(18);
               },
@@ -493,7 +493,7 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
+                dispatch(FormCDetails(null));
 
                 handlescreen2(17);
               },
@@ -587,10 +587,7 @@ const Dashboard = () => {
                 />
               )}
               {screen === 18 && (
-                <ScreenHeader
-                  title="View Consultation Form"
-                  onBack={handleBack}
-                />
+                <ScreenHeader title="Form C List" onBack={handleBack} />
               )}
             </h3>
 
