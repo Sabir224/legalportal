@@ -19,6 +19,7 @@ import {
   faPersonCirclePlus,
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
+  faSignOut,
   faStreetView,
   faTasks,
   faTasksAlt,
@@ -81,6 +82,8 @@ import ClientConsultationForm from "./Pages/Component/Case_Forms/FormC";
 import FormHandover from "./Pages/Component/Case_Forms/FormH";
 import ViewFormC from "./Pages/Component/Case_Forms/ViewFormC";
 import DocumentFormCShow from "./Pages/Component/Case_Forms/DocumentFormCShow";
+import { AlertProvider } from "../Component/AlertContext";
+import GlobalAlert from "../Component/GlobalAlert";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -221,7 +224,12 @@ const Dashboard = () => {
         setCurrentScreen(<ViewClient token={decodedToken} />);
         break;
       case 11:
-        setCurrentScreen(<AddCase token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <AddCase token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 12:
         setCurrentScreen(<ViewFolder token={decodedToken} />);
@@ -472,29 +480,31 @@ const Dashboard = () => {
             //     handlescreen2(16);
             //   },
             // },
-            {
-              icon: faWpforms,
-              label: "Form C List",
-              action: () => {
-                dispatch(clientEmail(null));
-                dispatch(Caseinfo(null));
-                dispatch(FormCDetails(null));
+            decodedToken?.Role !== "client"
+              ? {
+                  icon: faWpforms,
+                  label: "Form C List",
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                    dispatch(FormCDetails(null));
 
-                handlescreen2(18);
-              },
-            },
-            {
-              icon: faStickyNote,
-              label: "Form Hand Over",
-              action: () => {
-                dispatch(clientEmail(null));
-                dispatch(Caseinfo(null));
-                dispatch(FormCDetails(null));
+                    handlescreen2(18);
+                  },
+                }
+              : null,
+            // {
+            //   icon: faStickyNote,
+            //   label: "Form Hand Over",
+            //   action: () => {
+            //     dispatch(clientEmail(null));
+            //     dispatch(Caseinfo(null));
+            //     dispatch(FormCDetails(null));
 
-                handlescreen2(17);
-              },
-            },
-            { icon: faPowerOff, label: "Logout", action: handleLogOut },
+            //     handlescreen2(17);
+            //   },
+            // },
+            { icon: faSignOut, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean)
             .map((item, index) => (
@@ -574,10 +584,7 @@ const Dashboard = () => {
                 <ScreenHeader title="Add Task" onBack={handleBack} />
               )}
               {screen === 16 && (
-                <ScreenHeader
-                  title="Client Consultation Form"
-                  onBack={handleBack}
-                />
+                <ScreenHeader title="Form C" onBack={handleBack} />
               )}
               {screen === 18 && (
                 <ScreenHeader title="Form C List" onBack={handleBack} />

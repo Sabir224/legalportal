@@ -1232,7 +1232,6 @@ export default function ViewFormC({ token }) {
                               todo.clientName?.value || "Client";
                             const email = todo?._id?.value;
 
-
                             content =
                               userId && userName ? (
                                 <Button
@@ -1432,18 +1431,6 @@ export default function ViewFormC({ token }) {
               sx={{ height: "85vh", display: "flex", flexDirection: "column" }}
             >
               {/* Fixed header for mobile */}
-              <Box
-                sx={{
-                  flexShrink: 0,
-                  p: 2,
-                  borderBottom: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.background.paper,
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Tasks
-                </Typography>
-              </Box>
 
               {/* Scrollable content for mobile */}
               <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
