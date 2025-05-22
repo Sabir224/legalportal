@@ -1230,7 +1230,8 @@ export default function ViewFormC({ token }) {
                             const userName = todo.userName?.value;
                             const clientName =
                               todo.clientName?.value || "Client";
-                            const email = todo.email?.value;
+                            const email = todo?._id?.value;
+
 
                             content =
                               userId && userName ? (
@@ -1562,7 +1563,7 @@ export default function ViewFormC({ token }) {
                                   const userName = todo.userName?.value;
                                   const clientName =
                                     todo.clientName?.value || "Client";
-                                  const email = todo.email?.value;
+                                  const email = todo?._id?.value;
 
                                   content =
                                     userId && userName ? (
