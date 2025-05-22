@@ -404,6 +404,12 @@ const Case_details = ({ token }) => {
     console.log(global.User);
     dispatch(screenChange(12));
   };
+  const handleCaseUpdate = async () => {
+    global.lawyerDetails = lawyerDetails[0];
+    global.User = user;
+    console.log(global.User);
+    dispatch(screenChange(20));
+  };
   const handleViewClientDetails = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -492,6 +498,7 @@ const Case_details = ({ token }) => {
             ? [{ label: "View lawyer", onClick: handleViewDetails }]
             : []),
           ...[{ label: "View Folder", onClick: handleViewFolders }],
+          ...[{ label: "Case Update", onClick: handleCaseUpdate }],
 
           ...(token?.Role !== "client"
             ? [{ label: "View Client", onClick: handleViewClientDetails }]
