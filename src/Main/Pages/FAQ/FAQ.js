@@ -233,46 +233,63 @@ export default function FAQ() {
     setActiveQuestion(activeQuestion === key ? null : key);
   };
 
+
+
   return (
-    <div className="faq-screen">
-      <div className="faq-card">
-        <div className="faq-header">
-          <h2 className="faq-title">
-            <AiOutlineQuestionCircle className="faq-icon" />
-            Frequently Asked Questions
-          </h2>
-          <p className="faq-subtitle">
-            Everything you need to know about our legal services. Can’t find the answer you’re looking for? Reach out to our support team.
-          </p>
-        </div>
-        {faqData.map((category, categoryIndex) => (
-          <div key={categoryIndex} className="faq-category">
-            <h3 className="faq-category-title">{category.category}</h3>
-            <div className="faq-list">
-              {category.items.map((item, questionIndex) => {
-                const key = `${categoryIndex}-${questionIndex}`;
-                return (
-                  <div className="faq-item" key={key}>
-                    <div
-                      className={`faq-question ${activeQuestion === key ? 'active' : ''}`}
-                      onClick={() => toggle(categoryIndex, questionIndex)}
-                    >
-                      <span>{item.question}</span>
-                      <span className={`arrow ${activeQuestion === key ? 'open' : ''}`}>&#9660;</span>
-                    </div>
-                    {activeQuestion === key && (
-                      <div
-                        className="faq-answer"
-                        dangerouslySetInnerHTML={{ __html: item.answer }}
-                      />
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+    <div
+      className="card container-fluid p-0"
+      style={{
+        height: "87vh",
+        maxWidth: "100vw",
+        overflowX: "hidden",
+        overflowY: "auto",
+      }}
+    >
+     <div className="w-100" style={{ maxWidth: "1500px" }}>
+        <div className="bg-light rounded-4 shadow-lg p-4">
+          <div className="text-center mb-4">
+            <h2 className="d-flex justify-content-center align-items-center text-warning fw-bold mb-2" style={{ fontSize: "2.5rem" }}>
+              <AiOutlineQuestionCircle className="me-2" style={{ fontSize: "2.6rem" }} />
+              Frequently Asked Questions
+            </h2>
+            <p className="text-muted fs-5 mx-auto" style={{ maxWidth: "800px" }}>
+              Everything you need to know about our legal services. Can’t find the answer you’re looking for? Reach out to our support team.
+            </p>
           </div>
-        ))}
+
+          {faqData.map((category, categoryIndex) => (
+            <div key={categoryIndex} className="mb-4">
+              <h3 className="text-warning-emphasis fw-semibold fs-4 mb-3">{category.category}</h3>
+              <div className="d-flex flex-column gap-2">
+                {category.items.map((item, questionIndex) => {
+                  const key = `${categoryIndex}-${questionIndex}`;
+                  return (
+                    <div className="border rounded shadow-sm bg-white" key={key}>
+                      <div
+                        className={`d-flex justify-content-between align-items-center px-3 py-3 fw-semibold fs-5 ${activeQuestion === key ? "bg-light" : ""}`}
+                        onClick={() => toggle(categoryIndex, questionIndex)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        <span>{item.question}</span>
+                        <span className={`text-warning ${activeQuestion === key ? "rotate-180" : ""}`}>&#9660;</span>
+                      </div>
+                      {activeQuestion === key && (
+                        <div className="px-3 py-3 border-start border-4 border-warning-subtle bg-light">
+                          <div
+                            className="text-muted"
+                            dangerouslySetInnerHTML={{ __html: item.answer }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
+
   );
 }

@@ -422,6 +422,12 @@ const Case_details = ({ token }) => {
     // console.log(global.User);
     dispatch(screenChange(15));
   };
+  const handleFormH = async () => {
+    // global.lawyerDetails = lawyerDetails[0];
+    // global.User = user;
+    // console.log(global.User);
+    dispatch(screenChange(17));
+  };
   const handleViewTask = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -508,6 +514,9 @@ const Case_details = ({ token }) => {
             : []),
           ...(token?.Role !== "client"
             ? [{ label: "Add Task", onClick: handleAddTask }]
+            : []),
+          ...(token?.Role !== "client"
+            ? [{ label: "Form H", onClick: handleFormH }]
             : []),
         ].map(({ label, onClick }, index) => (
           <div key={index} className="d-flex justify-content-center mb-2">

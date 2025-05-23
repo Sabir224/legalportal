@@ -19,6 +19,7 @@ import {
   faPersonCirclePlus,
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
+  faQuestion,
   faSignOut,
   faStreetView,
   faTasks,
@@ -71,6 +72,7 @@ import ViewClient from "./Pages/cases/ViewClient";
 import AddCase from "./Pages/cases/AddCase";
 import {
   faAddressBook,
+  faQuestionCircle,
   faStickyNote,
 } from "@fortawesome/free-regular-svg-icons";
 import ViewFolder from "./Pages/Component/Casedetails/ViewFolder";
@@ -85,6 +87,7 @@ import DocumentFormCShow from "./Pages/Component/Case_Forms/DocumentFormCShow";
 import { AlertProvider } from "../Component/AlertContext";
 import GlobalAlert from "../Component/GlobalAlert";
 import ViewCaseUpdates from "./Pages/ViewCaseUpdates";
+import FAQ from "./Pages/FAQ/FAQ";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -263,6 +266,9 @@ const Dashboard = () => {
         break;
       case 20:
         setCurrentScreen(<ViewCaseUpdates token={decodedToken} />);
+        break;
+      case 21:
+        setCurrentScreen(<FAQ token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -512,6 +518,17 @@ const Dashboard = () => {
             //     handlescreen2(17);
             //   },
             // },
+            {
+              icon: faQuestionCircle,
+              label: "FAQ",
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                dispatch(FormCDetails(null));
+
+                handlescreen2(21);
+              },
+            },
             { icon: faSignOut, label: "Logout", action: handleLogOut },
           ]
             .filter(Boolean)
