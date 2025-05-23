@@ -32,6 +32,8 @@ import ViewFolderWithLink from "./Main/Pages/Component/Casedetails/ViewFolderWit
 import { useDispatch } from "react-redux";
 import { screenChange } from "./REDUX/sliece";
 import ClientConsultationForm from "./Main/Pages/Component/Case_Forms/FormC";
+import { AlertProvider } from "./Component/AlertContext";
+import GlobalAlert from "./Component/GlobalAlert";
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
   const navigate = useNavigate();
@@ -117,7 +119,7 @@ function App() {
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<SignIn />} />
-       {/*<Route path="/" element={<FAQ />} />*/}
+        {/*<Route path="/" element={<FAQ />} />*/}
         {/*<Route path="/" element={<UpdateCase />}/>*/}
         {/*<Route path="/" element={<ViewCaseUpdates />}/>*/}
         <Route path="/SignUp" element={<SignUp_Screen />} />
@@ -134,7 +136,13 @@ function App() {
           }
         />
         <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
-        <Route path="/client-consultation" element={<ClientConsultationForm />} />
+        <Route path="/client-consultation" element={
+          <AlertProvider>
+            <ClientConsultationForm />
+            <GlobalAlert />
+          </AlertProvider>
+        }
+        />
 
         <Route
           path="/client-appointment/:caseId/:userId"
