@@ -1324,7 +1324,7 @@ export default function ViewFormC({ token }) {
                                   )
                                 }
                                 onBlur={handleBlur}
-                                disabled={isclient || key === "email"}
+                                disabled={isclient || key === "email" || key === "phone "}
                                 sx={{ minWidth: 120 }}
                               />
                             );
@@ -1461,6 +1461,7 @@ export default function ViewFormC({ token }) {
                                 size="small"
                                 onClick={() => handleSignup(todo)}
                                 sx={{ textTransform: "none" }}
+                                disabled={!todo.userName?.value ? false:true}
                               >
 
                                 SignUp
@@ -1660,7 +1661,7 @@ export default function ViewFormC({ token }) {
                                         )
                                       }
                                       onBlur={handleBlur}
-                                      disabled={isclient || key === "email"}
+                                      disabled={isclient || key === "email" ||  key === "phone"}
                                       size="small"
                                       fullWidth
                                     />
