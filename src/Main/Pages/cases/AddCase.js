@@ -1,60 +1,31 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./AddCase.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  FaUser,
-  FaPhone,
-  FaEnvelope,
-  FaLock,
-  FaUpload,
-  FaBell,
-  FaBars,
-  FaTrash,
-  FaBriefcase,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaChevronDown,
-  FaGlobe,
-  FaMapMarkedAlt,
-  FaBuilding,
-  FaChair,
-  FaRegEnvelope,
-  FaFilter,
-  FaMailBulk,
-  FaAudioDescription,
-  FaTypo3,
-} from "react-icons/fa";
-import { Link } from "react-router-dom";
+
 import { ApiEndPoint } from "../Component/utils/utlis";
-import { useDispatch, useSelector } from "react-redux";
-import { screenChange } from "../../../REDUX/sliece";
+import { useSelector } from "react-redux";
+
 import { Bs123, BsPerson, BsType } from "react-icons/bs";
 import axios from "axios";
 import { useAlert } from "../../../Component/AlertContext";
+import {
+  FaAudioDescription,
+  FaChevronDown,
+  FaRegEnvelope,
+} from "react-icons/fa";
 
 const AddCase = () => {
-  const dispatch = useDispatch();
   const [Priority, setPriority] = useState("High");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState(null);
   const selectedclientdetails = useSelector(
     (state) => state.screen.clientEmail
   );
   // Form fields
-  // console.log("clientEmail", clientEmail)
   const [casenumber, setCaseNumber] = useState("");
   const [clientname, setClientname] = useState("");
   const [casetype, setCaseType] = useState("");
   const [discription, setDiscription] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [clientmail, setclientmail] = useState("");
-  const [bio, setBio] = useState("");
-  const [language, setLanguage] = useState("");
-  const [location, setLocation] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [department, setDepartment] = useState("");
-  const [position, setPosition] = useState("");
+
   const [PreviewCaseId, setPreviewCaseId] = useState("");
   const dropdownRef = useRef(null);
   const regexCaseNumber = /^[a-zA-Z0-9\s/]+$/; // Letters, numbers, spaces, and slashes
@@ -103,19 +74,22 @@ const AddCase = () => {
       ClientId: selectedclientdetails?._id,
     };
     if (!regexCaseNumber.test(casenumber)) {
-      alert(
+      showError(
         "Case Number should contain only letters, numbers, spaces, and slashes."
       );
+
       return;
     }
 
     if (!regexClientName.test(clientname)) {
-      alert("Client Name should contain only letters and spaces.");
+      showError("Client Name should contain only letters and spaces.");
+
       return;
     }
 
     if (!regexCaseType.test(casetype)) {
-      alert("Case Type should contain only letters and spaces.");
+      showError("Case Type should contain only letters and spaces.");
+
       return;
     }
     try {

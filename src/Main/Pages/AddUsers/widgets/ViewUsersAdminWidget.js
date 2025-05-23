@@ -13,6 +13,19 @@ import { FaCamera, FaEdit, FaLock, FaChevronDown } from "react-icons/fa";
 import { GrContactInfo } from "react-icons/gr";
 import { useDispatch, useSelector } from "react-redux";
 import { screenChange } from "../../../../REDUX/sliece";
+import {
+  Box,
+  TextField,
+  InputAdornment,
+  Avatar,
+  IconButton,
+  Button,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
+import { Lock, Edit, ChevronDown } from "@mui/icons-material";
 
 const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
@@ -604,11 +617,14 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
           {isProfile && (
             <div
               style={{
-                width: "50%",
+                width: "100%",
+                maxWidth: "500px",
                 position: "relative",
+                margin: "0 auto",
+                padding: "0 15px",
               }}
             >
-              <div className="mb-2 text-center  avatar-container">
+              <div className="mb-3 text-center avatar-container">
                 <label htmlFor="profilePicInput">
                   <img
                     src={
@@ -620,21 +636,16 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                     }
                     alt="Profile"
                     style={{
-                      // maxWidth: "80px",
-                      // maxHeight: "80px",
-                      // minWidth: "50px",
-                      // minHeight: "50px",
                       border: "2px solid #d4af37",
-                      textAlign: "center",
                       padding: "3px",
-                      borderRadius: "50%", // Use 50% for a perfect circle
+                      borderRadius: "50%",
                       width: "100px",
                       height: "100px",
-                      borderRadius: "50%",
                       border: "1px solid #18273e",
                       boxShadow: "#18273e 0px 2px 5px",
+                      cursor: "pointer",
                     }}
-                    className="avatar-img"
+                    className="avatar-img img-fluid"
                     onClick={() =>
                       document.getElementById("profilePicUpdate").click()
                     }
@@ -648,15 +659,16 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   style={{ display: "none" }}
                 />
               </div>
+
               {/* Edit Icon */}
-              <div>
+              <div className="text-center mb-3">
                 {editableFields ? (
                   <FaLock
                     onClick={handleEdit}
                     style={{
                       cursor: "pointer",
-                      marginTop: "5px",
                       color: "#d3b386",
+                      fontSize: "1.2rem",
                     }}
                   />
                 ) : (
@@ -664,40 +676,39 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                     onClick={handleEdit}
                     style={{
                       cursor: "pointer",
-                      marginTop: "5px",
                       color: "#d3b386",
+                      fontSize: "1.2rem",
                     }}
                   />
                 )}
               </div>
 
               {/* Form Fields */}
-              <div className="text-start d-flex flex-column gap-2">
+              <div className="d-flex flex-column gap-3">
                 {/* Name Field */}
                 <div>
                   <label
-                    className="form-label fw-bold"
+                    className="form-label fw-bold text-start"
                     style={{
-                      marginBottom: "10px",
-                      fontSize: "1rem",
-                      marginLeft: "3px",
+                      fontSize: "0.9rem",
+                      color: "#18273e",
+                      textAlign: "left",
+                      display: "block",
                     }}
                   >
                     Name
                   </label>
-                  <div
-                    className="input-group bg-soft-light rounded-2"
-                    style={{ marginTop: "-10px" }}
-                  >
+                  <div className="input-group bg-soft-light rounded-2">
                     <span className="input-group-text">
                       <BsPerson />
                     </span>
                     <input
                       style={{
-                        borderColor: "#18273e", // Green border for unfocused state
-                        boxShadow: "none", // Remove default Bootstrap shadow on focus
+                        borderColor: "#18273e",
+                        boxShadow: "none",
+                        fontSize: "0.9rem",
                       }}
-                      className="form-control-md form-control"
+                      className="form-control"
                       value={adminData?.name}
                       onChange={(e) => handleChange(e, "name")}
                       id="Name"
@@ -708,10 +719,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                       required
                       readOnly={!editableFields}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                        e.target.style.borderColor = "#d3b386";
                       }}
                       onBlur={(e) => {
-                        e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                        e.target.style.borderColor = "#18273e";
                       }}
                     />
                   </div>
@@ -720,28 +731,27 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                 {/* Email Field */}
                 <div>
                   <label
-                    className="form-label fw-bold"
+                    className="form-label fw-bold text-start"
                     style={{
-                      marginBottom: "10px",
-                      fontSize: "1rem",
-                      marginLeft: "3px",
+                      fontSize: "0.9rem",
+                      color: "#18273e",
+                      textAlign: "left",
+                      display: "block",
                     }}
                   >
                     Email
                   </label>
-                  <div
-                    className="input-group bg-soft-light rounded-2"
-                    style={{ marginTop: "-10px" }}
-                  >
+                  <div className="input-group bg-soft-light rounded-2">
                     <span className="input-group-text">
                       <MdOutlineAttachEmail />
                     </span>
                     <input
                       style={{
-                        borderColor: "#18273e", // Green border for unfocused state
-                        boxShadow: "none", // Remove default Bootstrap shadow on focus
+                        borderColor: "#18273e",
+                        boxShadow: "none",
+                        fontSize: "0.9rem",
                       }}
-                      className="form-control-md form-control"
+                      className="form-control"
                       value={adminData?.email}
                       onChange={(e) => handleChange(e, "email")}
                       id="Email"
@@ -752,10 +762,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                       required
                       readOnly={!editableFields}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                        e.target.style.borderColor = "#d3b386";
                       }}
                       onBlur={(e) => {
-                        e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                        e.target.style.borderColor = "#18273e";
                       }}
                       disabled={true}
                     />
@@ -765,60 +775,66 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                 {/* Phone Field */}
                 <div>
                   <label
-                    className="form-label fw-bold"
+                    className="form-label fw-bold text-start"
                     style={{
-                      marginBottom: "10px",
-                      fontSize: "1rem",
-                      marginLeft: "3px",
+                      fontSize: "0.9rem",
+                      color: "#18273e",
+                      textAlign: "left",
+                      display: "block",
                     }}
                   >
                     Phone
                   </label>
-                  <PhoneInput
-                    country={"us"}
-                    value={adminData?.phone}
-                    onChange={handlePhoneChange}
-                    disabled={!editableFields}
-                    inputStyle={{
-                      width: "100%",
-                      border: "1px solid #18273e",
-                      boxShadow: "none",
-                      height: "37px",
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = "#d3b386"; // Orange border on focus
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = "#18273e"; // Green border on unfocus
-                    }}
-                  />
+                  <div style={{ width: "100%" }}>
+                    <PhoneInput
+                      country={"us"}
+                      value={adminData?.phone}
+                      onChange={handlePhoneChange}
+                      disabled={!editableFields}
+                      inputStyle={{
+                        width: "100%",
+                        border: "1px solid #18273e",
+                        boxShadow: "none",
+                        height: "38px",
+                        fontSize: "0.9rem",
+                      }}
+                      containerStyle={{
+                        width: "100%",
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = "#d3b386";
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = "#18273e";
+                      }}
+                    />
+                  </div>
                 </div>
 
                 {/* Password Field */}
                 <div>
                   <label
-                    className="form-label fw-bold"
+                    className="form-label fw-bold text-start"
                     style={{
-                      marginBottom: "10px",
-                      fontSize: "1rem",
-                      marginLeft: "3px",
+                      fontSize: "0.9rem",
+                      color: "#18273e",
+                      textAlign: "left",
+                      display: "block",
                     }}
                   >
                     Password
                   </label>
-                  <div
-                    className="input-group bg-soft-light rounded-2"
-                    style={{ marginTop: "-10px" }}
-                  >
+                  <div className="input-group bg-soft-light rounded-2">
                     <span className="input-group-text">
                       <RiLockPasswordFill />
                     </span>
                     <input
                       style={{
-                        borderColor: "#18273e", // Green border for unfocused state
-                        boxShadow: "none", // Remove default Bootstrap shadow on focus
+                        borderColor: "#18273e",
+                        boxShadow: "none",
+                        fontSize: "0.9rem",
                       }}
-                      className="form-control-md form-control"
+                      className="form-control"
                       value={adminData?.password}
                       onChange={(e) => handleChange(e, "password")}
                       id="Password"
@@ -829,28 +845,38 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                       required
                       readOnly={!editableFields}
                       onFocus={(e) => {
-                        e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                        e.target.style.borderColor = "#d3b386";
                       }}
                       onBlur={(e) => {
-                        e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                        e.target.style.borderColor = "#18273e";
                       }}
                     />
                   </div>
                 </div>
 
-                <div className="mb-3 col-md-12">
-                  <label className="form-label" style={{ color: "#18273e" }}>
+                {/* Role Field */}
+                <div className="mb-3">
+                  <label
+                    className="form-label fw-bold text-start"
+                    style={{
+                      color: "#18273e",
+                      fontSize: "0.9rem",
+                      textAlign: "left",
+                      display: "block",
+                    }}
+                  >
                     Role
                   </label>
                   <div className="input-group">
                     <div className="position-relative w-100" ref={dropdownRef}>
                       <div
-                        className="form-control  d-flex align-items-center justify-content-between"
+                        className="form-control d-flex align-items-center justify-content-between"
                         style={{
                           cursor: "pointer",
-                          minWidth: "300px",
                           border: "1px solid #18273e",
                           color: "#18273e",
+                          fontSize: "0.9rem",
+                          height: "38px",
                         }}
                         onClick={toggleDropdown}
                       >
@@ -866,7 +892,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                               <li
                                 key={role}
                                 className="list-group-item list-group-item-action text-white bg-dark border-secondary"
-                                style={{ cursor: "pointer" }}
+                                style={{
+                                  cursor: "pointer",
+                                  fontSize: "0.9rem",
+                                }}
                                 onClick={() => handleRoleSelect(role)}
                               >
                                 {role}
@@ -883,17 +912,16 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
               {/* Save and Delete Buttons */}
               {editableFields && (
                 <div
+                  className="d-flex justify-content-between gap-3 mt-3"
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
                     width: "100%",
-                    marginTop: "10px",
                   }}
                 >
                   <button
                     onClick={handleSave}
+                    className="btn"
                     style={{
-                      width: "48%",
+                      flex: 1,
                       color: "white",
                       background: "#18273e",
                       height: "40px",
@@ -906,8 +934,9 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   </button>
                   <button
                     onClick={handleDelete}
+                    className="btn"
                     style={{
-                      width: "48%",
+                      flex: 1,
                       color: "white",
                       background: "#d3b386",
                       height: "40px",
@@ -920,7 +949,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   </button>
                 </div>
               )}
-              {/* master sheet*/}
             </div>
           )}{" "}
           {showCaseSheet && (
@@ -942,74 +970,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   value={searchQuery}
                   onChange={(e) => handleSearch(e.target.value)}
                 />
-
-                {/* Filter & Sorting Dropdowns */}
-                <div className="d-flex flex-wrap gap-2">
-                  {/* Status Filter */}
-                  <select
-                    className="form-select w-auto"
-                    onChange={(e) =>
-                      handleFilterChange("status", e.target.value)
-                    }
-                  >
-                    <option value="All">All Status</option>
-                    <option value="Open">Open</option>
-                    <option value="Closed">Closed</option>
-                    <option value="Pending">Pending</option>
-                  </select>
-
-                  {/* Case Type Filter */}
-                  <select
-                    className="form-select w-auto"
-                    onChange={(e) =>
-                      handleFilterChange("caseType", e.target.value)
-                    }
-                  >
-                    <option value="All">All Case Types</option>
-                    <option value="Civil">Civil</option>
-                    <option value="Criminal">Criminal</option>
-                    <option value="Family">Family</option>
-                  </select>
-
-                  {/* Priority Filter */}
-                  <select
-                    className="form-select w-auto"
-                    onChange={(e) =>
-                      handleFilterChange("priority", e.target.value)
-                    }
-                  >
-                    <option value="All">All Priorities</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
-                  </select>
-                  {user.Role === "client" && (
-                    <button
-                      onClick={() => handleAddCase()}
-                      className="first-lastbutton btn btn-sm text-white"
-                      style={{ backgroundColor: "#d3b386", border: "none" }}
-                    >
-                      Add Case
-                    </button>
-                  )}
-                  {/* Sorting Options */}
-                  {/* <select
-                                          className="form-select w-auto"
-                                          onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-                                      >
-                                          <option value="createdAt">Sort by Created Date</option>
-                                          <option value="updatedAt">Sort by Updated Date</option>
-                                          <option value="CaseNumber">Sort by Case Number</option>
-                                      </select> */}
-
-                  {/* <select
-                                          className="form-select w-auto"
-                                          onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-                                      >
-                                          <option value="asc">Ascending</option>
-                                          <option value="desc">Descending</option>
-                                      </select> */}
-                </div>
               </div>
 
               <div className="card mb-3 shadow">
@@ -1020,8 +980,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   <span className="col text-start">Status</span>
                   <span className="col text-start">Case Number</span>
                   <span className="col text-start">Case Type</span>
-                  {/*<span className="col text-start">Purpose</span> */}
-                  {/* <span className="col text-end">Action</span> */}
                 </div>
 
                 <div className="card-list p-0">
