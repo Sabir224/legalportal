@@ -26,6 +26,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { Lock, Edit, ChevronDown } from "@mui/icons-material";
+import { Dropdown } from "react-bootstrap";
 
 const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
@@ -442,28 +443,36 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   const getFilteredCases = () => {
     let filteredCases = data;
 
-    // Apply search filter
+    // Apply search filter across multiple fields
     if (searchQuery) {
+      const query = searchQuery.toLowerCase();
       filteredCases = filteredCases.filter((item) =>
-        item.CaseNumber.toLowerCase().includes(searchQuery.toLowerCase())
+        Object.entries(item).some(([key, value]) => {
+          // Skip non-string fields or fields you don't want to search
+          if (
+            typeof value !== "string" ||
+            ["_id", "createdAt", "updatedAt"].includes(key)
+          ) {
+            return false;
+          }
+          return value.toLowerCase().includes(query);
+        })
       );
     }
 
-    // Apply status filter
+    // Apply other filters (status, caseType, priority)...
     if (filters.status && filters.status !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Status === filters.status
       );
     }
 
-    // Apply case type filter
     if (filters.caseType && filters.caseType !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Name === filters.caseType
       );
     }
 
-    // Apply priority filter
     if (filters.priority && filters.priority !== "All") {
       filteredCases = filteredCases.filter(
         (item) => item.Priority === filters.priority
@@ -481,14 +490,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       });
     }
 
-    // Apply pagination
-    const startIndex = (currentPage - 1) * casesPerPage;
-    const paginatedCases = filteredCases.slice(
-      startIndex,
-      startIndex + casesPerPage
-    );
-
-    return paginatedCases;
+    return filteredCases;
   };
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -952,41 +954,149 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
             </div>
           )}{" "}
           {showCaseSheet && (
-            <div
-              className="container-fluid m-0 p-0"
-              // style={{ height: "84vh", overflowY: "auto" }}
-            >
-              {/* Search Input */}
-
-              {/* Filters Container */}
-
-              <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-                {/* Search Input on the Left */}
-                <input
-                  type="text"
-                  className="form-control me-3"
-                  style={{ maxWidth: "250px" }} // Adjust width as needed
-                  placeholder="Search..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                />
+            <div className="card mb-3 shadow">
+              {/* Table Header - Hidden on mobile */}
+              <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
+                <span className="col text-start">Status</span>
+                <span className="col text-start">Case Number</span>
+                <span className="col text-start">Request Number</span>
+                <span className="col text-start">Case Type</span>
+                <span className="col text-start">Purpose</span>
+                <span className="col text-end">Action</span>
               </div>
-
-              <div className="card mb-3 shadow">
-                <div
-                  className="card-header d-flex justify-content-between align-items-center px-3"
-                  style={{ height: "8vh" }}
-                >
-                  <span className="col text-start">Status</span>
-                  <span className="col text-start">Case Number</span>
-                  <span className="col text-start">Case Type</span>
-                </div>
-
-                <div className="card-list p-0">
-                  {getFilteredCases().map((item, index) => (
-                    <div key={index}>
+              {/* Table Body */}
+              <div className="card-body p-0">
+                {getFilteredCases()
+                  .slice(
+                    (currentPage - 1) * casesPerPage,
+                    currentPage * casesPerPage
+                  )
+                  .map((item, index) => (
+                    <div key={index} className="border-bottom">
+                      {/* Mobile View */}
                       <div
-                        className="d-flex justify-content-between align-items-center p-3 border-bottom"
+                        className="d-md-none p-3"
+                        style={{
+                          overflowX: "hidden",
+                          maxWidth: "100%",
+                          maxHeight: "83vh",
+                        }}
+                      >
+                        {/* Status and Actions Row */}
+                        <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <span
+                              className={`rounded-circle ${
+                                item.Status.toLowerCase() === "case filed"
+                                  ? "bg-success"
+                                  : "bg-danger"
+                              }`}
+                              style={{
+                                width: "12px",
+                                height: "12px",
+                                minWidth: "12px",
+                              }}
+                            />
+                            <span className="badge bg-light text-dark">
+                              {item.Status}
+                            </span>
+                          </div>
+                          <Dropdown>
+                            <Dropdown.Toggle
+                              variant="light"
+                              size="sm"
+                              className="rounded-circle p-0 border"
+                              style={{
+                                width: "28px",
+                                height: "28px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <i className="bi bi-three-dots-vertical"></i>
+                            </Dropdown.Toggle>
+                            <Dropdown.Menu>
+                              <Dropdown.Item
+                                onClick={(e) => {
+                                  if (
+                                    e.target.tagName !== "INPUT" &&
+                                    e.target.tagName !== "BUTTON"
+                                  ) {
+                                    handleClick(1, item);
+                                  }
+                                }}
+                              >
+                                View Details
+                              </Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </div>
+
+                        {/* Data Fields */}
+                        <div className="d-flex flex-column gap-2">
+                          <div className="d-flex flex-wrap">
+                            <span
+                              className="text-muted me-2"
+                              style={{
+                                minWidth: "80px",
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              Case #:
+                            </span>
+                            <span className="fw-medium">
+                              {item["CaseNumber"]}
+                            </span>
+                          </div>
+
+                          <div className="d-flex flex-wrap">
+                            <span
+                              className="text-muted me-2"
+                              style={{
+                                minWidth: "80px",
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              Request #:
+                            </span>
+                            <span className="fw-medium">
+                              {item["SerialNumber"]}
+                            </span>
+                          </div>
+
+                          <div className="d-flex flex-wrap">
+                            <span
+                              className="text-muted me-2"
+                              style={{
+                                minWidth: "80px",
+                                wordBreak: "break-word",
+                              }}
+                            >
+                              Type:
+                            </span>
+                            <span className="fw-medium">
+                              {item["CaseType"]}
+                            </span>
+                          </div>
+
+                          <div>
+                            <div className="text-muted mb-1">Purpose:</div>
+                            <input
+                              className="form-control form-control-sm"
+                              value={item.notes || ""}
+                              onChange={(e) =>
+                                handleEdit(index, e.target.value)
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Desktop View - Horizontal Layout */}
+                      <div
+                        className="d-none d-md-flex justify-content-between align-items-center p-3"
                         style={{ cursor: "pointer" }}
                         onClick={(e) => {
                           if (
@@ -1016,78 +1126,111 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                           {item["CaseNumber"]}
                         </span>
                         <span className="col d-flex align-items-center text-start">
+                          {item["SerialNumber"]}
+                        </span>
+                        <span className="col d-flex align-items-center text-start">
                           {item["CaseType"]}
                         </span>
-                        {/* <input
-                                                  className="col w-100"
-                                                  type="text"
-                                                  value={item.notes || ""}
-                                                  onChange={(e) => handleEditCase(index, e.target.value)}
-                                                  onClick={(e) => e.stopPropagation()}
-                                              /> */}
+                        <input
+                          className="col form-control"
+                          type="text"
+                          value={item.notes || ""}
+                          onChange={(e) => handleEdit(index, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+
+                        {/* Permission Dropdown */}
+                        <div className="col text-end">
+                          <Dropdown
+                            show={dropdownOpen === index}
+                            onToggle={(isOpen) =>
+                              setDropdownOpen(isOpen ? index : null)
+                            }
+                          >
+                            <Dropdown.Toggle
+                              variant="custom"
+                              size="sm"
+                              className="custom-dropdown-toggle"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDropdownOpen(
+                                  dropdownOpen === index ? null : index
+                                );
+                              }}
+                            ></Dropdown.Toggle>
+
+                            <Dropdown.Menu>
+                              <Dropdown.Item>View Details</Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </div>
                       </div>
                     </div>
                   ))}
-                </div>
+              </div>
 
-                {/* Pagination */}
-                <div
-                  id="numberbar"
-                  className="position-sticky bottom-0 mx-auto"
-                  style={{
-                    backgroundColor: "#18273e",
-                    zIndex: 10,
-                    padding: "10px",
-                    borderRadius: "8px",
-                    width: "100%",
-                    maxWidth: "300px", // Responsive width
-                    textAlign: "center",
-                    border: "2px solid #d4af37",
-                  }}
-                >
-                  <div className="d-flex justify-content-center align-items-center gap-2 flex-wrap">
-                    <button
-                      onClick={() => goToPage(currentPage - 1)}
-                      // disabled={currentPage === 1}
-                      className="first-lastbutton btn btn-sm text-white"
-                      style={{ backgroundColor: "#d3b386", border: "none" }}
-                    >
-                      Previous
-                    </button>
-
-                    <input
-                      value={currentPage}
-                      min={1}
-                      max={totalPages}
-                      onChange={(e) =>
-                        goToPage(
-                          Math.max(
-                            1,
-                            Math.min(totalPages, Number(e.target.value))
-                          )
-                        )
-                      }
-                      className="form-control text-white bg-dark border-2"
-                      style={{
-                        width: "60px",
-                        borderColor: "#d4af37",
-                        backgroundColor: "#18273e",
-                        textAlign: "center",
-                        borderRadius: "6px",
-                      }}
-                    />
-
-                    <button
-                      onClick={() => goToPage(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                      className="first-lastbutton btn btn-sm text-white"
-                      style={{ backgroundColor: "#d3b386", border: "none" }}
-                    >
-                      Next
-                    </button>
+              {/* Pagination - Responsive */}
+              {totalPages > 1 && (
+                <div className="p-3">
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{
+                      backgroundColor: "#18273e",
+                      padding: "10px",
+                      borderRadius: "8px",
+                      border: "2px solid #d4af37",
+                      margin: "auto",
+                      maxWidth: "100%",
+                      width: "fit-content",
+                    }}
+                  >
+                    <div className="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                      <button
+                        onClick={() => goToPage(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className="btn btn-outline-warning"
+                      >
+                        Previous
+                      </button>
+                      <div className="d-flex align-items-center">
+                        <span className="text-white me-2 d-none d-sm-block">
+                          Page
+                        </span>
+                        <input
+                          value={currentPage}
+                          min={1}
+                          max={totalPages}
+                          onChange={(e) =>
+                            goToPage(
+                              Math.max(
+                                1,
+                                Math.min(totalPages, Number(e.target.value))
+                              )
+                            )
+                          }
+                          className="form-control text-center"
+                          style={{
+                            width: "60px",
+                            border: "2px solid #d4af37",
+                            backgroundColor: "#18273e",
+                            color: "white",
+                          }}
+                        />
+                        <span className="text-white ms-2 d-none d-sm-block">
+                          of {totalPages}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => goToPage(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className="btn btn-outline-warning"
+                      >
+                        Next
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
         </div>
