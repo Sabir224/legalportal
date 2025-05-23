@@ -87,8 +87,7 @@ export default function ViewFormC({ token }) {
   const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
   const [editingAssignedUser, setEditingAssignedUser] = useState(null);
   const [hoveredTaskId, setHoveredTaskId] = useState(null);
-  const [editingAssignedSubtaskId, setEditingAssignedSubtaskId] =
-    useState(null);
+  const [editingAssignedSubtaskId, setEditingAssignedSubtaskId] = useState(null);
 
   const [isCaseInvalid, setIsCaseInvalid] = useState(false);
   const [isUserInvalid, setIsUserInvalid] = useState(false);
@@ -98,6 +97,8 @@ export default function ViewFormC({ token }) {
 
   const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState("");
+  // const { showLoading, showSuccess, showError } = useAlert();
+
   const handleToggleExpand = (userId) => {
     setExpandedUserId(expandedUserId === userId ? null : userId);
   };
@@ -237,39 +238,8 @@ export default function ViewFormC({ token }) {
     setAssignedUserId("");
   };
 
-  const handleSaveSubtask = async () => {
-    // Validate fields
-    if (!newSubtaskName || !assignedUserId) {
-      setMessage("Please fill all fields");
-      setShowError(true);
-      return;
-    }
 
-    const subtask = {
-      title: newSubtaskName,
-      caseId: selectedCaseId,
-      assignedUsers: assignedUserId,
-      createdBy: token._id,
-      parentId: parentId,
-    };
 
-    try {
-      const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
-      console.log("Task added successfully:", response.data);
-
-      // const data = await response.json();
-      // console.log('Subtask saved:', data);
-      const previousOpenTaskId = openTaskId;
-      await fetchtask();
-      setOpenTaskId(previousOpenTaskId);
-
-      closeModal();
-    } catch (error) {
-      console.error("Error saving subtask:", error);
-      setMessage("Something went wrong while saving the subtask.");
-      setShowError(true);
-    }
-  };
 
   const toggleTask = (taskId) => {
     // setOpenTaskId(taskId);
@@ -305,71 +275,7 @@ export default function ViewFormC({ token }) {
     setNewSubtaskName("");
   };
 
-  const addColumn = async () => {
-    const trimmedColumnName = newColumnName.trim(); // Remove both leading and trailing spaces
-    if (!trimmedColumnName) return;
 
-    const newId = trimmedColumnName.toLowerCase().replace(/\s+/g, "-");
-
-    // Check if the column already exists in UI
-    const existingColumn = columns.find((column) => column.id === newId);
-    if (existingColumn) {
-      setMessage("⚠️ Column already exists in UI!");
-      setShowError(true);
-      return;
-    }
-
-    try {
-      // Check if the column exists in backend
-      const checkRes = await axios.get(
-        `${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`
-      );
-      if (checkRes.data.exists) {
-        setMessage("⚠️ Column name already exists in the database!");
-        setShowError(true);
-        return;
-      }
-
-      const encodedEnum =
-        newColumnType === "dropdown"
-          ? encodeURIComponent(newColumnOptions)
-          : "";
-      const url = `${ApiEndPoint}AddColumnInSchema/${trimmedColumnName}/${newColumnType}/${encodedEnum}`;
-      const response = await axios.put(url);
-
-      if (response.status === 200) {
-        showSuccess(`✅ ${response.data.message}`);
-        SocketService.TaskManagement(response);
-
-        const newColumn = {
-          id: newId,
-          label: trimmedColumnName,
-          type: newColumnType,
-        };
-
-        if (newColumnType === "dropdown") {
-          newColumn.options = newColumnOptions
-            .split(",")
-            .map((opt) => opt.trim());
-        }
-
-        setNewColumnName("");
-        setNewColumnType("text");
-        setNewColumnOptions("");
-        setAddingColumn(false);
-        const previousOpenTaskId = openTaskId;
-        await fetchtask();
-        setOpenTaskId(previousOpenTaskId);
-      } else {
-        setMessage("⚠️ Something went wrong while adding the column.");
-        setShowError(true);
-      }
-    } catch (error) {
-      console.error("❌ Error adding column:", error);
-      setMessage("❌ Failed to add the column.");
-      setShowError(true);
-    }
-  };
 
   const handleFieldChange = (
     taskId,
@@ -550,12 +456,12 @@ export default function ViewFormC({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-          (key) =>
-            key !== "_id" &&
-            key !== "__v" &&
-            key !== "subtasks" &&
-            key !== "parentId"
-        )
+        (key) =>
+          key !== "_id" &&
+          key !== "__v" &&
+          key !== "subtasks" &&
+          key !== "parentId"
+      )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -1063,6 +969,41 @@ export default function ViewFormC({ token }) {
   //   </div>
   // );
 
+
+  const handleSignup = async (todo) => {
+    // Replace with your actual logic
+    console.log("Signup clicked for:", todo);
+    try {
+      const formData = new FormData();
+      formData.append("UserName", todo?.clientName?.value);
+      formData.append("Email", todo?.email?.value);
+      formData.append("Password", `${todo?.clientName?.value}@12345`);
+      formData.append("Role", "client");
+      formData.append("Contact", todo?.phone?.value);
+      formData.append("Bio", "");
+      formData.append("Address", "");
+      formData.append("Position", "");
+
+
+      const response = await fetch(`${ApiEndPoint}users`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add user");
+      }
+
+      showSuccess("✅ Account Create sucessfully.")
+      fetchtask()
+      // alert("✅ User Added Successfully!");
+    } catch (error) {
+      setMessage("⚠️ Account Creation failed.");
+      setShowError(true);
+      // alert("❌ Failed to Add User! Check Console.");
+      console.error("Error adding user:", error);
+    }
+  };
+
   return (
     <div
       className="container-fluid p-0 m-0"
@@ -1417,6 +1358,19 @@ export default function ViewFormC({ token }) {
                             <DeleteIcon fontSize="small" />
                           </IconButton>
                         </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outlined"
+                            color="primary"
+                            size="small"
+                            onClick={() => handleSignup(todo)}
+                            sx={{ textTransform: "none" }}
+                            disabled={!todo.userName?.value ? false:true}
+                          >
+                            Sign Up
+                          </Button>
+                        </TableCell>
+
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1501,6 +1455,16 @@ export default function ViewFormC({ token }) {
                               >
                                 <DeleteIcon />
                               </IconButton>
+                              <Button
+                                variant="outlined"
+                                color="primary"
+                                size="small"
+                                onClick={() => handleSignup(todo)}
+                                sx={{ textTransform: "none" }}
+                              >
+
+                                SignUp
+                              </Button>
                             </Box>
 
                             <List>
@@ -1724,67 +1688,6 @@ export default function ViewFormC({ token }) {
           </div>
         </LocalizationProvider>
 
-        {/* Rest of your modals remain the same */}
-
-        {/* Column Add Modal */}
-        {addingColumn && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="modal-title">Add New Column</div>
-                <button
-                  className="close-button"
-                  onClick={() => setAddingColumn(false)}
-                >
-                  &times;
-                </button>
-              </div>
-              <div>
-                <input
-                  type="text"
-                  className="column-input"
-                  placeholder="Enter New Column Name"
-                  value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
-                />
-
-                <div className="column-type-container">
-                  <select
-                    className="column-type-select"
-                    value={newColumnType}
-                    onChange={(e) => setNewColumnType(e.target.value)}
-                  >
-                    <option value="text">Text</option>
-                    <option value="dropdown">Dropdown</option>
-                    <option value="checkbox">Checkbox</option>
-                  </select>
-
-                  {newColumnType === "dropdown" && (
-                    <input
-                      type="text"
-                      className="column-options-input"
-                      placeholder="Options (comma separated)"
-                      value={newColumnOptions}
-                      onChange={(e) => setNewColumnOptions(e.target.value)}
-                    />
-                  )}
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    className="cancel-button"
-                    onClick={() => setAddingColumn(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button className="add-column-button" onClick={addColumn}>
-                    Add Column
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
           <Modal.Header closeButton>
