@@ -526,18 +526,18 @@ const ClientConsultationForm = ({ token }) => {
                                                     key={index}
                                                     className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                                                 >
-                                                    <span className="text-break w-100">{file.name}</span>
+                                                    <span className="text-break w-100 " style={{fontSize:16}}>{file.name}</span>
                                                     <button
                                                         type="button"
                                                         className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
                                                         onClick={() => removeFile(index)}
                                                     >
-                                                        Remove
+                                                        X
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
-                                        <div className="text-muted mt-1">
+                                        <div className="text-muted mt-1" style={{fontSize:16}}>
                                             {files.length} file{files.length !== 1 && 's'} selected
                                         </div>
                                     </div>
