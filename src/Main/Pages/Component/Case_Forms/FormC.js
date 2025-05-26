@@ -159,8 +159,25 @@ const ClientConsultationForm = ({ token }) => {
             // alert('Form submitted successfully!');
             showSuccess("Form submitted successfully!");
 
+            setClientName("")
+            setCountryCode("")
+            setPhoneNumber("")
+            setEmail("")
+            setContactAddress("")
+            setIndividualOrCompany("")
+            setCompanyName("")
+            setOccupation("")
+            setOpponentDetails("")
+            setLegalService("Select")
+            setPracticeArea("Select")
+            setServiceDetails("")
+            setDesiredOutcome("")
+            setReferredBy("")
+            setFiles([])
+
             //   showSuccess("Form C is added ");
         } catch (error) {
+            setDesiredOutcome("")
             if (error.response) {
                 showError("Error submitting the form.", error.response);
             } else {
@@ -507,23 +524,24 @@ const ClientConsultationForm = ({ token }) => {
                                             {files.map((file, index) => (
                                                 <li
                                                     key={index}
-                                                    className="list-group-item d-flex justify-content-between align-items-center"
+                                                    className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                                                 >
-                                                    {file.name}
+                                                    <span className="text-break w-100">{file.name}</span>
                                                     <button
                                                         type="button"
-                                                        className="btn btn-sm btn-outline-danger"
+                                                        className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
                                                         onClick={() => removeFile(index)}
                                                     >
-                                                        X
+                                                        Remove
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
                                         <div className="text-muted mt-1">
-                                            {files.length} file(s) selected
+                                            {files.length} file{files.length !== 1 && 's'} selected
                                         </div>
                                     </div>
+
                                 )}
                             </div>
                         </div>
