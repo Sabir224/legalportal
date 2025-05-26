@@ -130,7 +130,7 @@ const AddUser = () => {
     <div
       className="container card shadow m-0 p-3 p-md-5"
       style={{
-        minHeight: "86.6vh",
+        maxHeight: "86.6vh",
         overflowY: "auto",
         maxWidth: "1200px", // Added max-width for better control on larger screens
         margin: "0 auto", // Center the container
