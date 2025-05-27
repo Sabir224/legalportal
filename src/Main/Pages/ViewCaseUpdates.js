@@ -118,8 +118,8 @@ const ViewCaseUpdates = ({ token }) => {
         style={{ zIndex: 10 }}
       >
         <h1 className="mb-0" style={{ color: "#18273e" }}>
-          <i className="fas fa-folder-open me-2"></i>
-          Case Update
+          {/* <i className="fas fa-folder-open me-2"></i> */}
+          {reduxCaseInfo?.CaseNumber}
         </h1>
       </div>
 
@@ -132,7 +132,7 @@ const ViewCaseUpdates = ({ token }) => {
           <div className="text-center text-warning fw-bold">Loading updates...</div>
         ) : updates.length === 0 ? (
           <div className="text-center text-warning fw-bold">
-            <i className="fas fa-info-circle me-2"></i>No updates found for case ID "{caseId}"
+            <i className="fas fa-info-circle me-2"></i>No updates found for case ID "{reduxCaseInfo?.CaseNumber}"
           </div>
         ) : (
           updates.map((update, index) => (

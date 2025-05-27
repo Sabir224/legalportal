@@ -520,7 +520,7 @@ const Dashboard = () => {
             // },
             {
               icon: faQuestionCircle,
-              label: "FAQ",
+              label: "FAQs",
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
