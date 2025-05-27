@@ -98,6 +98,8 @@ export default function ViewFormC({ token }) {
 
   const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState("");
+  // const { showLoading, showSuccess, showError } = useAlert();
+
   const handleToggleExpand = (userId) => {
     setExpandedUserId(expandedUserId === userId ? null : userId);
   };
@@ -237,40 +239,6 @@ export default function ViewFormC({ token }) {
     setAssignedUserId("");
   };
 
-  const handleSaveSubtask = async () => {
-    // Validate fields
-    if (!newSubtaskName || !assignedUserId) {
-      setMessage("Please fill all fields");
-      setShowError(true);
-      return;
-    }
-
-    const subtask = {
-      title: newSubtaskName,
-      caseId: selectedCaseId,
-      assignedUsers: assignedUserId,
-      createdBy: token._id,
-      parentId: parentId,
-    };
-
-    try {
-      const response = await axios.post(`${ApiEndPoint}createTask`, subtask);
-      console.log("Task added successfully:", response.data);
-
-      // const data = await response.json();
-      // console.log('Subtask saved:', data);
-      const previousOpenTaskId = openTaskId;
-      await fetchtask();
-      setOpenTaskId(previousOpenTaskId);
-
-      closeModal();
-    } catch (error) {
-      console.error("Error saving subtask:", error);
-      setMessage("Something went wrong while saving the subtask.");
-      setShowError(true);
-    }
-  };
-
   const toggleTask = (taskId) => {
     // setOpenTaskId(taskId);
     setOpenTaskId((prevId) => (prevId === taskId ? null : taskId));
@@ -303,72 +271,6 @@ export default function ViewFormC({ token }) {
 
     setAddingSubtaskFor(null);
     setNewSubtaskName("");
-  };
-
-  const addColumn = async () => {
-    const trimmedColumnName = newColumnName.trim(); // Remove both leading and trailing spaces
-    if (!trimmedColumnName) return;
-
-    const newId = trimmedColumnName.toLowerCase().replace(/\s+/g, "-");
-
-    // Check if the column already exists in UI
-    const existingColumn = columns.find((column) => column.id === newId);
-    if (existingColumn) {
-      setMessage("⚠️ Column already exists in UI!");
-      setShowError(true);
-      return;
-    }
-
-    try {
-      // Check if the column exists in backend
-      const checkRes = await axios.get(
-        `${ApiEndPoint}CheckColumnExists/${trimmedColumnName}`
-      );
-      if (checkRes.data.exists) {
-        setMessage("⚠️ Column name already exists in the database!");
-        setShowError(true);
-        return;
-      }
-
-      const encodedEnum =
-        newColumnType === "dropdown"
-          ? encodeURIComponent(newColumnOptions)
-          : "";
-      const url = `${ApiEndPoint}AddColumnInSchema/${trimmedColumnName}/${newColumnType}/${encodedEnum}`;
-      const response = await axios.put(url);
-
-      if (response.status === 200) {
-        showSuccess(`✅ ${response.data.message}`);
-        SocketService.TaskManagement(response);
-
-        const newColumn = {
-          id: newId,
-          label: trimmedColumnName,
-          type: newColumnType,
-        };
-
-        if (newColumnType === "dropdown") {
-          newColumn.options = newColumnOptions
-            .split(",")
-            .map((opt) => opt.trim());
-        }
-
-        setNewColumnName("");
-        setNewColumnType("text");
-        setNewColumnOptions("");
-        setAddingColumn(false);
-        const previousOpenTaskId = openTaskId;
-        await fetchtask();
-        setOpenTaskId(previousOpenTaskId);
-      } else {
-        setMessage("⚠️ Something went wrong while adding the column.");
-        setShowError(true);
-      }
-    } catch (error) {
-      console.error("❌ Error adding column:", error);
-      setMessage("❌ Failed to add the column.");
-      setShowError(true);
-    }
   };
 
   const handleFieldChange = (
@@ -1063,64 +965,117 @@ export default function ViewFormC({ token }) {
   //   </div>
   // );
 
+  const handleSignup = async (todo) => {
+    // Replace with your actual logic
+    console.log("Signup clicked for:", todo);
+    try {
+      const formData = new FormData();
+      formData.append("UserName", todo?.clientName?.value);
+      formData.append("Email", todo?.email?.value);
+      formData.append("Password", `${todo?.clientName?.value}@12345`);
+      formData.append("Role", "client");
+      formData.append("Contact", todo?.phone?.value);
+      formData.append("Bio", "");
+      formData.append("Address", "");
+      formData.append("Position", "");
+
+      const response = await fetch(`${ApiEndPoint}users`, {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        throw new Error("Failed to add user");
+      }
+
+      showSuccess("✅ Account Create sucessfully.");
+      fetchtask();
+      // alert("✅ User Added Successfully!");
+    } catch (error) {
+      setMessage("⚠️ Account Creation failed.");
+      setShowError(true);
+      // alert("❌ Failed to Add User! Check Console.");
+      console.error("Error adding user:", error);
+    }
+  };
+
   return (
     <div
-      className="container-fluid p-0 m-0"
-      style={{ height: "85vh", overflow: "hidden" }}
+      className="container-fluid card p-1"
+      style={{
+        overflow: "hidden", // Prevent double scrollbars
+        maxWidth: "calc(100vw - 250px)", // subtract sidebar
+        height: "86vh", // Set a fixed height to contain everything
+        display: "flex",
+        flexDirection: "column",
+      }}
     >
-      <div
-        className="d-flex flex-column h-100 bg-white rounded shadow"
-        style={{
-          flex: 1,
-          overflow: "hidden",
-          width: "100%",
-          maxWidth: "100vw", // Ensure it never exceeds viewport width
-        }}
-      >
-        <div className="p-3" style={{ flexShrink: 0 }}>
-          <button
-            className="btn btn-success"
-            onClick={() => dispatch(screenChange(16))}
-          >
-            + New form
-          </button>
-        </div>
+      <div className="p-1" style={{ flexShrink: 0 }}>
+        <button
+          className="btn btn-success"
+          onClick={() => dispatch(screenChange(16))}
+        >
+          + New form
+        </button>
+      </div>
 
-        {/* Desktop Table View (lg and up) */}
-        <LocalizationProvider dateAdapter={AdapterDateFns}>
-          {/* Desktop View - shows on lg and up */}
-          <div
-            className="d-none d-lg-flex flex-column"
-            style={{
+      {/* Desktop Table View (lg and up) */}
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        {/* Desktop View - shows on lg and up */}
+        <Box
+          sx={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            p: 3,
+            overflow: "hidden",
+            width: "100%",
+            height: "100%", // Ensure it takes full available height
+          }}
+        >
+          <TableContainer
+            component={Paper}
+            sx={{
               flex: 1,
-              minHeight: 0, // Crucial for flex children to respect overflow
+              display: "flex",
+              flexDirection: "column",
               overflow: "hidden",
               width: "100%",
+              position: "relative", // Needed for absolute positioning of header
             }}
           >
-            <Box
-              sx={{
-                height: "100%",
-                display: "flex",
-                flexDirection: "column",
-                px: 3,
-                pb: 3,
-                overflow: "hidden",
-                width: "92%%",
+            <div
+              style={{
+                overflow: "auto",
+                flex: 1,
+                position: "relative",
               }}
             >
-              <TableContainer
-                component={Paper}
+              <Table
+                fixedHeader
+                size="small"
+                aria-label="desktop table view"
                 sx={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  overflow: "auto", // Changed to auto to enable scrolling
-                  padding: "10px",
-                  width: "92%",
+                  minWidth: "max-content",
                   "& .MuiTable-root": {
-                    minWidth: "max-content",
-                    width: "92%",
+                    display: "flex",
+                    flexDirection: "column",
+                    height: "100%",
+                  },
+                  "& .MuiTableHead-root": {
+                    display: "block",
+                    position: "sticky",
+                    top: 0,
+                    zIndex: 2,
+                    backgroundColor: theme.palette.grey[100],
+                  },
+                  "& .MuiTableBody-root": {
+                    flex: 1,
+                    overflow: "auto",
+                    display: "block",
+                  },
+                  "& .MuiTableRow-root": {
+                    display: "flex",
+                    width: "100%",
                   },
                   "& .MuiTableCell-root": {
                     py: 1.5,
@@ -1129,251 +1084,147 @@ export default function ViewFormC({ token }) {
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
+                    display: "block",
+                    flex: 1,
                   },
-                  "& .MuiTableHead-root": {
-                    "& .MuiTableCell-root": {
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 2,
-                      backgroundColor: theme.palette.grey[100],
-                      fontWeight: "bold",
-                    },
+                  "& .MuiTableHead-root .MuiTableCell-root": {
+                    fontWeight: "bold",
+                    backgroundColor: theme.palette.grey[100],
                   },
                 }}
               >
-                <Table
-                  stickyHeader
-                  size="small"
-                  aria-label="desktop table view"
-                  sx={{
-                    minWidth: "max-content",
-                  }}
-                >
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ width: "48px" }}></TableCell>
-                      {keys?.map(
-                        (key) =>
-                          key !== "userId" &&
-                          key !== "userName" && (
-                            <TableCell
-                              key={key}
-                              sx={{
-                                minWidth: 120,
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {formatHeaderLabel(key)}
-                            </TableCell>
-                          )
-                      )}
-                      <TableCell sx={{ width: "48px" }}></TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {todos?.map((todo) => (
-                      <TableRow
-                        key={todo.id}
-                        hover
-                        sx={{
-                          "&:last-child td": { borderBottom: 0 },
-                        }}
-                      >
-                        <TableCell>
-                          <IconButton
-                            size="small"
-                            color="primary"
-                            onClick={() => toggleTask(todo._id)}
+                <TableHead>
+                  <TableRow>
+                    {keys?.map(
+                      (key) =>
+                        key !== "userId" &&
+                        key !== "userName" && (
+                          <TableCell
+                            key={key}
                             sx={{
-                              p: 0.5,
+                              minWidth: 120,
+                              whiteSpace: "nowrap",
                             }}
                           >
-                            <ExpandMoreIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
+                            {formatHeaderLabel(key)}
+                          </TableCell>
+                        )
+                    )}
+                    <TableCell sx={{ width: "48px" }}></TableCell>
+                    <TableCell sx={{ width: "120px" }}></TableCell>
+                  </TableRow>
+                </TableHead>
 
-                        {keys?.map((key) => {
-                          if (key === "userId" || key === "userName")
-                            return null;
+                <TableBody>
+                  {todos?.map((todo) => (
+                    <TableRow
+                      key={todo.id}
+                      hover
+                      sx={{
+                        "&:last-child td": { borderBottom: 0 },
+                      }}
+                    >
+                      {keys?.map((key) => {
+                        if (key === "userId" || key === "userName") return null;
 
-                          const field = todo[key];
-                          if (!field) return <TableCell key={key}></TableCell>;
+                        const field = todo[key];
+                        if (!field) return <TableCell key={key}></TableCell>;
 
-                          const {
-                            value,
-                            type,
-                            enum: enumOptions,
-                            editable = true,
-                          } = field;
-                          const taskId = todo._id?.value || todo.id;
-                          const subtaskId = isSubtask ? taskId : null;
-                          const normalizedType = type?.toLowerCase();
+                        const {
+                          value,
+                          type,
+                          enum: enumOptions,
+                          editable = true,
+                        } = field;
+                        const taskId = todo._id?.value || todo.id;
+                        const subtaskId = isSubtask ? taskId : null;
+                        const normalizedType = type?.toLowerCase();
 
-                          const handleBlur = (e) => {
-                            const newValue =
-                              normalizedType === "boolean"
-                                ? e.target.checked
-                                : e.target.value;
-                            handleFieldBlur(
-                              taskId,
-                              key,
-                              newValue,
-                              isSubtask,
-                              subtaskId
-                            );
-                          };
+                        const handleBlur = (e) => {
+                          const newValue =
+                            normalizedType === "boolean"
+                              ? e.target.checked
+                              : e.target.value;
+                          handleFieldBlur(
+                            taskId,
+                            key,
+                            newValue,
+                            isSubtask,
+                            subtaskId
+                          );
+                        };
 
-                          let content;
+                        let content;
 
-                          if (key === "documents") {
-                            const userId = todo.userId?.value;
-                            const userName = todo.userName?.value;
-                            const clientName =
-                              todo.clientName?.value || "Client";
-                            const email = todo?._id?.value;
+                        if (key === "documents") {
+                          const userId = todo.userId?.value;
+                          const userName = todo.userName?.value;
+                          const clientName = todo.clientName?.value || "Client";
+                          const email = todo?._id?.value;
 
-
-                            content =
-                              userId && userName ? (
-                                <Button
-                                  color="primary"
-                                  sx={{
-                                    textTransform: "none",
-                                    textDecoration: "underline",
-                                    p: 0,
-                                    minWidth: "auto",
-                                  }}
-                                  onClick={() =>
-                                    handleUserClick(userId, userName)
-                                  }
-                                >
-                                  {userName}
-                                </Button>
-                              ) : (
-                                <Button
-                                  color="primary"
-                                  sx={{
-                                    textTransform: "none",
-                                    textDecoration: "underline",
-                                    p: 0,
-                                    minWidth: "auto",
-                                  }}
-                                  onClick={() => handleClientClick(email)}
-                                >
-                                  {clientName}
-                                </Button>
-                              );
-                          } else if (key === "caseId") {
-                            content = (
-                              <Typography variant="body2" noWrap>
-                                {value?.CaseNumber || ""}
-                              </Typography>
-                            );
-                          } else if (key === "createdBy") {
-                            content = (
-                              <Typography variant="body2" noWrap>
-                                {value?.UserName || ""}
-                              </Typography>
-                            );
-                          } else if (key === "createdAt") {
-                            content = (
-                              <Typography variant="body2" noWrap>
-                                {(value || "").split("T")[0]}
-                              </Typography>
-                            );
-                          } else if (!editable) {
-                            content = (
-                              <Typography variant="body2" noWrap>
-                                {String(value)}
-                              </Typography>
-                            );
-                          } else if (enumOptions) {
-                            content = (
-                              <FormControl
-                                fullWidth
-                                size="small"
-                                sx={{ minWidth: 120 }}
+                          content =
+                            userId && userName ? (
+                              <Button
+                                color="primary"
+                                sx={{
+                                  textTransform: "none",
+                                  textDecoration: "underline",
+                                  p: 0,
+                                  minWidth: "auto",
+                                }}
+                                onClick={() =>
+                                  handleUserClick(userId, userName)
+                                }
                               >
-                                <Select
-                                  value={value}
-                                  onChange={(e) =>
-                                    handleFieldChange(
-                                      taskId,
-                                      key,
-                                      e.target.value,
-                                      isSubtask,
-                                      subtaskId
-                                    )
-                                  }
-                                  onBlur={handleBlur}
-                                  disabled={isclient}
-                                >
-                                  {enumOptions.map((option) => (
-                                    <MenuItem key={option} value={option}>
-                                      {option}
-                                    </MenuItem>
-                                  ))}
-                                </Select>
-                              </FormControl>
+                                {userName}
+                              </Button>
+                            ) : (
+                              <Button
+                                color="primary"
+                                sx={{
+                                  textTransform: "none",
+                                  textDecoration: "underline",
+                                  p: 0,
+                                  minWidth: "auto",
+                                }}
+                                onClick={() => handleClientClick(email)}
+                              >
+                                {clientName}
+                              </Button>
                             );
-                          } else if (normalizedType === "boolean") {
-                            content = (
-                              <Checkbox
-                                checked={Boolean(value)}
-                                onChange={(e) =>
-                                  handleFieldChange(
-                                    taskId,
-                                    key,
-                                    e.target.checked,
-                                    isSubtask,
-                                    subtaskId
-                                  )
-                                }
-                                onBlur={handleBlur}
-                                disabled={isclient}
-                                sx={{ p: 0.5 }}
-                              />
-                            );
-                          } else if (normalizedType === "date") {
-                            content = (
-                              <DatePicker
-                                value={value ? new Date(value) : null}
-                                onChange={(date) =>
-                                  handleFieldChange(
-                                    taskId,
-                                    key,
-                                    date,
-                                    isSubtask,
-                                    subtaskId
-                                  )
-                                }
-                                disabled={isclient}
-                                renderInput={(params) => (
-                                  <TextField
-                                    {...params}
-                                    size="small"
-                                    fullWidth
-                                    onBlur={() =>
-                                      handleFieldBlur(
-                                        taskId,
-                                        key,
-                                        value,
-                                        isSubtask,
-                                        subtaskId
-                                      )
-                                    }
-                                    sx={{ minWidth: 140 }}
-                                  />
-                                )}
-                              />
-                            );
-                          } else {
-                            content = (
-                              <TextField
-                                type="text"
-                                size="small"
-                                fullWidth
-                                value={value || ""}
+                        } else if (key === "caseId") {
+                          content = (
+                            <Typography variant="body2" noWrap>
+                              {value?.CaseNumber || ""}
+                            </Typography>
+                          );
+                        } else if (key === "createdBy") {
+                          content = (
+                            <Typography variant="body2" noWrap>
+                              {value?.UserName || ""}
+                            </Typography>
+                          );
+                        } else if (key === "createdAt") {
+                          content = (
+                            <Typography variant="body2" noWrap>
+                              {(value || "").split("T")[0]}
+                            </Typography>
+                          );
+                        } else if (!editable) {
+                          content = (
+                            <Typography variant="body2" noWrap>
+                              {String(value)}
+                            </Typography>
+                          );
+                        } else if (enumOptions) {
+                          content = (
+                            <FormControl
+                              fullWidth
+                              size="small"
+                              sx={{ minWidth: 120 }}
+                            >
+                              <Select
+                                value={value}
                                 onChange={(e) =>
                                   handleFieldChange(
                                     taskId,
@@ -1384,321 +1235,328 @@ export default function ViewFormC({ token }) {
                                   )
                                 }
                                 onBlur={handleBlur}
-                                disabled={isclient || key === "email"}
-                                sx={{ minWidth: 120 }}
-                              />
-                            );
-                          }
-
-                          return (
-                            <TableCell
-                              key={key}
-                              sx={{
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
-                              }}
-                            >
-                              {content}
-                            </TableCell>
-                          );
-                        })}
-
-                        <TableCell>
-                          <IconButton
-                            color="error"
-                            size="small"
-                            onClick={() =>
-                              handleDelete(todo._id?.value || todo.id)
-                            }
-                            disabled={isclient}
-                            sx={{
-                              p: 0.5,
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </Box>
-          </div>
-
-          {/* Mobile View - shows on md and down */}
-          <div className="d-lg-none">
-            <Box
-              sx={{ height: "85vh", display: "flex", flexDirection: "column" }}
-            >
-              {/* Fixed header for mobile */}
-              <Box
-                sx={{
-                  flexShrink: 0,
-                  p: 2,
-                  borderBottom: `1px solid ${theme.palette.divider}`,
-                  backgroundColor: theme.palette.background.paper,
-                }}
-              >
-                <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-                  Tasks
-                </Typography>
-              </Box>
-
-              {/* Scrollable content for mobile */}
-              <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
-                <List>
-                  {todos?.map((todo) => {
-                    const userId = todo._id?.value || todo.id;
-                    const userName =
-                      todo.userName?.value ||
-                      todo.createdBy?.value?.UserName ||
-                      "Unnamed User";
-                    const isExpanded = expandedUserId === userId;
-
-                    return (
-                      <Paper
-                        key={userId}
-                        elevation={2}
-                        sx={{ mb: 2, overflow: "hidden" }}
-                      >
-                        <Accordion
-                          expanded={isExpanded}
-                          onChange={() => handleToggleExpand(userId)}
-                        >
-                          <AccordionSummary
-                            expandIcon={<ExpandMoreIcon />}
-                            aria-controls={`${userId}-content`}
-                            id={`${userId}-header`}
-                            sx={{
-                              bgcolor: isExpanded
-                                ? "action.hover"
-                                : "background.paper",
-                            }}
-                          >
-                            <Box
-                              sx={{
-                                display: "flex",
-                                alignItems: "center",
-                                flexGrow: 1,
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle1"
-                                sx={{ fontWeight: "bold" }}
-                              >
-                                {userName}
-                              </Typography>
-                              {todo.caseId?.value?.CaseNumber && (
-                                <Badge
-                                  badgeContent={`Case: ${todo.caseId.value.CaseNumber}`}
-                                  color="primary"
-                                  sx={{ ml: 2 }}
-                                />
-                              )}
-                            </Box>
-                          </AccordionSummary>
-
-                          <AccordionDetails>
-                            <Box
-                              sx={{
-                                display: "flex",
-                                justifyContent: "flex-end",
-                                mb: 2,
-                              }}
-                            >
-                              <IconButton
-                                color="error"
-                                onClick={() => handleDelete(userId)}
                                 disabled={isclient}
                               >
-                                <DeleteIcon />
-                              </IconButton>
-                            </Box>
-
-                            <List>
-                              {keys.map((key) => {
-                                if (
-                                  key === "userId" ||
-                                  key === "userName" ||
-                                  key === "id"
+                                {enumOptions.map((option) => (
+                                  <MenuItem key={option} value={option}>
+                                    {option}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          );
+                        } else if (normalizedType === "boolean") {
+                          content = (
+                            <Checkbox
+                              checked={Boolean(value)}
+                              onChange={(e) =>
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.checked,
+                                  isSubtask,
+                                  subtaskId
                                 )
-                                  return null;
+                              }
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                              sx={{ p: 0.5 }}
+                            />
+                          );
+                        } else if (normalizedType === "date") {
+                          content = (
+                            <DatePicker
+                              value={value ? new Date(value) : null}
+                              onChange={(date) =>
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  date,
+                                  isSubtask,
+                                  subtaskId
+                                )
+                              }
+                              disabled={isclient}
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  size="small"
+                                  fullWidth
+                                  onBlur={() =>
+                                    handleFieldBlur(
+                                      taskId,
+                                      key,
+                                      value,
+                                      isSubtask,
+                                      subtaskId
+                                    )
+                                  }
+                                  sx={{ minWidth: 140 }}
+                                />
+                              )}
+                            />
+                          );
+                        } else {
+                          content = (
+                            <TextField
+                              type="text"
+                              size="small"
+                              fullWidth
+                              value={value || ""}
+                              onChange={(e) =>
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.value,
+                                  isSubtask,
+                                  subtaskId
+                                )
+                              }
+                              onBlur={handleBlur}
+                              disabled={
+                                isclient || key === "email" || key === "phone "
+                              }
+                              sx={{ minWidth: 120 }}
+                            />
+                          );
+                        }
 
-                                const field = todo[key];
-                                if (!field) return null;
+                        return (
+                          <TableCell
+                            key={key}
+                            sx={{
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                            }}
+                          >
+                            {content}
+                          </TableCell>
+                        );
+                      })}
 
-                                const {
-                                  value,
-                                  type,
-                                  enum: enumOptions,
-                                  editable = true,
-                                } = field;
-                                const taskId = userId;
-                                const subtaskId = isSubtask ? taskId : null;
-                                const normalizedType = type?.toLowerCase();
-                                const label = key
-                                  .split(/(?=[A-Z])/)
-                                  .join(" ")
-                                  .replace(/^./, (str) => str.toUpperCase());
+                      <TableCell>
+                        <IconButton
+                          color="error"
+                          size="small"
+                          onClick={() =>
+                            handleDelete(todo._id?.value || todo.id)
+                          }
+                          disabled={isclient}
+                          sx={{
+                            p: 0.5,
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          color="primary"
+                          size="small"
+                          onClick={() => handleSignup(todo)}
+                          sx={{ textTransform: "none" }}
+                          disabled={!todo.userName?.value ? false : true}
+                        >
+                          Sign Up
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </TableContainer>
+        </Box>
+        {/* Mobile View - shows on md and down */}
+        <div className="d-lg-none h-100" style={{ overflow: "hidden" }}>
+          <Box
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+            }}
+          >
+            {/* Scrollable content for mobile */}
+            <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
+              <List>
+                {todos?.map((todo) => {
+                  const userId = todo._id?.value || todo.id;
+                  const userName =
+                    todo.userName?.value ||
+                    todo.createdBy?.value?.UserName ||
+                    "Unnamed User";
+                  const isExpanded = expandedUserId === userId;
 
-                                const handleBlur = (e) => {
-                                  const newValue =
-                                    normalizedType === "boolean"
-                                      ? e.target.checked
-                                      : e.target.value;
-                                  handleFieldBlur(
-                                    taskId,
-                                    key,
-                                    newValue,
-                                    isSubtask,
-                                    subtaskId
-                                  );
-                                };
+                  return (
+                    <Paper
+                      key={userId}
+                      elevation={2}
+                      sx={{ mb: 2, overflow: "hidden" }}
+                    >
+                      <Accordion
+                        expanded={isExpanded}
+                        onChange={() => handleToggleExpand(userId)}
+                      >
+                        <AccordionSummary
+                          expandIcon={<ExpandMoreIcon />}
+                          aria-controls={`${userId}-content`}
+                          id={`${userId}-header`}
+                          sx={{
+                            bgcolor: isExpanded
+                              ? "action.hover"
+                              : "background.paper",
+                          }}
+                        >
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              flexGrow: 1,
+                            }}
+                          >
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: "bold" }}
+                            >
+                              {userName}
+                            </Typography>
+                            {todo.caseId?.value?.CaseNumber && (
+                              <Badge
+                                badgeContent={`Case: ${todo.caseId.value.CaseNumber}`}
+                                color="primary"
+                                sx={{ ml: 2 }}
+                              />
+                            )}
+                          </Box>
+                        </AccordionSummary>
 
-                                let content;
+                        <AccordionDetails>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "flex-end",
+                              mb: 2,
+                            }}
+                          >
+                            <IconButton
+                              color="error"
+                              onClick={() => handleDelete(userId)}
+                              disabled={isclient}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              size="small"
+                              onClick={() => handleSignup(todo)}
+                              sx={{ textTransform: "none" }}
+                              disabled={!todo.userName?.value ? false : true}
+                            >
+                              Create Account
+                            </Button>
+                          </Box>
 
-                                if (key === "documents") {
-                                  const userId = todo.userId?.value;
-                                  const userName = todo.userName?.value;
-                                  const clientName =
-                                    todo.clientName?.value || "Client";
-                                  const email = todo?._id?.value;
+                          <List>
+                            {keys.map((key) => {
+                              if (
+                                key === "userId" ||
+                                key === "userName" ||
+                                key === "id"
+                              )
+                                return null;
 
-                                  content =
-                                    userId && userName ? (
-                                      <Button
-                                        startIcon={<PersonIcon />}
-                                        onClick={() =>
-                                          handleUserClick(userId, userName)
-                                        }
-                                        sx={{ textTransform: "none" }}
-                                      >
-                                        {userName}
-                                      </Button>
-                                    ) : (
-                                      <Button
-                                        startIcon={<BusinessIcon />}
-                                        onClick={() => handleClientClick(email)}
-                                        sx={{ textTransform: "none" }}
-                                      >
-                                        {clientName}
-                                      </Button>
-                                    );
-                                } else if (key === "caseId") {
-                                  content = (
-                                    <Typography>
-                                      {value?.CaseNumber || ""}
-                                    </Typography>
-                                  );
-                                } else if (key === "createdBy") {
-                                  content = (
-                                    <Typography>
-                                      {value?.UserName || ""}
-                                    </Typography>
-                                  );
-                                } else if (key === "createdAt") {
-                                  content = (
-                                    <Typography>
-                                      {(value || "").split("T")[0]}
-                                    </Typography>
-                                  );
-                                } else if (!editable) {
-                                  content = (
-                                    <Typography>{String(value)}</Typography>
-                                  );
-                                } else if (enumOptions) {
-                                  content = (
-                                    <FormControl fullWidth size="small">
-                                      <InputLabel>{label}</InputLabel>
-                                      <Select
-                                        value={value || ""}
-                                        label={label}
-                                        onChange={(e) =>
-                                          handleFieldChange(
-                                            taskId,
-                                            key,
-                                            e.target.value,
-                                            isSubtask,
-                                            subtaskId
-                                          )
-                                        }
-                                        onBlur={handleBlur}
-                                        disabled={isclient}
-                                      >
-                                        {enumOptions.map((option) => (
-                                          <MenuItem key={option} value={option}>
-                                            {option}
-                                          </MenuItem>
-                                        ))}
-                                      </Select>
-                                    </FormControl>
-                                  );
-                                } else if (normalizedType === "boolean") {
-                                  content = (
-                                    <Box
-                                      sx={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                      }}
-                                    >
-                                      <Switch
-                                        checked={Boolean(value)}
-                                        onChange={(e) =>
-                                          handleFieldChange(
-                                            taskId,
-                                            key,
-                                            e.target.checked,
-                                            isSubtask,
-                                            subtaskId
-                                          )
-                                        }
-                                        onBlur={handleBlur}
-                                        disabled={isclient}
-                                      />
-                                      <Typography variant="body2">
-                                        {value ? "Yes" : "No"}
-                                      </Typography>
-                                    </Box>
-                                  );
-                                } else if (normalizedType === "date") {
-                                  content = (
-                                    <DatePicker
-                                      label={label}
-                                      value={value ? new Date(value) : null}
-                                      onChange={(date) =>
-                                        handleFieldChange(
-                                          taskId,
-                                          key,
-                                          date,
-                                          isSubtask,
-                                          subtaskId
-                                        )
+                              const field = todo[key];
+                              if (!field) return null;
+
+                              const {
+                                value,
+                                type,
+                                enum: enumOptions,
+                                editable = true,
+                              } = field;
+                              const taskId = userId;
+                              const subtaskId = isSubtask ? taskId : null;
+                              const normalizedType = type?.toLowerCase();
+                              const label = key
+                                .split(/(?=[A-Z])/)
+                                .join(" ")
+                                .replace(/^./, (str) => str.toUpperCase());
+
+                              const handleBlur = (e) => {
+                                const newValue =
+                                  normalizedType === "boolean"
+                                    ? e.target.checked
+                                    : e.target.value;
+                                handleFieldBlur(
+                                  taskId,
+                                  key,
+                                  newValue,
+                                  isSubtask,
+                                  subtaskId
+                                );
+                              };
+
+                              let content;
+
+                              if (key === "documents") {
+                                const userId = todo.userId?.value;
+                                const userName = todo.userName?.value;
+                                const clientName =
+                                  todo.clientName?.value || "Client";
+                                const email = todo?._id?.value;
+
+                                content =
+                                  userId && userName ? (
+                                    <Button
+                                      startIcon={<PersonIcon />}
+                                      onClick={() =>
+                                        handleUserClick(userId, userName)
                                       }
-                                      disabled={isclient}
-                                      renderInput={(params) => (
-                                        <TextField
-                                          {...params}
-                                          size="small"
-                                          fullWidth
-                                          onBlur={() =>
-                                            handleFieldBlur(
-                                              taskId,
-                                              key,
-                                              value,
-                                              isSubtask,
-                                              subtaskId
-                                            )
-                                          }
-                                        />
-                                      )}
-                                    />
+                                      sx={{ textTransform: "none" }}
+                                    >
+                                      {userName}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      startIcon={<BusinessIcon />}
+                                      onClick={() => handleClientClick(email)}
+                                      sx={{ textTransform: "none" }}
+                                    >
+                                      {clientName}
+                                    </Button>
                                   );
-                                } else {
-                                  content = (
-                                    <TextField
-                                      label={label}
+                              } else if (key === "caseId") {
+                                content = (
+                                  <Typography>
+                                    {value?.CaseNumber || ""}
+                                  </Typography>
+                                );
+                              } else if (key === "createdBy") {
+                                content = (
+                                  <Typography>
+                                    {value?.UserName || ""}
+                                  </Typography>
+                                );
+                              } else if (key === "createdAt") {
+                                content = (
+                                  <Typography>
+                                    {(value || "").split("T")[0]}
+                                  </Typography>
+                                );
+                              } else if (!editable) {
+                                content = (
+                                  <Typography>{String(value)}</Typography>
+                                );
+                              } else if (enumOptions) {
+                                content = (
+                                  <FormControl fullWidth size="small">
+                                    <InputLabel>{label}</InputLabel>
+                                    <Select
                                       value={value || ""}
+                                      label={label}
                                       onChange={(e) =>
                                         handleFieldChange(
                                           taskId,
@@ -1709,224 +1567,250 @@ export default function ViewFormC({ token }) {
                                         )
                                       }
                                       onBlur={handleBlur}
-                                      disabled={isclient || key === "email"}
-                                      size="small"
-                                      fullWidth
-                                    />
-                                  );
-                                }
-
-                                return (
-                                  <React.Fragment key={key}>
-                                    <ListItem sx={{ px: 0 }}>
-                                      <ListItemText primary={content} />
-                                    </ListItem>
-                                    <Divider />
-                                  </React.Fragment>
+                                      disabled={isclient}
+                                    >
+                                      {enumOptions.map((option) => (
+                                        <MenuItem key={option} value={option}>
+                                          {option}
+                                        </MenuItem>
+                                      ))}
+                                    </Select>
+                                  </FormControl>
                                 );
-                              })}
-                            </List>
-                          </AccordionDetails>
-                        </Accordion>
-                      </Paper>
-                    );
-                  })}
-                </List>
-              </Box>
+                              } else if (normalizedType === "boolean") {
+                                content = (
+                                  <Box
+                                    sx={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                    }}
+                                  >
+                                    <Switch
+                                      checked={Boolean(value)}
+                                      onChange={(e) =>
+                                        handleFieldChange(
+                                          taskId,
+                                          key,
+                                          e.target.checked,
+                                          isSubtask,
+                                          subtaskId
+                                        )
+                                      }
+                                      onBlur={handleBlur}
+                                      disabled={isclient}
+                                    />
+                                    <Typography variant="body2">
+                                      {value ? "Yes" : "No"}
+                                    </Typography>
+                                  </Box>
+                                );
+                              } else if (normalizedType === "date") {
+                                content = (
+                                  <DatePicker
+                                    label={label}
+                                    value={value ? new Date(value) : null}
+                                    onChange={(date) =>
+                                      handleFieldChange(
+                                        taskId,
+                                        key,
+                                        date,
+                                        isSubtask,
+                                        subtaskId
+                                      )
+                                    }
+                                    disabled={isclient}
+                                    renderInput={(params) => (
+                                      <TextField
+                                        {...params}
+                                        size="small"
+                                        fullWidth
+                                        onBlur={() =>
+                                          handleFieldBlur(
+                                            taskId,
+                                            key,
+                                            value,
+                                            isSubtask,
+                                            subtaskId
+                                          )
+                                        }
+                                      />
+                                    )}
+                                  />
+                                );
+                              } else {
+                                content = (
+                                  <TextField
+                                    label={label}
+                                    value={value || ""}
+                                    onChange={(e) =>
+                                      handleFieldChange(
+                                        taskId,
+                                        key,
+                                        e.target.value,
+                                        isSubtask,
+                                        subtaskId
+                                      )
+                                    }
+                                    onBlur={handleBlur}
+                                    disabled={
+                                      isclient ||
+                                      key === "email" ||
+                                      key === "phone"
+                                    }
+                                    size="small"
+                                    fullWidth
+                                  />
+                                );
+                              }
+
+                              return (
+                                <React.Fragment key={key}>
+                                  <ListItem sx={{ px: 0 }}>
+                                    <ListItemText primary={content} />
+                                  </ListItem>
+                                  <Divider />
+                                </React.Fragment>
+                              );
+                            })}
+                          </List>
+                        </AccordionDetails>
+                      </Accordion>
+                    </Paper>
+                  );
+                })}
+              </List>
             </Box>
-          </div>
-        </LocalizationProvider>
+          </Box>
+        </div>
+      </LocalizationProvider>
 
-        {/* Rest of your modals remain the same */}
+      <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
+        <Modal.Header closeButton>
+          <Modal.Title>Add Task</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Assign Case</Form.Label>
+              <Form.Select
+                value={newAssignedTaskCase}
+                onChange={(e) => {
+                  fetchUsers(e.target.value);
+                  setNewAssignedTaskCase(e.target.value);
+                }}
+                isInvalid={isCaseInvalid}
+              >
+                <option value="">Select a Case</option>
+                {allCases?.map((user) => (
+                  <option key={user?._id} value={user?._id}>
+                    {user?.CaseNumber}
+                  </option>
+                ))}
+              </Form.Select>
+              {isCaseInvalid && (
+                <Form.Text className="text-danger">
+                  Please select a case.
+                </Form.Text>
+              )}
+            </Form.Group>
 
-        {/* Column Add Modal */}
-        {addingColumn && (
-          <div className="modal-overlay">
-            <div className="modal-content">
-              <div className="modal-header">
-                <div className="modal-title">Add New Column</div>
-                <button
-                  className="close-button"
-                  onClick={() => setAddingColumn(false)}
-                >
-                  &times;
-                </button>
-              </div>
-              <div>
-                <input
-                  type="text"
-                  className="column-input"
-                  placeholder="Enter New Column Name"
-                  value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
-                />
-
-                <div className="column-type-container">
-                  <select
-                    className="column-type-select"
-                    value={newColumnType}
-                    onChange={(e) => setNewColumnType(e.target.value)}
-                  >
-                    <option value="text">Text</option>
-                    <option value="dropdown">Dropdown</option>
-                    <option value="checkbox">Checkbox</option>
-                  </select>
-
-                  {newColumnType === "dropdown" && (
-                    <input
-                      type="text"
-                      className="column-options-input"
-                      placeholder="Options (comma separated)"
-                      value={newColumnOptions}
-                      onChange={(e) => setNewColumnOptions(e.target.value)}
-                    />
-                  )}
-                </div>
-
-                <div className="modal-footer">
-                  <button
-                    className="cancel-button"
-                    onClick={() => setAddingColumn(false)}
-                  >
-                    Cancel
-                  </button>
-                  <button className="add-column-button" onClick={addColumn}>
-                    Add Column
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add Task</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form>
+            {users?.length > 0 && (
               <Form.Group className="mb-3">
-                <Form.Label>Assign Case</Form.Label>
+                <Form.Label>Assigned Users</Form.Label>
                 <Form.Select
-                  value={newAssignedTaskCase}
+                  value={assignedUsersForCase || ""}
+                  isInvalid={isUserInvalid}
                   onChange={(e) => {
-                    fetchUsers(e.target.value);
-                    setNewAssignedTaskCase(e.target.value);
+                    setAssignedUsersForCase(e.target.value);
+                    if (e.target.value) {
+                      setIsUserInvalid(false); // clear error when valid user selected
+                    }
                   }}
-                  isInvalid={isCaseInvalid}
                 >
-                  <option value="">Select a Case</option>
-                  {allCases?.map((user) => (
-                    <option key={user?._id} value={user?._id}>
-                      {user?.CaseNumber}
+                  <option value="">Select Assigned User</option>
+                  {users?.map((user) => (
+                    <option key={user?.id} value={user?.id}>
+                      {user?.UserName} ({user?.Role})
                     </option>
                   ))}
                 </Form.Select>
-                {isCaseInvalid && (
+                {isUserInvalid && (
                   <Form.Text className="text-danger">
-                    Please select a case.
+                    Please select an assigned user.
                   </Form.Text>
                 )}
               </Form.Group>
+            )}
+          </Form>
+        </Modal.Body>
 
-              {users?.length > 0 && (
-                <Form.Group className="mb-3">
-                  <Form.Label>Assigned Users</Form.Label>
-                  <Form.Select
-                    value={assignedUsersForCase || ""}
-                    isInvalid={isUserInvalid}
-                    onChange={(e) => {
-                      setAssignedUsersForCase(e.target.value);
-                      if (e.target.value) {
-                        setIsUserInvalid(false); // clear error when valid user selected
-                      }
-                    }}
-                  >
-                    <option value="">Select Assigned User</option>
-                    {users?.map((user) => (
-                      <option key={user?.id} value={user?.id}>
-                        {user?.UserName} ({user?.Role})
-                      </option>
-                    ))}
-                  </Form.Select>
-                  {isUserInvalid && (
-                    <Form.Text className="text-danger">
-                      Please select an assigned user.
-                    </Form.Text>
-                  )}
-                </Form.Group>
-              )}
-            </Form>
-          </Modal.Body>
+        <Modal.Footer className="d-flex justify-content-center">
+          <Button variant="primary" onClick={() => setShowTaskModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              let valid = true;
 
-          <Modal.Footer className="d-flex justify-content-center">
-            <Button variant="primary" onClick={() => setShowTaskModal(false)}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => {
-                let valid = true;
+              if (!newAssignedTaskCase) {
+                setIsCaseInvalid(true);
+                valid = false;
+              }
 
-                if (!newAssignedTaskCase) {
-                  setIsCaseInvalid(true);
-                  valid = false;
-                }
+              if (!assignedUsersForCase) {
+                setIsUserInvalid(true);
+                valid = false;
+              }
 
-                if (!assignedUsersForCase) {
-                  setIsUserInvalid(true);
-                  valid = false;
-                }
+              if (!valid) return;
 
-                if (!valid) return;
+              handleAddNewTask(
+                newTaskName,
+                newAssignedTaskCase,
+                assignedUsersForCase
+              );
+              setShowTaskModal(false);
+              setNewTaskName("");
+              setNewAssignedTaskCase("");
+              setAssignedUsersForCase(null);
+              setUsers([]);
+              setIsCaseInvalid(false);
+              setIsUserInvalid(false);
+            }}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
 
-                handleAddNewTask(
-                  newTaskName,
-                  newAssignedTaskCase,
-                  assignedUsersForCase
-                );
-                setShowTaskModal(false);
-                setNewTaskName("");
-                setNewAssignedTaskCase("");
-                setAssignedUsersForCase(null);
-                setUsers([]);
-                setIsCaseInvalid(false);
-                setIsUserInvalid(false);
-              }}
-            >
-              Save
-            </Button>
-          </Modal.Footer>
-        </Modal>
+      <ErrorModal
+        show={showError}
+        handleClose={() => setShowError(false)}
+        message={message}
+      />
 
-        <ErrorModal
-          show={showError}
-          handleClose={() => setShowError(false)}
-          message={message}
-        />
+      <ConfirmModal
+        show={showConfirm}
+        title={`Delete Column "${pendingColumn}"`}
+        message={`Are you sure you want to delete column "${pendingColumn}" from all tasks?`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowConfirm(false)}
+      />
 
-        <ConfirmModal
-          show={showConfirm}
-          title={`Delete Column "${pendingColumn}"`}
-          message={`Are you sure you want to delete column "${pendingColumn}" from all tasks?`}
-          onConfirm={handleConfirmDelete}
-          onCancel={() => setShowConfirm(false)}
-        />
+      <ConfirmModal
+        show={showConfirmModal}
+        title="Delete Task"
+        message={confirmData.message}
+        onConfirm={confirmDeleteTask}
+        onCancel={() => setShowConfirmModal(false)}
+      />
 
-        <ConfirmModal
-          show={showConfirmModal}
-          title="Delete Task"
-          message={confirmData.message}
-          onConfirm={confirmDeleteTask}
-          onCancel={() => setShowConfirmModal(false)}
-        />
-
-        <SuccessModal
-          show={showSuccessModal}
-          handleClose={() => setShowSuccessModal(false)}
-          message={successMessage}
-        />
-      </div>
+      <SuccessModal
+        show={showSuccessModal}
+        handleClose={() => setShowSuccessModal(false)}
+        message={successMessage}
+      />
     </div>
   );
 }

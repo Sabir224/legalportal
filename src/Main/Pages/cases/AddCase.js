@@ -1,62 +1,38 @@
 import React, { useState, useRef, useEffect } from "react";
 import "./AddCase.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {
-  FaUser,
-  FaPhone,
-  FaEnvelope,
-  FaLock,
-  FaUpload,
-  FaBell,
-  FaBars,
-  FaTrash,
-  FaBriefcase,
-  FaInfoCircle,
-  FaMapMarkerAlt,
-  FaChevronDown,
-  FaGlobe,
-  FaMapMarkedAlt,
-  FaBuilding,
-  FaChair,
-  FaRegEnvelope,
-  FaFilter,
-  FaMailBulk,
-  FaAudioDescription,
-  FaTypo3,
-} from "react-icons/fa";
-import { Link } from "react-router-dom";
+
 import { ApiEndPoint } from "../Component/utils/utlis";
-import { useDispatch, useSelector } from "react-redux";
-import { screenChange } from "../../../REDUX/sliece";
+import { useSelector } from "react-redux";
+
 import { Bs123, BsPerson, BsType } from "react-icons/bs";
 import axios from "axios";
+import { useAlert } from "../../../Component/AlertContext";
+import {
+  FaAudioDescription,
+  FaChevronDown,
+  FaRegEnvelope,
+} from "react-icons/fa";
 
 const AddCase = () => {
-  const dispatch = useDispatch();
   const [Priority, setPriority] = useState("High");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [preview, setPreview] = useState(null);
   const selectedclientdetails = useSelector(
     (state) => state.screen.clientEmail
   );
   // Form fields
-  // console.log("clientEmail", clientEmail)
   const [casenumber, setCaseNumber] = useState("");
   const [clientname, setClientname] = useState("");
   const [casetype, setCaseType] = useState("");
   const [discription, setDiscription] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [clientmail, setclientmail] = useState("");
-  const [bio, setBio] = useState("");
-  const [language, setLanguage] = useState("");
-  const [location, setLocation] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [department, setDepartment] = useState("");
-  const [position, setPosition] = useState("");
+
   const [PreviewCaseId, setPreviewCaseId] = useState("");
   const dropdownRef = useRef(null);
+  const regexCaseNumber = /^[a-zA-Z0-9\s/]+$/; // Letters, numbers, spaces, and slashes
+  const regexClientName = /^[a-zA-Z\s]+$/; // Letters and spaces
+  const regexCaseType = /^[a-zA-Z\s]+$/; // Letters and spaces
 
+  const { showLoading, showSuccess, showError } = useAlert();
   useEffect(() => {
     const fetchNextCaseId = async () => {
       const res = await fetch(`${ApiEndPoint}getNextCaseId`);
@@ -73,54 +49,6 @@ const AddCase = () => {
     setDropdownOpen(false);
   };
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      setSelectedFile(file);
-      setPreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleAddUser = async () => {
-    // try {
-    //   const formData = new FormData();
-    //   formData.append("UserName", name);
-    //   formData.append("Email", email);
-    //   formData.append("Password", password);
-    //   formData.append("Role", selectedRole);
-    //   formData.append("Contact", contactNumber);
-    //   formData.append("Bio", bio);
-    //   formData.append("Address", address);
-    //   formData.append("Position", position);
-    //   if (selectedFile) {
-    //     formData.append("file", selectedFile);
-    //   }
-    //   const response = await fetch(`${ApiEndPoint}users`, {
-    //     method: "POST",
-    //     body: formData,
-    //   });
-    //   if (!response.ok) {
-    //     throw new Error("Failed to add user");
-    //   }
-    //   dispatch(screenChange(9));
-    //   alert("✅ User Added Successfully!");
-    //   setName("");
-    //   setEmail("");
-    //   setPassword("");
-    //   setConfirmPassword("");
-    //   setSelectedRole("");
-    //   setContactNumber("");
-    //   setBio("");
-    //   setAddress("");
-    //   setPosition("");
-    //   setSelectedFile(null);
-    //   setPreview(null);
-    // } catch (error) {
-    //   alert("❌ Failed to Add User! Check Console.");
-    //   console.error("Error adding user:", error);
-    // }
-  };
-
   // Close dropdown if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -135,11 +63,6 @@ const AddCase = () => {
     };
   }, []);
 
-  const handleRemoveImage = () => {
-    setSelectedFile(null);
-    setPreview(null);
-  };
-
   const handleaddCase = async () => {
     let caseData = {
       Status: "Open",
@@ -150,22 +73,39 @@ const AddCase = () => {
       Priority: Priority,
       ClientId: selectedclientdetails?._id,
     };
+    if (!regexCaseNumber.test(casenumber)) {
+      showError(
+        "Case Number should contain only letters, numbers, spaces, and slashes."
+      );
 
-    console.log("before Api calling", caseData);
+      return;
+    }
+
+    if (!regexClientName.test(clientname)) {
+      showError("Client Name should contain only letters and spaces.");
+
+      return;
+    }
+
+    if (!regexCaseType.test(casetype)) {
+      showError("Case Type should contain only letters and spaces.");
+
+      return;
+    }
     try {
-      const response = await axios.post(`${ApiEndPoint}cases`, caseData);
-      console.log("Case added successfully:", response.data.case);
-      // dispatch(screenChange(9));
-      alert("✅ Case Added Successfully!");
+      showLoading();
+      await axios.post(`${ApiEndPoint}cases`, caseData);
 
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      showSuccess("Form submitted successfully!");
       setCaseNumber("");
       setCaseType("");
       setDiscription("");
     } catch (error) {
       if (error.response) {
-        console.error("API error:", error.response);
+        showError("Error submitting the form.", error.response);
       } else {
-        console.error("Network or server error:", error.message);
+        showError("Network or server error:", error.message);
       }
     }
   };

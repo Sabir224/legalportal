@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 
 import backgroundImage from "../../../Pages/Images/bg.jpg";
 import { ApiEndPoint } from "../utils/utlis";
 import SuccessModal from "../../AlertModels/SuccessModal";
-
+import { useAlert } from "../../../../Component/AlertContext";
+import { FaCross, FaDiscord, FaRemoveFormat } from "react-icons/fa";
 
 const ClientConsultationForm = ({ token }) => {
     const [fileName, setFileName] = useState(null);
@@ -14,22 +14,21 @@ const ClientConsultationForm = ({ token }) => {
 
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
-
+    const { showLoading, showSuccess, showError } = useAlert();
 
     const handleGenerateLink = () => {
         const data = JSON.stringify({ token, timestamp: Date.now() });
         const encrypted = btoa(data);
-        const link = `${window.location.origin}/client-consultation?data=${encodeURIComponent(encrypted)}`;
+        const link = `${window.location.origin
+            }/client-consultation?data=${encodeURIComponent(encrypted)}`;
         setEncryptedLink(link);
         setCopied(false);
     };
 
-    const showSuccess = (msg) => {
-        setSuccessMessage(msg);
-        setShowSuccessModal(true);
-    };
-
-
+    //   const showSuccess = (msg) => {
+    //     setSuccessMessage(msg);
+    //     setShowSuccessModal(true);
+    //   };
 
     const handleCopy = async () => {
         if (encryptedLink) {
@@ -45,34 +44,32 @@ const ClientConsultationForm = ({ token }) => {
     // Check if URL contains the encrypted link (using query params)
     useEffect(() => {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('data')) {
+        if (urlParams.has("data")) {
             setShowLinkGenerator(false); // Hide link generator if opening from link
         }
     }, []);
 
-
-
-    const [clientName, setClientName] = useState('');
-    const [countryCode, setCountryCode] = useState('+92');
-    const [phoneNumber, setPhoneNumber] = useState('');
-    const [email, setEmail] = useState('');
-    const [contactAddress, setContactAddress] = useState('');
-    const [individualOrCompany, setIndividualOrCompany] = useState('');
+    const [clientName, setClientName] = useState("");
+    const [countryCode, setCountryCode] = useState("+92");
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [email, setEmail] = useState("");
+    const [contactAddress, setContactAddress] = useState("");
+    const [individualOrCompany, setIndividualOrCompany] = useState("");
 
     // Extra Info
-    const [companyName, setCompanyName] = useState('');
-    const [occupation, setOccupation] = useState('');
-    const [opponentDetails, setOpponentDetails] = useState('');
-    const [legalService, setLegalService] = useState('Select');
-    const [practiceArea, setPracticeArea] = useState('Select');
-    const [serviceDetails, setServiceDetails] = useState('');
-    const [desiredOutcome, setDesiredOutcome] = useState('');
+    const [companyName, setCompanyName] = useState("");
+    const [occupation, setOccupation] = useState("");
+    const [opponentDetails, setOpponentDetails] = useState("");
+    const [legalService, setLegalService] = useState("Select");
+    const [practiceArea, setPracticeArea] = useState("Select");
+    const [serviceDetails, setServiceDetails] = useState("");
+    const [desiredOutcome, setDesiredOutcome] = useState("");
 
     // File Upload - Multiple files
     const [files, setFiles] = useState([]);
 
     // Referred By
-    const [referredBy, setReferredBy] = useState('');
+    const [referredBy, setReferredBy] = useState("");
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -81,26 +78,36 @@ const ClientConsultationForm = ({ token }) => {
     const handleDrop = (e) => {
         e.preventDefault();
         const droppedFiles = Array.from(e.dataTransfer.files);
-        if (droppedFiles.length > 0) {
-            setFiles(prevFiles => [...prevFiles, ...droppedFiles]);
+
+        if (files.length + droppedFiles.length > 5) {
+            alert("You can only upload up to 5 files.");
+            return;
         }
+
+        setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
     };
+
 
     const handleFileChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        if (selectedFiles.length > 0) {
-            setFiles(prevFiles => [...prevFiles, ...selectedFiles]);
+        const selected = Array.from(e.target.files);
+
+        if (files.length + selected.length > 5) {
+            alert("You can only upload up to 5 files.");
+            return;
         }
+
+        setFiles((prevFiles) => [...prevFiles, ...selected]);
     };
 
+
     const removeFile = (index) => {
-        setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
+        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
     };
 
     const submitForm = async (formData) => {
         try {
             const response = await fetch(`${ApiEndPoint}createConsultation`, {
-                method: 'POST',
+                method: "POST",
                 body: formData,
                 // headers are automatically set by browser for FormData
             });
@@ -108,55 +115,77 @@ const ClientConsultationForm = ({ token }) => {
             const data = await response.json();
 
             if (!response.ok) {
-                throw new Error(data.message || 'Submission failed');
+                throw new Error(data.message || "Submission failed");
             }
 
             return data;
         } catch (error) {
-            console.error('Submission error:', error);
+            console.error("Submission error:", error);
             throw error;
         }
     };
 
     // Modify your handleSubmit function
     const handleSubmit = async (e) => {
+        showLoading();
         e.preventDefault();
 
         const formData = new FormData();
 
         // Append all form fields
-        formData.append('clientName', clientName);
-        formData.append('phoneNumber', `${countryCode}${phoneNumber}`);
-        formData.append('email', email);
-        formData.append('contactAddress', contactAddress);
-        formData.append('individualOrCompany', individualOrCompany);
-        formData.append('companyName', companyName);
-        formData.append('occupation', occupation);
-        formData.append('opponentDetails', opponentDetails);
-        formData.append('legalService', legalService);
-        formData.append('practiceArea', practiceArea);
-        formData.append('serviceDetails', serviceDetails);
-        formData.append('desiredOutcome', desiredOutcome);
-        formData.append('referredBy', referredBy);
+        formData.append("clientName", clientName);
+        formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
+        formData.append("email", email);
+        formData.append("contactAddress", contactAddress);
+        formData.append("individualOrCompany", individualOrCompany);
+        formData.append("companyName", companyName);
+        formData.append("occupation", occupation);
+        formData.append("opponentDetails", opponentDetails);
+        formData.append("legalService", legalService);
+        formData.append("practiceArea", practiceArea);
+        formData.append("serviceDetails", serviceDetails);
+        formData.append("desiredOutcome", desiredOutcome);
+        formData.append("referredBy", referredBy);
 
         // Append each file
         files.forEach((file) => {
-            formData.append('files', file);
+            formData.append("files", file);
         });
 
         try {
             const result = await submitForm(formData);
-            console.log('Success:', result);
+            console.log("Success:", result);
             // Show success message, redirect, etc.
             // alert('Form submitted successfully!');
-            showSuccess("Form C is added ")
+            showSuccess("Form submitted successfully!");
+
+            setClientName("")
+            setCountryCode("")
+            setPhoneNumber("")
+            setEmail("")
+            setContactAddress("")
+            setIndividualOrCompany("")
+            setCompanyName("")
+            setOccupation("")
+            setOpponentDetails("")
+            setLegalService("Select")
+            setPracticeArea("Select")
+            setServiceDetails("")
+            setDesiredOutcome("")
+            setReferredBy("")
+            setFiles([])
+
+            //   showSuccess("Form C is added ");
         } catch (error) {
-            console.error('Error:', error);
+            setDesiredOutcome("")
+            if (error.response) {
+                showError("Error submitting the form.", error.response);
+            } else {
+                showError("Network or server error:", error.message);
+            }
             // Show error to user
-            alert(`Error: ${error.message}`);
         }
     };
-
 
     return (
         <div
@@ -171,78 +200,85 @@ const ClientConsultationForm = ({ token }) => {
                 alignItems: "center",
             }}
         >
-            <div className="card shadow-sm mt-1" style={{
-                maxHeight: '86vh', overflowY: 'auto',
-                maxWidth: showLinkGenerator ? "auto" : "90vw",
-
-            }}>
+            <div
+                className="card shadow-sm mt-1"
+                style={{
+                    maxHeight: "86vh",
+                    overflowY: "auto",
+                    maxWidth: showLinkGenerator ? "auto" : "90vw",
+                }}
+            >
                 <div className="card-body">
                     {/* Header */}
                     <div className="mb-4">
-                        <img src="/logo.png" alt="Legal Group Logo" className="mb-3" style={{ height: '40px' }} />
+                        {showLinkGenerator && (
+                            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                                {/* Logo on the left */}
+                                <img
+                                    src="/logo.png"
+                                    alt="Legal Group Logo"
+                                    className="mb-2 mb-md-0"
+                                    style={{ height: "40px" }}
+                                />
+
+                                {/* Buttons on the right */}
+                                <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
+                                    <button
+                                        type="button"
+                                        className="btn btn-primary d-flex  m-0 p-0  align-items-center justify-content-center"
+                                        style={{
+                                            minWidth: "160px",
+                                            height: "45px",
+                                            lineHeight: "1.2",
+                                        }}
+                                        onClick={handleGenerateLink}
+                                    >
+                                        Generate Form Link
+                                    </button>
+
+                                    {encryptedLink && (
+                                        <button
+                                            className="btn btn-primary m-0 p-0 d-flex align-items-center justify-content-center"
+                                            onClick={handleCopy}
+                                            title={copied ? "Copied!" : "Copy Link"}
+                                            style={{
+                                                width: "45px",
+                                                height: "45px",
+                                            }}
+                                        >
+                                            <i
+                                                className={`fas ${copied ? "fa-check-circle" : "fa-copy"}`}
+                                                style={{ fontSize: "1.2rem" }}
+                                            ></i>
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+
                         <h4 className="card-title mb-2">Client Consultation Brief</h4>
                         <p className="text-muted small">
-                            Greetings from AWS Legal Group!<br />
-                            Thank you for consulting us regarding your legal matter. To ensure we provide the highest quality service, please complete this form with detailed information regarding the legal services you require and include all relevant documents. Your information will be treated with strict confidentiality and used solely to understand your needs and assist you accordingly.
+                            Greetings from AWS Legal Group!
+                            <br />
+                            Thank you for consulting us regarding your legal matter. To ensure
+                            we provide the highest quality service, please complete this form
+                            with detailed information regarding the legal services you require
+                            and include all relevant documents. Your information will be
+                            treated with strict confidentiality and used solely to understand
+                            your needs and assist you accordingly.
                         </p>
                     </div>
 
-
                     {/* Encrypted Link Generator */}
-                    {showLinkGenerator && (
-                        <div className="d-flex justify-content-between align-items-center mb-3">
-                            <button
-                                type="button"
-                                className="btn btn-primary"
-                                onClick={handleGenerateLink}
-                            >
-                                Generate Form Link
-                            </button>
-
-                            {encryptedLink && (
-                                <div className="d-flex align-items-center ms-3" style={{ flex: 1 }}>
-                                    <div
-                                        className="btn btn-primary mb-0 text-truncate"
-                                        style={{
-                                            cursor: 'pointer',
-                                            maxWidth: '60ch',
-                                            overflow: 'hidden',
-                                            whiteSpace: 'nowrap',
-                                            textOverflow: 'ellipsis',
-                                        }}
-                                        onClick={handleCopy}
-                                        title={encryptedLink}
-                                    >
-                                        {encryptedLink}
-                                    </div>
-                                    <button
-                                        className="btn btn-primary ms-2 mb-0"
-                                        onClick={handleCopy}
-                                        title={copied ? "Copied!" : "Copy Link"}
-                                        style={{
-                                            display: "flex",
-                                            maxWidth: '10ch',
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            // padding: "0.375rem 0.75rem", // Same padding as "Generate Form Link" button
-                                        }}
-                                    >
-                                        <i
-                                            className={`fas ${copied ? "fa-check-circle" : "fa-copy"}`}
-                                            style={{ fontSize: "1.2rem" }}
-                                        ></i>
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
 
                     {/* Form Start */}
                     <form onSubmit={handleSubmit}>
                         {/* Personal Info */}
                         <div className="mb-3">
-                            <label className="form-label">Client Name(s) <span className="text-danger">*</span></label>
+                            <label className="form-label">
+                                Client Name(s) <span className="text-danger">*</span>
+                            </label>
                             <input
                                 type="text"
                                 className="form-control"
@@ -255,7 +291,9 @@ const ClientConsultationForm = ({ token }) => {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Phone Number <span className="text-danger">*</span></label>
+                            <label className="form-label">
+                                Phone Number <span className="text-danger">*</span>
+                            </label>
                             <div className="d-flex gap-2">
                                 <select
                                     className="form-select w-25"
@@ -277,7 +315,9 @@ const ClientConsultationForm = ({ token }) => {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Email Address <span className="text-danger">*</span></label>
+                            <label className="form-label">
+                                Email Address <span className="text-danger">*</span>
+                            </label>
                             <input
                                 type="email"
                                 className="form-control"
@@ -290,7 +330,8 @@ const ClientConsultationForm = ({ token }) => {
                         <div className="mb-3">
                             <label className="form-label">Contact Address</label>
                             <p className="text-muted small">
-                                Please provide your complete correspondence address, including the country
+                                Please provide your complete correspondence address, including
+                                the country
                             </p>
                             <input
                                 type="text"
@@ -303,7 +344,8 @@ const ClientConsultationForm = ({ token }) => {
                         <div className="mb-3">
                             <label className="form-label">Individual or Company</label>
                             <p className="text-muted small">
-                                Please specify if the legal service will be provided to you in your personal capacity or on behalf of a company
+                                Please specify if the legal service will be provided to you in
+                                your personal capacity or on behalf of a company
                             </p>
                             <select
                                 className="form-select"
@@ -320,7 +362,8 @@ const ClientConsultationForm = ({ token }) => {
                         <div className="mb-3">
                             <label className="form-label">Company Name</label>
                             <p className="text-muted small">
-                                Please provide us with the name of the company you are representing (if applicable)
+                                Please provide us with the name of the company you are
+                                representing (if applicable)
                             </p>
                             <input
                                 type="text"
@@ -331,7 +374,9 @@ const ClientConsultationForm = ({ token }) => {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Client Occupation / Business Activity</label>
+                            <label className="form-label">
+                                Client Occupation / Business Activity
+                            </label>
                             <input
                                 type="text"
                                 className="form-control"
@@ -343,7 +388,8 @@ const ClientConsultationForm = ({ token }) => {
                         <div className="mb-3">
                             <label className="form-label">Opponent Details</label>
                             <p className="text-muted small">
-                                Please provide the name, contact details, contact address and nationality of the opposing party (if applicable)
+                                Please provide the name, contact details, contact address and
+                                nationality of the opposing party (if applicable)
                             </p>
                             <textarea
                                 className="form-control mt-1"
@@ -352,7 +398,9 @@ const ClientConsultationForm = ({ token }) => {
                                 value={opponentDetails}
                                 onChange={(e) => setOpponentDetails(e.target.value)}
                             ></textarea>
-                            <div className="form-text text-end">{opponentDetails.length}/2000</div>
+                            <div className="form-text text-end">
+                                {opponentDetails.length}/2000
+                            </div>
                         </div>
 
                         <div className="mb-3">
@@ -383,9 +431,14 @@ const ClientConsultationForm = ({ token }) => {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Details on Service Required <span className="text-danger">*</span></label>
+                            <label className="form-label">
+                                Details on Service Required{" "}
+                                <span className="text-danger">*</span>
+                            </label>
                             <p className="text-muted small">
-                                Please provide as much information as possible on your situation, a history of relevant events, and the sort of legal service you require from us
+                                Please provide as much information as possible on your
+                                situation, a history of relevant events, and the sort of legal
+                                service you require from us
                             </p>
                             <textarea
                                 className="form-control mt-1"
@@ -395,13 +448,19 @@ const ClientConsultationForm = ({ token }) => {
                                 onChange={(e) => setServiceDetails(e.target.value)}
                                 required
                             ></textarea>
-                            <div className="form-text text-end">{serviceDetails.length}/2000</div>
+                            <div className="form-text text-end">
+                                {serviceDetails.length}/2000
+                            </div>
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">Desired Outcome / Suggested Action <span className="text-danger">*</span></label>
+                            <label className="form-label">
+                                Desired Outcome / Suggested Action{" "}
+                                <span className="text-danger">*</span>
+                            </label>
                             <p className="text-muted small">
-                                If there is a specific outcome or idea you have in mind, this will help steer our conversation
+                                If there is a specific outcome or idea you have in mind, this
+                                will help steer our conversation
                             </p>
                             <textarea
                                 className="form-control mt-1"
@@ -411,20 +470,30 @@ const ClientConsultationForm = ({ token }) => {
                                 onChange={(e) => setDesiredOutcome(e.target.value)}
                                 required
                             ></textarea>
-                            <div className="form-text text-end">{desiredOutcome.length}/2000</div>
+                            <div className="form-text text-end">
+                                {desiredOutcome.length}/2000
+                            </div>
                         </div>
 
                         {/* Relevant Documents */}
                         <div className="mb-3">
                             <label className="form-label">Relevant Documents</label>
                             <p className="text-muted small">
-                                Please provide us with copies of documents relevant to the presented legal matter.
-                                You can upload multiple files (PDF, DOC, JPG, PNG).
+                                Please provide us with copies of documents relevant to the
+                                presented legal matter. You can upload multiple files (PDF, DOC,
+                                JPG, PNG).
                             </p>
-                            <div className="border border-dashed p-4 text-center" style={{ borderRadius: '6px' }}>
+                            <div
+                                className="border border-dashed p-4 text-center"
+                                style={{ borderRadius: "6px" }}
+                            >
                                 <div
                                     className="card border-0 p-4 text-center"
-                                    style={{ cursor: 'pointer', borderRadius: '6px', border: '2px dashed #ccc' }}
+                                    style={{
+                                        cursor: "pointer",
+                                        borderRadius: "6px",
+                                        border: "2px dashed #ccc",
+                                    }}
                                     onDragOver={handleDragOver}
                                     onDrop={handleDrop}
                                 >
@@ -434,14 +503,17 @@ const ClientConsultationForm = ({ token }) => {
                                         id="fileUpload"
                                         onChange={handleFileChange}
                                         multiple
+                                        disabled={files.length >= 5}
                                     />
-                                    <label htmlFor="fileUpload" className="d-block">
+
+                                    <label htmlFor="fileUpload" className={`d-block ${files.length >= 5 ? 'text-muted' : ''}`}>
                                         <i className="bi bi-upload fs-2"></i><br />
                                         <span className="text-primary text-decoration-underline">
-                                            Choose files to upload
-                                        </span>{' '}
-                                        or drag and drop here
+                                            {files.length >= 5 ? 'Maximum files selected' : 'Choose files to upload'}
+                                        </span>{" "}
+                                        {!files.length >= 5 && 'or drag and drop here'}
                                     </label>
+
                                 </div>
 
                                 {/* Display uploaded files */}
@@ -450,20 +522,26 @@ const ClientConsultationForm = ({ token }) => {
                                         <strong>Selected Files:</strong>
                                         <ul className="list-group mt-2">
                                             {files.map((file, index) => (
-                                                <li key={index} className="list-group-item d-flex justify-content-between align-items-center">
-                                                    {file.name}
+                                                <li
+                                                    key={index}
+                                                    className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
+                                                >
+                                                    <span className="text-break w-100 " style={{fontSize:16}}>{file.name}</span>
                                                     <button
                                                         type="button"
-                                                        className="btn btn-sm btn-outline-danger"
+                                                        className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
                                                         onClick={() => removeFile(index)}
                                                     >
-                                                        <i className="bi bi-trash"></i>
+                                                        X
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
-                                        <div className="text-muted mt-1">{files.length} file(s) selected</div>
+                                        <div className="text-muted mt-1" style={{fontSize:16}}>
+                                            {files.length} file{files.length !== 1 && 's'} selected
+                                        </div>
                                     </div>
+
                                 )}
                             </div>
                         </div>
@@ -482,16 +560,16 @@ const ClientConsultationForm = ({ token }) => {
                             />
                         </div>
 
-                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
+                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">
+                            Submit
+                        </button>
                     </form>
 
-
-
-                    <SuccessModal
-                        show={showSuccessModal}
-                        handleClose={() => setShowSuccessModal(false)}
-                        message={successMessage}
-                    />
+                    {/* <SuccessModal
+            show={showSuccessModal}
+            handleClose={() => setShowSuccessModal(false)}
+            message={successMessage}
+          /> */}
                 </div>
             </div>
         </div>

@@ -39,7 +39,7 @@ export default function ViewUsers({ token, screen }) {
           isMobile && selectedChat ? "d-none" : "d-block"
         }`}
         style={{
-          width: isMobile ? "100%" : "200px",
+          width: isMobile ? "100%" : "250px",
           height: "82vh",
           backgroundColor: "#fff",
           borderRadius: "10px",
