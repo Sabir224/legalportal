@@ -1263,7 +1263,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
             cursor: "pointer",
           }}
         >
-          {showCaseSheet ? "Hide Cases" : "View Case"}
+          {showCaseSheet ? "Hide Cases" : "View Cases"}
         </button>
       )}
     </center>
