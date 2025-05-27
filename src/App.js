@@ -120,7 +120,7 @@ function App() {
        {/*<Route path="/" element={<FAQ />} />*/}
         {/*<Route path="/" element={<UpdateCase />}/>*/}
         {/*<Route path="/" element={<ViewCaseUpdates />}/>*/}
-        <Route path="/SignUp" element={<SignUp_Screen />} />
+         <Route path="/SignUp" element={<SignUp_Screen />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
 

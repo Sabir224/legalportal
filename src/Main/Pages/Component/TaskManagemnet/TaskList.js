@@ -932,12 +932,14 @@ import axios from 'axios'
 import React, { useEffect, useState } from "react";
 import { Button, Form, Modal } from "react-bootstrap";
 import DatePicker from "react-datepicker";
-import { FaPlus, FaChevronDown, FaChevronRight, FaTrash } from "react-icons/fa";
+import { FaPlus, FaChevronDown, FaChevronRight, FaTrash, FaChevronUp } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import SocketService from "../../../../SocketService";
 import ErrorModal from "../../AlertModels/ErrorModal";
 import ConfirmModal from "../../AlertModels/ConfirmModal";
 import SuccessModal from "../../AlertModels/SuccessModal";
+
+
 
 export default function TaskList({ token }) {
 
@@ -977,6 +979,11 @@ export default function TaskList({ token }) {
 
   const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState("");
+  const [openSubtasksId, setOpenSubtasksId] = useState(null);
+
+  const toggleSubtasks = (id) => {
+    setOpenSubtasksId(openSubtasksId === id ? null : id);
+  };
 
 
 
@@ -1508,7 +1515,7 @@ export default function TaskList({ token }) {
 
     taskId = subtaskId;
 
-   
+
 
     try {
       const response = await axios.post(`${ApiEndPoint}updateTaskField`, {
@@ -1531,445 +1538,865 @@ export default function TaskList({ token }) {
 
 
   return (
-    <div className="tasklist-body">
-      <style>{`
-      .tasklist-body {
-        padding: 20px;
-        background: #f0f2f5;
-      }
-      .tasklist-table-container {
-     
-        overflow: auto;
-        background: white;
-        border-radius: 10px;
-        border: 1px solid #ddd;
-      }
-      .tasklist-todo-table {
-      
-        min-width: 900px;
-        border-collapse: separate;
-        border-spacing: 0;
-      }
-      .tasklist-todo-table th, .tasklist-todo-table td {
-        padding: 10px 14px;
-        border-bottom: 1px solid #eee;
-        text-align: left;
-        white-space: nowrap;
-      }
-      .tasklist-todo-table th {
-        background: #fafafa;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        font-weight: bold;
-      }
-      .expand-icon {
-        cursor: pointer;
-        width:10px,
-        margin-right: 5px;
-      }
-      .subtask-table {
-        margin-left: 30px;
-        margin-top: 10px;
-      }
-      .add-subtask-button, .save-subtask-button, .add-column-button {
-        margin-top: 10px;
-        background: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        padding: 6px 12px;
-        cursor: pointer;
-      }
-      .add-subtask-button:hover, .save-subtask-button:hover, .add-column-button:hover {
-        background: #0056b3;
-      }
-      .subtask-input, .column-input, .column-type-select, .column-options-input {
-        margin-top: 10px;
-        padding: 6px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-      }
-      .subtask-input, .column-input {
-        width: 300px;
-      }
-      .column-options-input {
-        width: 200px;
-        margin-left: 10px;
-      }
-      .plus-icon {
-        cursor: pointer;
-        font-size: 18px;
-        color: #007bff;
-      }
-      .plus-icon:hover {
-        color: #0056b3;
-      }
-      .delete-column-icon {
-        cursor: pointer;
-        color: #ff4d4f;
-        margin-left: 8px;
-      }
-      .column-type-container {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-      }
-      .column-options-container {
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-      }
-      /* Modal styles */
-      .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-      }
-      .modal-content {
-        background: white;
-        padding: 20px;
-        border-radius: 8px;
-        width: 400px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      }
-      .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-      }
-      .modal-title {
-        font-size: 18px;
-        font-weight: bold;
-      }
-      .close-button {
-        background: none;
-        border: none;
-        font-size: 20px;
-        cursor: pointer;
-      }
-      .modal-footer {
-        margin-top: 20px;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-      }
-      .cancel-button {
-        background: #f0f0f0;
-        color: #333;
-        border: none;
-        border-radius: 5px;
-        padding: 6px 12px;
-        cursor: pointer;
-      }
-    `}</style>
-
-
-      <div className="mb-1">
-        <button className="btn btn-success" onClick={() => setShowTaskModal(true)}>
-          + New Task
+    <div
+      className="card  container-fluid m-6"
+      style={{
+        overflowX: "auto",
+        // width: "calc(100vw - 100px)", // Adjust 250px based on your sidebar width
+        transition: "width 0.3s ease",
+        minWidth: "82vw",
+        maxWidth: "94vw"
+      }}
+    >      <div className="mb-4">
+        <button
+          className="btn btn-success"
+          onClick={() => setShowTaskModal(true)}
+          style={{ minWidth: '120px' }}
+        >
+          <FaPlus className="me-1" /> New Task
         </button>
       </div>
 
-      <div className="tasklist-table-container">
-        <table className="tasklist-todo-table">
-          <thead>
-            <tr>
-              <th style={{ width: "10px" }}></th>
-              {keys?.map((key) => (
-                <th key={key}>
-                  <div style={{ display: "flex", alignItems: "center" }}>
-                    <div>
-                      {key
-                        .split(/(?=[A-Z])/)
-                        .join(" ")
-                        .replace(/^./, (str) => str.toUpperCase())}
+      {/* Desktop View (Table) */}
+      <div className="d-none d-lg-block">
+        <div
+          style={{
+            overflowX: "auto",
+            overflowY: "auto",
+            maxHeight: "calc(100vh - 150px)",
+            maxWidth: "calc(100vw-250%)",
+            display: "block",
+            WebkitOverflowScrolling: "touch", // For mobile
+          }}
+        >
+          <table
+            className="table table-bordered table-hover"
+            style={{
+              // minWidth: "200px", // or larger if needed
+              // maxWidth: "300px", // or larger if needed
+              width: "max-content",
+              whiteSpace: "nowrap",
+            }}
+          >
+            <thead className="thead-light">
+              <tr>
+                <th style={{ width: "40px" }}></th>
+                {keys?.map((key) => (
+                  <th key={key} style={{ minWidth: "200px", whiteSpace: "nowrap" }}>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div className="text-truncate">
+                        {key
+                          .split(/(?=[A-Z])/)
+                          .join(" ")
+                          .replace(/^./, (str) => str.toUpperCase())}
+                      </div>
+                      {(!isclient &&
+                        key !== "caseId" &&
+                        key !== "title" &&
+                        key !== "description" &&
+                        key !== "assignedUsers" &&
+                        key !== "createdBy" &&
+                        key !== "status" &&
+                        key !== "dueDate" &&
+                        key !== "clientEmail" &&
+                        key !== "nationality" &&
+                        key !== "nextHearing") && (
+                          <div>
+                            {token?.Role === "admin" && (
+                              <FaTrash
+                                className="ms-2 text-danger"
+                                onClick={() => deleteColumn(key)}
+                                title="Delete column"
+                                style={{ cursor: "pointer", flexShrink: 0 }}
+                              />
+                            )}
+                          </div>
+                        )}
                     </div>
-                    {(!isclient &&
-                      key !== "caseId" &&
-                      key !== "title" &&
-                      key !== "description" &&
-                      key !== "assignedUsers" &&
-                      key !== "createdBy" &&
-                      key !== "status" &&
-                      key !== "dueDate" &&
-                      key !== "clientEmail" &&
-                      key !== "nationality" &&
-                      key !== "nextHearing") && (
-                        <div>
-                          {token?.Role === "admin" && (
-                            <FaTrash
-                              className="delete-column-icon"
-                              onClick={() => deleteColumn(key)}
-                              title="Delete column"
-                            />
-                          )}
-                        </div>
-                      )}
-                  </div>
+                  </th>
+                ))}
+
+                <th style={{ width: "50px" }}>
+                  {token?.Role === "admin" && (
+                    <FaPlus
+                      className="text-primary"
+                      onClick={() => setAddingColumn(true)}
+                      style={{ cursor: "pointer" }}
+                    />
+                  )}
                 </th>
-              ))}
+              </tr>
+            </thead>
 
-              <th>
-                {token?.Role === "admin" && (
-                  <FaPlus
-                    className="plus-icon"
-                    onClick={() => setAddingColumn(true)}
-                  />
-                )}
-              </th>
-            </tr>
-          </thead>
+            <tbody>
+              {todos?.map((todo) => (
+                <React.Fragment key={todo._id?.value || todo.id}>
+                  <tr>
+                    <td>
+                      <span
+                        onClick={() => toggleTask(todo._id?.value || todo.id)}
+                        style={{ cursor: "pointer" }}
+                      >
+                        {openTaskId === (todo._id?.value || todo.id) ? (
+                          <FaChevronDown />
+                        ) : (
+                          <FaChevronRight />
+                        )}
+                      </span>
+                    </td>
 
-          <tbody>
-            {todos?.map((todo) => (
-              <React.Fragment key={todo._id?.value || todo.id}>
-                <tr>
-                  <td>
-                    <span
-                      className="expand-icon"
-                      onClick={() => toggleTask(todo._id?.value || todo.id)}
-                    >
-                      {openTaskId === (todo._id?.value || todo.id) ? (
-                        <FaChevronDown />
-                      ) : (
-                        <FaChevronRight />
-                      )}
-                    </span>
-                  </td>
+                    {keys?.map((key) => {
+                      const field = todo[key];
+                      if (!field) return <td key={key} style={{ minWidth: "200px" }} />;
 
-                  {keys?.map((key) => {
-                    const field = todo[key];
-                    if (!field) return <td key={key} />;
+                      const { value, type, enum: enumOptions, editable = true } = field;
+                      let content;
+                      const normalizedType = type?.toLowerCase();
 
-                    const { value, type, enum: enumOptions, editable = true } = field;
-                    let content;
-                    const normalizedType = type?.toLowerCase();
+                      const taskId = todo._id?.value || todo.id;
+                      const subtaskId = isSubtask ? taskId : null;
 
-                    const taskId = todo._id?.value || todo.id;
-                    const subtaskId = isSubtask ? taskId : null;
+                      const handleBlur = (e) => {
+                        const newValue =
+                          normalizedType === "boolean"
+                            ? e.target.checked
+                            : e.target.value;
+                        handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                      };
 
-                    const handleBlur = (e) => {
-                      const newValue =
-                        normalizedType === "boolean"
-                          ? e.target.checked
-                          : e.target.value;
-                      handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                    };
-
-                    if (key === "caseId") {
-                      content = (
-                        <span>{todo.caseId?.value?.CaseNumber || ""}</span>
-                      );
-                    } else if (key === "createdBy") {
-                      content = (
-                        <span>{todo.createdBy?.value?.UserName || ""}</span>
-                      );
-                    } else if (key === "assignedUsers") {
-                      const usersList = todo?.assignedUsers?.value || [];
-                      const defaultSelectedId = usersList[0]?.id || "";
-                      const currentSelectedId = assignedUserId || defaultSelectedId;
-
-                      if (editingAssignedUser === taskId) {
+                      if (key === "caseId") {
                         content = (
-                          <select
-                            className="form-select"
-                            value={currentSelectedId}
+                          <span className="text-truncate d-block">{todo.caseId?.value?.CaseNumber || ""}</span>
+                        );
+                      } else if (key === "createdBy") {
+                        content = (
+                          <span className="text-truncate d-block">{todo.createdBy?.value?.UserName || ""}</span>
+                        );
+                      } else if (key === "assignedUsers") {
+                        const usersList = todo?.assignedUsers?.value || [];
+                        const defaultSelectedId = usersList[0]?.id || "";
+                        const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                        if (editingAssignedUser === taskId) {
+                          content = (
+                            <div className="dropdown w-100">
+                              <select
+                                className="form-select form-select-sm dropdown-toggle w-100"
+                                value={currentSelectedId}
+                                disabled={isclient}
+                                autoFocus
+                                onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                                onChange={(e) => {
+                                  setAssignedUserId(e.target.value);
+                                }}
+                                onBlur={(e) => {
+                                  const newValue = e.target.value;
+                                  handleFieldBlur(
+                                    taskId,
+                                    key,
+                                    newValue,
+                                    isSubtask,
+                                    subtaskId
+                                  );
+                                  setEditingAssignedUser(null);
+                                }}
+                              >
+                                <option value="">Assign User</option>
+                                {users?.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.UserName} ({capitalizeFirst(user.Role)})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          );
+                        } else {
+                          const isHovered = hoveredTaskId === taskId;
+
+                          content = (
+                            <span
+                              style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                cursor: "pointer",
+                                width: '100%'
+                              }}
+                              onMouseEnter={() => setHoveredTaskId(taskId)}
+                              onMouseLeave={() => setHoveredTaskId(null)}
+                              onClick={() =>
+                                !isclient && setEditingAssignedUser(taskId)
+                              }
+                            >
+                              <span className="text-truncate d-block">
+                                {usersList.length > 0
+                                  ? usersList.map((u) => u.UserName).join(", ")
+                                  : "Assign User"}
+                              </span>
+                              <i
+                                className="bi bi-pencil ms-2"
+                                style={{
+                                  fontSize: "0.9rem",
+                                  opacity: isHovered ? 1 : 0,
+                                  transition: "opacity 0.2s ease",
+                                  pointerEvents: "none",
+                                  flexShrink: 0
+                                }}
+                              />
+                            </span>
+                          );
+                        }
+                      } else if (key === "createdAt") {
+                        content = (
+                          <span className="text-truncate d-block">{(todo.createdAt?.value || "").split("T")[0]}</span>
+                        );
+                      } else if (!editable) {
+                        content = <span className="text-truncate d-block">{String(value)}</span>;
+                      } else if (enumOptions) {
+                        content = (
+                          <div className="dropdown w-100">
+                            <select
+                              className="form-select form-select-sm w-100"
+                              value={value}
+                              onChange={(e) => {
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.value,
+                                  isSubtask,
+                                  subtaskId
+                                );
+                              }}
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                            >
+                              {enumOptions?.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      } else if (normalizedType === "boolean") {
+                        content = (
+                          <div className="form-check d-flex justify-content-center">
+                            <input
+                              type="checkbox"
+                              className="form-check-input"
+                              checked={Boolean(value)}
+                              onChange={(e) => {
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.checked,
+                                  isSubtask,
+                                  subtaskId
+                                );
+                              }}
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                            />
+                          </div>
+                        );
+                      } else if (normalizedType === "date") {
+                        const dateValue = value
+                          ? new Date(value).toISOString().split("T")[0]
+                          : "";
+                        const today = new Date().toISOString().split("T")[0];
+
+                        content = (
+                          <DatePicker
+                            className="form-control form-control-sm w-100"
+                            selected={value ? new Date(value) : null}
+                            onChange={(date) =>
+                              handleFieldChange(taskId, key, date, isSubtask, subtaskId)
+                            }
+                            dateFormat="dd/MM/yyyy"
+                            placeholderText="dd/mm/yyyy"
+                            onBlur={() =>
+                              handleFieldBlur(taskId, key, value, isSubtask, subtaskId)
+                            }
                             disabled={isclient}
-                            autoFocus
-                            onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                            dropdownMode="select"
+                          />
+                        );
+                      } else {
+                        content = (
+                          <input
+                            type="text"
+                            className="form-control form-control-sm w-100"
+                            value={value || ""}
                             onChange={(e) => {
-                              setAssignedUserId(e.target.value);
-                            }}
-                            onBlur={(e) => {
-                              const newValue = e.target.value;
-                              handleFieldBlur(
+                              handleFieldChange(
                                 taskId,
                                 key,
-                                newValue,
+                                e.target.value,
                                 isSubtask,
                                 subtaskId
                               );
-                              setEditingAssignedUser(null);
                             }}
-                          >
-                            <option value="">Assign User</option>
-                            {users?.map((user) => (
-                              <option key={user.id} value={user.id}>
-                                {user.UserName} ({capitalizeFirst(user.Role)})
-                              </option>
-                            ))}
-                          </select>
-                        );
-                      } else {
-                        const isHovered = hoveredTaskId === taskId;
-
-                        content = (
-                          <span
-                            style={{
-                              display: "inline-flex",
-                              alignItems: "center",
-                              cursor: "pointer",
-                            }}
-                            onMouseEnter={() => setHoveredTaskId(taskId)}
-                            onMouseLeave={() => setHoveredTaskId(null)}
-                            onClick={() =>
-                              !isclient && setEditingAssignedUser(taskId)
-                            }
-                          >
-                            {usersList.length > 0
-                              ? usersList.map((u) => u.UserName).join(", ")
-                              : "Assign User"}
-                            <i
-                              className="bi bi-pencil"
-                              style={{
-                                marginLeft: "6px",
-                                fontSize: "0.9rem",
-                                opacity: isHovered ? 1 : 0,
-                                transition: "opacity 0.2s ease",
-                                pointerEvents: "none",
-                              }}
-                            />
-                          </span>
+                            onBlur={handleBlur}
+                            disabled={isclient}
+                          />
                         );
                       }
-                    } else if (key === "createdAt") {
-                      content = (
-                        <span>{(todo.createdAt?.value || "").split("T")[0]}</span>
-                      );
-                    } else if (!editable) {
-                      content = <span>{String(value)}</span>;
-                    } else if (enumOptions) {
-                      content = (
-                        <select
-                          value={value}
-                          onChange={(e) => {
-                            handleFieldChange(
-                              taskId,
-                              key,
-                              e.target.value,
-                              isSubtask,
-                              subtaskId
-                            );
-                          }}
-                          onBlur={handleBlur}
-                          disabled={isclient}
-                        >
-                          {enumOptions?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      );
-                    } else if (normalizedType === "boolean") {
-                      content = (
-                        <input
-                          type="checkbox"
-                          checked={Boolean(value)}
-                          onChange={(e) => {
-                            handleFieldChange(
-                              taskId,
-                              key,
-                              e.target.checked,
-                              isSubtask,
-                              subtaskId
-                            );
-                          }}
-                          onBlur={handleBlur}
-                          disabled={isclient}
-                        />
-                      );
-                    } else if (normalizedType === "date") {
-                      const dateValue = value
-                        ? new Date(value).toISOString().split("T")[0]
-                        : "";
-                      const today = new Date().toISOString().split("T")[0];
 
-                      content = (
-                        <DatePicker
-                          selected={value ? new Date(value) : null}
-                          onChange={(date) =>
-                            handleFieldChange(taskId, key, date, isSubtask, subtaskId)
-                          }
-                          dateFormat="dd/MM/yyyy"
-                          placeholderText="dd/mm/yyyy"
-                          onBlur={() =>
-                            handleFieldBlur(taskId, key, value, isSubtask, subtaskId)
-                          }
-                          disabled={isclient}
-                        />
-                      );
-                    } else {
-                      content = (
-                        <input
-                          type="text"
-                          value={value || ""}
-                          onChange={(e) => {
-                            handleFieldChange(
-                              taskId,
-                              key,
-                              e.target.value,
-                              isSubtask,
-                              subtaskId
-                            );
-                          }}
-                          onBlur={handleBlur}
-                          disabled={isclient}
-                        />
-                      );
-                    }
+                      return <td key={key} style={{ minWidth: "200px" }}>{content}</td>;
+                    })}
 
-                    return <td key={key}>{content}</td>;
-                  })}
+                    <td style={{ width: "50px" }}>
+                      <button
+                        className="btn btn-sm btn-danger"
+                        onClick={() => handleDelete(todo._id?.value || todo.id)}
+                        disabled={isclient}
+                      >
+                        <FaTrash />
+                      </button>
+                    </td>
+                  </tr>
 
-                  <td>
-                    <button
-                      className="btn btn-sm btn-danger"
-                      onClick={() => handleDelete(todo._id?.value || todo.id)}
-                      disabled={isclient}
-                    >
-                      <FaTrash />
-                    </button>
-                  </td>
-                </tr>
+                  {openTaskId === (todo._id?.value || todo.id) && (
+                    <tr>
+                      <td colSpan={keys.length + 2}>
+                        <div className="p-2" >
+                          <div className="table-responsive" style={{ overflow: 'visible' }}>
 
+                            <table className="table table-bordered table-sm ms-4" style={{ minWidth: "max-content", width: "100%", overflow: 'visible' }}>
+                              <thead className="thead-light">
+                                <tr>
+                                  {keys?.map((key) => (
+                                    <th key={key} style={{ minWidth: "200px" }}>
+                                      <div className="d-flex align-items-center">
+                                        <div className="text-truncate">
+                                          {key
+                                            .split(/(?=[A-Z])/)
+                                            .join(" ")
+                                            .replace(/^./, (str) => str.toUpperCase())}
+                                        </div>
+                                      </div>
+                                    </th>
+                                  ))}
+                                  <th style={{ width: "50px" }}>Actions</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {todo?.subtasks?.map((subtask) => (
+                                  <tr key={subtask._id?.value}>
+                                    {keys?.map((key) => {
+                                      const field = subtask[key];
+                                      if (!field) return <td key={key} style={{ minWidth: "200px" }} />;
+
+                                      const {
+                                        value,
+                                        type,
+                                        enum: enumOptions,
+                                        editable = true,
+                                      } = field;
+                                      let content;
+
+                                      const taskId = todo._id?.value || todo.id;
+                                      const subtaskId = subtask._id?.value;
+                                      const normalizedType = type?.toLowerCase();
+
+                                      const handleBlur = (e) => {
+                                        const newValue =
+                                          normalizedType === "boolean"
+                                            ? e.target.checked
+                                            : e.target.value;
+
+                                        handleSubtaskFieldBlur(
+                                          taskId,
+                                          key,
+                                          newValue,
+                                          subtaskId
+                                        );
+                                      };
+
+                                      if (key === "caseId") {
+                                        content = (
+                                          <span className="text-truncate d-block">{subtask.caseId?.value?.CaseNumber || ""}</span>
+                                        );
+                                      } else if (key === "createdBy") {
+                                        content = (
+                                          <span className="text-truncate d-block">{subtask.createdBy?.value?.UserName || ""}</span>
+                                        );
+                                      } else if (key === "assignedUsers") {
+                                        const usersList = subtask.assignedUsers?.value || [];
+                                        const defaultSelectedId = usersList[0]?.id || "";
+                                        const currentSelectedId =
+                                          assignedUserId || defaultSelectedId;
+
+                                        if (editingAssignedSubtaskId === subtaskId) {
+                                          content = (
+                                            <div className="dropdown w-100">
+                                              <select
+                                                className="form-select form-select-sm w-100"
+                                                value={currentSelectedId}
+                                                disabled={isclient}
+                                                autoFocus
+                                                onFocus={() =>
+                                                  fetchUsers(todo?.caseId?.value?._id)
+                                                }
+                                                onChange={(e) => {
+                                                  setAssignedUserId(e.target.value);
+                                                }}
+                                                onBlur={(e) => {
+                                                  handleSubtaskFieldBlur(
+                                                    taskId,
+                                                    key,
+                                                    [e.target.value],
+                                                    subtaskId
+                                                  );
+                                                  setEditingAssignedSubtaskId(null);
+                                                }}
+                                              >
+                                                <option value="">Assign User</option>
+                                                {users?.map((user) => (
+                                                  <option key={user?.id} value={user?.id}>
+                                                    {user?.UserName} (
+                                                    {capitalizeFirst(user?.Role)})
+                                                  </option>
+                                                ))}
+                                              </select>
+                                            </div>
+                                          );
+                                        } else {
+                                          content = (
+                                            <span
+                                              onDoubleClick={() =>
+                                                !isclient &&
+                                                setEditingAssignedSubtaskId(subtaskId)
+                                              }
+                                              style={{
+                                                cursor: !isclient ? "pointer" : "default",
+                                                width: '100%'
+                                              }}
+                                              className="text-truncate d-block"
+                                            >
+                                              {usersList.length > 0
+                                                ? usersList.map((u) => u.UserName).join(", ")
+                                                : "Assign User"}
+                                            </span>
+                                          );
+                                        }
+                                      } else if (key === "createdAt") {
+                                        content = (
+                                          <span className="text-truncate d-block">
+                                            {(subtask.createdAt?.value || "").split("T")[0]}
+                                          </span>
+                                        );
+                                      } else if (!editable) {
+                                        content = <span className="text-truncate d-block">{String(value)}</span>;
+                                      } else if (enumOptions) {
+                                        content = (
+                                          <div className="dropdown w-100">
+                                            <select
+                                              className="form-select form-select-sm w-100"
+                                              value={value}
+                                              disabled={isclient}
+                                              onChange={(e) =>
+                                                handleSubtaskFieldChange(
+                                                  taskId,
+                                                  key,
+                                                  e.target.value,
+                                                  subtaskId
+                                                )
+                                              }
+                                              onBlur={handleBlur}
+                                            >
+                                              {enumOptions?.map((option) => (
+                                                <option key={option} value={option}>
+                                                  {option}
+                                                </option>
+                                              ))}
+                                            </select>
+                                          </div>
+                                        );
+                                      } else if (normalizedType === "boolean") {
+                                        content = (
+                                          <div className="form-check d-flex justify-content-center">
+                                            <input
+                                              type="checkbox"
+                                              className="form-check-input"
+                                              disabled={isclient}
+                                              checked={Boolean(value)}
+                                              onChange={(e) =>
+                                                handleSubtaskFieldChange(
+                                                  taskId,
+                                                  key,
+                                                  e.target.checked,
+                                                  subtaskId
+                                                )
+                                              }
+                                              onBlur={handleBlur}
+                                            />
+                                          </div>
+                                        );
+                                      } else if (normalizedType === "date") {
+                                        const today = new Date();
+
+                                        content = (
+                                          <DatePicker
+                                            className="form-control form-control-sm w-100"
+                                            selected={value ? new Date(value) : null}
+                                            onChange={(date) => {
+                                              if (date) {
+                                                handleSubtaskFieldChange(
+                                                  taskId,
+                                                  key,
+                                                  date,
+                                                  subtaskId
+                                                );
+                                              }
+                                            }}
+                                            onBlur={() => handleSubtaskFieldBlur(
+                                              taskId,
+                                              key,
+                                              value,
+                                              subtaskId
+                                            )}
+                                            dateFormat="dd-MM-yyyy"
+                                            minDate={today}
+                                            disabled={isclient}
+                                            placeholderText="dd/mm/yyyy"
+                                            dropdownMode="select"
+                                          />
+                                        );
+                                      } else {
+                                        content = (
+                                          <input
+                                            type="text"
+                                            className="form-control form-control-sm w-100"
+                                            disabled={isclient}
+                                            value={value || ""}
+                                            onChange={(e) =>
+                                              handleSubtaskFieldChange(
+                                                taskId,
+                                                key,
+                                                e.target.value,
+                                                subtaskId
+                                              )
+                                            }
+                                            onBlur={handleBlur}
+                                          />
+                                        );
+                                      }
+
+                                      return <td key={key} style={{ minWidth: "200px" }}>{content}</td>;
+                                    })}
+                                    <td style={{ width: "50px" }}>
+                                      <button
+                                        className="btn btn-sm btn-danger"
+                                        onClick={() => handleDelete(subtask._id?.value)}
+                                        disabled={isclient}
+                                      >
+                                        <FaTrash />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                ))}
+
+                                {!isclient && (
+                                  <tr>
+                                    <td colSpan={keys.length + 1}>
+                                      <button
+                                        className="btn btn-sm btn-outline-primary"
+                                        onClick={() => handleAddEmptySubtask(todo)}
+                                      >
+                                        + Add Subtask
+                                      </button>
+                                    </td>
+                                  </tr>
+                                )}
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {/* Mobile View (Collapsible Cards) */}
+      <div className="d-block d-lg-none">
+        <div className="row" style={{ maxHeight: "calc(100vh - 150px)", overflowY: "auto" }}>
+          {todos?.map((todo) => (
+            <div key={todo._id?.value || todo.id} className="col-12 mb-3">
+              <div className="card shadow-sm">
+                {/* Collapsible Card Header */}
+                <div
+                  className="card-header d-flex justify-content-between align-items-center bg-light p-3"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleTask(todo._id?.value || todo.id)}
+                >
+                  <div className="d-flex align-items-center">
+                    <div className="me-3">
+                      {openTaskId === (todo._id?.value || todo.id) ? (
+                        <FaChevronDown className="text-primary" />
+                      ) : (
+                        <FaChevronRight className="text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <h6 className="mb-0 fw-bold text-truncate" style={{ maxWidth: "200px" }}>
+                        {todo.title?.value || "No Title"}
+                      </h6>
+                      <small className="text-muted">
+                        Case: {todo.caseId?.value?.CaseNumber || "N/A"}
+                      </small>
+                    </div>
+                  </div>
+                  <button
+                    className="btn btn-sm btn-outline-danger"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete(todo._id?.value || todo.id);
+                    }}
+                    disabled={isclient}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+
+                {/* Collapsible Content */}
                 {openTaskId === (todo._id?.value || todo.id) && (
-                  <tr>
-                    <td colSpan={keys.length + 2}>
-                      <div className="subtask-container">
-                        <table className="tasklist-todo-table subtask-table">
-                          <thead>
-                            <tr>
-                              {keys?.map((key) => (
-                                <th key={key}>
-                                  <div style={{ display: "flex", alignItems: "center" }}>
-                                    <div>
-                                      {key
-                                        .split(/(?=[A-Z])/)
-                                        .join(" ")
-                                        .replace(/^./, (str) => str.toUpperCase())}
-                                    </div>
-                                  </div>
-                                </th>
+                  <div className="card-body">
+                    <div className="row g-2">
+                      {keys?.map((key) => {
+                        const field = todo[key];
+                        if (!field || key === "caseId" || key === "title") return null;
+
+                        const { value, type, enum: enumOptions, editable = true } = field;
+                        let content;
+                        const normalizedType = type?.toLowerCase();
+                        const taskId = todo._id?.value || todo.id;
+                        const subtaskId = isSubtask ? taskId : null;
+
+                        const handleBlur = (e) => {
+                          const newValue =
+                            normalizedType === "boolean"
+                              ? e.target.checked
+                              : e.target.value;
+                          handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                        };
+
+                        if (key === "createdBy") {
+                          content = todo.createdBy?.value?.UserName || "";
+                        } else if (key === "assignedUsers") {
+                          const usersList = todo?.assignedUsers?.value || [];
+                          const defaultSelectedId = usersList[0]?.id || "";
+                          const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                          if (editingAssignedUser === taskId) {
+                            content = (
+                              <select
+                                className="form-select form-select-sm"
+                                value={currentSelectedId}
+                                disabled={isclient}
+                                autoFocus
+                                onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                                onChange={(e) => {
+                                  setAssignedUserId(e.target.value);
+                                }}
+                                onBlur={(e) => {
+                                  const newValue = e.target.value;
+                                  handleFieldBlur(
+                                    taskId,
+                                    key,
+                                    newValue,
+                                    isSubtask,
+                                    subtaskId
+                                  );
+                                  setEditingAssignedUser(null);
+                                }}
+                              >
+                                <option value="">Assign User</option>
+                                {users?.map((user) => (
+                                  <option key={user.id} value={user.id}>
+                                    {user.UserName} ({capitalizeFirst(user.Role)})
+                                  </option>
+                                ))}
+                              </select>
+                            );
+                          } else {
+                            content = (
+                              <div
+                                className="border rounded p-2 bg-light"
+                                onClick={() => !isclient && setEditingAssignedUser(taskId)}
+                                style={{ cursor: !isclient ? "pointer" : "default" }}
+                              >
+                                {usersList.length > 0
+                                  ? usersList.map((u) => u.UserName).join(", ")
+                                  : "Assign User"}
+                              </div>
+                            );
+                          }
+                        } else if (key === "createdAt") {
+                          content = (todo.createdAt?.value || "").split("T")[0];
+                        } else if (!editable) {
+                          content = String(value);
+                        } else if (enumOptions) {
+                          content = (
+                            <select
+                              value={value}
+                              onChange={(e) => {
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.value,
+                                  isSubtask,
+                                  subtaskId
+                                );
+                              }}
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                              className="form-select form-select-sm"
+                            >
+                              {enumOptions?.map((option) => (
+                                <option key={option} value={option}>
+                                  {option}
+                                </option>
                               ))}
-                              <th>Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {todo?.subtasks?.map((subtask) => (
-                              <tr key={subtask._id?.value}>
+                            </select>
+                          );
+                        } else if (normalizedType === "boolean") {
+                          content = (
+                            <div className="form-check form-switch">
+                              <input
+                                type="checkbox"
+                                className="form-check-input"
+                                role="switch"
+                                checked={Boolean(value)}
+                                onChange={(e) => {
+                                  handleFieldChange(
+                                    taskId,
+                                    key,
+                                    e.target.checked,
+                                    isSubtask,
+                                    subtaskId
+                                  );
+                                }}
+                                onBlur={handleBlur}
+                                disabled={isclient}
+                              />
+                            </div>
+                          );
+                        } else if (normalizedType === "date") {
+                          content = (
+                            <DatePicker
+                              selected={value ? new Date(value) : null}
+                              onChange={(date) =>
+                                handleFieldChange(taskId, key, date, isSubtask, subtaskId)
+                              }
+                              dateFormat="dd/MM/yyyy"
+                              placeholderText="dd/mm/yyyy"
+                              onBlur={() =>
+                                handleFieldBlur(taskId, key, value, isSubtask, subtaskId)
+                              }
+                              disabled={isclient}
+                              className="form-control form-control-sm"
+                              dropdownMode="select"
+                            />
+                          );
+                        } else {
+                          content = (
+                            <input
+                              type="text"
+                              value={value || ""}
+                              onChange={(e) => {
+                                handleFieldChange(
+                                  taskId,
+                                  key,
+                                  e.target.value,
+                                  isSubtask,
+                                  subtaskId
+                                );
+                              }}
+                              onBlur={handleBlur}
+                              disabled={isclient}
+                              className="form-control form-control-sm"
+                            />
+                          );
+                        }
+
+                        return (
+                          <div key={key} className="col-12 col-sm-6 mb-2">
+                            <label className="form-label small text-muted mb-1">
+                              {key
+                                .split(/(?=[A-Z])/)
+                                .join(" ")
+                                .replace(/^./, (str) => str.toUpperCase())}
+                            </label>
+                            <div className="ms-2">
+                              {content}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Action Buttons - Fixed styling and spacing */}
+                    <div className="d-flex flex-wrap justify-content-between gap-3 mt-3">
+                      {!isclient && (
+                        <button
+                          className="btn btn-primary btn-sm d-flex align-items-center flex-grow-1"
+                          style={{ minWidth: "120px" }}
+                          onClick={() => handleAddEmptySubtask(todo)}
+                        >
+                          <FaPlus className="me-1" /> Add Subtask
+                        </button>
+                      )}
+
+                      {todo?.subtasks?.length > 0 && (
+                        <button
+                          className="btn btn-primary btn-sm d-flex align-items-center flex-grow-1"
+                          style={{ minWidth: "120px" }}
+                          onClick={() => toggleSubtasks(todo._id?.value || todo.id)}
+                        >
+                          {openSubtasksId === (todo._id?.value || todo.id) ? (
+                            <>
+                              <FaChevronUp className="me-1" />
+                              Hide Subtasks
+                            </>
+                          ) : (
+                            <>
+                              <FaChevronDown className="me-1" />
+                              View Subtasks ({todo.subtasks.length})
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Subtasks Section - Only shown when expanded */}
+                    {openSubtasksId === (todo._id?.value || todo.id) && todo?.subtasks?.length > 0 && (
+                      <div className="mt-3">
+                        <h6 className="text-muted mb-2">Subtasks:</h6>
+                        {todo.subtasks.map((subtask) => (
+                          <div key={subtask._id?.value} className="card mb-3 border-start border-3"
+                            style={{ borderLeft: '3px solid #6c757d' }} // gray-black
+                          >
+                            <div className="card-header bg-light d-flex justify-content-between align-items-center p-2">
+                              <small className="fw-bold">
+                                {subtask.title?.value || "Untitled Subtask"}
+                              </small>
+                              <button
+                                className="btn btn-sm btn-outline-danger"
+                                onClick={() => handleDelete(subtask._id?.value)}
+                                disabled={isclient}
+                              >
+                                <FaTrash />
+                              </button>
+                            </div>
+                            <div className="card-body p-3">
+                              <div className="row g-2">
                                 {keys?.map((key) => {
                                   const field = subtask[key];
-                                  if (!field) return <td key={key} />;
+                                  if (!field) return null;
 
                                   const {
                                     value,
@@ -1978,7 +2405,6 @@ export default function TaskList({ token }) {
                                     editable = true,
                                   } = field;
                                   let content;
-
                                   const taskId = todo._id?.value || todo.id;
                                   const subtaskId = subtask._id?.value;
                                   const normalizedType = type?.toLowerCase();
@@ -1988,7 +2414,6 @@ export default function TaskList({ token }) {
                                       normalizedType === "boolean"
                                         ? e.target.checked
                                         : e.target.value;
-                                        
                                     handleSubtaskFieldBlur(
                                       taskId,
                                       key,
@@ -1998,27 +2423,18 @@ export default function TaskList({ token }) {
                                   };
 
                                   if (key === "caseId") {
-                                    content = (
-                                      <span>
-                                        {subtask.caseId?.value?.CaseNumber || ""}
-                                      </span>
-                                    );
+                                    content = subtask.caseId?.value?.CaseNumber || "";
                                   } else if (key === "createdBy") {
-                                    content = (
-                                      <span>
-                                        {subtask.createdBy?.value?.UserName || ""}
-                                      </span>
-                                    );
+                                    content = subtask.createdBy?.value?.UserName || "";
                                   } else if (key === "assignedUsers") {
                                     const usersList = subtask.assignedUsers?.value || [];
                                     const defaultSelectedId = usersList[0]?.id || "";
-                                    const currentSelectedId =
-                                      assignedUserId || defaultSelectedId;
+                                    const currentSelectedId = assignedUserId || defaultSelectedId;
 
                                     if (editingAssignedSubtaskId === subtaskId) {
                                       content = (
                                         <select
-                                          className="form-select"
+                                          className="form-select form-select-sm"
                                           value={currentSelectedId}
                                           disabled={isclient}
                                           autoFocus
@@ -2049,29 +2465,21 @@ export default function TaskList({ token }) {
                                       );
                                     } else {
                                       content = (
-                                        <span
-                                          onDoubleClick={() =>
-                                            !isclient &&
-                                            setEditingAssignedSubtaskId(subtaskId)
-                                          }
-                                          style={{
-                                            cursor: !isclient ? "pointer" : "default",
-                                          }}
+                                        <div
+                                          className="border rounded p-2 bg-light"
+                                          onClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
+                                          style={{ cursor: !isclient ? "pointer" : "default" }}
                                         >
                                           {usersList.length > 0
                                             ? usersList.map((u) => u.UserName).join(", ")
                                             : "Assign User"}
-                                        </span>
+                                        </div>
                                       );
                                     }
                                   } else if (key === "createdAt") {
-                                    content = (
-                                      <span>
-                                        {(subtask.createdAt?.value || "").split("T")[0]}
-                                      </span>
-                                    );
+                                    content = (subtask.createdAt?.value || "").split("T")[0];
                                   } else if (!editable) {
-                                    content = <span>{String(value)}</span>;
+                                    content = String(value);
                                   } else if (enumOptions) {
                                     content = (
                                       <select
@@ -2086,6 +2494,7 @@ export default function TaskList({ token }) {
                                           )
                                         }
                                         onBlur={handleBlur}
+                                        className="form-select form-select-sm"
                                       >
                                         {enumOptions?.map((option) => (
                                           <option key={option} value={option}>
@@ -2096,30 +2505,31 @@ export default function TaskList({ token }) {
                                     );
                                   } else if (normalizedType === "boolean") {
                                     content = (
-                                      <input
-                                        type="checkbox"
-                                        disabled={isclient}
-                                        checked={Boolean(value)}
-                                        onChange={(e) =>
-                                          handleSubtaskFieldChange(
-                                            taskId,
-                                            key,
-                                            e.target.checked,
-                                            subtaskId
-                                          )
-                                        }
-                                        onBlur={handleBlur}
-                                      />
+                                      <div className="form-check form-switch">
+                                        <input
+                                          type="checkbox"
+                                          className="form-check-input"
+                                          role="switch"
+                                          disabled={isclient}
+                                          checked={Boolean(value)}
+                                          onChange={(e) =>
+                                            handleSubtaskFieldChange(
+                                              taskId,
+                                              key,
+                                              e.target.checked,
+                                              subtaskId
+                                            )
+                                          }
+                                          onBlur={handleBlur}
+                                        />
+                                      </div>
                                     );
                                   } else if (normalizedType === "date") {
-                                   // const dateValue = value ? new Date(value) : null;
                                     const today = new Date();
-
                                     content = (
                                       <DatePicker
                                         selected={value ? new Date(value) : null}
                                         onChange={(date) => {
-                                          console.log("on change due date =",date)
                                           if (date) {
                                             handleSubtaskFieldChange(
                                               taskId,
@@ -2129,16 +2539,18 @@ export default function TaskList({ token }) {
                                             );
                                           }
                                         }}
-                                        onBlur={()=>  handleSubtaskFieldBlur(
-                                      taskId,
-                                      key,
-                                      value,
-                                      subtaskId
-                                    )}
+                                        onBlur={() => handleSubtaskFieldBlur(
+                                          taskId,
+                                          key,
+                                          value,
+                                          subtaskId
+                                        )}
                                         dateFormat="dd-MM-yyyy"
                                         minDate={today}
                                         disabled={isclient}
                                         placeholderText="dd/mm/yyyy"
+                                        className="form-control form-control-sm"
+                                        dropdownMode="select"
                                       />
                                     );
                                   } else {
@@ -2156,151 +2568,98 @@ export default function TaskList({ token }) {
                                           )
                                         }
                                         onBlur={handleBlur}
+                                        className="form-control form-control-sm"
                                       />
                                     );
                                   }
 
-                                  return <td key={key}>{content}</td>;
+                                  return (
+                                    <div key={key} className="col-12 col-sm-6 mb-2">
+                                      <label className="form-label small text-muted mb-1">
+                                        {key
+                                          .split(/(?=[A-Z])/)
+                                          .join(" ")
+                                          .replace(/^./, (str) => str.toUpperCase())}
+                                      </label>
+                                      <div className="ms-2">
+                                        {content}
+                                      </div>
+                                    </div>
+                                  );
                                 })}
-                                <td>
-                                  <button
-                                    className="btn btn-sm btn-danger"
-                                    onClick={() => handleDelete(subtask._id?.value)}
-                                    disabled={isclient}
-                                  >
-                                    <FaTrash />
-                                  </button>
-                                </td>
-                              </tr>
-                            ))}
-
-                            {!isclient && (
-                              <tr>
-                                <td colSpan={keys.length + 1}>
-                                  <button
-                                    className="add-subtask-button btn btn-sm btn-outline-primary"
-                                    onClick={() => handleAddEmptySubtask(todo)}
-                                  >
-                                    + Add Subtask
-                                  </button>
-                                </td>
-                              </tr>
-                            )}
-                          </tbody>
-                        </table>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    </td>
-                  </tr>
-                )}
-              </React.Fragment>
-            ))}
-
-            {showModal && (
-              <div className="modal fade show d-block" tabIndex="-1">
-                <div className="modal-dialog">
-                  <div className="modal-content">
-                    <div className="modal-header">
-                      <h5 className="modal-title">Add Subtask</h5>
-                      <button
-                        type="button"
-                        className="btn-close"
-                        onClick={closeModal}
-                      ></button>
-                    </div>
-                    <div className="modal-body">
-                      <div className="mb-3">
-                        <label>Subtask Name</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={newSubtaskName}
-                          onChange={(e) => setNewSubtaskName(e.target.value)}
-                        />
-                      </div>
-                      <div className="mb-3">
-                        <label>Assign User</label>
-                        <select
-                          className="form-select"
-                          value={assignedUserId?.UserName}
-                          onChange={(e) => setAssignedUserId(e.target.value)}
-                        >
-                          <option value="">Select a user</option>
-                          {users?.map((user, index) => (
-                            <option key={index} value={user?._id}>
-                              {user?.UserName} ({capitalizeFirst(user?.Role)})
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                    <div className="modal-footer">
-                      <button className="btn btn-primary" onClick={closeModal}>
-                        Cancel
-                      </button>
-                      <button className="btn btn-primary" onClick={handleSaveSubtask}>
-                        Save
-                      </button>
-                    </div>
+                    )}
                   </div>
-                </div>
+                )}
               </div>
-            )}
-          </tbody>
-        </table>
+            </div>
+          ))}
+        </div>
       </div>
-
       {/* Column Add Modal */}
       {addingColumn && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <div className="modal-title">Add New Column</div>
-              <button
-                className="close-button"
-                onClick={() => setAddingColumn(false)}
-              >
-                &times;
-              </button>
-            </div>
-            <div>
-              <input
-                type="text"
-                className="column-input"
-                placeholder="Enter New Column Name"
-                value={newColumnName}
-                onChange={(e) => setNewColumnName(e.target.value)}
-              />
-
-              <div className="column-type-container">
-                <select
-                  className="column-type-select"
-                  value={newColumnType}
-                  onChange={(e) => setNewColumnType(e.target.value)}
-                >
-                  <option value="text">Text</option>
-                  <option value="dropdown">Dropdown</option>
-                  <option value="checkbox">Checkbox</option>
-                </select>
-
-                {newColumnType === "dropdown" && (
+        <div className="modal fade show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-dialog modal-dialog-centered">
+            <div className="modal-content">
+              <div className="modal-header bg-light">
+                <h5 className="modal-title">Add New Column</h5>
+                <button
+                  type="button"
+                  className="btn-close"
+                  onClick={() => setAddingColumn(false)}
+                ></button>
+              </div>
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label className="form-label">Column Name</label>
                   <input
                     type="text"
-                    className="column-options-input"
-                    placeholder="Options (comma separated)"
-                    value={newColumnOptions}
-                    onChange={(e) => setNewColumnOptions(e.target.value)}
+                    className="form-control"
+                    placeholder="Enter New Column Name"
+                    value={newColumnName}
+                    onChange={(e) => setNewColumnName(e.target.value)}
                   />
+                </div>
+
+                <div className="mb-3">
+                  <label className="form-label">Column Type</label>
+                  <select
+                    className="form-select"
+                    value={newColumnType}
+                    onChange={(e) => setNewColumnType(e.target.value)}
+                  >
+                    <option value="text">Text</option>
+                    <option value="dropdown">Dropdown</option>
+                    <option value="checkbox">Checkbox</option>
+                    <option value="date">Date</option>
+                  </select>
+                </div>
+
+                {newColumnType === "dropdown" && (
+                  <div className="mb-3">
+                    <label className="form-label">Options (comma separated)</label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Option1, Option2, Option3"
+                      value={newColumnOptions}
+                      onChange={(e) => setNewColumnOptions(e.target.value)}
+                    />
+                  </div>
                 )}
               </div>
-
               <div className="modal-footer">
                 <button
-                  className="cancel-button"
+                  className="btn btn-secondary"
                   onClick={() => setAddingColumn(false)}
                 >
                   Cancel
                 </button>
-                <button className="add-column-button" onClick={addColumn}>
+                <button className="btn btn-primary" onClick={addColumn}>
                   Add Column
                 </button>
               </div>
@@ -2309,9 +2668,9 @@ export default function TaskList({ token }) {
         </div>
       )}
 
-      <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Add Task</Modal.Title>
+      <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)} centered>
+        <Modal.Header closeButton className="bg-light">
+          <Modal.Title>Add New Task</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -2348,7 +2707,7 @@ export default function TaskList({ token }) {
                   onChange={(e) => {
                     setAssignedUsersForCase(e.target.value);
                     if (e.target.value) {
-                      setIsUserInvalid(false); // clear error when valid user selected
+                      setIsUserInvalid(false);
                     }
                   }}
                 >
@@ -2366,47 +2725,51 @@ export default function TaskList({ token }) {
                 )}
               </Form.Group>
             )}
-
           </Form>
         </Modal.Body>
 
-        <Modal.Footer className="d-flex justify-content-center">
-          <Button variant="primary" onClick={() => setShowTaskModal(false)}>
-            Cancel
-          </Button>
-          <Button
-            variant="primary"
-            onClick={() => {
-              let valid = true;
+        <Modal.Footer className="justify-content-center">
+          <div className="d-flex gap-3">
+            <Button
+              variant="primary"
+              onClick={() => setShowTaskModal(false)}
+              style={{ minWidth: "120px" }}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={() => {
+                let valid = true;
 
-              if (!newAssignedTaskCase) {
-                setIsCaseInvalid(true);
-                valid = false;
-              }
+                if (!newAssignedTaskCase) {
+                  setIsCaseInvalid(true);
+                  valid = false;
+                }
 
-              if (!assignedUsersForCase) {
-                setIsUserInvalid(true);
-                valid = false;
-              }
+                if (!assignedUsersForCase) {
+                  setIsUserInvalid(true);
+                  valid = false;
+                }
 
-              if (!valid) return;
+                if (!valid) return;
 
-              handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
-              setShowTaskModal(false);
-              setNewTaskName("");
-              setNewAssignedTaskCase("");
-              setAssignedUsersForCase(null);
-              setUsers([]);
-              setIsCaseInvalid(false);
-              setIsUserInvalid(false);
-            }}
-          >
-            Save
-          </Button>
+                handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
+                setShowTaskModal(false);
+                setNewTaskName("");
+                setNewAssignedTaskCase("");
+                setAssignedUsersForCase(null);
+                setUsers([]);
+                setIsCaseInvalid(false);
+                setIsUserInvalid(false);
+              }}
+              style={{ minWidth: "120px" }}
+            >
+              Save Task
+            </Button>
+          </div>
         </Modal.Footer>
-
       </Modal>
-
 
       <ErrorModal
         show={showError}
@@ -2435,9 +2798,6 @@ export default function TaskList({ token }) {
         handleClose={() => setShowSuccessModal(false)}
         message={successMessage}
       />
-
-
-
     </div>
   );
 }
