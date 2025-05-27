@@ -256,7 +256,12 @@ const Dashboard = () => {
         );
         break;
       case 17:
-        setCurrentScreen(<FormHandover token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <FormHandover token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 18:
         setCurrentScreen(<ViewFormC token={decodedToken} />);

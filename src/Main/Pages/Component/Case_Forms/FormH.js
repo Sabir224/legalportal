@@ -7,6 +7,7 @@ import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import axios from "axios";
 import { ApiEndPoint } from "../utils/utlis";
+import { useAlert } from "../../../../Component/AlertContext";
 
 
 const FormHandover = ({ token }) => {
@@ -15,7 +16,10 @@ const FormHandover = ({ token }) => {
 
     const [FormhOrFormCDetails, setFormhOrFormCDetails] = useState([]);
     const [isFilled, setIsFilled] = useState(false);
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
+
+    const [successMessage, setSuccessMessage] = useState("");
+    const { showLoading, showSuccess, showError } = useAlert();
     const [formData, setFormData] = useState({
         clientName: "",
         caseNumber: reduxCaseInfo?.CaseNumber,
@@ -47,7 +51,9 @@ const FormHandover = ({ token }) => {
         }
     };
     useEffect(() => {
+
         const getData = async () => {
+
             try {
                 const result = await fetchFormHData(reduxCaseInfo?._id);
                 setFormhOrFormCDetails(result);
@@ -97,7 +103,7 @@ const FormHandover = ({ token }) => {
             } catch (err) {
                 console.error("Error loading Form H or related data:", err);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
@@ -200,8 +206,8 @@ const FormHandover = ({ token }) => {
 
 
     const handleSubmit = async (e) => {
+        showLoading();
         e.preventDefault();
-
         try {
             const form = new FormData();
             console.log("form data", formData)
@@ -235,11 +241,16 @@ const FormHandover = ({ token }) => {
                 },
             });
 
-            alert("Form submitted successfully!");
+
+            showSuccess("Form submitted successfully!");
+            fetchFormHData()
             console.log(res.data);
         } catch (error) {
-            console.error("Error submitting form:", error);
-            alert("Submission failed. Check console for details.");
+            if (error.response) {
+                showError("Error submitting the form.", error.response);
+            } else {
+                showError("Network or server error:", error.message);
+            }
         }
     };
 
