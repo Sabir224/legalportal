@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Modal, Form, Row, Dropdown } from "react-bootstrap";
 import { ApiEndPoint } from "../utils/utlis";
@@ -35,6 +34,12 @@ import {
   faFolder,
   faEdit,
   faArrowsAlt,
+  faListUl,
+  faSort,
+  faList,
+  faThLarge,
+  faPlus,
+  faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import DragAndDrop from "../DragAndDrop";
 import MoveFolderModal from "./MoveFolderModal";
@@ -45,7 +50,7 @@ const ViewFolder = ({ token }) => {
   const [folderList, setFolderList] = useState([]);
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const FormCDetails = useSelector((state) => state.screen.FormCDetails);
-  console.log("FormCDetails", FormCDetails)
+  console.log("FormCDetails", FormCDetails);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
@@ -237,19 +242,19 @@ const ViewFolder = ({ token }) => {
     } finally {
       setLoadingFolders(false);
     }
-
-
-  }
+  };
   const fetchFormCfile = async () => {
     setLoadingFolders(true);
     setError("");
     try {
-      const response = await fetch(`${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`);
+      const response = await fetch(
+        `${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`
+      );
       if (!response.ok) throw new Error("Error fetching subfolders");
 
       const data = await response.json();
       setFolderList(Array.isArray(data) ? data : []);
-      console.log("...", data.files)
+      console.log("...", data.files);
       setFiles(data.files);
     } catch (err) {
       setError(err.message);
@@ -257,8 +262,7 @@ const ViewFolder = ({ token }) => {
     } finally {
       setLoadingFolders(false);
     }
-
-  }
+  };
 
   const fileIcons = {
     pdf: faFilePdf, // PDF Files
@@ -489,18 +493,20 @@ const ViewFolder = ({ token }) => {
   const [activeTab, setActiveTab] = useState("documents");
 
   const handleDownload = async (fileId, fileName) => {
-    console.log("file name",fileId)
+    console.log("file name", fileId);
 
     // let apiaddress = FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}download/${fileId}`
 
-    let apiaddress = IsPersonal ?  `${ApiEndPoint}download/${fileId}` : FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}downloadFileFromFolder/${fileId}`
-    console.log("file apiaddress",apiaddress)
+    let apiaddress = IsPersonal
+      ? `${ApiEndPoint}download/${fileId}`
+      : FormCDetails != null
+      ? `${ApiEndPoint}formCDownloadFile/${fileId}`
+      : `${ApiEndPoint}downloadFileFromFolder/${fileId}`;
+    console.log("file apiaddress", apiaddress);
     if (IsPersonal) {
       console.log("Download Response JSON:", fileId);
 
       try {
-       
-       
         const response = await fetch(apiaddress, {
           method: "POST", // Changed to POST to send body
           headers: {
@@ -559,16 +565,13 @@ const ViewFolder = ({ token }) => {
       }
     } else {
       try {
-        const response = await fetch(
-          apiaddress,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({}), // No email needed anymore
-          }
-        );
+        const response = await fetch(apiaddress, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({}), // No email needed anymore
+        });
 
         console.log("Raw Response:", response);
 
@@ -932,157 +935,707 @@ const ViewFolder = ({ token }) => {
     }
   };
 
-  //  <Button
-  //                 variant="primary"
-  //                 className="border border-rounded"
-  //                 onClick={() => setShowUploadModal(true)}
-  //                 style={{
-  //                     borderRadius: "50%",
-  //                     width: "50px",
-  //                     height: "50px",
-  //                     display: "flex",
-  //                     alignItems: "center",
-  //                     justifyContent: "center",
-  //                     backgroundColor: "#d3b386",
-  //                     color: "white",
-  //                 }}
+  // return (
+
+  //   <div
+  //     className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0"
+  //     style={{ minHeight: "86vh", maxHeight: "86vh" }}
+  //   >
+  //     <Card className="flex-grow-1 d-flex flex-column">
+  //       <Card.Body className="flex-grow-1 d-flex flex-column">
+  //         <div className="h-100">
+  //           <Card.Header className="d-flex justify-content-between align-items-center">
+  //             {/* Left side: Breadcrumb navigation */}
+  //             <div className="d-flex align-items-center gap-2">
+  //               <div className="d-flex align-items-center">
+  //                 <Button
+  //                   variant="light"
+  //                   size="sm"
+  //                   onClick={async () => {
+  //                     await fetchCases();
+  //                     await setSelectedFolder(null);
+  //                     setFolderPath([]);
+  //                     fetchFolders();
+  //                     setIsPersonal(false);
+  //                   }}
+  //                   style={{
+  //                     fontSize: "1.2rem",
+  //                     lineHeight: "1",
+  //                     padding: "0 8px",
+  //                   }}
+  //                   title="Back to root"
+  //                 >
+  //                   📁
+  //                 </Button>
+  //                 {folderPath.length > 0 && (
+  //                   <>
+  //                     <span className="mx-1">/</span>
+  //                     {folderPath.map((folder, index) => (
+  //                       <React.Fragment key={folder._id}>
+  //                         <Button
+  //                           variant="link"
+  //                           size="sm"
+  //                           className="p-0"
+  //                           onClick={() => {
+  //                             const newPath = folderPath.slice(0, index + 1);
+  //                             setFolderPath(newPath);
+  //                             setSelectedFolder(folder);
+  //                             if (index >= 0) {
+  //                               fetchsubFolders(folder._id);
+  //                             }
+  //                           }}
+  //                         >
+  //                           {folder.folderName}
+  //                         </Button>
+  //                         {index < folderPath.length - 1 && (
+  //                           <span className="mx-1">/</span>
+  //                         )}
+  //                       </React.Fragment>
+  //                     ))}
+  //                   </>
+  //                 )}
+  //               </div>
+  //             </div>
+
+  //             {/* Right side: All buttons */}
+  //             <div className="d-flex align-items-center gap-2">
+  //               {(!IsPersonal && !FormCDetails) && (
+  //                 <div className="d-flex align-items-center gap-2">
+  //                   <Button
+  //                     variant="primary"
+  //                     // className="border border-rounded"
+  //                     onClick={() => setShowUploadModal(true)}
+
+  //                     className="d-flex justify-content-center align-items-center m-0"
+  //                     style={{
+  //                       height: "32px",
+  //                       width: "100px",
+  //                       fontSize: "0.85rem",
+  //                     }}
+  //                   >
+  //                     <FontAwesomeIcon icon={faUpload} size="sm" />
+  //                   </Button>
+  //                   <Button
+  //                     size="sm"
+  //                     variant="primary"
+  //                     className="d-flex justify-content-center align-items-center m-0"
+  //                     style={{
+  //                       height: "32px",
+  //                       width: "100px",
+  //                       fontSize: "0.85rem",
+  //                     }}
+  //                     onClick={() => {
+  //                       setNewFolderName("");
+  //                       setIsEditMode(false);
+  //                       setShowModal(true);
+  //                     }}
+  //                   >
+  //                     + New
+  //                   </Button>
+  //                 </div>
+  //               )}
+
+  //               <Dropdown>
+  //                 <Dropdown.Toggle
+  //                   variant="primary"
+  //                   size="sm"
+  //                   className="d-flex justify-content-center align-items-center m-0"
+  //                   style={{
+  //                     height: "32px",
+  //                     width: "100px",
+  //                     fontSize: "0.85rem",
+  //                   }}
+  //                 >
+  //                   View
+  //                 </Dropdown.Toggle>
+
+  //                 <Dropdown.Menu>
+  //                   <Dropdown.Item onClick={() => setViewMode("grid")}>
+  //                     Grid View
+  //                   </Dropdown.Item>
+  //                   <Dropdown.Item onClick={() => setViewMode("list")}>
+  //                     List View
+  //                   </Dropdown.Item>
+  //                 </Dropdown.Menu>
+  //               </Dropdown>
+
+  //               <div className="d-flex justify-content-end align-items-center mb-2">
+  //                 <select
+  //                   className="form-select form-select-sm w-auto"
+  //                   value={sortOption}
+  //                   onChange={(e) => setSortOption(e.target.value)}
+  //                 >
+  //                   <option value="nameAsc">Folder Name (A-Z)</option>
+  //                   <option value="nameDesc">Folder Name (Z-A)</option>
+  //                   <option value="createdAsc">Created Time (Oldest First)</option>
+  //                   <option value="createdDesc">Created Time (Newest First)</option>
+  //                 </select>
+  //               </div>
+
+  //               {/* Upload Button */}
+  //             </div>
+  //           </Card.Header>
+
+  //           <Card.Body className="overflow-auto" style={{ maxHeight: "72vh" }}>
+  //             <Row
+  //               className="g-3"
+  //               style={{
+  //                 flexDirection: viewMode === "list" ? "column" : "row",
+  //                 height: "100%",
+  //                 overflow: "auto",
+  //               }}
   //             >
-  //                 <FontAwesomeIcon icon={faUpload} size="lg" />
-  //             </Button>
+  //               {/* Folders */}
+  //               {!IsPersonal && (
+  //                 <>
+  //                   {[...folderList]
+  //                     .sort((a, b) => {
+  //                       const aStartsWithNumber = /^\d+/.test(a.folderName);
+  //                       const bStartsWithNumber = /^\d+/.test(b.folderName);
+
+  //                       // Group numeric-prefixed folders and non-numeric ones
+  //                       if (sortOption === "nameAsc") {
+  //                         if (aStartsWithNumber && !bStartsWithNumber) return -1;
+  //                         if (!aStartsWithNumber && bStartsWithNumber) return 1;
+
+  //                         return a.folderName.localeCompare(b.folderName, undefined, {
+  //                           numeric: true,
+  //                           sensitivity: "base",
+  //                         });
+  //                       }
+
+  //                       if (sortOption === "nameDesc") {
+  //                         if (aStartsWithNumber && !bStartsWithNumber) return 1;
+  //                         if (!aStartsWithNumber && bStartsWithNumber) return -1;
+
+  //                         return b.folderName.localeCompare(a.folderName, undefined, {
+  //                           numeric: true,
+  //                           sensitivity: "base",
+  //                         });
+  //                       }
+
+  //                       if (sortOption === "createdAsc") {
+  //                         return new Date(a.createdAt) - new Date(b.createdAt);
+  //                       }
+
+  //                       if (sortOption === "createdDesc") {
+  //                         return new Date(b.createdAt) - new Date(a.createdAt);
+  //                       }
+
+  //                       return 0;
+  //                     })?.map((folder) => {
+  //                       const editKey = `edit-${folder._id}`;
+  //                       const deleteKey = `delete-${folder._id}`;
+
+  //                       return (
+  //                         <Col
+  //                           key={folder._id}
+  //                           sm={viewMode === "grid" ? 6 : 12}
+  //                           md={viewMode === "grid" ? 4 : 12}
+  //                           lg={viewMode === "grid" ? 3 : 12}
+  //                         >
+  //                           <Card
+  //                             className="p-2"
+  //                             style={{
+  //                               background: "#18273e",
+  //                               border: "1px solid white",
+  //                               display: "flex",
+  //                               flexDirection:
+  //                                 viewMode === "list" ? "row" : "column",
+  //                               alignItems:
+  //                                 viewMode === "list" ? "center" : "flex-start",
+  //                               cursor: "pointer",
+  //                               transition: "transform 0.2s, box-shadow 0.2s",
+  //                             }}
+  //                             onClick={() => {
+  //                               folder.folderName === "Personal"
+  //                                 ? fetchClientDocuments()
+  //                                 : folder.folderName === "FormC Documents" ? fetchFormCfile() : fetchsubFolders(folder._id);
+  //                               setSelectedFolder(folder);
+  //                               setFolderPath((prevPath) => [
+  //                                 ...prevPath,
+  //                                 folder,
+  //                               ]);
+  //                             }}
+  //                             onMouseEnter={(e) => {
+  //                               if (viewMode === "grid") {
+  //                                 e.currentTarget.style.transform = "scale(1.05)";
+  //                                 e.currentTarget.style.boxShadow =
+  //                                   "0px 4px 10px rgba(0, 0, 0, 0.8)";
+  //                               }
+  //                             }}
+  //                             onMouseLeave={(e) => {
+  //                               if (viewMode === "grid") {
+  //                                 e.currentTarget.style.transform = "scale(1)";
+  //                                 e.currentTarget.style.boxShadow = "none";
+  //                               }
+  //                             }}
+  //                           >
+  //                             <div className="d-flex align-items-center" style={{ width: "100%" }}>
+  //                               <FontAwesomeIcon icon={faFolder} size="2x" style={{ color: "#d3b386", marginRight: "10px" }} />
+
+  //                               <div style={{ flex: 1, minWidth: 0 }}>
+  //                                 <div
+  //                                   style={{
+  //                                     fontSize: "0.9rem",
+  //                                     color: "white",
+  //                                     overflow: "hidden",
+  //                                     textOverflow: "ellipsis",
+  //                                     whiteSpace: "nowrap",
+  //                                     width: "100%",
+  //                                   }}
+  //                                   title={folder.folderName}
+  //                                 >
+  //                                   {folder.folderName}
+  //                                 </div>
+  //                               </div>
+  //                             </div>
+
+  //                             <Card.Body
+  //                               className="p-1 d-flex justify-content-between align-items-center"
+  //                               style={{ width: "100%" }}
+  //                             >
+  //                               <div
+  //                                 className="d-flex gap-2 justify-content-end"
+  //                                 style={{ width: "100%" }}
+  //                               >
+  //                                 <Button
+  //                                   variant="success"
+  //                                   size="sm"
+  //                                   style={{
+  //                                     background: "#ebbf46",
+  //                                     // background: "#929cd1",
+  //                                     border: "none",
+  //                                     width: "36px",
+  //                                     height: "36px",
+  //                                     display: "flex",
+  //                                     alignItems: "center",
+  //                                     justifyContent: "center",
+  //                                     padding: 0,
+  //                                   }}
+  //                                   onClick={(e) => {
+  //                                     e.stopPropagation();
+  //                                     openEditModal(folder);
+  //                                   }}
+  //                                   disabled={
+  //                                     folder.folderName === "Personal"
+  //                                       ? true
+  //                                       : folder.folderName === "FormC Documents" ? true : false
+  //                                   }
+  //                                 >
+  //                                   <FontAwesomeIcon icon={faEdit} />
+  //                                 </Button>
+  //                                 <Button
+  //                                   variant="success"
+  //                                   size="sm"
+  //                                   style={{
+  //                                     background: "#007bff",
+  //                                     border: "none",
+  //                                     width: "36px",
+  //                                     height: "36px",
+  //                                     display: "flex",
+  //                                     alignItems: "center",
+  //                                     justifyContent: "center",
+  //                                     padding: 0,
+  //                                   }}
+  //                                   onClick={(e) => {
+  //                                     e.stopPropagation();
+  //                                     openMoveModal(folder);
+  //                                   }}
+  //                                   disabled={
+  //                                     folder.folderName === "Personal"
+  //                                       ? true
+  //                                       : folder.folderName === "FormC Documents" ? true : false
+  //                                   }
+  //                                 >
+  //                                   <img
+  //                                     src={movefolder} // <-- Your folder move image path
+  //                                     alt="Move Folder"
+  //                                     style={{ width: "18px", height: "18px" }}
+  //                                   />
+  //                                 </Button>
+
+  //                                 <Button
+  //                                   variant="danger"
+  //                                   size="sm"
+  //                                   style={{
+  //                                     background: "#dc3545",
+  //                                     border: "none",
+  //                                     width: "36px",
+  //                                     height: "36px",
+  //                                     display: "flex",
+  //                                     alignItems: "center",
+  //                                     justifyContent: "center",
+  //                                     padding: 0,
+  //                                   }}
+  //                                   onClick={(e) => {
+  //                                     e.stopPropagation();
+  //                                     //    handleDeleteFolder(folder._id);
+  //                                     setDeletefolderId(folder._id);
+  //                                     setIsfolderdelete(true);
+  //                                   }}
+  //                                   disabled={
+  //                                     folder.folderName === "Personal"
+  //                                       ? true
+  //                                       : folder.folderName === "FormC Documents" ? true : false
+  //                                   }
+  //                                 >
+  //                                   <FontAwesomeIcon icon={faTrash} />
+  //                                 </Button>
+  //                               </div>
+  //                             </Card.Body>
+  //                           </Card>
+  //                         </Col>
+  //                       );
+  //                     })}
+  //                 </>
+  //               )}
+
+  //               {/* Files */}
+  //               {[...files]
+  //                 .sort((a, b) => {
+  //                   const aStartsWithNumber = /^\d+/.test(a.fileName);
+  //                   const bStartsWithNumber = /^\d+/.test(b.fileName);
+
+  //                   if (sortOption === "nameAsc") {
+  //                     if (aStartsWithNumber && !bStartsWithNumber) return -1;
+  //                     if (!aStartsWithNumber && bStartsWithNumber) return 1;
+
+  //                     return a.fileName.localeCompare(b.fileName, undefined, {
+  //                       numeric: true,
+  //                       sensitivity: "base",
+  //                     });
+  //                   }
+
+  //                   if (sortOption === "nameDesc") {
+  //                     if (aStartsWithNumber && !bStartsWithNumber) return 1;
+  //                     if (!aStartsWithNumber && bStartsWithNumber) return -1;
+
+  //                     return b.fileName.localeCompare(a.fileName, undefined, {
+  //                       numeric: true,
+  //                       sensitivity: "base",
+  //                     });
+  //                   }
+
+  //                   if (sortOption === "createdAsc") {
+  //                     return new Date(a.uploadedAt) - new Date(b.uploadedAt);
+  //                   }
+
+  //                   if (sortOption === "createdDesc") {
+  //                     return new Date(b.uploadedAt) - new Date(a.uploadedAt);
+  //                   }
+
+  //                   return 0;
+  //                 })
+  //                 .map((file, index) => (
+  //                   <Col
+  //                     key={index}
+  //                     sm={viewMode === "grid" ? 6 : 12}
+  //                     md={viewMode === "grid" ? 4 : 12}
+  //                     lg={viewMode === "grid" ? 3 : 12}
+  //                   >
+  //                     <Card
+  //                       className="p-2"
+  //                       style={{
+  //                         background: "#18273e",
+  //                         border: "1px solid white",
+  //                         display: "flex",
+  //                         flexDirection: viewMode === "list" ? "row" : "column",
+  //                         alignItems: viewMode === "list" ? "center" : "flex-start",
+  //                         transition: "transform 0.2s, box-shadow 0.2s",
+  //                       }}
+  //                       onMouseEnter={(e) => {
+  //                         if (viewMode === "grid") {
+  //                           e.currentTarget.style.transform = "scale(1.05)";
+  //                           e.currentTarget.style.boxShadow =
+  //                             "0px 4px 10px rgba(0, 0, 0, 0.8)";
+  //                         }
+  //                       }}
+  //                       onMouseLeave={(e) => {
+  //                         if (viewMode === "grid") {
+  //                           e.currentTarget.style.transform = "scale(1)";
+  //                           e.currentTarget.style.boxShadow = "none";
+  //                         }
+  //                       }}
+  //                     >
+
+  //                       <div className="d-flex gap-2 align-items-center" style={{ width: "100%" }}>
+
+  //                         <FontAwesomeIcon
+  //                           icon={getFileTypeIcon(file.fileName)}
+  //                           size="2x"
+  //                           className="mb-2"
+  //                           style={{
+  //                             color: "#d3b386",
+  //                             marginRight: viewMode === "list" ? "10px" : "0",
+  //                           }}
+  //                         />
+  //                         <div
+  //                           style={{
+  //                             fontSize: "0.9rem",
+  //                             color: "white",
+  //                             overflow: "hidden",
+  //                             textOverflow: "ellipsis",
+  //                             whiteSpace: "nowrap",
+  //                             width: "100%",
+  //                           }}
+  //                         >
+  //                           {file.fileName}
+  //                         </div>
+
+  //                       </div>
+  //                       <Card.Body
+  //                         className="p-1 d-flex justify-content-between align-items-center"
+  //                         style={{ width: "100%" }}
+  //                       >
+  //                         <div
+  //                           className="d-flex gap-2 justify-content-end"
+  //                           style={{ width: "100%" }}
+  //                         >
+  //                           {(!IsPersonal && !FormCDetails) && (
+  //                             <>
+  //                               <Button
+  //                                 variant="danger"
+  //                                 size="sm"
+  //                                 onClick={(e) => {
+  //                                   e.stopPropagation();
+  //                                   openFileEditModal(file);
+  //                                 }}
+  //                                 style={{
+  //                                   background: "#ebbf46",
+  //                                   border: "none",
+  //                                   padding: "0.25rem 0.5rem",
+  //                                 }}
+  //                               >
+  //                                 <FontAwesomeIcon icon={faEdit} />
+  //                               </Button>
+  //                               <Button
+  //                                 variant="success"
+  //                                 size="sm"
+  //                                 onClick={(e) => {
+  //                                   e.stopPropagation();
+  //                                   setMoveFileId(file._id);
+  //                                   openMoveModal(selectedFolder);
+  //                                 }}
+  //                                 style={{
+  //                                   background: "#007bff",
+  //                                   border: "none",
+  //                                   padding: "0.25rem 0.5rem",
+  //                                 }}
+  //                               >
+  //                                 <img
+  //                                   src={movefolder}
+  //                                   alt="Move Folder"
+  //                                   style={{ width: "18px", height: "18px" }}
+  //                                 />
+  //                               </Button>
+  //                             </>
+  //                           )}
+  //                           <Button
+  //                             variant="success"
+  //                             size="sm"
+  //                             onClick={() => handleDownload(file._id, file.fileName)}
+  //                             style={{
+  //                               background: "#28a745",
+  //                               border: "none",
+  //                               padding: "0.25rem 0.5rem",
+  //                             }}
+  //                           >
+  //                             <FontAwesomeIcon icon={faDownload} />
+  //                           </Button>
+  //                           {(!IsPersonal && !FormCDetails) && (
+  //                             <Button
+  //                               variant="danger"
+  //                               size="sm"
+  //                               onClick={() => {
+  //                                 setDeletefileId(file._id);
+  //                                 setIsdelete(true);
+  //                               }}
+  //                               style={{
+  //                                 background: "#dc3545",
+  //                                 border: "none",
+  //                                 padding: "0.25rem 0.5rem",
+  //                               }}
+  //                             >
+  //                               <FontAwesomeIcon icon={faTrash} />
+  //                             </Button>
+  //                           )}
+  //                         </div>
+  //                       </Card.Body>
+  //                     </Card>
+  //                   </Col>
+  //                 ))}
+
+  //               {!folderList?.length && !files?.length && (
+  //                 <Col xs={12}>
+  //                   <div className="text-center text-black py-5">
+  //                     No folders or files available.
+  //                   </div>
+  //                 </Col>
+  //               )}
+  //             </Row>
+  //           </Card.Body>
+  //         </div>
+  //       </Card.Body>
+  //     </Card>
+  //     <MoveFolderModal
+  //       show={showMoveModal}
+  //       onClose={closeMoveModal}
+  //       folder={folderToMove !== null ? folderToMove : Mainfolder}
+  //       allFolders={folderList} // array of all folders you have
+  //       onMove={moveFileId !== null ? handlefileMove : handleMoveFolder}
+  //     />
+
+  //     <DragAndDrop
+  //       showModal={showUploadModal}
+  //       onHide={onHide}
+  //       handleFileChange={handleFileChange}
+  //       uploading={uploading}
+  //       uploadSuccess={uploadSuccess}
+  //       selectedFiles={selectedFiles}
+  //       handleFileUpload={handleFileUpload}
+  //       errorMessage={errorMessage}
+  //     />
+
+  //     {/* Create/Edit Folder Modal */}
+  //     <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+  //       <Modal.Header closeButton>
+  //         <Modal.Title>
+  //           {isEditMode ? "Edit Folder" : "Create New Folder"}
+  //         </Modal.Title>
+  //       </Modal.Header>
+  //       <Modal.Body>
+  //         <Form>
+  //           <Form.Group className="mb-3">
+  //             <Form.Label>Folder Name</Form.Label>
+  //             <Form.Control
+  //               type="text"
+  //               placeholder="Enter folder name"
+  //               value={newFolderName}
+  //               onChange={(e) => setNewFolderName(e.target.value)}
+  //             />
+  //           </Form.Group>
+  //         </Form>
+  //       </Modal.Body>
+
+  //       <Modal.Footer className="d-flex justify-content-end">
+  //         <Button variant="primary" onClick={() => setShowModal(false)}>
+  //           Cancel
+  //         </Button>
+  //         <Button
+  //           variant="primary"
+  //           onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
+  //         >
+  //           {isEditMode ? "Update" : "Create"}
+  //         </Button>
+  //       </Modal.Footer>
+  //     </Modal>
+
+  //     <Modal
+  //       show={showFileModal}
+  //       onHide={() => setShowFileModal(false)}
+  //       centered
+  //     >
+  //       <Modal.Header closeButton>
+  //         <Modal.Title>
+  //           {isEditMode ? "Edit File" : "Create New FIle"}
+  //         </Modal.Title>
+  //       </Modal.Header>
+  //       <Modal.Body>
+  //         <Form>
+  //           <Form.Group className="mb-3">
+  //             <Form.Label>File Name</Form.Label>
+  //             <Form.Control
+  //               type="text"
+  //               placeholder="Enter File name"
+  //               value={newFileName}
+  //               maxLength={40} // ✅ character limit
+  //               onChange={(e) => {
+  //                 const value = e.target.value;
+  //                 // ✅ sirf alphabets, numbers, and space allow karo
+  //                 const filteredValue = value.replace(/[^a-zA-Z0-9 ]/g, "");
+  //                 setNewFileName(filteredValue);
+  //               }}
+  //             />
+  //             <div
+  //               style={{
+  //                 fontSize: "0.8rem",
+  //                 color: "#888",
+  //                 textAlign: "right",
+  //               }}
+  //             >
+  //               {newFileName?.length}/40
+  //             </div>
+  //           </Form.Group>
+  //         </Form>
+  //       </Modal.Body>
+  //       <Modal.Footer className="d-flex justify-content-end">
+  //         <Button variant="primary" onClick={() => setShowFileModal(false)}>
+  //           Cancel
+  //         </Button>
+  //         <Button variant="primary" onClick={handleUpdateFileName}>
+  //           {isEditMode ? "Update" : "Create"}
+  //         </Button>
+  //       </Modal.Footer>
+  //     </Modal>
+
+  //     <Modal show={Isdelete} onHide={() => setIsdelete(false)} centered>
+  //       <Modal.Header closeButton>
+  //         <Modal.Title>File Delete</Modal.Title>
+  //       </Modal.Header>
+
+  //       <Modal.Body className="text-center">
+  //         <p className="fs-5">Are you sure you want to delete this file?</p>
+  //       </Modal.Body>
+
+  //       <Modal.Footer className="d-flex justify-content-end">
+  //         <Button variant="secondary" onClick={() => setIsdelete(false)}>
+  //           Cancel
+  //         </Button>
+  //         <Button
+  //           variant="danger"
+  //           onClick={() => handleFileDelete(deletefileid)}
+  //         >
+  //           Delete
+  //         </Button>
+  //       </Modal.Footer>
+  //     </Modal>
+
+  //     <Modal
+  //       show={Isfolderdelete}
+  //       onHide={() => setIsfolderdelete(false)}
+  //       centered
+  //     >
+  //       <Modal.Header closeButton>
+  //         <Modal.Title>Folder Delete</Modal.Title>
+  //       </Modal.Header>
+
+  //       <Modal.Body className="text-center">
+  //         <p className="fs-5">Are you sure you want to delete this folder?</p>
+  //       </Modal.Body>
+
+  //       <Modal.Footer className="d-flex justify-content-end">
+  //         <Button variant="secondary" onClick={() => setIsfolderdelete(false)}>
+  //           Cancel
+  //         </Button>
+  //         <Button
+  //           variant="danger"
+  //           onClick={() => handleDeleteFolder(deletefolderid)}
+  //         >
+  //           Delete
+  //         </Button>
+  //       </Modal.Footer>
+  //     </Modal>
+
+  //     <ErrorModal
+  //       show={showError}
+  //       handleClose={() => setShowError(false)}
+  //       message={message}
+  //     />
+  //   </div>
+  // );
 
   return (
-    // <div className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0" style={{ minHeight: "80vh" }}>
-    //     <Card className="flex-grow-1 d-flex flex-column">
-    //         <Card.Body className="flex-grow-1 d-flex flex-column">
-    //             <div className="h-100">
-    //                 {/* Header */}
-    //                 <Card.Header className="d-flex justify-content-between align-items-center">
-    //                     <div className="d-flex align-items-center gap-2">
-    //                         {selectedFolder && (
-    //                             <Button
-    //                                 variant="light"
-    //                                 size="sm"
-    //                                 onClick={() => setSelectedFolder(null)}
-    //                                 style={{ fontSize: "1.2rem", lineHeight: "1", padding: "0 8px" }}
-    //                                 title="Back"
-    //                             >
-    //                                 ←
-    //                             </Button>
-    //                         )}
-    //                         <h5 className="mb-0">
-    //                             {selectedFolder ? selectedFolder.folderName : "Folders"}
-    //                         </h5>
-    //                     </div>
-    //                     {!selectedFolder && (
-    //                         <Button
-    //                             size="sm"
-    //                             variant="primary"
-    //                             className="d-flex justify-content-center align-items-center m-0"
-    //                             style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
-    //                             onClick={() => {
-    //                                 setNewFolderName("");
-    //                                 setIsEditMode(false);
-    //                                 setShowModal(true);
-    //                             }}
-    //                         >
-    //                             + New
-    //                         </Button>
-    //                     )}
-    //                 </Card.Header>
-
-    //                 {/* Body */}
-    //                 <Card.Body className="overflow-auto" style={{ maxHeight: "70vh" }}>
-    //                     {!selectedFolder ? (
-    //                         folderList.map((folder) => {
-    //                             const editKey = `edit-${folder._id}`;
-    //                             const deleteKey = `delete-${folder._id}`;
-
-    //                             return (
-    //                                 <Card
-    //                                     key={folder?._id}
-    //                                     className={`mb-2 ${selectedFolder?._id === folder?._id ? "border-primary" : ""}`}
-    //                                     style={{ cursor: "pointer" }}
-    //                                 >
-    //                                     <Card.Body className="py-2 px-3">
-    //                                         <div
-    //                                             onClick={() => setSelectedFolder(folder)}
-    //                                             className="d-flex justify-content-between align-items-center"
-    //                                         >
-    //                                             <div>{folder?.folderName}</div>
-    //                                             <div className="d-flex gap-2">
-    //                                                 <Button
-    //                                                     variant="outline-secondary"
-    //                                                     size="sm"
-    //                                                     style={hoveredBtn === editKey ? hoverStyle : baseStyle}
-    //                                                     onMouseEnter={() => setHoveredBtn(editKey)}
-    //                                                     onMouseLeave={() => setHoveredBtn(null)}
-    //                                                     onClick={(e) => {
-    //                                                         e.stopPropagation();
-    //                                                         openEditModal(folder);
-    //                                                     }}
-    //                                                 >
-    //                                                     <BsPen />
-    //                                                 </Button>
-
-    //                                                 <Button
-    //                                                     variant="outline-danger"
-    //                                                     size="sm"
-    //                                                     style={hoveredBtn === deleteKey ? deletehoverStyle : baseStyle}
-    //                                                     onMouseEnter={() => setHoveredBtn(deleteKey)}
-    //                                                     onMouseLeave={() => setHoveredBtn(null)}
-    //                                                     onClick={(e) => {
-    //                                                         e.stopPropagation();
-    //                                                         handleDeleteFolder(folder?._id);
-    //                                                     }}
-    //                                                 >
-    //                                                     <BsTrash />
-    //                                                 </Button>
-    //                                             </div>
-    //                                         </div>
-    //                                     </Card.Body>
-    //                                 </Card>
-    //                             );
-    //                         })
-    //                     ) : (
-    //                         <ViewDocumentsAndAdd caseData={caseInfo} folderdetails={selectedFolder} />
-    //                     )}
-    //                 </Card.Body>
-    //             </div>
-    //         </Card.Body>
-    //     </Card>
-
-    //     {/* Create/Edit Folder Modal */}
-    //     <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-    //         <Modal.Header closeButton>
-    //             <Modal.Title>{isEditMode ? "Edit Folder" : "Create New Folder"}</Modal.Title>
-    //         </Modal.Header>
-    //         <Modal.Body>
-    //             <Form>
-    //                 <Form.Group className="mb-3">
-    //                     <Form.Label>Folder Name</Form.Label>
-    //                     <Form.Control
-    //                         type="text"
-    //                         placeholder="Enter folder name"
-    //                         value={newFolderName}
-    //                         onChange={(e) => setNewFolderName(e.target.value)}
-    //                     />
-    //                 </Form.Group>
-    //             </Form>
-    //         </Modal.Body>
-    //         <Modal.Footer className="d-flex justify-content-end">
-    //             <Button variant="primary" onClick={() => setShowModal(false)}>
-    //                 Cancel
-    //             </Button>
-    //             <Button
-    //                 variant="primary"
-    //                 onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
-    //             >
-    //                 {isEditMode ? "Update" : "Create"}
-    //             </Button>
-    //         </Modal.Footer>
-    //     </Modal>
-    // </div>
-
     <div
       className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0"
       style={{ minHeight: "86vh", maxHeight: "86vh" }}
@@ -1090,158 +1643,159 @@ const ViewFolder = ({ token }) => {
       <Card className="flex-grow-1 d-flex flex-column">
         <Card.Body className="flex-grow-1 d-flex flex-column">
           <div className="h-100">
-            <Card.Header className="d-flex justify-content-between align-items-center">
-              {/* Left side: Breadcrumb navigation */}
-              <div className="d-flex align-items-center gap-2">
-                <div className="d-flex align-items-center">
-                  <Button
-                    variant="light"
-                    size="sm"
-                    onClick={async () => {
-                      await fetchCases();
-                      await setSelectedFolder(null);
-                      setFolderPath([]);
-                      fetchFolders();
-                      setIsPersonal(false);
-                    }}
-                    style={{
-                      fontSize: "1.2rem",
-                      lineHeight: "1",
-                      padding: "0 8px",
-                    }}
-                    title="Back to root"
-                  >
-                    📁
-                  </Button>
-                  {folderPath.length > 0 && (
-                    <>
-                      <span className="mx-1">/</span>
-                      {folderPath.map((folder, index) => (
-                        <React.Fragment key={folder._id}>
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="p-0"
-                            onClick={() => {
-                              const newPath = folderPath.slice(0, index + 1);
-                              setFolderPath(newPath);
-                              setSelectedFolder(folder);
-                              if (index >= 0) {
-                                fetchsubFolders(folder._id);
-                              }
-                            }}
-                          >
-                            {folder.folderName}
-                          </Button>
-                          {index < folderPath.length - 1 && (
-                            <span className="mx-1">/</span>
-                          )}
-                        </React.Fragment>
-                      ))}
-                    </>
-                  )}
-                </div>
-              </div>
+            <Card.Header
+              className="p-3 p-md-4 text-white border-bottom"
+              style={{ backgroundColor: "#18273e" }}
+            >
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                {/* Breadcrumb Navigation */}
+                <div className="d-flex align-items-between flex-grow-1 min-width-0">
+                  <nav aria-label="breadcrumb" className="w-100">
+                    <div className="d-flex align-items-center flex-wrap gap-2">
+                      <Button
+                        variant="light"
+                        size="sm"
+                        onClick={async () => {
+                          await fetchCases();
+                          await setSelectedFolder(null);
+                          setFolderPath([]);
+                          fetchFolders();
+                          setIsPersonal(false);
+                        }}
+                        className="p-2 rounded-circle"
+                        aria-label="Back to root"
+                        style={{
+                          width: "32px",
+                          height: "32px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#18273e",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faFolder} className="fs-5" />
+                      </Button>
 
-              {/* Right side: All buttons */}
-              <div className="d-flex align-items-center gap-2">
-                {(!IsPersonal && !FormCDetails) && (
-                  <div className="d-flex align-items-center gap-2">
-                    <Button
-                      variant="primary"
-                      // className="border border-rounded"
-                      onClick={() => setShowUploadModal(true)}
-                      // style={{
-                      //     borderRadius: "10%",
-                      //     width: "50px",
-                      //     height: "50px",
-                      //     display: "flex",
-                      //     alignItems: "center",
-                      //     justifyContent: "center",
-                      //     // backgroundColor: "#d3b386",
-                      //     color: "white",
-                      // }}
-                      className="d-flex justify-content-center align-items-center m-0"
-                      style={{
-                        height: "32px",
-                        width: "100px",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      <FontAwesomeIcon icon={faUpload} size="sm" />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      className="d-flex justify-content-center align-items-center m-0"
-                      style={{
-                        height: "32px",
-                        width: "100px",
-                        fontSize: "0.85rem",
-                      }}
-                      onClick={() => {
-                        setNewFolderName("");
-                        setIsEditMode(false);
-                        setShowModal(true);
-                      }}
-                    >
-                      + New
-                    </Button>
-                  </div>
-                )}
-                {/* <Button
-                                    size="sm"
-                                    variant="primary"
-                                    className="d-flex justify-content-center align-items-center m-0"
-                                    style={{ height: "32px", width: "100px", fontSize: "0.85rem" }}
-                                    onClick={() => {
-                                        setIsPersonal(true);
-                                        setFolderPath((prevPath) => [{ folderName: "Personal" }]);
-                                        fetchClientDocuments()
-                                    }}
+                      {folderPath.length > 0 && (
+                        <>
+                          <FontAwesomeIcon
+                            icon={faChevronRight}
+                            className="text-white fs-12"
+                          />
+                          <div className="d-flex align-items-center flex-wrap gap-2">
+                            {folderPath.map((folder, index) => (
+                              <React.Fragment key={folder._id}>
+                                <Button
+                                  variant="link"
+                                  size="sm"
+                                  className="text-white text-decoration-none text-truncate px-1"
+                                  style={{ maxWidth: "120px" }}
+                                  onClick={() => {
+                                    const newPath = folderPath.slice(
+                                      0,
+                                      index + 1
+                                    );
+                                    setFolderPath(newPath);
+                                    setSelectedFolder(folder);
+                                    if (index >= 0) fetchsubFolders(folder._id);
+                                  }}
                                 >
-                                    📁Personal
-                                </Button> */}
-
-                <Dropdown>
-                  <Dropdown.Toggle
-                    variant="primary"
-                    size="sm"
-                    className="d-flex justify-content-center align-items-center m-0"
-                    style={{
-                      height: "32px",
-                      width: "100px",
-                      fontSize: "0.85rem",
-                    }}
-                  >
-                    View
-                  </Dropdown.Toggle>
-
-                  <Dropdown.Menu>
-                    <Dropdown.Item onClick={() => setViewMode("grid")}>
-                      Grid View
-                    </Dropdown.Item>
-                    <Dropdown.Item onClick={() => setViewMode("list")}>
-                      List View
-                    </Dropdown.Item>
-                  </Dropdown.Menu>
-                </Dropdown>
-
-                <div className="d-flex justify-content-end align-items-center mb-2">
-                  <select
-                    className="form-select form-select-sm w-auto"
-                    value={sortOption}
-                    onChange={(e) => setSortOption(e.target.value)}
-                  >
-                    <option value="nameAsc">Folder Name (A-Z)</option>
-                    <option value="nameDesc">Folder Name (Z-A)</option>
-                    <option value="createdAsc">Created Time (Oldest First)</option>
-                    <option value="createdDesc">Created Time (Newest First)</option>
-                  </select>
+                                  <span className="hover-primary">
+                                    {folder.folderName}
+                                  </span>
+                                </Button>
+                                {index < folderPath.length - 1 && (
+                                  <FontAwesomeIcon
+                                    icon={faChevronRight}
+                                    className="text-white fs-12"
+                                  />
+                                )}
+                              </React.Fragment>
+                            ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </nav>
                 </div>
 
+                {/* Right Action Buttons */}
+                <div className="d-flex flex-wrap align-items-center justify-content-end gap-2">
+                  {!IsPersonal && !FormCDetails && (
+                    <div className="d-flex align-items-center gap-2">
+                      <Button
+                        variant="light"
+                        size="sm"
+                        onClick={() => setShowUploadModal(true)}
+                        className="d-inline-flex align-items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faUpload} />
+                        <span>Upload</span>
+                      </Button>
+                      <Button
+                        variant="light"
+                        size="sm"
+                        onClick={() => {
+                          setNewFolderName("");
+                          setIsEditMode(false);
+                          setShowModal(true);
+                        }}
+                        className="d-inline-flex align-items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                        <span>New</span>
+                      </Button>
+                    </div>
+                  )}
 
-                {/* Upload Button */}
+                  <Dropdown>
+                    <Dropdown.Toggle
+                      variant="light"
+                      size="sm"
+                      className="d-inline-flex align-items-center gap-2"
+                    >
+                      <FontAwesomeIcon icon={faList} />
+                      <span>View</span>
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu className="shadow-sm">
+                      <Dropdown.Item
+                        onClick={() => setViewMode("grid")}
+                        className="d-flex align-items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faThLarge} />
+                        Grid View
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={() => setViewMode("list")}
+                        className="d-flex align-items-center gap-2"
+                      >
+                        <FontAwesomeIcon icon={faListUl} />
+                        List View
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+
+                  <div className="d-flex align-items-center">
+                    <div
+                      className="input-group input-group-sm"
+                      style={{ width: "180px" }}
+                    >
+                      <span className="input-group-text bg-white border-end-0 pe-1">
+                        <FontAwesomeIcon icon={faSort} className="text-muted" />
+                      </span>
+                      <select
+                        className="form-select border-start-0 ps-1 shadow-none"
+                        value={sortOption}
+                        onChange={(e) => setSortOption(e.target.value)}
+                      >
+                        <option value="nameAsc">Name (A-Z)</option>
+                        <option value="nameDesc">Name (Z-A)</option>
+                        <option value="createdAsc">Oldest first</option>
+                        <option value="createdDesc">Newest first</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Card.Header>
 
@@ -1264,23 +1818,33 @@ const ViewFolder = ({ token }) => {
 
                         // Group numeric-prefixed folders and non-numeric ones
                         if (sortOption === "nameAsc") {
-                          if (aStartsWithNumber && !bStartsWithNumber) return -1;
+                          if (aStartsWithNumber && !bStartsWithNumber)
+                            return -1;
                           if (!aStartsWithNumber && bStartsWithNumber) return 1;
 
-                          return a.folderName.localeCompare(b.folderName, undefined, {
-                            numeric: true,
-                            sensitivity: "base",
-                          });
+                          return a.folderName.localeCompare(
+                            b.folderName,
+                            undefined,
+                            {
+                              numeric: true,
+                              sensitivity: "base",
+                            }
+                          );
                         }
 
                         if (sortOption === "nameDesc") {
                           if (aStartsWithNumber && !bStartsWithNumber) return 1;
-                          if (!aStartsWithNumber && bStartsWithNumber) return -1;
+                          if (!aStartsWithNumber && bStartsWithNumber)
+                            return -1;
 
-                          return b.folderName.localeCompare(a.folderName, undefined, {
-                            numeric: true,
-                            sensitivity: "base",
-                          });
+                          return b.folderName.localeCompare(
+                            a.folderName,
+                            undefined,
+                            {
+                              numeric: true,
+                              sensitivity: "base",
+                            }
+                          );
                         }
 
                         if (sortOption === "createdAsc") {
@@ -1292,7 +1856,8 @@ const ViewFolder = ({ token }) => {
                         }
 
                         return 0;
-                      })?.map((folder) => {
+                      })
+                      ?.map((folder) => {
                         const editKey = `edit-${folder._id}`;
                         const deleteKey = `delete-${folder._id}`;
 
@@ -1319,7 +1884,9 @@ const ViewFolder = ({ token }) => {
                               onClick={() => {
                                 folder.folderName === "Personal"
                                   ? fetchClientDocuments()
-                                  : folder.folderName === "FormC Documents" ? fetchFormCfile() : fetchsubFolders(folder._id);
+                                  : folder.folderName === "FormC Documents"
+                                  ? fetchFormCfile()
+                                  : fetchsubFolders(folder._id);
                                 setSelectedFolder(folder);
                                 setFolderPath((prevPath) => [
                                   ...prevPath,
@@ -1328,7 +1895,8 @@ const ViewFolder = ({ token }) => {
                               }}
                               onMouseEnter={(e) => {
                                 if (viewMode === "grid") {
-                                  e.currentTarget.style.transform = "scale(1.05)";
+                                  e.currentTarget.style.transform =
+                                    "scale(1.05)";
                                   e.currentTarget.style.boxShadow =
                                     "0px 4px 10px rgba(0, 0, 0, 0.8)";
                                 }
@@ -1340,8 +1908,18 @@ const ViewFolder = ({ token }) => {
                                 }
                               }}
                             >
-                              <div className="d-flex align-items-center" style={{ width: "100%" }}>
-                                <FontAwesomeIcon icon={faFolder} size="2x" style={{ color: "#d3b386", marginRight: "10px" }} />
+                              <div
+                                className="d-flex align-items-center"
+                                style={{ width: "100%" }}
+                              >
+                                <FontAwesomeIcon
+                                  icon={faFolder}
+                                  size="2x"
+                                  style={{
+                                    color: "#d3b386",
+                                    marginRight: "10px",
+                                  }}
+                                />
 
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div
@@ -1359,7 +1937,6 @@ const ViewFolder = ({ token }) => {
                                   </div>
                                 </div>
                               </div>
-
 
                               <Card.Body
                                 className="p-1 d-flex justify-content-between align-items-center"
@@ -1390,7 +1967,10 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : folder.folderName === "FormC Documents" ? true : false
+                                        : folder.folderName ===
+                                          "FormC Documents"
+                                        ? true
+                                        : false
                                     }
                                   >
                                     <FontAwesomeIcon icon={faEdit} />
@@ -1415,7 +1995,10 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : folder.folderName === "FormC Documents" ? true : false
+                                        : folder.folderName ===
+                                          "FormC Documents"
+                                        ? true
+                                        : false
                                     }
                                   >
                                     <img
@@ -1447,7 +2030,10 @@ const ViewFolder = ({ token }) => {
                                     disabled={
                                       folder.folderName === "Personal"
                                         ? true
-                                        : folder.folderName === "FormC Documents" ? true : false
+                                        : folder.folderName ===
+                                          "FormC Documents"
+                                        ? true
+                                        : false
                                     }
                                   >
                                     <FontAwesomeIcon icon={faTrash} />
@@ -1511,7 +2097,8 @@ const ViewFolder = ({ token }) => {
                           border: "1px solid white",
                           display: "flex",
                           flexDirection: viewMode === "list" ? "row" : "column",
-                          alignItems: viewMode === "list" ? "center" : "flex-start",
+                          alignItems:
+                            viewMode === "list" ? "center" : "flex-start",
                           transition: "transform 0.2s, box-shadow 0.2s",
                         }}
                         onMouseEnter={(e) => {
@@ -1528,9 +2115,10 @@ const ViewFolder = ({ token }) => {
                           }
                         }}
                       >
-
-                        <div className="d-flex gap-2 align-items-center" style={{ width: "100%" }}>
-
+                        <div
+                          className="d-flex gap-2 align-items-center"
+                          style={{ width: "100%" }}
+                        >
                           <FontAwesomeIcon
                             icon={getFileTypeIcon(file.fileName)}
                             size="2x"
@@ -1552,7 +2140,6 @@ const ViewFolder = ({ token }) => {
                           >
                             {file.fileName}
                           </div>
-
                         </div>
                         <Card.Body
                           className="p-1 d-flex justify-content-between align-items-center"
@@ -1562,7 +2149,7 @@ const ViewFolder = ({ token }) => {
                             className="d-flex gap-2 justify-content-end"
                             style={{ width: "100%" }}
                           >
-                            {(!IsPersonal && !FormCDetails) && (
+                            {!IsPersonal && !FormCDetails && (
                               <>
                                 <Button
                                   variant="danger"
@@ -1604,7 +2191,9 @@ const ViewFolder = ({ token }) => {
                             <Button
                               variant="success"
                               size="sm"
-                              onClick={() => handleDownload(file._id, file.fileName)}
+                              onClick={() =>
+                                handleDownload(file._id, file.fileName)
+                              }
                               style={{
                                 background: "#28a745",
                                 border: "none",
@@ -1613,7 +2202,7 @@ const ViewFolder = ({ token }) => {
                             >
                               <FontAwesomeIcon icon={faDownload} />
                             </Button>
-                            {(!IsPersonal && !FormCDetails) && (
+                            {!IsPersonal && !FormCDetails && (
                               <Button
                                 variant="danger"
                                 size="sm"
@@ -1635,7 +2224,6 @@ const ViewFolder = ({ token }) => {
                       </Card>
                     </Col>
                   ))}
-
 
                 {!folderList?.length && !files?.length && (
                   <Col xs={12}>

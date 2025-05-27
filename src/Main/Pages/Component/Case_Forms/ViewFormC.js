@@ -141,8 +141,9 @@ export default function ViewFormC({ token }) {
     fetchCases();
   }, []);
   const handleMenuOpen = (event, todo) => {
+    event.stopPropagation(); // Prevent event bubbling
     setAnchorEl(event.currentTarget);
-    setSelectedTodo(todo);
+    setSelectedTodo(todo); // Force update with the latest todo
   };
 
   const handleMenuClose = () => {
@@ -1050,7 +1051,6 @@ export default function ViewFormC({ token }) {
             width: "100%",
             height: "100%",
             overflow: "hidden",
-            backgroundColor: "#001f3f", // Navy blue background
           }}
         >
           <TableContainer
@@ -1088,16 +1088,16 @@ export default function ViewFormC({ token }) {
                 minWidth: "max-content",
                 tableLayout: "fixed",
                 width: "fit-content",
-                backgroundColor: "#001f3f", // Navy blue background
+                backgroundColor: "#001f3f",
               }}
             >
               <TableHead>
                 <TableRow
                   sx={{
                     "& .MuiTableCell-root": {
-                      backgroundColor: "#001f3f !important", // Navy blue header
-                      color: "#D4AF37 !important", // Gold text for headers
-                      borderBottom: "2px solid #D4AF37", // Gold bottom border
+                      backgroundColor: "#001f3f !important",
+                      color: "#D4AF37 !important",
+                      borderBottom: "2px solid #D4AF37",
                     },
                   }}
                 >
@@ -1110,7 +1110,7 @@ export default function ViewFormC({ token }) {
                           whiteSpace: "nowrap",
                           fontWeight: "bold",
                           backgroundColor: "#001f3f",
-                          color: "#D4AF37", // Gold text
+                          color: "#D4AF37",
                           position: "sticky",
                           top: 0,
                           left: key === "clientName" ? 0 : undefined,
@@ -1125,12 +1125,12 @@ export default function ViewFormC({ token }) {
                     sx={{
                       width: "120px",
                       backgroundColor: "#001f3f",
-                      color: "#D4AF37", // Gold text
+                      color: "#D4AF37",
                       position: "sticky",
                       top: 0,
                       zIndex: 1,
                       fontWeight: "bold",
-                      borderBottom: "2px solid #D4AF37", // Gold bottom border
+                      borderBottom: "2px solid #D4AF37",
                     }}
                   >
                     Actions
@@ -1140,7 +1140,7 @@ export default function ViewFormC({ token }) {
 
               <TableBody>
                 {todos?.map((todo, index) => (
-                  <TableRow key={todo.id}>
+                  <TableRow key={todo._id?.value || todo.id}>
                     {keys?.map((key) => {
                       if (key === "userId" || key === "userName") return null;
 
@@ -1185,9 +1185,9 @@ export default function ViewFormC({ token }) {
                                 textDecoration: "underline",
                                 p: 0,
                                 minWidth: "auto",
-                                color: "#D4AF37", // Gold text
+                                color: "#D4AF37",
                                 "&:hover": {
-                                  color: "#E6C050", // Lighter gold
+                                  color: "#E6C050",
                                   backgroundColor: "transparent",
                                 },
                               }}
@@ -1202,9 +1202,9 @@ export default function ViewFormC({ token }) {
                                 textDecoration: "underline",
                                 p: 0,
                                 minWidth: "auto",
-                                color: "#D4AF37", // Gold text
+                                color: "#D4AF37",
                                 "&:hover": {
-                                  color: "#E6C050", // Lighter gold
+                                  color: "#E6C050",
                                   backgroundColor: "transparent",
                                 },
                               }}
@@ -1399,9 +1399,7 @@ export default function ViewFormC({ token }) {
                               )
                             }
                             onBlur={handleBlur}
-                            disabled={
-                              isclient || key === "email" || key === "phone "
-                            }
+                            disabled={key === "email" || key === "phone"} // Always disabled for email/phone
                             sx={{
                               minWidth: 120,
                               "& .MuiInputBase-input": {
@@ -1433,9 +1431,7 @@ export default function ViewFormC({ token }) {
                               key === "clientName" ? "sticky" : "static",
                             left: key === "clientName" ? 0 : undefined,
                             backgroundColor:
-                              key === "clientName"
-                                ? "#0a2d56" // Darker navy for sticky column
-                                : undefined,
+                              key === "clientName" ? "#0a2d56" : undefined,
                             zIndex: key === "clientName" ? 2 : 1,
                             color: "#676a6e",
                           }}
@@ -1454,16 +1450,14 @@ export default function ViewFormC({ token }) {
                             "&:hover": {
                               backgroundColor: "rgba(212, 175, 55, 0.2)",
                             },
-                            color: "#D4AF37", // Gold icon
+                            color: "#D4AF37",
                           }}
                         >
                           <MoreVert />
                         </IconButton>
                         <Menu
                           anchorEl={anchorEl}
-                          open={
-                            Boolean(anchorEl) && selectedTodo?.id === todo.id
-                          }
+                          open={Boolean(anchorEl)}
                           onClose={handleMenuClose}
                           anchorOrigin={{
                             vertical: "bottom",
@@ -1478,7 +1472,7 @@ export default function ViewFormC({ token }) {
                             sx: {
                               borderRadius: "8px",
                               minWidth: "180px",
-                              bgcolor: "#0a2d56", // Dark navy background
+                              bgcolor: "#0a2d56",
                               color: "white",
                               boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.3)",
                               "& .MuiMenuItem-root": {
@@ -1497,17 +1491,14 @@ export default function ViewFormC({ token }) {
                           }}
                         >
                           <MenuItem
-                            onClick={() => {
-                              handleSignup(todo);
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedTodo) {
+                                handleSignup(selectedTodo); // Always use selectedTodo
+                              }
                               handleMenuClose();
                             }}
-                            disabled={!!todo.userName?.value}
-                            sx={{
-                              "&.Mui-disabled": {
-                                opacity: 0.5,
-                                color: "rgba(255, 255, 255, 0.5)",
-                              },
-                            }}
+                            disabled={selectedTodo?.userName?.value} // Use selectedTodo here too
                           >
                             <ListItemIcon>
                               <PersonAdd
@@ -1517,18 +1508,19 @@ export default function ViewFormC({ token }) {
                             </ListItemIcon>
                             <ListItemText primary="Create Account" />
                           </MenuItem>
+
                           <MenuItem
-                            onClick={() => {
-                              handleDelete(todo._id?.value || todo.id);
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (selectedTodo) {
+                                handleDelete(
+                                  selectedTodo._id?.value || selectedTodo.id
+                                ); // Always use selectedTodo
+                              }
                               handleMenuClose();
                             }}
                             disabled={isclient}
-                            sx={{
-                              color: "error.main",
-                              "&.Mui-disabled": {
-                                opacity: 0.5,
-                              },
-                            }}
+                            sx={{ color: "error.main" }}
                           >
                             <ListItemIcon>
                               <DeleteIcon fontSize="small" color="error" />
@@ -1549,7 +1541,7 @@ export default function ViewFormC({ token }) {
           className="d-lg-none h-100"
           style={{
             overflow: "hidden",
-            backgroundColor: "#001f3f", // Navy blue background
+            backgroundColor: "#f5f7fa", // Light gray background
           }}
         >
           <Box
@@ -1558,8 +1550,8 @@ export default function ViewFormC({ token }) {
               display: "flex",
               flexDirection: "column",
               overflow: "hidden",
-              backgroundColor: "#001f3f", // Navy blue background
-              color: "white", // White text
+              backgroundColor: "#f5f7fa", // Light gray background
+              color: "#333", // Dark text
             }}
           >
             {/* Scrollable content for mobile */}
@@ -1572,11 +1564,11 @@ export default function ViewFormC({ token }) {
                   width: "6px",
                 },
                 "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "rgba(255, 255, 255, 0.3)", // Lighter scrollbar
+                  backgroundColor: "rgba(0, 0, 0, 0.2)", // Darker scrollbar
                   borderRadius: "3px",
                 },
                 "&::-webkit-scrollbar-track": {
-                  backgroundColor: "rgba(0, 0, 0, 0.1)", // Dark track
+                  backgroundColor: "rgba(0, 0, 0, 0.05)", // Light track
                 },
               }}
             >
@@ -1599,11 +1591,11 @@ export default function ViewFormC({ token }) {
                         borderRadius: 2,
                         transition: "all 0.2s ease",
                         borderLeft: isExpanded ? "4px solid" : "none",
-                        borderColor: "#D4AF37", // Gold border for selected
-                        backgroundColor: "#0a2d56", // Darker navy for cards
-                        color: "white",
+                        borderColor: "#D4AF37", // Blue border for selected
+                        backgroundColor: "white", // White cards
+                        color: "#333",
                         "&:hover": {
-                          boxShadow: "0 4px 8px rgba(212, 175, 55, 0.2)", // Gold glow on hover
+                          boxShadow: "0 4px 12px rgba(25, 118, 210, 0.1)", // Soft blue glow
                         },
                       }}
                     >
@@ -1623,7 +1615,7 @@ export default function ViewFormC({ token }) {
                               sx={{
                                 color: isExpanded
                                   ? "#D4AF37"
-                                  : "rgba(255, 255, 255, 0.7)",
+                                  : "rgba(0, 0, 0, 0.54)",
                               }}
                             />
                           }
@@ -1631,8 +1623,8 @@ export default function ViewFormC({ token }) {
                           id={`${userId}-header`}
                           sx={{
                             bgcolor: isExpanded
-                              ? "rgba(212, 175, 55, 0.1)" // Gold tint when expanded
-                              : "rgba(10, 45, 86, 0.8)", // Dark navy
+                              ? "rgba(25, 118, 210, 0.05)" // Light blue tint when expanded
+                              : "white",
                             minHeight: "56px !important",
                             "& .MuiAccordionSummary-content": {
                               alignItems: "center",
@@ -1640,8 +1632,8 @@ export default function ViewFormC({ token }) {
                             },
                             "&:hover": {
                               bgcolor: isExpanded
-                                ? "rgba(212, 175, 55, 0.15)"
-                                : "rgba(255, 255, 255, 0.05)",
+                                ? "rgba(25, 118, 210, 0.08)"
+                                : "rgba(0, 0, 0, 0.02)",
                             },
                           }}
                         >
@@ -1658,8 +1650,8 @@ export default function ViewFormC({ token }) {
                                 width: 32,
                                 height: 32,
                                 mr: 1.5,
-                                bgcolor: isExpanded ? "#D4AF37" : "#003366", // Gold when expanded
-                                color: isExpanded ? "#001f3f" : "white",
+                                bgcolor: isExpanded ? "#D4AF37" : "#D4AF37", // Blue when expanded
+                                color: isExpanded ? "white" : "#333",
                                 fontSize: "0.875rem",
                                 fontWeight: "bold",
                               }}
@@ -1680,7 +1672,7 @@ export default function ViewFormC({ token }) {
                                   whiteSpace: "nowrap",
                                   overflow: "hidden",
                                   textOverflow: "ellipsis",
-                                  color: isExpanded ? "#D4AF37" : "gray", // Gold text when expanded
+                                  color: isExpanded ? "#1976d2" : "#333",
                                 }}
                               >
                                 {userName}
@@ -1690,8 +1682,8 @@ export default function ViewFormC({ token }) {
                                   variant="caption"
                                   color={
                                     isExpanded
-                                      ? "rgba(212, 175, 55, 0.8)"
-                                      : "rgba(255, 255, 255, 0.6)"
+                                      ? "#D4AF37"
+                                      : "rgba(0, 0, 0, 0.6)"
                                   }
                                   sx={{ display: "block" }}
                                 >
@@ -1711,8 +1703,8 @@ export default function ViewFormC({ token }) {
                                   ml: "auto",
                                   fontSize: "0.7rem",
                                   height: 20,
-                                  bgcolor: isExpanded ? "#D4AF37" : "#003366", // Gold when expanded
-                                  color: isExpanded ? "#001f3f" : "white",
+                                  bgcolor: isExpanded ? "#D4AF37" : "#e0e0e0",
+                                  color: isExpanded ? "white" : "#333",
                                 }}
                               />
                             )}
@@ -1724,7 +1716,7 @@ export default function ViewFormC({ token }) {
                             pt: 0,
                             pb: 2,
                             px: 1.5,
-                            bgcolor: "rgba(0, 31, 63, 0.5)", // Semi-transparent navy
+                            bgcolor: "white",
                           }}
                         >
                           <Box
@@ -1746,13 +1738,13 @@ export default function ViewFormC({ token }) {
                                 fontSize: "0.75rem",
                                 py: 0.5,
                                 marginTop: "10px",
-                                bgcolor: "#D4AF37", // Gold button
-                                color: "#001f3f",
+                                bgcolor: "#D4AF37",
+                                color: "white",
                                 "&:hover": {
-                                  bgcolor: "#E6C050", // Lighter gold on hover
+                                  bgcolor: "#D4AF37",
                                 },
                                 "&:disabled": {
-                                  bgcolor: "rgba(212, 175, 55, 0.3)",
+                                  bgcolor: "rgba(25, 118, 210, 0.3)",
                                   color: "rgba(255, 255, 255, 0.5)",
                                 },
                               }}
@@ -1846,7 +1838,7 @@ export default function ViewFormC({ token }) {
                                         textTransform: "none",
                                         px: 1,
                                         py: 0.5,
-                                        color: "white",
+                                        color: "#D4AF37",
                                         "&:hover": {
                                           bgcolor: "rgba(212, 175, 55, 0.1)",
                                         },
@@ -1867,7 +1859,7 @@ export default function ViewFormC({ token }) {
                                           variant="caption"
                                           color="#D4AF37"
                                         >
-                                          View Profile
+                                          View Docs
                                         </Typography>
                                       </Box>
                                     </Button>
@@ -1883,7 +1875,7 @@ export default function ViewFormC({ token }) {
                                         textTransform: "none",
                                         px: 1,
                                         py: 0.5,
-                                        color: "white",
+                                        color: "#D4AF37",
                                         "&:hover": {
                                           bgcolor: "rgba(212, 175, 55, 0.1)",
                                         },
@@ -1987,7 +1979,7 @@ export default function ViewFormC({ token }) {
                                   >
                                     <InputLabel
                                       shrink
-                                      sx={{ color: "rgba(255, 255, 255, 0.7)" }}
+                                      sx={{ color: "rgba(0, 0, 0, 0.6)" }}
                                     >
                                       {label}
                                     </InputLabel>
@@ -2009,11 +2001,10 @@ export default function ViewFormC({ token }) {
                                       sx={{
                                         "& .MuiSelect-select": {
                                           py: 1.25,
-                                          color: "white",
+                                          color: "#333",
                                         },
                                         "& .MuiOutlinedInput-notchedOutline": {
-                                          borderColor:
-                                            "rgba(255, 255, 255, 0.23)",
+                                          borderColor: "rgba(0, 0, 0, 0.23)",
                                         },
                                         "&:hover .MuiOutlinedInput-notchedOutline":
                                           {
@@ -2022,24 +2013,25 @@ export default function ViewFormC({ token }) {
                                         "&.Mui-focused .MuiOutlinedInput-notchedOutline":
                                           {
                                             borderColor: "#D4AF37",
+                                            borderWidth: "2px",
                                           },
                                         "& .MuiSvgIcon-root": {
-                                          color: "rgba(255, 255, 255, 0.7)",
+                                          color: "rgba(0, 0, 0, 0.54)",
                                         },
                                       }}
                                       MenuProps={{
                                         PaperProps: {
                                           sx: {
-                                            bgcolor: "#0a2d56",
-                                            color: "white",
+                                            bgcolor: "white",
+                                            color: "#333",
                                             "& .MuiMenuItem-root": {
                                               "&:hover": {
                                                 bgcolor:
-                                                  "rgba(212, 175, 55, 0.2)",
+                                                  "rgba(212, 175, 55, 0.1)",
                                               },
                                               "&.Mui-selected": {
                                                 bgcolor:
-                                                  "rgba(212, 175, 55, 0.3)",
+                                                  "rgba(212, 175, 55, 0.2)",
                                               },
                                             },
                                           },
@@ -2117,19 +2109,24 @@ export default function ViewFormC({ token }) {
                                         sx: {
                                           mt: 0.5,
                                           "& .MuiInputBase-input": {
-                                            color: "white",
+                                            color: "#333",
                                           },
                                           "& .MuiInputLabel-root": {
-                                            color: "rgba(255, 255, 255, 0.7)",
+                                            color: "rgba(0, 0, 0, 0.6)",
                                           },
                                           "& .MuiOutlinedInput-notchedOutline":
                                             {
                                               borderColor:
-                                                "rgba(255, 255, 255, 0.23)",
+                                                "rgba(0, 0, 0, 0.23)",
                                             },
                                           "&:hover .MuiOutlinedInput-notchedOutline":
                                             {
                                               borderColor: "#D4AF37",
+                                            },
+                                          "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                            {
+                                              borderColor: "#D4AF37",
+                                              borderWidth: "2px",
                                             },
                                         },
                                       },
@@ -2161,18 +2158,22 @@ export default function ViewFormC({ token }) {
                                     sx={{
                                       mt: 0.5,
                                       "& .MuiInputBase-input": {
-                                        color: "white",
+                                        color: "#333",
                                       },
                                       "& .MuiInputLabel-root": {
-                                        color: "rgba(255, 255, 255, 0.7)",
+                                        color: "rgba(0, 0, 0, 0.6)",
                                       },
                                       "& .MuiOutlinedInput-notchedOutline": {
-                                        borderColor:
-                                          "rgba(255, 255, 255, 0.23)",
+                                        borderColor: "rgba(0, 0, 0, 0.23)",
                                       },
                                       "&:hover .MuiOutlinedInput-notchedOutline":
                                         {
                                           borderColor: "#D4AF37",
+                                        },
+                                      "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                        {
+                                          borderColor: "#D4AF37",
+                                          borderWidth: "2px",
                                         },
                                     }}
                                     InputLabelProps={{ shrink: true }}
@@ -2197,8 +2198,7 @@ export default function ViewFormC({ token }) {
                                     <Divider
                                       sx={{
                                         my: 0.5,
-                                        backgroundColor:
-                                          "rgba(212, 175, 55, 0.2)", // Gold divider
+                                        backgroundColor: "rgba(0, 0, 0, 0.08)",
                                       }}
                                     />
                                   )}

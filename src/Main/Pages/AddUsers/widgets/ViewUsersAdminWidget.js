@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { BsCassette, BsFileArrowUp, BsPerson } from "react-icons/bs";
 import PhoneInput from "react-phone-input-2";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -27,10 +27,11 @@ import {
 } from "@mui/material";
 import { Lock, Edit, ChevronDown } from "@mui/icons-material";
 import { Dropdown } from "react-bootstrap";
+import { useAlert } from "../../../../Component/AlertContext";
 
 const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
-
+  const { showLoading, showSuccess, showError } = useAlert();
   const [selectedRole, setSelectedRole] = useState(user?.Role);
   const [editableFields, setEditableFields] = useState(false);
   const [isProfile, setIsProfile] = useState(true); // Controls profile section visibility
@@ -93,6 +94,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       setShowCaseSheet(false); // Hide master sheet
     }
   };
+
   const fetchClientDetails = async () => {
     if (!user) return;
 
@@ -122,6 +124,11 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     } catch (err) {
       setError(err.message);
       setLoading(false);
+      if (error.response) {
+        showError("Error ", error.response);
+      } else {
+        showError("Network or server error:", error.message);
+      }
     }
   };
 
@@ -954,283 +961,321 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
             </div>
           )}{" "}
           {showCaseSheet && (
-            <div className="card mb-3 shadow">
-              {/* Table Header - Hidden on mobile */}
-              <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
-                <span className="col text-start">Status</span>
-                <span className="col text-start">Case Number</span>
-                <span className="col text-start">Request Number</span>
-                <span className="col text-start">Case Type</span>
-                <span className="col text-start">Purpose</span>
-                <span className="col text-end">Action</span>
+            <div
+              className="container-fluid m-0 p-0 w-80"
+              style={{
+                height: "84vh",
+                overflowY: "auto",
+                overflowX: "hidden",
+                maxWidth: "100%",
+              }}
+            >
+              {/* Search and Filters Section */}
+              <div className="row mb-3 g-2 align-items-center px-2">
+                <div className="col-12">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Search..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                  />
+                </div>
               </div>
-              {/* Table Body */}
-              <div className="card-body p-0">
-                {getFilteredCases()
-                  .slice(
-                    (currentPage - 1) * casesPerPage,
-                    currentPage * casesPerPage
-                  )
-                  .map((item, index) => (
-                    <div key={index} className="border-bottom">
-                      {/* Mobile View */}
-                      <div
-                        className="d-md-none p-3"
-                        style={{
-                          overflowX: "hidden",
-                          maxWidth: "100%",
-                          maxHeight: "83vh",
-                        }}
-                      >
-                        {/* Status and Actions Row */}
-                        <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
-                          <div className="d-flex align-items-center gap-2">
+
+              {/* Table Section */}
+              <div className="card mb-3 shadow">
+                {/* Table Header - Hidden on mobile */}
+                <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
+                  <span className="col text-start">Status</span>
+                  <span className="col text-start">Case Number</span>
+                  <span className="col text-start">Request Number</span>
+                  <span className="col text-start">Case Type</span>
+                  <span className="col text-start">Purpose</span>
+                  <span className="col text-end">Action</span>
+                </div>
+                {/* Table Body */}
+                <div className="card-body p-0">
+                  {getFilteredCases()
+                    .slice(
+                      (currentPage - 1) * casesPerPage,
+                      currentPage * casesPerPage
+                    )
+                    .map((item, index) => (
+                      <div key={index} className="border-bottom">
+                        {/* Mobile View */}
+                        <div
+                          className="d-md-none p-3"
+                          style={{
+                            overflowX: "hidden",
+                            maxWidth: "100%",
+                            maxHeight: "83vh",
+                          }}
+                        >
+                          {/* Status and Actions Row */}
+                          <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                            <div className="d-flex align-items-center gap-2">
+                              <span
+                                className={`rounded-circle ${
+                                  item.Status.toLowerCase() === "case filed"
+                                    ? "bg-success"
+                                    : "bg-danger"
+                                }`}
+                                style={{
+                                  width: "12px",
+                                  height: "12px",
+                                  minWidth: "12px",
+                                }}
+                              />
+                              <span className="badge bg-light text-dark">
+                                {item.Status}
+                              </span>
+                            </div>
+                            <Dropdown>
+                              <Dropdown.Toggle
+                                variant="light"
+                                size="sm"
+                                className="rounded-circle p-0 border"
+                                style={{
+                                  width: "28px",
+                                  height: "28px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                }}
+                              >
+                                <i className="bi bi-three-dots-vertical"></i>
+                              </Dropdown.Toggle>
+                              <Dropdown.Menu>
+                                <Dropdown.Item
+                                  onClick={(e) => {
+                                    if (
+                                      e.target.tagName !== "INPUT" &&
+                                      e.target.tagName !== "BUTTON"
+                                    ) {
+                                      handleClick(1, item);
+                                    }
+                                  }}
+                                >
+                                  View Details
+                                </Dropdown.Item>
+                              </Dropdown.Menu>
+                            </Dropdown>
+                          </div>
+
+                          {/* Data Fields - Fixed alignment */}
+                          <div className="d-flex flex-column gap-2 ps-0">
+                            {" "}
+                            {/* Added ps-0 to remove left padding */}
+                            <div className="d-flex flex-wrap align-items-start">
+                              {" "}
+                              {/* Changed to align-items-start */}
+                              <span
+                                className="text-muted me-2"
+                                style={{
+                                  minWidth: "80px",
+                                  wordBreak: "break-word",
+                                  textAlign: "left", // Explicitly set text alignment
+                                  marginLeft: "0", // Ensure no left margin
+                                }}
+                              >
+                                Case #:
+                              </span>
+                              <span className="fw-medium">
+                                {item["CaseNumber"]}
+                              </span>
+                            </div>
+                            <div className="d-flex flex-wrap align-items-start">
+                              <span
+                                className="text-muted me-2"
+                                style={{
+                                  minWidth: "80px",
+                                  wordBreak: "break-word",
+                                  textAlign: "left",
+                                  marginLeft: "0",
+                                }}
+                              >
+                                Request #:
+                              </span>
+                              <span className="fw-medium">
+                                {item["SerialNumber"]}
+                              </span>
+                            </div>
+                            <div className="d-flex flex-wrap align-items-start">
+                              <span
+                                className="text-muted me-2"
+                                style={{
+                                  minWidth: "80px",
+                                  wordBreak: "break-word",
+                                  textAlign: "left",
+                                  marginLeft: "0",
+                                }}
+                              >
+                                Type:
+                              </span>
+                              <span className="fw-medium">
+                                {item["CaseType"]}
+                              </span>
+                            </div>
+                            <div className="ps-0">
+                              {" "}
+                              {/* Added ps-0 here as well */}
+                              <div
+                                className="text-muted mb-1"
+                                style={{ textAlign: "left" }}
+                              >
+                                Purpose:
+                              </div>
+                              <input
+                                className="form-control form-control-sm"
+                                value={item.notes || ""}
+                                onChange={(e) =>
+                                  handleEdit(index, e.target.value)
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop View - Horizontal Layout */}
+                        <div
+                          className="d-none d-md-flex justify-content-between align-items-center p-3"
+                          style={{ cursor: "pointer" }}
+                          onClick={(e) => {
+                            if (
+                              e.target.tagName !== "INPUT" &&
+                              e.target.tagName !== "BUTTON"
+                            ) {
+                              handleClick(1, item);
+                            }
+                          }}
+                        >
+                          <span className="col d-flex align-items-center text-start">
                             <span
-                              className={`rounded-circle ${
+                              className={`me-2 rounded-circle ${
                                 item.Status.toLowerCase() === "case filed"
                                   ? "bg-success"
                                   : "bg-danger"
                               }`}
                               style={{
-                                width: "12px",
-                                height: "12px",
-                                minWidth: "12px",
+                                width: "10px",
+                                height: "10px",
+                                display: "inline-block",
                               }}
-                            />
-                            <span className="badge bg-light text-dark">
-                              {item.Status}
-                            </span>
-                          </div>
-                          <Dropdown>
-                            <Dropdown.Toggle
-                              variant="light"
-                              size="sm"
-                              className="rounded-circle p-0 border"
-                              style={{
-                                width: "28px",
-                                height: "28px",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <i className="bi bi-three-dots-vertical"></i>
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                              <Dropdown.Item
-                                onClick={(e) => {
-                                  if (
-                                    e.target.tagName !== "INPUT" &&
-                                    e.target.tagName !== "BUTTON"
-                                  ) {
-                                    handleClick(1, item);
-                                  }
-                                }}
-                              >
-                                View Details
-                              </Dropdown.Item>
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </div>
+                            ></span>
+                            {item.Status}
+                          </span>
+                          <span className="col d-flex align-items-center text-start">
+                            {item["CaseNumber"]}
+                          </span>
+                          <span className="col d-flex align-items-center text-start">
+                            {item["SerialNumber"]}
+                          </span>
+                          <span className="col d-flex align-items-center text-start">
+                            {item["CaseType"]}
+                          </span>
+                          <input
+                            className="col form-control"
+                            type="text"
+                            value={item.notes || ""}
+                            onChange={(e) => handleEdit(index, e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                          />
 
-                        {/* Data Fields */}
-                        <div className="d-flex flex-column gap-2">
-                          <div className="d-flex flex-wrap">
-                            <span
-                              className="text-muted me-2"
-                              style={{
-                                minWidth: "80px",
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              Case #:
-                            </span>
-                            <span className="fw-medium">
-                              {item["CaseNumber"]}
-                            </span>
-                          </div>
-
-                          <div className="d-flex flex-wrap">
-                            <span
-                              className="text-muted me-2"
-                              style={{
-                                minWidth: "80px",
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              Request #:
-                            </span>
-                            <span className="fw-medium">
-                              {item["SerialNumber"]}
-                            </span>
-                          </div>
-
-                          <div className="d-flex flex-wrap">
-                            <span
-                              className="text-muted me-2"
-                              style={{
-                                minWidth: "80px",
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              Type:
-                            </span>
-                            <span className="fw-medium">
-                              {item["CaseType"]}
-                            </span>
-                          </div>
-
-                          <div>
-                            <div className="text-muted mb-1">Purpose:</div>
-                            <input
-                              className="form-control form-control-sm"
-                              value={item.notes || ""}
-                              onChange={(e) =>
-                                handleEdit(index, e.target.value)
+                          {/* Permission Dropdown */}
+                          <div className="col text-end">
+                            <Dropdown
+                              show={dropdownOpen === index}
+                              onToggle={(isOpen) =>
+                                setDropdownOpen(isOpen ? index : null)
                               }
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            >
+                              <Dropdown.Toggle
+                                variant="custom"
+                                size="sm"
+                                className="custom-dropdown-toggle"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setDropdownOpen(
+                                    dropdownOpen === index ? null : index
+                                  );
+                                }}
+                              ></Dropdown.Toggle>
+
+                              <Dropdown.Menu>
+                                <Dropdown.Item>View Details</Dropdown.Item>
+                              </Dropdown.Menu>
+                            </Dropdown>
                           </div>
                         </div>
                       </div>
+                    ))}
+                </div>
 
-                      {/* Desktop View - Horizontal Layout */}
-                      <div
-                        className="d-none d-md-flex justify-content-between align-items-center p-3"
-                        style={{ cursor: "pointer" }}
-                        onClick={(e) => {
-                          if (
-                            e.target.tagName !== "INPUT" &&
-                            e.target.tagName !== "BUTTON"
-                          ) {
-                            handleClick(1, item);
-                          }
-                        }}
-                      >
-                        <span className="col d-flex align-items-center text-start">
-                          <span
-                            className={`me-2 rounded-circle ${
-                              item.Status.toLowerCase() === "case filed"
-                                ? "bg-success"
-                                : "bg-danger"
-                            }`}
-                            style={{
-                              width: "10px",
-                              height: "10px",
-                              display: "inline-block",
-                            }}
-                          ></span>
-                          {item.Status}
-                        </span>
-                        <span className="col d-flex align-items-center text-start">
-                          {item["CaseNumber"]}
-                        </span>
-                        <span className="col d-flex align-items-center text-start">
-                          {item["SerialNumber"]}
-                        </span>
-                        <span className="col d-flex align-items-center text-start">
-                          {item["CaseType"]}
-                        </span>
-                        <input
-                          className="col form-control"
-                          type="text"
-                          value={item.notes || ""}
-                          onChange={(e) => handleEdit(index, e.target.value)}
-                          onClick={(e) => e.stopPropagation()}
-                        />
-
-                        {/* Permission Dropdown */}
-                        <div className="col text-end">
-                          <Dropdown
-                            show={dropdownOpen === index}
-                            onToggle={(isOpen) =>
-                              setDropdownOpen(isOpen ? index : null)
-                            }
-                          >
-                            <Dropdown.Toggle
-                              variant="custom"
-                              size="sm"
-                              className="custom-dropdown-toggle"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setDropdownOpen(
-                                  dropdownOpen === index ? null : index
-                                );
-                              }}
-                            ></Dropdown.Toggle>
-
-                            <Dropdown.Menu>
-                              <Dropdown.Item>View Details</Dropdown.Item>
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-
-              {/* Pagination - Responsive */}
-              {totalPages > 1 && (
-                <div className="p-3">
-                  <div
-                    className="d-flex justify-content-center align-items-center"
-                    style={{
-                      backgroundColor: "#18273e",
-                      padding: "10px",
-                      borderRadius: "8px",
-                      border: "2px solid #d4af37",
-                      margin: "auto",
-                      maxWidth: "100%",
-                      width: "fit-content",
-                    }}
-                  >
-                    <div className="d-flex flex-wrap justify-content-center align-items-center gap-2">
-                      <button
-                        onClick={() => goToPage(currentPage - 1)}
-                        disabled={currentPage === 1}
-                        className="btn btn-outline-warning"
-                      >
-                        Previous
-                      </button>
-                      <div className="d-flex align-items-center">
-                        <span className="text-white me-2 d-none d-sm-block">
-                          Page
-                        </span>
-                        <input
-                          value={currentPage}
-                          min={1}
-                          max={totalPages}
-                          onChange={(e) =>
-                            goToPage(
-                              Math.max(
-                                1,
-                                Math.min(totalPages, Number(e.target.value))
+                {/* Pagination - Responsive */}
+                {totalPages > 1 && (
+                  <div className="p-3">
+                    <div
+                      className="d-flex justify-content-center align-items-center"
+                      style={{
+                        backgroundColor: "#18273e",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        border: "2px solid #d4af37",
+                        margin: "auto",
+                        maxWidth: "100%",
+                        width: "fit-content",
+                      }}
+                    >
+                      <div className="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                        <button
+                          onClick={() => goToPage(currentPage - 1)}
+                          disabled={currentPage === 1}
+                          className="btn btn-outline-warning"
+                        >
+                          Previous
+                        </button>
+                        <div className="d-flex align-items-center">
+                          <span className="text-white me-2 d-none d-sm-block">
+                            Page
+                          </span>
+                          <input
+                            value={currentPage}
+                            min={1}
+                            max={totalPages}
+                            onChange={(e) =>
+                              goToPage(
+                                Math.max(
+                                  1,
+                                  Math.min(totalPages, Number(e.target.value))
+                                )
                               )
-                            )
-                          }
-                          className="form-control text-center"
-                          style={{
-                            width: "60px",
-                            border: "2px solid #d4af37",
-                            backgroundColor: "#18273e",
-                            color: "white",
-                          }}
-                        />
-                        <span className="text-white ms-2 d-none d-sm-block">
-                          of {totalPages}
-                        </span>
+                            }
+                            className="form-control text-center"
+                            style={{
+                              width: "60px",
+                              border: "2px solid #d4af37",
+                              backgroundColor: "#18273e",
+                              color: "white",
+                            }}
+                          />
+                          <span className="text-white ms-2 d-none d-sm-block">
+                            of {totalPages}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => goToPage(currentPage + 1)}
+                          disabled={currentPage === totalPages}
+                          className="btn btn-outline-warning"
+                        >
+                          Next
+                        </button>
                       </div>
-                      <button
-                        onClick={() => goToPage(currentPage + 1)}
-                        disabled={currentPage === totalPages}
-                        className="btn btn-outline-warning"
-                      >
-                        Next
-                      </button>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -1246,25 +1291,50 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       )}
 
       {!editableFields && (
-        <button
-          onClick={handleFloatingButtonClick}
-          title={showCaseSheet ? "Hide Cases" : "View Cases"}
+        <div
           style={{
-            backgroundColor: "#f4e9d8",
-            color: "#18273e",
-            border: "1px solid #d3b386",
-            borderRadius: "20%",
-            boxShadow: "0px 2px 8px rgba(0,0,0,0.2)",
+            position: "fixed",
+            bottom: "20px",
+            left: "0",
+            right: "0",
             display: "flex",
-            padding: 10,
-            alignItems: "center",
             justifyContent: "center",
-            fontSize: "1.0rem",
-            cursor: "pointer",
+            zIndex: 1000,
+            pointerEvents: "none", // Allows clicks to pass through the container
           }}
         >
-          {showCaseSheet ? "Hide Cases" : "View Cases"}
-        </button>
+          {" "}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+
+              handleFloatingButtonClick();
+            }}
+            title={showCaseSheet ? "Hide Cases" : "View Cases"}
+            style={{
+              backgroundColor: "#f4e9d8",
+              color: "#18273e",
+              border: "1px solid #d3b386",
+              borderRadius: "20%",
+              boxShadow: "0px 4px 12px rgba(0,0,0,0.3)",
+              display: "flex",
+              padding: "12px",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1.0rem",
+              cursor: "pointer",
+              zIndex: 1001,
+              minWidth: "56px",
+              minHeight: "56px",
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+              pointerEvents: "auto", // Re-enables clicks for the button
+            }}
+            onTouchStart={(e) => e.preventDefault()} // Helps with touch devices
+          >
+            {showCaseSheet ? "Hide Cases" : "View Cases"}
+          </button>
+        </div>
       )}
     </center>
   );
