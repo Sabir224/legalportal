@@ -471,12 +471,12 @@ export default function ViewFormC({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-          (key) =>
-            key !== "_id" &&
-            key !== "__v" &&
-            key !== "subtasks" &&
-            key !== "parentId"
-        )
+        (key) =>
+          key !== "_id" &&
+          key !== "__v" &&
+          key !== "subtasks" &&
+          key !== "parentId"
+      )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -1032,7 +1032,11 @@ export default function ViewFormC({ token }) {
       <div className="p-1" style={{ flexShrink: 0 }}>
         <button
           className="btn btn-success"
-          onClick={() => dispatch(screenChange(16))}
+          onClick={() => {
+            dispatch(FormCDetails(null));
+            dispatch(screenChange(16))
+          }
+          }
         >
           + New form
         </button>
@@ -2007,14 +2011,14 @@ export default function ViewFormC({ token }) {
                                           borderColor: "rgba(0, 0, 0, 0.23)",
                                         },
                                         "&:hover .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                          },
+                                        {
+                                          borderColor: "#D4AF37",
+                                        },
                                         "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                            borderWidth: "2px",
-                                          },
+                                        {
+                                          borderColor: "#D4AF37",
+                                          borderWidth: "2px",
+                                        },
                                         "& .MuiSvgIcon-root": {
                                           color: "rgba(0, 0, 0, 0.54)",
                                         },
@@ -2080,9 +2084,9 @@ export default function ViewFormC({ token }) {
                                           color: "#D4AF37",
                                         },
                                         "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                                          {
-                                            backgroundColor: "#D4AF37",
-                                          },
+                                        {
+                                          backgroundColor: "#D4AF37",
+                                        },
                                       }}
                                     />
                                   </Box>
@@ -2115,19 +2119,19 @@ export default function ViewFormC({ token }) {
                                             color: "rgba(0, 0, 0, 0.6)",
                                           },
                                           "& .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor:
-                                                "rgba(0, 0, 0, 0.23)",
-                                            },
+                                          {
+                                            borderColor:
+                                              "rgba(0, 0, 0, 0.23)",
+                                          },
                                           "&:hover .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor: "#D4AF37",
-                                            },
+                                          {
+                                            borderColor: "#D4AF37",
+                                          },
                                           "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor: "#D4AF37",
-                                              borderWidth: "2px",
-                                            },
+                                          {
+                                            borderColor: "#D4AF37",
+                                            borderWidth: "2px",
+                                          },
                                         },
                                       },
                                     }}
@@ -2167,14 +2171,14 @@ export default function ViewFormC({ token }) {
                                         borderColor: "rgba(0, 0, 0, 0.23)",
                                       },
                                       "&:hover .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                        },
+                                      {
+                                        borderColor: "#D4AF37",
+                                      },
                                       "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                          borderWidth: "2px",
-                                        },
+                                      {
+                                        borderColor: "#D4AF37",
+                                        borderWidth: "2px",
+                                      },
                                     }}
                                     InputLabelProps={{ shrink: true }}
                                   />
