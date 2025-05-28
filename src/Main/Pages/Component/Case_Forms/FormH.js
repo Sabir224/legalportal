@@ -52,6 +52,7 @@ const FormHandover = ({ token }) => {
             throw error;
         }
     };
+
     useEffect(() => {
 
         const getData = async () => {
@@ -63,7 +64,7 @@ const FormHandover = ({ token }) => {
                 // If Form H exists
                 if (result?.form) {
                     const form = result.form;
-                    setIsFilled(true)
+                    setIsFilled(true);
                     setFormData({
                         clientName: form.clientName || "",
                         caseNumber: form.caseNumber || reduxCaseInfo?.CaseNumber || "",
@@ -77,12 +78,11 @@ const FormHandover = ({ token }) => {
                         legalOpinion: form.legalOpinionText || "",
                         caseStrategy: form.caseStrategyText || "",
                         relatedDocs: form.relatedDocsFiles || [],
-                        providerName: form.providerName,
-                        providerSignature: form.providerSignature,
-                        receiverName: form.receiverName,
-                        receiverSignature: form.receiverSignature,
-                        isrecevied: form.isReceived
-
+                        providerName: form.providerName || "",
+                        providerSignature: form.providerSignature || "",
+                        receiverName: form.receiverName || "",
+                        receiverSignature: form.receiverSignature || "",
+                        isrecevied: form.isReceived || false,
                     });
                 }
                 // If Form H does not exist, fallback to initial blank data
@@ -286,7 +286,7 @@ const FormHandover = ({ token }) => {
             return null;
         }
     };
-    const handlegotoform = async (formCid,item) => {
+    const handlegotoform = async (formCid, item) => {
         if (item.name === "cForm") {
             console.log(formCid)
             dispatch(FormCDetails(formCid));
@@ -343,6 +343,7 @@ const FormHandover = ({ token }) => {
                                                 },
                                             })
                                         }
+                                        format="dd/MM/yyyy"
                                     />
                                 </div>
                                 <div className="mb-4">
@@ -387,7 +388,7 @@ const FormHandover = ({ token }) => {
                                                     <button
                                                         type="button"
                                                         className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                        onClick={() => handlegotoform(formData.checklist[item.name],item)}
+                                                        onClick={() => handlegotoform(formData.checklist[item.name], item)}
                                                         disabled={!isChecked}
                                                         style={{
                                                             fontSize: "0.9rem",
@@ -634,6 +635,8 @@ const FormHandover = ({ token }) => {
                                                     },
                                                 })
                                             }
+                                        format="dd/MM/yyyy"
+
                                             disabled={isReadOnly}
                                         />
                                     </div>
@@ -666,7 +669,7 @@ const FormHandover = ({ token }) => {
                                                         <button
                                                             type="button"
                                                             className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                            onClick={() => handlegotoform(formData.checklist[item.name],item)}
+                                                            onClick={() => handlegotoform(formData.checklist[item.name], item)}
                                                             disabled={!isChecked}
                                                             style={{
                                                                 fontSize: "0.9rem",
