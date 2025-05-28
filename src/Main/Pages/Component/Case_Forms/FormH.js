@@ -33,10 +33,12 @@ const FormHandover = ({ token }) => {
         legalOpinion: "",
         caseStrategy: "",
         relatedDocs: [],
-        // providerName: token.UserName,
-        providerSignature: token.email,
-        // receiverName: "",
+        providerName: token?.UserName,
+        providerSignature: token?.email,
+        receiverName: "",
         receiverSignature: "",
+        isrecevied: false
+
     });
 
 
@@ -75,8 +77,12 @@ const FormHandover = ({ token }) => {
                         legalOpinion: form.legalOpinionText || "",
                         caseStrategy: form.caseStrategyText || "",
                         relatedDocs: form.relatedDocsFiles || [],
+                        providerName: form.providerName,
                         providerSignature: form.providerSignature,
+                        receiverName: form.receiverName,
                         receiverSignature: form.receiverSignature,
+                        isrecevied: form.isReceived
+
                     });
                 }
                 // If Form H does not exist, fallback to initial blank data
@@ -94,8 +100,11 @@ const FormHandover = ({ token }) => {
                         legalOpinion: "",
                         caseStrategy: "",
                         relatedDocs: [],
-                        providerSignature: token.email,
+                        providerName: token?.UserName,
+                        providerSignature: token?.email,
                         receiverSignature: "",
+                        isrecevied: false
+
                     });
                 }
 
@@ -213,7 +222,8 @@ const FormHandover = ({ token }) => {
             console.log("form data", formData)
             // Append text fields
             form.append("clientName", formData.clientName);
-            form.append("caseNumber", reduxCaseInfo?._id);
+            form.append("caseId", reduxCaseInfo?._id);
+            form.append("caseNumber", reduxCaseInfo?.CaseNumber);
             form.append("handoverDateTime", formData.handoverDateTime);
             form.append("providerName", formData.providerName);
             form.append("receiverName", formData.receiverName);
@@ -229,8 +239,8 @@ const FormHandover = ({ token }) => {
             });
             console.log("check list form c", formData.checklist.cForm)
             form.append("providerSignature", formData.providerSignature);
-            form.append("receiverSignature", formData.receiverSignature);
 
+            form.append("receiverSignature", formData.receiverSignature);
 
             console.log("providerSignature", formData.providerSignature)
 
@@ -243,7 +253,7 @@ const FormHandover = ({ token }) => {
 
 
             showSuccess("Form submitted successfully!");
-            fetchFormHData()
+            // fetchFormHData()
             console.log(res.data);
         } catch (error) {
             if (error.response) {
@@ -338,68 +348,80 @@ const FormHandover = ({ token }) => {
                                             { label: "The Filled-out L Form – MOM Form", name: "lForm", formName: "Form L" },
                                             { label: "The signed and stamped LFA", name: "lfa", formName: "LFA" },
                                             { label: "The POA", name: "poa", formName: "POA" },
-                                        ].map((item) => (
-                                            <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="form-check-input me-2"
-                                                    name={item.name}
-                                                    checked={!!formData.checklist[item.name]} // ✅ Check if value (e.g., _id for cForm) exists
-                                                    onChange={(e) => {
-                                                        if (item.name !== "cForm") {
-                                                            setFormData((prev) => ({
-                                                                ...prev,
-                                                                checklist: {
-                                                                    ...prev.checklist,
-                                                                    [item.name]: e.target.checked,
-                                                                },
-                                                            }));
-                                                        }
-                                                    }}
-                                                    id={item.name}
-                                                    disabled={item.name === "cForm"} // ✅ Disable manual toggle for Form C
-                                                />
-                                                <label className="form-check-label me-2" htmlFor={item.name}>
-                                                    {item.label}
-                                                </label>
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                    onClick={() => dispatch(screenChange(16))}
-                                                    style={{ fontSize: "0.9rem" }}
-                                                >
-                                                    Go to {item.formName}
-                                                </button>
+                                        ].map((item) => {
+                                            const isChecked = !!formData.checklist[item.name]; // e.g. _id for cForm, boolean for others
 
-                                                {/* ✅ Form C caseNumber dropdown that sets _id */}
-                                                {item.name === "cForm" && (
-                                                    <select
-                                                        className="form-select form-select-sm w-auto"
-                                                        value={formData.checklist.cForm || ""}
+                                            return (
+                                                <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
+                                                    <input
+                                                        type="checkbox"
+                                                        className="form-check-input me-2"
+                                                        name={item.name}
+                                                        checked={isChecked}
                                                         onChange={(e) => {
-                                                            const selectedId = e.target.value;
-                                                            setFormData((prev) => ({
-                                                                ...prev,
-                                                                checklist: {
-                                                                    ...prev.checklist,
-                                                                    cForm: selectedId, // ✅ Store _id in checklist.cForm
-                                                                },
-                                                            }));
+                                                            if (item.name !== "cForm") {
+                                                                setFormData((prev) => ({
+                                                                    ...prev,
+                                                                    checklist: {
+                                                                        ...prev.checklist,
+                                                                        [item.name]: e.target.checked,
+                                                                    },
+                                                                }));
+                                                            }
+                                                        }}
+                                                        id={item.name}
+                                                        disabled={item.name === "cForm"} // disable manual check for cForm
+                                                    />
+
+                                                    <label className="form-check-label me-2" htmlFor={item.name}>
+                                                        {item.label}
+                                                    </label>
+
+                                                    <button
+                                                        type="button"
+                                                        className="btn btn-link p-0 text-decoration-underline text-primary"
+                                                        onClick={() => dispatch(screenChange(16))}
+                                                        disabled={!isChecked}
+                                                        style={{
+                                                            fontSize: "0.9rem",
+                                                            pointerEvents: isChecked ? "auto" : "none",
+                                                            opacity: isChecked ? 1 : 0.5,
                                                         }}
                                                     >
-                                                        <option value="">Select Case Number</option>
-                                                        {(FormhOrFormCDetails?.formC || [])
-                                                            .filter((form) => form?.caseNumber?.trim())
-                                                            .map((form) => (
-                                                                <option key={form._id} value={form._id}>
-                                                                    {form.caseNumber}
-                                                                </option>
-                                                            ))}
-                                                    </select>
-                                                )}
-                                            </div>
-                                        ))}
+                                                        Go to {item.formName}
+                                                    </button>
+
+                                                    {/* ✅ Form C: show dropdown to select caseNumber */}
+                                                    {item.name === "cForm" && (
+                                                        <select
+                                                            className="form-select form-select-sm w-auto"
+                                                            value={formData.checklist.cForm || ""}
+                                                            onChange={(e) => {
+                                                                const selectedId = e.target.value;
+                                                                setFormData((prev) => ({
+                                                                    ...prev,
+                                                                    checklist: {
+                                                                        ...prev.checklist,
+                                                                        cForm: selectedId, // store _id
+                                                                    },
+                                                                }));
+                                                            }}
+                                                        >
+                                                            <option value="">Select Case Number</option>
+                                                            {(FormhOrFormCDetails?.formC || [])
+                                                                .filter((form) => form?.caseNumber?.trim())
+                                                                .map((form) => (
+                                                                    <option key={form._id} value={form._id}>
+                                                                        {form.caseNumber}
+                                                                    </option>
+                                                                ))}
+                                                        </select>
+                                                    )}
+                                                </div>
+                                            );
+                                        })}
                                     </div>
+
                                     {[
                                         { label: "Written Legal Opinion", name: "legalOpinion" },
                                         { label: "The Case Strategy", name: "caseStrategy" },
@@ -407,7 +429,7 @@ const FormHandover = ({ token }) => {
                                     ].map((item) => {
                                         const isTextArea = ["legalOpinion", "caseStrategy"].includes(item.name);
                                         const textValue = formData.checklist[`${item.name}Text`] || '';
-                                        const maxLength = 2000;
+                                        const maxLength = 10000;
 
                                         return (
                                             <div className="form-check d-flex flex-column align-items-start mt-3" key={item.name}>
@@ -514,13 +536,17 @@ const FormHandover = ({ token }) => {
                                 <div className="mb-4">
                                     <h6 className="text-danger fw-bold">The Lawyer Providing the CD File:</h6>
 
-                                    <label className="form-label">Signature :</label>
+                                    <p className="text-danger small fw-bold">
+                                        Please make sure all the mentioned documents are included in the file before signing the Handover Form.
+                                    </p>
+
+                                    {/* <label className="form-label">Signature :</label> */}
 
                                     <input
                                         type="text"
                                         name="providerSignature"
                                         className="form-control"
-                                        value={formData.providerSignature}
+                                        value={formData.providerName}
                                         onChange={handleChange}
                                         placeholder="Enter signature image URL"
                                         disabled={true}
@@ -531,12 +557,22 @@ const FormHandover = ({ token }) => {
                                 {/* Signature - Lawyer Receiving */}
                                 <div className="mb-4">
                                     <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
-                                    <label className="form-label">Signature :</label>
                                     <select
                                         className="form-select"
                                         name="receiverSignature"
                                         value={formData.receiverSignature}
-                                        onChange={handleChange}
+                                        onChange={(e) => {
+                                            const selectedEmail = e.target.value;
+                                            const selectedLawyer = FormhOrFormCDetails?.lawyers?.find(
+                                                (lawyer) => lawyer.Email === selectedEmail
+                                            );
+
+                                            setFormData((prev) => ({
+                                                ...prev,
+                                                receiverSignature: selectedEmail,
+                                                receiverName: selectedLawyer?.UserName || "",
+                                            }));
+                                        }}
                                     >
                                         <option value="">Select a lawyer</option>
                                         {FormhOrFormCDetails?.lawyers?.map((lawyer) => (
@@ -548,10 +584,8 @@ const FormHandover = ({ token }) => {
                                 </div>
 
 
+
                                 {/* Note */}
-                                <p className="text-danger small fw-bold">
-                                    Please make sure all the mentioned documents are included in the file before signing the Handover Form.
-                                </p>
 
                                 <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
                             </form>
@@ -605,60 +639,71 @@ const FormHandover = ({ token }) => {
                                                 { label: "The Filled-out L Form – MOM Form", name: "lForm", formName: "Form L" },
                                                 { label: "The signed and stamped LFA", name: "lfa", formName: "LFA" },
                                                 { label: "The POA", name: "poa", formName: "POA" },
-                                            ].map((item) => (
-                                                <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
-                                                    <input
-                                                        type="checkbox"
-                                                        className="form-check-input me-2"
-                                                        name={item.name}
-                                                        checked={!!formData.checklist[item.name]}
-                                                        disabled
-                                                        id={item.name}
-                                                    />
-                                                    <label className="form-check-label me-2" htmlFor={item.name}>
-                                                        {item.label}
-                                                    </label>
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                        onClick={() => dispatch(screenChange(16))}
-                                                        style={{ fontSize: "0.9rem" }}
-                                                    >
-                                                        Go to {item.formName}
-                                                    </button>
+                                            ].map((item) => {
+                                                const isChecked = !!formData.checklist[item.name];
 
-                                                    {item.name === "cForm" && (
-                                                        isReadOnly ? (
-                                                            <div className="text-muted">{getCaseNumberById(formData.checklist.cForm)}</div>
-                                                        ) : (
-                                                            <select
-                                                                className="form-select form-select-sm w-auto"
-                                                                value={formData.checklist.cForm || ""}
-                                                                onChange={(e) => {
-                                                                    const selectedId = e.target.value;
-                                                                    setFormData((prev) => ({
-                                                                        ...prev,
-                                                                        checklist: {
-                                                                            ...prev.checklist,
-                                                                            cForm: selectedId,
-                                                                        },
-                                                                    }));
-                                                                }}
-                                                            >
-                                                                <option value="">Select Case Number</option>
-                                                                {(FormhOrFormCDetails?.formC || [])
-                                                                    .filter((form) => form?.caseNumber?.trim())
-                                                                    .map((form) => (
-                                                                        <option key={form._id} value={form._id}>
-                                                                            {form.caseNumber}
-                                                                        </option>
-                                                                    ))}
-                                                            </select>
-                                                        )
-                                                    )}
-                                                </div>
-                                            ))}
+                                                return (
+                                                    <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
+                                                        <input
+                                                            type="checkbox"
+                                                            className="form-check-input me-2"
+                                                            name={item.name}
+                                                            checked={isChecked}
+                                                            disabled
+                                                            id={item.name}
+                                                        />
+                                                        <label className="form-check-label me-2" htmlFor={item.name}>
+                                                            {item.label}
+                                                        </label>
+
+                                                        <button
+                                                            type="button"
+                                                            className="btn btn-link p-0 text-decoration-underline text-primary"
+                                                            onClick={() => dispatch(screenChange(16))}
+                                                            disabled={!isChecked}
+                                                            style={{
+                                                                fontSize: "0.9rem",
+                                                                pointerEvents: isChecked ? "auto" : "none",
+                                                                opacity: isChecked ? 1 : 0.5,
+                                                            }}
+                                                        >
+                                                            Go to {item.formName}
+                                                        </button>
+
+                                                        {item.name === "cForm" && (
+                                                            isReadOnly ? (
+                                                                <div className="text-muted">{getCaseNumberById(formData.checklist.cForm)}</div>
+                                                            ) : (
+                                                                <select
+                                                                    className="form-select form-select-sm w-auto"
+                                                                    value={formData.checklist.cForm || ""}
+                                                                    onChange={(e) => {
+                                                                        const selectedId = e.target.value;
+                                                                        setFormData((prev) => ({
+                                                                            ...prev,
+                                                                            checklist: {
+                                                                                ...prev.checklist,
+                                                                                cForm: selectedId,
+                                                                            },
+                                                                        }));
+                                                                    }}
+                                                                >
+                                                                    <option value="">Select Case Number</option>
+                                                                    {(FormhOrFormCDetails?.formC || [])
+                                                                        .filter((form) => form?.caseNumber?.trim())
+                                                                        .map((form) => (
+                                                                            <option key={form._id} value={form._id}>
+                                                                                {form.caseNumber}
+                                                                            </option>
+                                                                        ))}
+                                                                </select>
+                                                            )
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
                                         </div>
+
 
                                         {[
                                             { label: "Written Legal Opinion", name: "legalOpinion" },
@@ -666,7 +711,7 @@ const FormHandover = ({ token }) => {
                                             { label: "The Related documents", name: "relatedDocs" },
                                         ].map((item) => {
                                             const isTextArea = ["legalOpinion", "caseStrategy"].includes(item.name);
-                                            const maxLength = 2000;
+                                            const maxLength = 10000;
 
                                             return (
                                                 <div className="form-check d-flex flex-column align-items-start mt-3" key={item.name}>
@@ -801,35 +846,42 @@ const FormHandover = ({ token }) => {
 
                                     <div className="mb-4">
                                         <h6 className="text-danger fw-bold">The Lawyer Providing the CD File:</h6>
-                                        <label className="form-label">Signature :</label>
+                                        <p className="text-danger small fw-bold">
+                                            Please make sure all the mentioned documents are included in the file before signing the Handover Form.
+                                        </p>
+                                        {/* <label className="form-label">Signature :</label> */}
                                         <input
                                             type="text"
                                             name="providerSignature"
                                             className="form-control"
-                                            value={formData.providerSignature}
+                                            value={formData.providerName}
                                             onChange={handleChange}
                                             placeholder="Enter signature image URL"
                                             disabled
                                         />
                                     </div>
+                                    {!formData?.isrecevied ?
 
-                                    <div className="mb-4">
-                                        <h6 className="text-danger fw-bold">The Lawyer Providing the CD File:</h6>
-                                        <label className="form-label">Signature :</label>
-                                        <input
-                                            type="text"
-                                            name="providerSignature"
-                                            className="form-control"
-                                            value={formData.receiverSignature}
-                                            onChange={handleChange}
-                                            placeholder="Enter signature image URL"
-                                            disabled
-                                        />
-                                    </div>
-                                    <p className="text-danger small fw-bold">
-                                        Please make sure all the mentioned documents are included in the file before signing the Handover Form.
-                                    </p>
-
+                                        <div className="mb-4">
+                                            <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
+                                            {/* <label className="form-label">Signature :</label> */}
+                                            <input
+                                                type="text"
+                                                name="providerSignature"
+                                                className="form-control"
+                                                value={formData.receiverName}
+                                                onChange={handleChange}
+                                                placeholder="Enter signature image URL"
+                                                disabled
+                                            />
+                                        </div>
+                                        :
+                                        <div className="mb-4">
+                                            <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
+                                            {/* <label className="form-label">Signature :</label> */}
+                                            <h6 className="text-primary fw-bold">Received By {formData.receiverName}</h6>
+                                        </div>
+                                    }
                                     {!isReadOnly && (
                                         <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
                                     )}
