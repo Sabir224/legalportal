@@ -1637,21 +1637,22 @@ const ViewFolder = ({ token }) => {
 
   return (
     <div
-      className="container-fluid ms-1 d-flex flex-column mr-3 ml-3 p-0"
+      className="card container-fluid px-0 p-0 d-flex flex-column"
       style={{ minHeight: "86vh", maxHeight: "86vh" }}
     >
-      <Card className="flex-grow-1 d-flex flex-column">
-        <Card.Body className="flex-grow-1 d-flex flex-column">
-          <div className="h-100">
+      <Card className="flex-grow-1 d-flex flex-column h-100">
+        <Card.Body className="flex-grow-1 d-flex flex-column p-0">
+          <div className="h-100 d-flex flex-column">
+            {/* Header Section */}
             <Card.Header
-              className="p-3 p-md-4 text-white border-bottom"
+              className="p-2 p-md-3 text-white border-bottom"
               style={{ backgroundColor: "#18273e" }}
             >
-              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                {/* Breadcrumb Navigation */}
-                <div className="d-flex align-items-between flex-grow-1 min-width-0">
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 gap-md-3">
+                {/* Breadcrumb Navigation - Mobile optimized */}
+                <div className="d-flex align-items-center flex-grow-1 min-width-0">
                   <nav aria-label="breadcrumb" className="w-100">
-                    <div className="d-flex align-items-center flex-wrap gap-2">
+                    <div className="d-flex align-items-center flex-wrap gap-1">
                       <Button
                         variant="light"
                         size="sm"
@@ -1662,7 +1663,7 @@ const ViewFolder = ({ token }) => {
                           fetchFolders();
                           setIsPersonal(false);
                         }}
-                        className="p-2 rounded-circle"
+                        className="p-1 p-sm-2 rounded-circle"
                         aria-label="Back to root"
                         style={{
                           width: "32px",
@@ -1670,7 +1671,6 @@ const ViewFolder = ({ token }) => {
                           display: "inline-flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: "#18273e",
                         }}
                       >
                         <FontAwesomeIcon icon={faFolder} className="fs-5" />
@@ -1678,40 +1678,103 @@ const ViewFolder = ({ token }) => {
 
                       {folderPath.length > 0 && (
                         <>
-                          <FontAwesomeIcon
-                            icon={faChevronRight}
-                            className="text-white fs-12"
-                          />
-                          <div className="d-flex align-items-center flex-wrap gap-2">
-                            {folderPath.map((folder, index) => (
-                              <React.Fragment key={folder._id}>
+                          <div className="text-muted mx-1 d-flex align-items-center">
+                            <FontAwesomeIcon
+                              icon={faChevronRight}
+                              className="fs-12"
+                              color="white"
+                            />
+                          </div>
+
+                          <div className="d-flex align-items-center flex-wrap gap-1">
+                            {folderPath.length > 3 && (
+                              <>
                                 <Button
                                   variant="link"
                                   size="sm"
-                                  className="text-white text-decoration-none text-truncate px-1"
-                                  style={{ maxWidth: "120px" }}
+                                  className="p-0 px-1 text-decoration-none text-truncate text-light"
+                                  style={{ maxWidth: "50px" }}
                                   onClick={() => {
-                                    const newPath = folderPath.slice(
-                                      0,
-                                      index + 1
-                                    );
-                                    setFolderPath(newPath);
-                                    setSelectedFolder(folder);
-                                    if (index >= 0) fetchsubFolders(folder._id);
+                                    const root = folderPath[0];
+                                    setFolderPath([root]);
+                                    setSelectedFolder(root);
+                                    fetchsubFolders(root._id);
                                   }}
                                 >
-                                  <span className="hover-primary">
-                                    {folder.folderName}
+                                  <span className="text-light hover-primary">
+                                    {folderPath[0].folderName}
                                   </span>
                                 </Button>
-                                {index < folderPath.length - 1 && (
-                                  <FontAwesomeIcon
-                                    icon={faChevronRight}
-                                    className="text-white fs-12"
-                                  />
-                                )}
-                              </React.Fragment>
-                            ))}
+
+                                <div className="text-muted mx-1 text-white">
+                                  ...
+                                </div>
+
+                                {folderPath.slice(-2).map((folder, index) => (
+                                  <React.Fragment key={folder._id}>
+                                    <div className="text-muted mx-1 d-flex align-items-center">
+                                      <FontAwesomeIcon
+                                        icon={faChevronRight}
+                                        className="fs-12"
+                                        color="white"
+                                      />
+                                    </div>
+                                    <Button
+                                      variant="link"
+                                      size="sm"
+                                      className="p-0 px-1 text-decoration-none text-truncate"
+                                      style={{ maxWidth: "120px" }}
+                                      onClick={() => {
+                                        const newPath = folderPath.slice(
+                                          0,
+                                          folderPath.indexOf(folder) + 1
+                                        );
+                                        setFolderPath(newPath);
+                                        setSelectedFolder(folder);
+                                        fetchsubFolders(folder._id);
+                                      }}
+                                    >
+                                      <span className="text-white hover-primary">
+                                        {folder.folderName}
+                                      </span>
+                                    </Button>
+                                  </React.Fragment>
+                                ))}
+                              </>
+                            )}
+
+                            {folderPath.length <= 3 &&
+                              folderPath.map((folder, index) => (
+                                <React.Fragment key={folder._id}>
+                                  {index > 0 && (
+                                    <div className="text-muted mx-1 d-flex align-items-center">
+                                      <FontAwesomeIcon
+                                        icon={faChevronRight}
+                                        className="fs-12"
+                                      />
+                                    </div>
+                                  )}
+                                  <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="p-0 px-1 text-decoration-none text-truncate"
+                                    style={{ maxWidth: "120px" }}
+                                    onClick={() => {
+                                      const newPath = folderPath.slice(
+                                        0,
+                                        index + 1
+                                      );
+                                      setFolderPath(newPath);
+                                      setSelectedFolder(folder);
+                                      fetchsubFolders(folder._id);
+                                    }}
+                                  >
+                                    <span className="text-white hover-primary">
+                                      {folder.folderName}
+                                    </span>
+                                  </Button>
+                                </React.Fragment>
+                              ))}
                           </div>
                         </>
                       )}
@@ -1719,18 +1782,18 @@ const ViewFolder = ({ token }) => {
                   </nav>
                 </div>
 
-                {/* Right Action Buttons */}
-                <div className="d-flex flex-wrap align-items-center justify-content-end gap-2">
+                {/* Right Action Buttons - Stacked on mobile */}
+                <div className="d-flex flex-wrap align-items-center justify-content-end gap-1 gap-md-2">
                   {!IsPersonal && !FormCDetails && (
-                    <div className="d-flex align-items-center gap-2">
+                    <div className="d-flex align-items-center gap-1 gap-md-2">
                       <Button
                         variant="light"
                         size="sm"
                         onClick={() => setShowUploadModal(true)}
-                        className="d-inline-flex align-items-center gap-2"
+                        className="d-inline-flex align-items-center gap-1 gap-md-2"
                       >
                         <FontAwesomeIcon icon={faUpload} />
-                        <span>Upload</span>
+                        <span className="d-none d-md-inline">Upload</span>
                       </Button>
                       <Button
                         variant="light"
@@ -1740,10 +1803,10 @@ const ViewFolder = ({ token }) => {
                           setIsEditMode(false);
                           setShowModal(true);
                         }}
-                        className="d-inline-flex align-items-center gap-2"
+                        className="d-inline-flex align-items-center gap-1 gap-md-2"
                       >
                         <FontAwesomeIcon icon={faPlus} />
-                        <span>New</span>
+                        <span className="d-none d-md-inline">New</span>
                       </Button>
                     </div>
                   )}
@@ -1752,10 +1815,10 @@ const ViewFolder = ({ token }) => {
                     <Dropdown.Toggle
                       variant="light"
                       size="sm"
-                      className="d-inline-flex align-items-center gap-2"
+                      className="d-inline-flex align-items-center gap-1 gap-md-2"
                     >
                       <FontAwesomeIcon icon={faList} />
-                      <span>View</span>
+                      <span className="d-none d-md-inline">View</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="shadow-sm">
                       <Dropdown.Item
@@ -1778,7 +1841,7 @@ const ViewFolder = ({ token }) => {
                   <div className="d-flex align-items-center">
                     <div
                       className="input-group input-group-sm"
-                      style={{ width: "180px" }}
+                      style={{ width: "150px" }}
                     >
                       <span className="input-group-text bg-white border-end-0 pe-1">
                         <FontAwesomeIcon icon={faSort} className="text-muted" />
@@ -1799,13 +1862,16 @@ const ViewFolder = ({ token }) => {
               </div>
             </Card.Header>
 
-            <Card.Body className="overflow-auto" style={{ maxHeight: "72vh" }}>
+            {/* Main Content Area */}
+            <Card.Body
+              className="overflow-auto flex-grow-1 p-2 p-md-3"
+              style={{ maxHeight: "calc(86vh - 100px)" }}
+            >
               <Row
-                className="g-3"
+                className={`g-2 ${viewMode === "list" ? "flex-column" : ""}`}
                 style={{
-                  flexDirection: viewMode === "list" ? "column" : "row",
                   height: "100%",
-                  overflow: "auto",
+                  overflow: "visible",
                 }}
               >
                 {/* Folders */}
@@ -1816,12 +1882,10 @@ const ViewFolder = ({ token }) => {
                         const aStartsWithNumber = /^\d+/.test(a.folderName);
                         const bStartsWithNumber = /^\d+/.test(b.folderName);
 
-                        // Group numeric-prefixed folders and non-numeric ones
                         if (sortOption === "nameAsc") {
                           if (aStartsWithNumber && !bStartsWithNumber)
                             return -1;
                           if (!aStartsWithNumber && bStartsWithNumber) return 1;
-
                           return a.folderName.localeCompare(
                             b.folderName,
                             undefined,
@@ -1836,7 +1900,6 @@ const ViewFolder = ({ token }) => {
                           if (aStartsWithNumber && !bStartsWithNumber) return 1;
                           if (!aStartsWithNumber && bStartsWithNumber)
                             return -1;
-
                           return b.folderName.localeCompare(
                             a.folderName,
                             undefined,
@@ -1857,120 +1920,105 @@ const ViewFolder = ({ token }) => {
 
                         return 0;
                       })
-                      ?.map((folder) => {
-                        const editKey = `edit-${folder._id}`;
-                        const deleteKey = `delete-${folder._id}`;
-
-                        return (
-                          <Col
-                            key={folder._id}
-                            sm={viewMode === "grid" ? 6 : 12}
-                            md={viewMode === "grid" ? 4 : 12}
-                            lg={viewMode === "grid" ? 3 : 12}
+                      ?.map((folder) => (
+                        <Col
+                          key={folder._id}
+                          xs={6}
+                          sm={viewMode === "grid" ? 6 : 12}
+                          md={viewMode === "grid" ? 4 : 12}
+                          lg={viewMode === "grid" ? 3 : 12}
+                          xl={viewMode === "grid" ? 2 : 12}
+                          className="mb-2 d-flex col-12 col-md-auto"
+                        >
+                          <Card
+                            className={`flex-grow-1 d-flex flex-column ${
+                              viewMode === "grid" ? "grid-card" : "list-card"
+                            }`}
+                            style={{
+                              background: "#18273e",
+                              border: "1px solid white",
+                              cursor: "pointer",
+                              transition: "transform 0.2s, box-shadow 0.2s",
+                              minHeight: viewMode === "grid" ? "100px" : "auto",
+                              // Ensure full width of column
+                            }}
+                            onClick={() => {
+                              folder.folderName === "Personal"
+                                ? fetchClientDocuments()
+                                : folder.folderName === "FormC Documents"
+                                ? fetchFormCfile()
+                                : fetchsubFolders(folder._id);
+                              setSelectedFolder(folder);
+                              setFolderPath((prevPath) => [
+                                ...prevPath,
+                                folder,
+                              ]);
+                            }}
+                            onMouseEnter={(e) =>
+                              viewMode === "grid" &&
+                              e.currentTarget.classList.add("card-hover")
+                            }
+                            onMouseLeave={(e) =>
+                              viewMode === "grid" &&
+                              e.currentTarget.classList.remove("card-hover")
+                            }
                           >
-                            <Card
-                              className="p-2"
-                              style={{
-                                background: "#18273e",
-                                border: "1px solid white",
-                                display: "flex",
-                                flexDirection:
-                                  viewMode === "list" ? "row" : "column",
-                                alignItems:
-                                  viewMode === "list" ? "center" : "flex-start",
-                                cursor: "pointer",
-                                transition: "transform 0.2s, box-shadow 0.2s",
-                              }}
-                              onClick={() => {
-                                folder.folderName === "Personal"
-                                  ? fetchClientDocuments()
-                                  : folder.folderName === "FormC Documents"
-                                  ? fetchFormCfile()
-                                  : fetchsubFolders(folder._id);
-                                setSelectedFolder(folder);
-                                setFolderPath((prevPath) => [
-                                  ...prevPath,
-                                  folder,
-                                ]);
-                              }}
-                              onMouseEnter={(e) => {
-                                if (viewMode === "grid") {
-                                  e.currentTarget.style.transform =
-                                    "scale(1.05)";
-                                  e.currentTarget.style.boxShadow =
-                                    "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (viewMode === "grid") {
-                                  e.currentTarget.style.transform = "scale(1)";
-                                  e.currentTarget.style.boxShadow = "none";
-                                }
-                              }}
-                            >
-                              <div
-                                className="d-flex align-items-center"
-                                style={{ width: "100%" }}
-                              >
+                            <div className="d-flex flex-column h-100 p-2 ">
+                              {/* Folder Icon and Name */}
+                              <div className="d-flex align-items-center flex-grow-1">
                                 <FontAwesomeIcon
                                   icon={faFolder}
                                   size="2x"
-                                  style={{
-                                    color: "#d3b386",
-                                    marginRight: "10px",
-                                  }}
+                                  className="me-2 flex-shrink-0"
+                                  style={{ color: "#d3b386", minWidth: "32px" }}
                                 />
-
-                                <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  className="flex-grow-1"
+                                  style={{
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                    whiteSpace: "nowrap",
+                                    minWidth: 0,
+                                  }}
+                                >
                                   <div
+                                    className="text-white"
                                     style={{
-                                      fontSize: "0.9rem",
-                                      color: "white",
+                                      fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
                                       overflow: "hidden",
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
-                                      width: "100%",
                                     }}
                                     title={folder.folderName}
                                   >
-                                    {folder.folderName}
+                                    {folder.folderName.length > 30
+                                      ? folder.folderName.slice(0, 27) + "..."
+                                      : folder.folderName}
                                   </div>
                                 </div>
                               </div>
 
-                              <Card.Body
-                                className="p-1 d-flex justify-content-between align-items-center"
-                                style={{ width: "100%" }}
-                              >
-                                <div
-                                  className="d-flex gap-2 justify-content-end"
-                                  style={{ width: "100%" }}
-                                >
+                              {/* Action Buttons - Stacked on small screens */}
+                              <div className="mt-auto pt-2">
+                                <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
                                   <Button
                                     variant="success"
                                     size="sm"
+                                    className="d-flex align-items-center justify-content-center"
                                     style={{
                                       background: "#ebbf46",
-                                      // background: "#929cd1",
                                       border: "none",
                                       width: "36px",
                                       height: "36px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      padding: 0,
+                                      flexShrink: 0,
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       openEditModal(folder);
                                     }}
                                     disabled={
-                                      folder.folderName === "Personal"
-                                        ? true
-                                        : folder.folderName ===
-                                          "FormC Documents"
-                                        ? true
-                                        : false
+                                      folder.folderName === "Personal" ||
+                                      folder.folderName === "FormC Documents"
                                     }
                                   >
                                     <FontAwesomeIcon icon={faEdit} />
@@ -1978,72 +2026,58 @@ const ViewFolder = ({ token }) => {
                                   <Button
                                     variant="success"
                                     size="sm"
+                                    className="d-flex align-items-center justify-content-center"
                                     style={{
                                       background: "#007bff",
                                       border: "none",
                                       width: "36px",
                                       height: "36px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      padding: 0,
+                                      flexShrink: 0,
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       openMoveModal(folder);
                                     }}
                                     disabled={
-                                      folder.folderName === "Personal"
-                                        ? true
-                                        : folder.folderName ===
-                                          "FormC Documents"
-                                        ? true
-                                        : false
+                                      folder.folderName === "Personal" ||
+                                      folder.folderName === "FormC Documents"
                                     }
                                   >
                                     <img
-                                      src={movefolder} // <-- Your folder move image path
+                                      src={movefolder}
                                       alt="Move Folder"
                                       style={{ width: "18px", height: "18px" }}
                                     />
                                   </Button>
-
                                   <Button
                                     variant="danger"
                                     size="sm"
+                                    className="d-flex align-items-center justify-content-center"
                                     style={{
                                       background: "#dc3545",
                                       border: "none",
                                       width: "36px",
                                       height: "36px",
-                                      display: "flex",
-                                      alignItems: "center",
-                                      justifyContent: "center",
-                                      padding: 0,
+                                      flexShrink: 0,
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      //    handleDeleteFolder(folder._id);
                                       setDeletefolderId(folder._id);
                                       setIsfolderdelete(true);
                                     }}
                                     disabled={
-                                      folder.folderName === "Personal"
-                                        ? true
-                                        : folder.folderName ===
-                                          "FormC Documents"
-                                        ? true
-                                        : false
+                                      folder.folderName === "Personal" ||
+                                      folder.folderName === "FormC Documents"
                                     }
                                   >
                                     <FontAwesomeIcon icon={faTrash} />
                                   </Button>
                                 </div>
-                              </Card.Body>
-                            </Card>
-                          </Col>
-                        );
-                      })}
+                              </div>
+                            </div>
+                          </Card>
+                        </Col>
+                      ))}
                   </>
                 )}
 
@@ -2056,7 +2090,6 @@ const ViewFolder = ({ token }) => {
                     if (sortOption === "nameAsc") {
                       if (aStartsWithNumber && !bStartsWithNumber) return -1;
                       if (!aStartsWithNumber && bStartsWithNumber) return 1;
-
                       return a.fileName.localeCompare(b.fileName, undefined, {
                         numeric: true,
                         sensitivity: "base",
@@ -2066,7 +2099,6 @@ const ViewFolder = ({ token }) => {
                     if (sortOption === "nameDesc") {
                       if (aStartsWithNumber && !bStartsWithNumber) return 1;
                       if (!aStartsWithNumber && bStartsWithNumber) return -1;
-
                       return b.fileName.localeCompare(a.fileName, undefined, {
                         numeric: true,
                         sensitivity: "base",
@@ -2086,148 +2118,158 @@ const ViewFolder = ({ token }) => {
                   .map((file, index) => (
                     <Col
                       key={index}
+                      xs={6}
                       sm={viewMode === "grid" ? 6 : 12}
                       md={viewMode === "grid" ? 4 : 12}
                       lg={viewMode === "grid" ? 3 : 12}
+                      xl={viewMode === "grid" ? 2 : 12}
+                      className="mb-2 d-flex"
                     >
                       <Card
-                        className="p-2"
+                        className={`flex-grow-1 d-flex flex-column ${
+                          viewMode === "grid" ? "grid-card" : "list-card"
+                        }`}
                         style={{
                           background: "#18273e",
                           border: "1px solid white",
-                          display: "flex",
-                          flexDirection: viewMode === "list" ? "row" : "column",
-                          alignItems:
-                            viewMode === "list" ? "center" : "flex-start",
-                          transition: "transform 0.2s, box-shadow 0.2s",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (viewMode === "grid") {
-                            e.currentTarget.style.transform = "scale(1.05)";
-                            e.currentTarget.style.boxShadow =
-                              "0px 4px 10px rgba(0, 0, 0, 0.8)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (viewMode === "grid") {
-                            e.currentTarget.style.transform = "scale(1)";
-                            e.currentTarget.style.boxShadow = "none";
-                          }
+                          minHeight: viewMode === "grid" ? "180px" : "auto",
+                          width: "100%", // Ensure full width of column
                         }}
                       >
-                        <div
-                          className="d-flex gap-2 align-items-center"
-                          style={{ width: "100%" }}
-                        >
-                          <FontAwesomeIcon
-                            icon={getFileTypeIcon(file.fileName)}
-                            size="2x"
-                            className="mb-2"
-                            style={{
-                              color: "#d3b386",
-                              marginRight: viewMode === "list" ? "10px" : "0",
-                            }}
-                          />
-                          <div
-                            style={{
-                              fontSize: "0.9rem",
-                              color: "white",
-                              overflow: "hidden",
-                              textOverflow: "ellipsis",
-                              whiteSpace: "nowrap",
-                              width: "100%",
-                            }}
-                          >
-                            {file.fileName}
+                        <div className="d-flex flex-column h-100 p-2">
+                          <div className="d-flex align-items-center flex-grow-1">
+                            <FontAwesomeIcon
+                              icon={getFileTypeIcon(file.fileName)}
+                              size="2x"
+                              className="me-2 flex-shrink-0"
+                              style={{ color: "#d3b386", minWidth: "32px" }}
+                            />
+                            <div
+                              className="flex-grow-1"
+                              style={{
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                minWidth: 0,
+                              }}
+                            >
+                              <div
+                                className="text-white"
+                                style={{
+                                  fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
+                                }}
+                                title={file.fileName}
+                              >
+                                {file.fileName.length > 15
+                                  ? file.fileName.slice(0, 27) + "..."
+                                  : file.fileName}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <Card.Body
-                          className="p-1 d-flex justify-content-between align-items-center"
-                          style={{ width: "100%" }}
-                        >
-                          <div
-                            className="d-flex gap-2 justify-content-end"
-                            style={{ width: "100%" }}
-                          >
-                            {!IsPersonal && !FormCDetails && (
-                              <>
+
+                          <div className="mt-auto pt-2">
+                            <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
+                              {!IsPersonal && !FormCDetails && (
+                                <>
+                                  <Button
+                                    variant="danger"
+                                    size="sm"
+                                    className="d-flex align-items-center justify-content-center p-0"
+                                    style={{
+                                      background: "#ebbf46",
+                                      border: "none",
+                                      width: "28px",
+                                      height: "28px",
+                                      flexShrink: 0,
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openFileEditModal(file);
+                                    }}
+                                  >
+                                    <FontAwesomeIcon
+                                      icon={faEdit}
+                                      className="fs-6"
+                                    />
+                                  </Button>
+                                  <Button
+                                    variant="success"
+                                    size="sm"
+                                    className="d-flex align-items-center justify-content-center p-0"
+                                    style={{
+                                      background: "#007bff",
+                                      border: "none",
+                                      width: "28px",
+                                      height: "28px",
+                                      flexShrink: 0,
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setMoveFileId(file._id);
+                                      openMoveModal(selectedFolder);
+                                    }}
+                                  >
+                                    <img
+                                      src={movefolder}
+                                      alt="Move Folder"
+                                      style={{ width: "14px", height: "14px" }}
+                                    />
+                                  </Button>
+                                </>
+                              )}
+                              <Button
+                                variant="success"
+                                size="sm"
+                                className="d-flex align-items-center justify-content-center p-0"
+                                style={{
+                                  background: "#28a745",
+                                  border: "none",
+                                  width: "28px",
+                                  height: "28px",
+                                  flexShrink: 0,
+                                }}
+                                onClick={() =>
+                                  handleDownload(file._id, file.fileName)
+                                }
+                              >
+                                <FontAwesomeIcon
+                                  icon={faDownload}
+                                  className="fs-6"
+                                />
+                              </Button>
+                              {!IsPersonal && !FormCDetails && (
                                 <Button
                                   variant="danger"
                                   size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    openFileEditModal(file);
-                                  }}
+                                  className="d-flex align-items-center justify-content-center p-0"
                                   style={{
-                                    background: "#ebbf46",
+                                    background: "#dc3545",
                                     border: "none",
-                                    padding: "0.25rem 0.5rem",
+                                    width: "28px",
+                                    height: "28px",
+                                    flexShrink: 0,
+                                  }}
+                                  onClick={() => {
+                                    setDeletefileId(file._id);
+                                    setIsdelete(true);
                                   }}
                                 >
-                                  <FontAwesomeIcon icon={faEdit} />
-                                </Button>
-                                <Button
-                                  variant="success"
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setMoveFileId(file._id);
-                                    openMoveModal(selectedFolder);
-                                  }}
-                                  style={{
-                                    background: "#007bff",
-                                    border: "none",
-                                    padding: "0.25rem 0.5rem",
-                                  }}
-                                >
-                                  <img
-                                    src={movefolder}
-                                    alt="Move Folder"
-                                    style={{ width: "18px", height: "18px" }}
+                                  <FontAwesomeIcon
+                                    icon={faTrash}
+                                    className="fs-6"
                                   />
                                 </Button>
-                              </>
-                            )}
-                            <Button
-                              variant="success"
-                              size="sm"
-                              onClick={() =>
-                                handleDownload(file._id, file.fileName)
-                              }
-                              style={{
-                                background: "#28a745",
-                                border: "none",
-                                padding: "0.25rem 0.5rem",
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faDownload} />
-                            </Button>
-                            {!IsPersonal && !FormCDetails && (
-                              <Button
-                                variant="danger"
-                                size="sm"
-                                onClick={() => {
-                                  setDeletefileId(file._id);
-                                  setIsdelete(true);
-                                }}
-                                style={{
-                                  background: "#dc3545",
-                                  border: "none",
-                                  padding: "0.25rem 0.5rem",
-                                }}
-                              >
-                                <FontAwesomeIcon icon={faTrash} />
-                              </Button>
-                            )}
+                              )}
+                            </div>
                           </div>
-                        </Card.Body>
+                        </div>
                       </Card>
                     </Col>
                   ))}
 
                 {!folderList?.length && !files?.length && (
                   <Col xs={12}>
-                    <div className="text-center text-black py-5">
+                    <div className="text-center text-white py-5">
                       No folders or files available.
                     </div>
                   </Col>
