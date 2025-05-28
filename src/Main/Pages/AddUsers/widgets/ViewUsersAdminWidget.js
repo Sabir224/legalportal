@@ -587,7 +587,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
         overflowY: "auto",
         scrollbarWidth: "thin", // For Firefox
         scrollbarColor: "#d2a85a #16213e",
-        padding: "20px",
+        padding: "30px",
       }}
     >
       {/* Close Button at the Top Level */}
