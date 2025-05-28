@@ -5,8 +5,12 @@ import { ApiEndPoint } from "../utils/utlis";
 import SuccessModal from "../../AlertModels/SuccessModal";
 import { useAlert } from "../../../../Component/AlertContext";
 import { FaCross, FaDiscord, FaRemoveFormat } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import axios from "axios";
 
 const ClientConsultationForm = ({ token }) => {
+    const FormCDetails = useSelector((state) => state.screen.FormCDetails);
+
     const [fileName, setFileName] = useState(null);
     const [encryptedLink, setEncryptedLink] = useState("");
     const [copied, setCopied] = useState(false);
@@ -15,6 +19,9 @@ const ClientConsultationForm = ({ token }) => {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [successMessage, setSuccessMessage] = useState("");
     const { showLoading, showSuccess, showError } = useAlert();
+
+
+
 
     const handleGenerateLink = () => {
         const data = JSON.stringify({ token, timestamp: Date.now() });
@@ -71,6 +78,50 @@ const ClientConsultationForm = ({ token }) => {
 
     // Referred By
     const [referredBy, setReferredBy] = useState("");
+
+
+    const isDisabled = FormCDetails !== null
+    useEffect(() => {
+        if (!FormCDetails) return;
+
+        const fetchForm = async () => {
+            try {
+
+                const response = await axios.get(`${ApiEndPoint}consultation-forms/${FormCDetails}`);
+
+                const data = response.data.form;
+
+                setClientName(data.clientName || "");
+                setCaseNumber(data.caseNumber || "");
+                setCountryCode(data.phone?.countryCode || "+92");
+                setPhoneNumber(data.phone?.number || "");
+                setEmail(data.email || "");
+                setContactAddress(data.address || "");
+                setIndividualOrCompany(data.clientType || "");
+
+                setCompanyName(data.companyName || "");
+                setOccupation(data.occupation || "");
+                setOpponentDetails(data.opponentDetails || "");
+                setLegalService(data.serviceType || "Select");
+                setPracticeArea(data.practiceArea || "Select");
+                setServiceDetails(data.serviceDetails || "");
+                setDesiredOutcome(data.desiredOutcome || "");
+
+                setFiles(data.documents || []);
+                setReferredBy(data.referredBy || "");
+
+                // setForm(response.data.form);
+                // setError('');
+            } catch (err) {
+                console.error(err.response?.data?.message || 'Failed to fetch form');
+
+            } finally {
+
+            }
+        };
+
+        fetchForm();
+    }, [FormCDetails]);
 
     const handleDragOver = (e) => {
         e.preventDefault();
@@ -138,12 +189,12 @@ const ClientConsultationForm = ({ token }) => {
         formData.append("caseNumber", CaseNumber);
         formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
         formData.append("email", email);
-        formData.append("contactAddress", contactAddress);
-        formData.append("individualOrCompany", individualOrCompany);
+        formData.append("address", contactAddress);
+        formData.append("clientType", individualOrCompany);
         formData.append("companyName", companyName);
         formData.append("occupation", occupation);
         formData.append("opponentDetails", opponentDetails);
-        formData.append("legalService", legalService);
+        formData.append("serviceType", legalService);
         formData.append("practiceArea", practiceArea);
         formData.append("serviceDetails", serviceDetails);
         formData.append("desiredOutcome", desiredOutcome);
@@ -213,50 +264,53 @@ const ClientConsultationForm = ({ token }) => {
                 <div className="card-body">
                     {/* Header */}
                     <div className="mb-4">
-                        {showLinkGenerator && (
-                            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                {/* Logo on the left */}
-                                <img
-                                    src="/logo.png"
-                                    alt="Legal Group Logo"
-                                    className="mb-2 mb-md-0"
-                                    style={{ height: "40px" }}
-                                />
+                        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
 
-                                {/* Buttons on the right */}
-                                <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
-                                    <button
-                                        type="button"
-                                        className="btn btn-primary d-flex  m-0 p-0  align-items-center justify-content-center"
-                                        style={{
-                                            minWidth: "160px",
-                                            height: "45px",
-                                            lineHeight: "1.2",
-                                        }}
-                                        onClick={handleGenerateLink}
-                                    >
-                                        Generate Form Link
-                                    </button>
+                            <img
+                                src="/logo.png"
+                                alt="Legal Group Logo"
+                                className="mb-2 mb-md-0"
+                                style={{ height: "40px" }}
+                            />
+                            {(showLinkGenerator && token?.Role !== "client") && (
+                                <div>
+                                    {/* Logo on the left */}
 
-                                    {encryptedLink && (
+                                    {/* Buttons on the right */}
+                                    <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
                                         <button
-                                            className="btn btn-primary m-0 p-0 d-flex align-items-center justify-content-center"
-                                            onClick={handleCopy}
-                                            title={copied ? "Copied!" : "Copy Link"}
+                                            type="button"
+                                            className="btn btn-primary d-flex  m-0 p-0  align-items-center justify-content-center"
                                             style={{
-                                                width: "45px",
+                                                minWidth: "160px",
                                                 height: "45px",
+                                                lineHeight: "1.2",
                                             }}
+                                            onClick={handleGenerateLink}
                                         >
-                                            <i
-                                                className={`fas ${copied ? "fa-check-circle" : "fa-copy"}`}
-                                                style={{ fontSize: "1.2rem" }}
-                                            ></i>
+                                            Generate Form Link
                                         </button>
-                                    )}
+
+                                        {encryptedLink && (
+                                            <button
+                                                className="btn btn-primary m-0 p-0 d-flex align-items-center justify-content-center"
+                                                onClick={handleCopy}
+                                                title={copied ? "Copied!" : "Copy Link"}
+                                                style={{
+                                                    width: "45px",
+                                                    height: "45px",
+                                                }}
+                                            >
+                                                <i
+                                                    className={`fas ${copied ? "fa-check-circle" : "fa-copy"}`}
+                                                    style={{ fontSize: "1.2rem" }}
+                                                ></i>
+                                            </button>
+                                        )}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
 
 
                         <h4 className="card-title mb-2">Client Consultation Brief</h4>
@@ -275,6 +329,7 @@ const ClientConsultationForm = ({ token }) => {
                     {/* Encrypted Link Generator */}
 
                     {/* Form Start */}
+
                     <form onSubmit={handleSubmit}>
                         {/* Personal Info */}
                         <div className="mb-3">
@@ -287,9 +342,11 @@ const ClientConsultationForm = ({ token }) => {
                                 maxLength="255"
                                 value={CaseNumber}
                                 onChange={(e) => setCaseNumber(e.target.value)}
+                                disabled={isDisabled}
                             />
-                            <div className="form-text text-end">{clientName.length}/255</div>
+                            <div className="form-text text-end">{CaseNumber.length}/255</div>
                         </div>
+
                         <div className="mb-3">
                             <label className="form-label">
                                 Client Name(s) <span className="text-danger">*</span>
@@ -301,6 +358,7 @@ const ClientConsultationForm = ({ token }) => {
                                 value={clientName}
                                 onChange={(e) => setClientName(e.target.value)}
                                 required
+                                disabled={isDisabled}
                             />
                             <div className="form-text text-end">{clientName.length}/255</div>
                         </div>
@@ -314,6 +372,7 @@ const ClientConsultationForm = ({ token }) => {
                                     className="form-select w-25"
                                     value={countryCode}
                                     onChange={(e) => setCountryCode(e.target.value)}
+                                    disabled={isDisabled}
                                 >
                                     <option>+92</option>
                                     <option>+1</option>
@@ -325,6 +384,7 @@ const ClientConsultationForm = ({ token }) => {
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value)}
                                     required
+                                    disabled={isDisabled}
                                 />
                             </div>
                         </div>
@@ -339,33 +399,28 @@ const ClientConsultationForm = ({ token }) => {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
+                                disabled={isDisabled}
                             />
                         </div>
 
                         <div className="mb-3">
                             <label className="form-label">Contact Address</label>
-                            <p className="text-muted small">
-                                Please provide your complete correspondence address, including
-                                the country
-                            </p>
                             <input
                                 type="text"
                                 className="form-control"
                                 value={contactAddress}
                                 onChange={(e) => setContactAddress(e.target.value)}
+                                disabled={isDisabled}
                             />
                         </div>
 
                         <div className="mb-3">
                             <label className="form-label">Individual or Company</label>
-                            <p className="text-muted small">
-                                Please specify if the legal service will be provided to you in
-                                your personal capacity or on behalf of a company
-                            </p>
                             <select
                                 className="form-select"
                                 value={individualOrCompany}
                                 onChange={(e) => setIndividualOrCompany(e.target.value)}
+                                disabled={isDisabled}
                             >
                                 <option value="">Select</option>
                                 <option value="individual">Individual</option>
@@ -376,46 +431,37 @@ const ClientConsultationForm = ({ token }) => {
                         {/* Extra Info */}
                         <div className="mb-3">
                             <label className="form-label">Company Name</label>
-                            <p className="text-muted small">
-                                Please provide us with the name of the company you are
-                                representing (if applicable)
-                            </p>
                             <input
                                 type="text"
                                 className="form-control mt-1"
                                 value={companyName}
                                 onChange={(e) => setCompanyName(e.target.value)}
+                                disabled={isDisabled}
                             />
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">
-                                Client Occupation / Business Activity
-                            </label>
+                            <label className="form-label">Client Occupation / Business Activity</label>
                             <input
                                 type="text"
                                 className="form-control"
                                 value={occupation}
                                 onChange={(e) => setOccupation(e.target.value)}
+                                disabled={isDisabled}
                             />
                         </div>
 
                         <div className="mb-3">
                             <label className="form-label">Opponent Details</label>
-                            <p className="text-muted small">
-                                Please provide the name, contact details, contact address and
-                                nationality of the opposing party (if applicable)
-                            </p>
                             <textarea
                                 className="form-control mt-1"
                                 rows="3"
                                 maxLength="2000"
                                 value={opponentDetails}
                                 onChange={(e) => setOpponentDetails(e.target.value)}
+                                disabled={isDisabled}
                             ></textarea>
-                            <div className="form-text text-end">
-                                {opponentDetails.length}/2000
-                            </div>
+                            <div className="form-text text-end">{opponentDetails.length}/2000</div>
                         </div>
 
                         <div className="mb-3">
@@ -424,6 +470,7 @@ const ClientConsultationForm = ({ token }) => {
                                 className="form-select"
                                 value={legalService}
                                 onChange={(e) => setLegalService(e.target.value)}
+                                disabled={isDisabled}
                             >
                                 <option>Select</option>
                                 <option>Consultation</option>
@@ -437,6 +484,7 @@ const ClientConsultationForm = ({ token }) => {
                                 className="form-select"
                                 value={practiceArea}
                                 onChange={(e) => setPracticeArea(e.target.value)}
+                                disabled={isDisabled}
                             >
                                 <option>Select</option>
                                 <option>Civil Law</option>
@@ -446,15 +494,7 @@ const ClientConsultationForm = ({ token }) => {
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">
-                                Details on Service Required{" "}
-                                <span className="text-danger">*</span>
-                            </label>
-                            <p className="text-muted small">
-                                Please provide as much information as possible on your
-                                situation, a history of relevant events, and the sort of legal
-                                service you require from us
-                            </p>
+                            <label className="form-label">Details on Service Required <span className="text-danger">*</span></label>
                             <textarea
                                 className="form-control mt-1"
                                 rows="4"
@@ -462,21 +502,13 @@ const ClientConsultationForm = ({ token }) => {
                                 value={serviceDetails}
                                 onChange={(e) => setServiceDetails(e.target.value)}
                                 required
+                                disabled={isDisabled}
                             ></textarea>
-                            <div className="form-text text-end">
-                                {serviceDetails.length}/2000
-                            </div>
+                            <div className="form-text text-end">{serviceDetails.length}/2000</div>
                         </div>
 
                         <div className="mb-3">
-                            <label className="form-label">
-                                Desired Outcome / Suggested Action{" "}
-                                <span className="text-danger">*</span>
-                            </label>
-                            <p className="text-muted small">
-                                If there is a specific outcome or idea you have in mind, this
-                                will help steer our conversation
-                            </p>
+                            <label className="form-label">Desired Outcome / Suggested Action <span className="text-danger">*</span></label>
                             <textarea
                                 className="form-control mt-1"
                                 rows="4"
@@ -484,31 +516,21 @@ const ClientConsultationForm = ({ token }) => {
                                 value={desiredOutcome}
                                 onChange={(e) => setDesiredOutcome(e.target.value)}
                                 required
+                                disabled={isDisabled}
                             ></textarea>
-                            <div className="form-text text-end">
-                                {desiredOutcome.length}/2000
-                            </div>
+                            <div className="form-text text-end">{desiredOutcome.length}/2000</div>
                         </div>
 
-                        {/* Relevant Documents */}
+                        {/* File Upload */}
                         <div className="mb-3">
                             <label className="form-label">Relevant Documents</label>
-                            <p className="text-muted small">
-                                Please provide us with copies of documents relevant to the
-                                presented legal matter. You can upload multiple files (PDF, DOC,
-                                JPG, PNG).
-                            </p>
                             <div
                                 className="border border-dashed p-4 text-center"
                                 style={{ borderRadius: "6px" }}
                             >
                                 <div
                                     className="card border-0 p-4 text-center"
-                                    style={{
-                                        cursor: "pointer",
-                                        borderRadius: "6px",
-                                        border: "2px dashed #ccc",
-                                    }}
+                                    style={{ cursor: "pointer", borderRadius: "6px", border: "2px dashed #ccc" }}
                                     onDragOver={handleDragOver}
                                     onDrop={handleDrop}
                                 >
@@ -518,20 +540,17 @@ const ClientConsultationForm = ({ token }) => {
                                         id="fileUpload"
                                         onChange={handleFileChange}
                                         multiple
-                                        disabled={files.length >= 5}
+                                        disabled={isDisabled || files.length >= 5}
                                     />
-
-                                    <label htmlFor="fileUpload" className={`d-block ${files.length >= 5 ? 'text-muted' : ''}`}>
+                                    <label htmlFor="fileUpload" className={`d-block ${files.length >= 5 || isDisabled ? 'text-muted' : ''}`}>
                                         <i className="bi bi-upload fs-2"></i><br />
                                         <span className="text-primary text-decoration-underline">
                                             {files.length >= 5 ? 'Maximum files selected' : 'Choose files to upload'}
                                         </span>{" "}
                                         {!files.length >= 5 && 'or drag and drop here'}
                                     </label>
-
                                 </div>
 
-                                {/* Display uploaded files */}
                                 {files.length > 0 && (
                                     <div className="mt-3">
                                         <strong>Selected Files:</strong>
@@ -541,22 +560,22 @@ const ClientConsultationForm = ({ token }) => {
                                                     key={index}
                                                     className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                                                 >
-                                                    <span className="text-break w-100 " style={{fontSize:16}}>{file.name}</span>
+                                                    <span className="text-break w-100" style={{ fontSize: 16 }}>{file.name}</span>
                                                     <button
                                                         type="button"
                                                         className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
                                                         onClick={() => removeFile(index)}
+                                                        disabled={isDisabled}
                                                     >
                                                         X
                                                     </button>
                                                 </li>
                                             ))}
                                         </ul>
-                                        <div className="text-muted mt-1" style={{fontSize:16}}>
+                                        <div className="text-muted mt-1" style={{ fontSize: 16 }}>
                                             {files.length} file{files.length !== 1 && 's'} selected
                                         </div>
                                     </div>
-
                                 )}
                             </div>
                         </div>
@@ -564,18 +583,16 @@ const ClientConsultationForm = ({ token }) => {
                         {/* Referred By */}
                         <div className="mb-4">
                             <label className="form-label">Referred By</label>
-                            <p className="text-muted small">
-                                Please let us know how you discovered AWS Legal Group
-                            </p>
                             <input
                                 type="text"
                                 className="form-control mt-1"
                                 value={referredBy}
                                 onChange={(e) => setReferredBy(e.target.value)}
+                                disabled={isDisabled}
                             />
                         </div>
 
-                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">
+                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2" disabled={isDisabled}>
                             Submit
                         </button>
                     </form>
