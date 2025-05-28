@@ -50,6 +50,7 @@ const ClientConsultationForm = ({ token }) => {
     }, []);
 
     const [clientName, setClientName] = useState("");
+    const [CaseNumber, setCaseNumber] = useState("");
     const [countryCode, setCountryCode] = useState("+92");
     const [phoneNumber, setPhoneNumber] = useState("");
     const [email, setEmail] = useState("");
@@ -134,6 +135,7 @@ const ClientConsultationForm = ({ token }) => {
 
         // Append all form fields
         formData.append("clientName", clientName);
+        formData.append("caseNumber", CaseNumber);
         formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
         formData.append("email", email);
         formData.append("contactAddress", contactAddress);
@@ -275,6 +277,19 @@ const ClientConsultationForm = ({ token }) => {
                     {/* Form Start */}
                     <form onSubmit={handleSubmit}>
                         {/* Personal Info */}
+                        <div className="mb-3">
+                            <label className="form-label">
+                                Case Number(Optional) <span className="text-danger">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                maxLength="255"
+                                value={CaseNumber}
+                                onChange={(e) => setCaseNumber(e.target.value)}
+                            />
+                            <div className="form-text text-end">{clientName.length}/255</div>
+                        </div>
                         <div className="mb-3">
                             <label className="form-label">
                                 Client Name(s) <span className="text-danger">*</span>
