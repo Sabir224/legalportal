@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { screenChange } from "../../../../REDUX/sliece";
+import { FormCDetails, screenChange } from "../../../../REDUX/sliece";
 import SignatureCanvas from "react-signature-canvas";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
@@ -286,6 +286,13 @@ const FormHandover = ({ token }) => {
             return null;
         }
     };
+    const handlegotoform = async (formCid,item) => {
+        if (item.name === "cForm") {
+            console.log(formCid)
+            dispatch(FormCDetails(formCid));
+            dispatch(screenChange(16))
+        }
+    };
 
 
 
@@ -380,7 +387,7 @@ const FormHandover = ({ token }) => {
                                                     <button
                                                         type="button"
                                                         className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                        onClick={() => dispatch(screenChange(16))}
+                                                        onClick={() => handlegotoform(formData.checklist[item.name],item)}
                                                         disabled={!isChecked}
                                                         style={{
                                                             fontSize: "0.9rem",
@@ -659,7 +666,7 @@ const FormHandover = ({ token }) => {
                                                         <button
                                                             type="button"
                                                             className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                            onClick={() => dispatch(screenChange(16))}
+                                                            onClick={() => handlegotoform(formData.checklist[item.name],item)}
                                                             disabled={!isChecked}
                                                             style={{
                                                                 fontSize: "0.9rem",
