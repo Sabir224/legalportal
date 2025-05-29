@@ -103,7 +103,7 @@ const AddCase = () => {
       setDiscription("");
     } catch (error) {
       if (error.response) {
-        showError("Error submitting the form.", error.response);
+        showError("Error submitting the form.Check Case Number or Case Type.", error.response);
       } else {
         showError("Network or server error:", error.message);
       }
