@@ -9,7 +9,13 @@ import { MdOutlineAttachEmail } from "react-icons/md";
 import Contactprofile from "../../Component/images/Asset 70mdpi.png";
 import axios from "axios";
 import { ApiEndPoint } from "../../Component/utils/utlis";
-import { FaCamera, FaEdit, FaLock, FaChevronDown } from "react-icons/fa";
+import {
+  FaCamera,
+  FaEdit,
+  FaLock,
+  FaChevronDown,
+  FaArrowLeft,
+} from "react-icons/fa";
 import { GrContactInfo } from "react-icons/gr";
 import { useDispatch, useSelector } from "react-redux";
 import { screenChange } from "../../../../REDUX/sliece";
@@ -591,7 +597,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       }}
     >
       {/* Close Button at the Top Level */}
-      {show === true && (
+      {show === true && !showCaseSheet && (
         <button
           title="Close"
           onClick={() => {
@@ -955,6 +961,28 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
           )}{" "}
           {showCaseSheet && (
             <div className="card mb-3 shadow">
+              {/* Add Back Button at the top of cases view */}
+              <div className="card-header d-flex justify-content-between align-items-center px-3">
+                <button
+                  onClick={() => {
+                    setShowCaseSheet(false);
+                    // Show profile if it was open before
+
+                    setShow(true);
+                    setIsProfile(true);
+                  }}
+                  className="btn btn-sm btn-outline-secondary"
+                  style={{
+                    borderColor: "#d3b386",
+                    color: "#18273e",
+                  }}
+                >
+                  <FaArrowLeft size={14} color="white" className="me-1" />
+                </button>
+                <span className="d-none d-md-block">Cases List</span>
+                <div style={{ width: "28px" }}></div>{" "}
+                {/* Spacer for alignment */}
+              </div>
               {/* Table Header - Hidden on mobile */}
               <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
                 <span className="col text-start">Status</span>
@@ -1033,14 +1061,20 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                           </Dropdown>
                         </div>
 
-                        {/* Data Fields */}
-                        <div className="d-flex flex-column gap-2">
-                          <div className="d-flex flex-wrap">
+                        {/* Data Fields - Fixed alignment */}
+                        <div className="d-flex flex-column gap-2 ps-0">
+                          {" "}
+                          {/* Added ps-0 to remove left padding */}
+                          <div className="d-flex flex-wrap align-items-start">
+                            {" "}
+                            {/* Changed to align-items-start */}
                             <span
                               className="text-muted me-2"
                               style={{
                                 minWidth: "80px",
                                 wordBreak: "break-word",
+                                textAlign: "left", // Explicitly set text alignment
+                                marginLeft: "0", // Ensure no left margin
                               }}
                             >
                               Case #:
@@ -1049,13 +1083,14 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                               {item["CaseNumber"]}
                             </span>
                           </div>
-
-                          <div className="d-flex flex-wrap">
+                          <div className="d-flex flex-wrap align-items-start">
                             <span
                               className="text-muted me-2"
                               style={{
                                 minWidth: "80px",
                                 wordBreak: "break-word",
+                                textAlign: "left",
+                                marginLeft: "0",
                               }}
                             >
                               Request #:
@@ -1064,13 +1099,14 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                               {item["SerialNumber"]}
                             </span>
                           </div>
-
-                          <div className="d-flex flex-wrap">
+                          <div className="d-flex flex-wrap align-items-start">
                             <span
                               className="text-muted me-2"
                               style={{
                                 minWidth: "80px",
                                 wordBreak: "break-word",
+                                textAlign: "left",
+                                marginLeft: "0",
                               }}
                             >
                               Type:
@@ -1079,9 +1115,15 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                               {item["CaseType"]}
                             </span>
                           </div>
-
-                          <div>
-                            <div className="text-muted mb-1">Purpose:</div>
+                          <div className="ps-0">
+                            {" "}
+                            {/* Added ps-0 here as well */}
+                            <div
+                              className="text-muted mb-1"
+                              style={{ textAlign: "left" }}
+                            >
+                              Purpose:
+                            </div>
                             <input
                               className="form-control form-control-sm"
                               value={item.notes || ""}
