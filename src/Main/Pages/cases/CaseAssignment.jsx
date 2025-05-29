@@ -7,6 +7,7 @@ import { assignCase } from "../../../REDUX/CaseSice";
 import { ApiEndPoint } from "../Component/utils/utlis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useAlert } from "../../../Component/AlertContext";
 
 export const permissionList = {
   admin: "ALL",
@@ -30,6 +31,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   const [userPermissions, setUserPermissions] = useState({});
   const [clientdetails, setClientDetails] = useState();
   const [clientname, setclientname] = useState(null);
+  const { showLoading, showSuccess, showError } = useAlert();
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.cases);
@@ -185,9 +187,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
 
   const handleAssign = async (e) => {
     e.preventDefault();
-
+    showLoading()
     if (!selectedCase || selectedUsers.length === 0) {
-      alert("Please select a case and users.");
+      showError("Please select a case and users.");
       return;
     }
 
@@ -230,7 +232,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
       ).unwrap();
 
       console.log("Assignment Successful:", response);
-      alert("Users assigned successfully!");
+      showSuccess("Users assigned successfully!");
 
       // Reset the form state
       setSelectedUsers([]);
@@ -239,7 +241,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
       setclientname(null);
     } catch (err) {
       console.error("Error assigning case:", err);
-      alert(`Failed to assign users: ${err.message || err}`);
+      showError(`Failed to assign users: ${err.message || err}`);
     }
   };
 
@@ -468,7 +470,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           value={selectedUsers}
           onChange={(selectedOptions) => {
             if (!selectedOptions) return;
-          
+
             const sanitizedOptions = selectedOptions.map((opt) => {
               const user = opt?.value || opt;
               return {
@@ -477,13 +479,13 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                 isClient: user.Role === "client",
               };
             });
-          
+
             // Separate clients and non-clients
             const clients = sanitizedOptions.filter((opt) => opt.isClient);
             const nonClients = sanitizedOptions.filter((opt) => !opt.isClient);
-          
+
             let finalSelection = [];
-          
+
             if (clients.length > 0) {
               // If there's at least one client, only pick the last one (override others)
               const latestClient = clients[clients.length - 1];
@@ -491,10 +493,10 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
             } else {
               finalSelection = nonClients;
             }
-          
+
             setSelectedUsers(finalSelection);
           }}
-          
+
           options={[
             ...(!casedetails?.ClientId
               ? users
