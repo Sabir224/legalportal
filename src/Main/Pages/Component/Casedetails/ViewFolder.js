@@ -1634,6 +1634,27 @@ const ViewFolder = ({ token }) => {
   //     />
   //   </div>
   // );
+  {
+    /* PathSegment component for better reusability */
+  }
+  const PathSegment = ({ folder, onClick }) => (
+    <span
+      className="text-primary hover-underline cursor-pointer text-truncate"
+      style={{ maxWidth: "50px" }}
+      onClick={onClick}
+      title={folder.folderName}
+    >
+      {folder.folderName}
+    </span>
+  );
+
+  const handlePathClick = (index) => {
+    const newPath = folderPath.slice(0, index + 1);
+    const folder = folderPath[index];
+    setFolderPath(newPath);
+    setSelectedFolder(folder);
+    fetchsubFolders(folder._id);
+  };
 
   return (
     <div
@@ -1648,153 +1669,106 @@ const ViewFolder = ({ token }) => {
               className="p-2 p-md-3 text-white border-bottom"
               style={{ backgroundColor: "#18273e" }}
             >
-              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 gap-md-3">
-                {/* Breadcrumb Navigation - Mobile optimized */}
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2">
+                {/* Left Section - PC-style Path Field */}
                 <div className="d-flex align-items-center flex-grow-1 min-width-0">
-                  <nav aria-label="breadcrumb" className="w-100">
-                    <div className="d-flex align-items-center flex-wrap gap-1">
-                      <Button
-                        variant="light"
-                        size="sm"
-                        onClick={async () => {
-                          await fetchCases();
-                          await setSelectedFolder(null);
-                          setFolderPath([]);
-                          fetchFolders();
-                          setIsPersonal(false);
-                        }}
-                        className="p-1 p-sm-2 rounded-circle"
-                        aria-label="Back to root"
-                        style={{
-                          width: "32px",
-                          height: "32px",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
+                  <div
+                    className="bg-white text-dark px-3 py-1 rounded d-flex align-items-center gap-1"
+                    style={{
+                      fontSize: "0.85rem",
+                      width: "100%",
+                      maxWidth: "600px",
+                      minWidth: "100px",
+                      height: "32px",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {/* Root Folder Button (inside path field) */}
+                    <Button
+                      variant="link"
+                      size="sm"
+                      onClick={async () => {
+                        await fetchCases();
+                        await setSelectedFolder(null);
+                        setFolderPath([]);
+                        fetchFolders();
+                        setIsPersonal(false);
+                      }}
+                      className="p-0 text-decoration-none"
+                      aria-label="Back to root"
+                    >
+                      <FontAwesomeIcon
+                        icon={faFolder}
+                        className="text-primary me-1"
+                      />
+                    </Button>
+
+                    {/* Folder Path with smart truncation */}
+                    {folderPath.length > 0 && (
+                      <div
+                        className="d-flex align-items-center min-width-0"
+                        style={{ overflow: "hidden" }}
                       >
-                        <FontAwesomeIcon icon={faFolder} className="fs-5" />
-                      </Button>
-
-                      {folderPath.length > 0 && (
-                        <>
-                          <div className="text-muted mx-1 d-flex align-items-center">
-                            <FontAwesomeIcon
-                              icon={faChevronRight}
-                              className="fs-12"
-                              color="white"
+                        {folderPath.length > 3 ? (
+                          <>
+                            <PathSegment
+                              folder={folderPath[0]}
+                              onClick={() => handlePathClick(0)}
                             />
-                          </div>
-
-                          <div className="d-flex align-items-center flex-wrap gap-1">
-                            {folderPath.length > 3 && (
-                              <>
-                                <Button
-                                  variant="link"
-                                  size="sm"
-                                  className="p-0 px-1 text-decoration-none text-truncate text-light"
-                                  style={{ maxWidth: "50px" }}
-                                  onClick={() => {
-                                    const root = folderPath[0];
-                                    setFolderPath([root]);
-                                    setSelectedFolder(root);
-                                    fetchsubFolders(root._id);
-                                  }}
-                                >
-                                  <span className="text-light hover-primary">
-                                    {folderPath[0].folderName}
-                                  </span>
-                                </Button>
-
-                                <div className="text-muted mx-1 text-white">
-                                  ...
-                                </div>
-
-                                {folderPath.slice(-2).map((folder, index) => (
-                                  <React.Fragment key={folder._id}>
-                                    <div className="text-muted mx-1 d-flex align-items-center">
-                                      <FontAwesomeIcon
-                                        icon={faChevronRight}
-                                        className="fs-12"
-                                        color="white"
-                                      />
-                                    </div>
-                                    <Button
-                                      variant="link"
-                                      size="sm"
-                                      className="p-0 px-1 text-decoration-none text-truncate"
-                                      style={{ maxWidth: "120px" }}
-                                      onClick={() => {
-                                        const newPath = folderPath.slice(
-                                          0,
-                                          folderPath.indexOf(folder) + 1
-                                        );
-                                        setFolderPath(newPath);
-                                        setSelectedFolder(folder);
-                                        fetchsubFolders(folder._id);
-                                      }}
-                                    >
-                                      <span className="text-white hover-primary">
-                                        {folder.folderName}
-                                      </span>
-                                    </Button>
-                                  </React.Fragment>
-                                ))}
-                              </>
-                            )}
-
-                            {folderPath.length <= 3 &&
-                              folderPath.map((folder, index) => (
-                                <React.Fragment key={folder._id}>
-                                  {index > 0 && (
-                                    <div className="text-muted mx-1 d-flex align-items-center">
-                                      <FontAwesomeIcon
-                                        icon={faChevronRight}
-                                        className="fs-12"
-                                      />
-                                    </div>
-                                  )}
-                                  <Button
-                                    variant="link"
-                                    size="sm"
-                                    className="p-0 px-1 text-decoration-none text-truncate"
-                                    style={{ maxWidth: "120px" }}
-                                    onClick={() => {
-                                      const newPath = folderPath.slice(
-                                        0,
-                                        index + 1
-                                      );
-                                      setFolderPath(newPath);
-                                      setSelectedFolder(folder);
-                                      fetchsubFolders(folder._id);
-                                    }}
-                                  >
-                                    <span className="text-white hover-primary">
-                                      {folder.folderName}
-                                    </span>
-                                  </Button>
-                                </React.Fragment>
-                              ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </nav>
+                            <span className="text-muted mx-1">...</span>
+                            {folderPath.slice(-2).map((folder, index) => (
+                              <React.Fragment key={folder._id}>
+                                <FontAwesomeIcon
+                                  icon={faChevronRight}
+                                  className="fs-12 text-muted mx-1"
+                                />
+                                <PathSegment
+                                  folder={folder}
+                                  onClick={() =>
+                                    handlePathClick(folderPath.indexOf(folder))
+                                  }
+                                />
+                              </React.Fragment>
+                            ))}
+                          </>
+                        ) : (
+                          folderPath.map((folder, index) => (
+                            <React.Fragment key={folder._id}>
+                              {index > 0 && (
+                                <FontAwesomeIcon
+                                  icon={faChevronRight}
+                                  className="fs-12 text-muted mx-1"
+                                />
+                              )}
+                              <PathSegment
+                                folder={folder}
+                                onClick={() => handlePathClick(index)}
+                              />
+                            </React.Fragment>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Right Action Buttons - Stacked on mobile */}
-                <div className="d-flex flex-wrap align-items-center justify-content-end gap-1 gap-md-2">
+                {/* Right Section - Action Buttons */}
+                <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
                   {!IsPersonal && !FormCDetails && (
-                    <div className="d-flex align-items-center gap-1 gap-md-2">
+                    <div className="d-flex align-items-center gap-2">
                       <Button
                         variant="light"
                         size="sm"
                         onClick={() => setShowUploadModal(true)}
-                        className="d-inline-flex align-items-center gap-1 gap-md-2"
+                        className="d-inline-flex align-items-center gap-1"
                       >
                         <FontAwesomeIcon icon={faUpload} />
                         <span className="d-none d-md-inline">Upload</span>
                       </Button>
+                    </div>
+                  )}
+                  {!IsPersonal && !FormCDetails && (
+                    <div className="d-flex align-items-center gap-2">
                       <Button
                         variant="light"
                         size="sm"
@@ -1803,7 +1777,7 @@ const ViewFolder = ({ token }) => {
                           setIsEditMode(false);
                           setShowModal(true);
                         }}
-                        className="d-inline-flex align-items-center gap-1 gap-md-2"
+                        className="d-inline-flex align-items-center gap-1"
                       >
                         <FontAwesomeIcon icon={faPlus} />
                         <span className="d-none d-md-inline">New</span>
@@ -1815,48 +1789,40 @@ const ViewFolder = ({ token }) => {
                     <Dropdown.Toggle
                       variant="light"
                       size="sm"
-                      className="d-inline-flex align-items-center gap-1 gap-md-2"
+                      className="d-inline-flex align-items-center gap-1 w-100"
                     >
                       <FontAwesomeIcon icon={faList} />
                       <span className="d-none d-md-inline">View</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="shadow-sm">
-                      <Dropdown.Item
-                        onClick={() => setViewMode("grid")}
-                        className="d-flex align-items-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faThLarge} />
+                      <Dropdown.Item onClick={() => setViewMode("grid")}>
+                        <FontAwesomeIcon icon={faThLarge} className="me-2" />
                         Grid View
                       </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={() => setViewMode("list")}
-                        className="d-flex align-items-center gap-2"
-                      >
-                        <FontAwesomeIcon icon={faListUl} />
+                      <Dropdown.Item onClick={() => setViewMode("list")}>
+                        <FontAwesomeIcon icon={faListUl} className="me-2" />
                         List View
                       </Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
 
-                  <div className="d-flex align-items-center">
-                    <div
-                      className="input-group input-group-sm"
-                      style={{ width: "150px" }}
+                  <div
+                    className="input-group input-group-sm"
+                    style={{ width: "160px" }}
+                  >
+                    <span className="input-group-text bg-white border-end-0 pe-1">
+                      <FontAwesomeIcon icon={faSort} className="text-muted" />
+                    </span>
+                    <select
+                      className="form-select border-start-0 ps-1 shadow-none"
+                      value={sortOption}
+                      onChange={(e) => setSortOption(e.target.value)}
                     >
-                      <span className="input-group-text bg-white border-end-0 pe-1">
-                        <FontAwesomeIcon icon={faSort} className="text-muted" />
-                      </span>
-                      <select
-                        className="form-select border-start-0 ps-1 shadow-none"
-                        value={sortOption}
-                        onChange={(e) => setSortOption(e.target.value)}
-                      >
-                        <option value="nameAsc">Name (A-Z)</option>
-                        <option value="nameDesc">Name (Z-A)</option>
-                        <option value="createdAsc">Oldest first</option>
-                        <option value="createdDesc">Newest first</option>
-                      </select>
-                    </div>
+                      <option value="nameAsc">Name (A-Z)</option>
+                      <option value="nameDesc">Name (Z-A)</option>
+                      <option value="createdAsc">Oldest first</option>
+                      <option value="createdDesc">Newest first</option>
+                    </select>
                   </div>
                 </div>
               </div>

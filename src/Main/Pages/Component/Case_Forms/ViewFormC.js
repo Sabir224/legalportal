@@ -471,12 +471,12 @@ export default function ViewFormC({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-        (key) =>
-          key !== "_id" &&
-          key !== "__v" &&
-          key !== "subtasks" &&
-          key !== "parentId"
-      )
+          (key) =>
+            key !== "_id" &&
+            key !== "__v" &&
+            key !== "subtasks" &&
+            key !== "parentId"
+        )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -1029,14 +1029,13 @@ export default function ViewFormC({ token }) {
         flexDirection: "column",
       }}
     >
-      <div className="p-1" style={{ flexShrink: 0 }}>
+      <div className="p-0" style={{ flexShrink: 0 }}>
         <button
           className="btn btn-success"
           onClick={() => {
             dispatch(FormCDetails(null));
-            dispatch(screenChange(16))
-          }
-          }
+            dispatch(screenChange(16));
+          }}
         >
           + New form
         </button>
@@ -1051,7 +1050,7 @@ export default function ViewFormC({ token }) {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            p: 3,
+            p: 1,
             width: "100%",
             height: "100%",
             overflow: "hidden",
@@ -1563,7 +1562,7 @@ export default function ViewFormC({ token }) {
               sx={{
                 flexGrow: 1,
                 overflow: "auto",
-                p: 1.5,
+                p: 1,
                 "&::-webkit-scrollbar": {
                   width: "6px",
                 },
@@ -1582,7 +1581,7 @@ export default function ViewFormC({ token }) {
                   const userName =
                     todo.userName?.value ||
                     todo.createdBy?.value?.UserName ||
-                    "Unnamed User";
+                    todo?.clientName?.value;
                   const isExpanded = expandedUserId === userId;
 
                   return (
@@ -1900,7 +1899,7 @@ export default function ViewFormC({ token }) {
                                           variant="caption"
                                           color="#D4AF37"
                                         >
-                                          View Client
+                                          View Docs
                                         </Typography>
                                       </Box>
                                     </Button>
@@ -2011,14 +2010,14 @@ export default function ViewFormC({ token }) {
                                           borderColor: "rgba(0, 0, 0, 0.23)",
                                         },
                                         "&:hover .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                        },
+                                          {
+                                            borderColor: "#D4AF37",
+                                          },
                                         "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                          borderWidth: "2px",
-                                        },
+                                          {
+                                            borderColor: "#D4AF37",
+                                            borderWidth: "2px",
+                                          },
                                         "& .MuiSvgIcon-root": {
                                           color: "rgba(0, 0, 0, 0.54)",
                                         },
@@ -2084,9 +2083,9 @@ export default function ViewFormC({ token }) {
                                           color: "#D4AF37",
                                         },
                                         "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                                        {
-                                          backgroundColor: "#D4AF37",
-                                        },
+                                          {
+                                            backgroundColor: "#D4AF37",
+                                          },
                                       }}
                                     />
                                   </Box>
@@ -2119,19 +2118,19 @@ export default function ViewFormC({ token }) {
                                             color: "rgba(0, 0, 0, 0.6)",
                                           },
                                           "& .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor:
-                                              "rgba(0, 0, 0, 0.23)",
-                                          },
+                                            {
+                                              borderColor:
+                                                "rgba(0, 0, 0, 0.23)",
+                                            },
                                           "&:hover .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                          },
+                                            {
+                                              borderColor: "#D4AF37",
+                                            },
                                           "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                            borderWidth: "2px",
-                                          },
+                                            {
+                                              borderColor: "#D4AF37",
+                                              borderWidth: "2px",
+                                            },
                                         },
                                       },
                                     }}
@@ -2171,14 +2170,14 @@ export default function ViewFormC({ token }) {
                                         borderColor: "rgba(0, 0, 0, 0.23)",
                                       },
                                       "&:hover .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "#D4AF37",
-                                      },
+                                        {
+                                          borderColor: "#D4AF37",
+                                        },
                                       "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "#D4AF37",
-                                        borderWidth: "2px",
-                                      },
+                                        {
+                                          borderColor: "#D4AF37",
+                                          borderWidth: "2px",
+                                        },
                                     }}
                                     InputLabelProps={{ shrink: true }}
                                   />
