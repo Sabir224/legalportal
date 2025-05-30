@@ -13,7 +13,8 @@ import { useAlert } from "../../../../Component/AlertContext";
 const FormHandover = ({ token }) => {
     const dispatch = useDispatch();
     const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
-
+    const dateRef = useRef(null);
+     const [errors, setErrors] = useState({});
     const [FormhOrFormCDetails, setFormhOrFormCDetails] = useState([]);
     const [isFilled, setIsFilled] = useState(false);
     // const [loading, setLoading] = useState(true);
@@ -214,55 +215,72 @@ const FormHandover = ({ token }) => {
 
 
 
-    const handleSubmit = async (e) => {
-        showLoading();
-        e.preventDefault();
-        try {
-            const form = new FormData();
-            console.log("form data", formData)
-            // Append text fields
-            form.append("clientName", formData.clientName);
-            form.append("caseId", reduxCaseInfo?._id);
-            form.append("caseNumber", reduxCaseInfo?.CaseNumber);
-            form.append("handoverDateTime", formData.handoverDateTime);
-            form.append("providerName", formData.providerName);
-            form.append("receiverName", formData.receiverName);
-            form.append("legalOpinionText", formData.legalOpinion || '');
-            form.append("caseStrategyText", formData.caseStrategy || '');
-            form.append("checklist[cForm]", formData.checklist.cForm);
-            form.append("checklist[lForm]", formData.checklist.lForm);
-            form.append("checklist[lfa]", formData.checklist.lfa);
-            form.append("checklist[poa]", formData.checklist.poa);
-            // Related document files
-            (formData.relatedDocs || []).forEach(file => {
-                form.append("relatedDocsFiles", file);
-            });
-            console.log("check list form c", formData.checklist.cForm)
-            form.append("providerSignature", formData.providerSignature);
+   const handleSubmit = async (e) => {
+    e.preventDefault();
 
-            form.append("receiverSignature", formData.receiverSignature);
+    // Validate required fields
+    const newErrors = {};
+    if (!formData.caseNumber) newErrors.caseNumber = "Case number is required.";
+    if (!formData.handoverDateTime) newErrors.handoverDateTime = "Handover date/time is required.";
+    if (!formData.legalOpinion?.trim()) newErrors.legalOpinion = "Written Legal Opinion is required.";
+    if (!formData.caseStrategy?.trim()) newErrors.caseStrategy = "Case Strategy is required.";
+    if (!formData.receiverSignature) newErrors.receiverSignature = "Receiving lawyer must be selected.";
+    // if (!formData.relatedDocs || formData.relatedDocs.length === 0) newErrors.relatedDocs = "Please upload at least one document.";
 
-            console.log("providerSignature", formData.providerSignature)
+    // If errors exist, set them and scroll to the first one
+    if (Object.keys(newErrors).length > 0) {
+        setErrors(newErrors);
+        const firstField = Object.keys(newErrors)[0];
+        const el = document.querySelector(`[name="${firstField}"]`);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+        return;
+    }
 
-            // Send form data
-            const res = await axios.post(`${ApiEndPoint}createFormH`, form, {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            });
+    setErrors({});
+    showLoading();
 
+    try {
+        const form = new FormData();
+        console.log("form data", formData);
 
-            showSuccess("Form submitted successfully!");
-            // fetchFormHData()
-            console.log(res.data);
-        } catch (error) {
-            if (error.response) {
-                showError("Error submitting the form.", error.response);
-            } else {
-                showError("Network or server error:", error.message);
-            }
+        // Append text fields
+        form.append("clientName", formData.clientName);
+        form.append("caseId", reduxCaseInfo?._id);
+        form.append("caseNumber", reduxCaseInfo?.CaseNumber);
+        form.append("handoverDateTime", formData.handoverDateTime);
+        form.append("providerName", formData.providerName);
+        form.append("receiverName", formData.receiverName);
+        form.append("legalOpinionText", formData.legalOpinion || '');
+        form.append("caseStrategyText", formData.caseStrategy || '');
+        form.append("checklist[cForm]", formData.checklist.cForm);
+        form.append("checklist[lForm]", formData.checklist.lForm);
+        form.append("checklist[lfa]", formData.checklist.lfa);
+        form.append("checklist[poa]", formData.checklist.poa);
+
+        // Append related docs
+        (formData.relatedDocs || []).forEach(file => {
+            form.append("relatedDocsFiles", file);
+        });
+
+        form.append("providerSignature", formData.providerSignature);
+        form.append("receiverSignature", formData.receiverSignature);
+
+        const res = await axios.post(`${ApiEndPoint}createFormH`, form, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+
+        showSuccess("Form submitted successfully!");
+        console.log(res.data);
+    } catch (error) {
+        if (error.response) {
+            showError("Error submitting the form.", error.response);
+        } else {
+            showError("Network or server error:", error.message);
         }
-    };
+    }
+};
 
 
 
@@ -320,283 +338,307 @@ const FormHandover = ({ token }) => {
                             </div>
 
                             <form onSubmit={handleSubmit}>
+    <div className="mb-3">
+        <label className="form-label">Client Name:</label>
+        <input
+            type="text"
+            name="clientName"
+            className="form-control"
+            value={formData.clientName}
+            disabled={true}
+            onChange={handleChange}
+        />
+    </div>
 
-                                <div className="mb-3">
-                                    <label className="form-label">Client Name:</label>
-                                    <input type="text" name="clientName" className="form-control" value={formData.clientName} disabled={true} onChange={handleChange} />
-                                </div>
+    <div className="mb-3">
+        <label className="form-label">Case #:</label>
+        <input
+            type="text"
+            name="caseNumber"
+            className="form-control"
+            value={formData.caseNumber}
+            disabled={true}
+            onChange={handleChange}
+        />
+    </div>
 
-                                <div className="mb-3">
-                                    <label className="form-label">Case #:</label>
-                                    <input type="text" name="caseNumber" className="form-control" value={formData.caseNumber} disabled={true} onChange={handleChange} />
-                                </div>
+    <div className="mb-3" ref={dateRef}>
+        <label className="form-label">Handover Date/ Time:</label>
+        <DatePicker
+            value={formData.handoverDateTime ? new Date(formData.handoverDateTime) : null}
+            onChange={(date) =>
+                handleChange({
+                    target: {
+                        name: "handoverDateTime",
+                        value: date ? date.toISOString() : "",
+                    },
+                })
+            }
+            format="dd/MM/yyyy"
+            slotProps={{
+                textField: {
+                    size: "small",
+                    fullWidth: true,
+                    error: !!errors.handoverDateTime,
+                    helperText: errors.handoverDateTime || "",
+                },
+            }}
+        />
+    </div>
 
-                                <div className="mb-3">
-                                    <label className="form-label">Handover Date/ Time:</label>
-                                    <DatePicker
-                                        value={formData.handoverDateTime ? new Date(formData.handoverDateTime) : null}
-                                        onChange={(date) =>
-                                            handleChange({
-                                                target: {
-                                                    name: "handoverDateTime",
-                                                    value: date ? date.toISOString() : "",
-                                                },
-                                            })
-                                        }
-                                        format="dd/MM/yyyy"
+    <div className="mb-4">
+        <h6 className="text-danger fw-bold">Check List</h6>
+
+        <div className="d-flex flex-column gap-2">
+            {[
+                { label: "The Filled-out C Form", name: "cForm", formName: "Form C" },
+                { label: "The Filled-out L Form – MOM Form", name: "lForm", formName: "Form L" },
+                { label: "The signed and stamped LFA", name: "lfa", formName: "LFA" },
+                { label: "The POA", name: "poa", formName: "POA" },
+            ].map((item) => {
+                const isChecked = !!formData.checklist[item.name];
+                return (
+                    <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
+                        <input
+                            type="checkbox"
+                            className="form-check-input me-2"
+                            name={item.name}
+                            checked={isChecked}
+                            onChange={(e) => {
+                                if (item.name !== "cForm") {
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        checklist: {
+                                            ...prev.checklist,
+                                            [item.name]: e.target.checked,
+                                        },
+                                    }));
+                                }
+                            }}
+                            id={item.name}
+                            disabled={item.name === "cForm"}
+                        />
+                        <label className="form-check-label me-2" htmlFor={item.name}>
+                            {item.label}
+                        </label>
+                        <button
+                            type="button"
+                            className="btn btn-link p-0 text-decoration-underline text-primary"
+                            onClick={() => handlegotoform(formData.checklist[item.name], item)}
+                            disabled={!isChecked}
+                            style={{
+                                fontSize: "0.9rem",
+                                pointerEvents: isChecked ? "auto" : "none",
+                                opacity: isChecked ? 1 : 0.5,
+                            }}
+                        >
+                            Go to {item.formName}
+                        </button>
+
+                        {item.name === "cForm" && (
+                            <select
+                                className="form-select form-select-sm w-auto"
+                                value={formData.checklist.cForm || ""}
+                                onChange={(e) => {
+                                    const selectedId = e.target.value;
+                                    setFormData((prev) => ({
+                                        ...prev,
+                                        checklist: {
+                                            ...prev.checklist,
+                                            cForm: selectedId,
+                                        },
+                                    }));
+                                }}
+                            >
+                                <option value="">Select Case Number</option>
+                                {(FormhOrFormCDetails?.formC || [])
+                                    .filter((form) => form?.caseNumber?.trim())
+                                    .map((form) => (
+                                        <option key={form._id} value={form._id}>
+                                            {form.caseNumber}
+                                        </option>
+                                    ))}
+                            </select>
+                        )}
+                    </div>
+                );
+            })}
+        </div>
+
+        {[
+            { label: "Written Legal Opinion", name: "legalOpinion" },
+            { label: "The Case Strategy", name: "caseStrategy" },
+            { label: "The Related documents", name: "relatedDocs" },
+        ].map((item) => {
+            const isTextArea = ["legalOpinion", "caseStrategy"].includes(item.name);
+            const maxLength = 10000;
+
+            return (
+                <div className="form-check d-flex flex-column align-items-start mt-3" key={item.name}>
+                    <div className="d-flex align-items-center mb-2">
+                        <label className="form-check-label me-3 mb-0" htmlFor={item.name}>
+                            {item.label}
+                        </label>
+                    </div>
+
+                    {isTextArea ? (
+                        <>
+                            <textarea
+                                className={`form-control ${errors[item.name] ? "is-invalid" : ""}`}
+                                name={item.name}
+                                maxLength={maxLength}
+                                value={formData[item.name]}
+                                onChange={handleChange}
+                                rows={4}
+                                placeholder="Enter details"
+                                style={{ maxWidth: "100%" }}
+                            />
+                            {errors[item.name] && (
+                                <div className="invalid-feedback">{errors[item.name]}</div>
+                            )}
+                            <div className="text-muted mt-1" style={{ fontSize: "0.85rem" }}>
+                                {formData[item.name]?.length || 0}/{maxLength} characters
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div
+                                className="border border-dashed p-4 text-center w-100"
+                                style={{ borderRadius: "6px" }}
+                                onDragOver={(e) => e.preventDefault()}
+                                onDrop={(e) => handleDropFiles(e)}
+                            >
+                                <div
+                                    className="card border-0 p-4 text-center"
+                                    style={{
+                                        cursor: "pointer",
+                                        borderRadius: "6px",
+                                        border: "2px dashed #ccc",
+                                    }}
+                                    onClick={() =>
+                                        document.getElementById(`relatedDocsInput`).click()
+                                    }
+                                >
+                                    <input
+                                        type="file"
+                                        className="form-control d-none"
+                                        id="relatedDocsInput"
+                                        onChange={handleMultipleFilesChange}
+                                        multiple
+                                        accept=".pdf,.doc,.docx,.png,.jpg"
+                                        disabled={formData.relatedDocs.length >= 5}
                                     />
+                                    <label
+                                        className={`d-block ${
+                                            formData.relatedDocs.length >= 5 ? "text-muted" : ""
+                                        }`}
+                                    >
+                                        <i className="bi bi-upload fs-2"></i>
+                                        <br />
+                                        <span className="text-primary text-decoration-underline">
+                                            {formData.relatedDocs.length >= 5
+                                                ? "Maximum files selected"
+                                                : "Choose files to upload"}
+                                        </span>{" "}
+                                        {formData.relatedDocs.length >= 5
+                                            ? ""
+                                            : "or drag and drop here"}
+                                    </label>
                                 </div>
-                                <div className="mb-4">
-                                    <h6 className="text-danger fw-bold">Check List</h6>
 
-                                    {/* Column layout for first 4 items */}
-                                    <div className="d-flex flex-column gap-2">
-                                        {[
-                                            { label: "The Filled-out C Form", name: "cForm", formName: "Form C" },
-                                            { label: "The Filled-out L Form – MOM Form", name: "lForm", formName: "Form L" },
-                                            { label: "The signed and stamped LFA", name: "lfa", formName: "LFA" },
-                                            { label: "The POA", name: "poa", formName: "POA" },
-                                        ].map((item) => {
-                                            const isChecked = !!formData.checklist[item.name]; // e.g. _id for cForm, boolean for others
-
-                                            return (
-                                                <div className="form-check d-flex align-items-center flex-wrap gap-2" key={item.name}>
-                                                    <input
-                                                        type="checkbox"
-                                                        className="form-check-input me-2"
-                                                        name={item.name}
-                                                        checked={isChecked}
-                                                        onChange={(e) => {
-                                                            if (item.name !== "cForm") {
-                                                                setFormData((prev) => ({
-                                                                    ...prev,
-                                                                    checklist: {
-                                                                        ...prev.checklist,
-                                                                        [item.name]: e.target.checked,
-                                                                    },
-                                                                }));
-                                                            }
-                                                        }}
-                                                        id={item.name}
-                                                        disabled={item.name === "cForm"} // disable manual check for cForm
-                                                    />
-
-                                                    <label className="form-check-label me-2" htmlFor={item.name}>
-                                                        {item.label}
-                                                    </label>
-
+                                {formData.relatedDocs.length > 0 && (
+                                    <div className="mt-3">
+                                        <strong>Selected Files:</strong>
+                                        <ul className="list-group mt-2">
+                                            {formData.relatedDocs.map((file, index) => (
+                                                <li
+                                                    key={index}
+                                                    className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
+                                                >
+                                                    <span className="text-break w-100">
+                                                        {file.name}
+                                                    </span>
                                                     <button
                                                         type="button"
-                                                        className="btn btn-link p-0 text-decoration-underline text-primary"
-                                                        onClick={() => handlegotoform(formData.checklist[item.name], item)}
-                                                        disabled={!isChecked}
-                                                        style={{
-                                                            fontSize: "0.9rem",
-                                                            pointerEvents: isChecked ? "auto" : "none",
-                                                            opacity: isChecked ? 1 : 0.5,
-                                                        }}
+                                                        className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
+                                                        onClick={() => handleRemoveFile(index)}
                                                     >
-                                                        Go to {item.formName}
+                                                        Remove
                                                     </button>
-
-                                                    {/* ✅ Form C: show dropdown to select caseNumber */}
-                                                    {item.name === "cForm" && (
-                                                        <select
-                                                            className="form-select form-select-sm w-auto"
-                                                            value={formData.checklist.cForm || ""}
-                                                            onChange={(e) => {
-                                                                const selectedId = e.target.value;
-                                                                setFormData((prev) => ({
-                                                                    ...prev,
-                                                                    checklist: {
-                                                                        ...prev.checklist,
-                                                                        cForm: selectedId, // store _id
-                                                                    },
-                                                                }));
-                                                            }}
-                                                        >
-                                                            <option value="">Select Case Number</option>
-                                                            {(FormhOrFormCDetails?.formC || [])
-                                                                .filter((form) => form?.caseNumber?.trim())
-                                                                .map((form) => (
-                                                                    <option key={form._id} value={form._id}>
-                                                                        {form.caseNumber}
-                                                                    </option>
-                                                                ))}
-                                                        </select>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
+                                                </li>
+                                            ))}
+                                        </ul>
+                                        <div className="text-muted mt-1">
+                                            {formData.relatedDocs.length} file
+                                            {formData.relatedDocs.length !== 1 && "s"} selected
+                                        </div>
                                     </div>
+                                )}
+                                {errors.relatedDocs && (
+                                    <div className="text-danger small mt-1">
+                                        {errors.relatedDocs}
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        })}
+    </div>
 
-                                    {[
-                                        { label: "Written Legal Opinion", name: "legalOpinion" },
-                                        { label: "The Case Strategy", name: "caseStrategy" },
-                                        { label: "The Related documents", name: "relatedDocs" },
-                                    ].map((item) => {
-                                        const isTextArea = ["legalOpinion", "caseStrategy"].includes(item.name);
-                                        const textValue = formData.checklist[`${item.name}Text`] || '';
-                                        const maxLength = 10000;
+    <div className="mb-4">
+        <h6 className="text-danger fw-bold">The Lawyer Providing the CD File:</h6>
+        <p className="text-danger small fw-bold">
+            Please make sure all the mentioned documents are included in the file before signing the Handover Form.
+        </p>
+        <input
+            type="text"
+            name="providerSignature"
+            className="form-control"
+            value={formData.providerName}
+            onChange={handleChange}
+            placeholder="Enter signature image URL"
+            disabled={true}
+        />
+    </div>
 
-                                        return (
-                                            <div className="form-check d-flex flex-column align-items-start mt-3" key={item.name}>
-                                                <div className="d-flex align-items-center mb-2">
-                                                    <label className="form-check-label me-3 mb-0" htmlFor={item.name}>
-                                                        {item.label}
-                                                    </label>
-                                                </div>
+    <div className="mb-4">
+        <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
+        <select
+            className={`form-select ${errors.receiverSignature ? "is-invalid" : ""}`}
+            name="receiverSignature"
+            value={formData.receiverSignature}
+            onChange={(e) => {
+                const selectedEmail = e.target.value;
+                const selectedLawyer = FormhOrFormCDetails?.lawyers?.find(
+                    (lawyer) => lawyer.Email === selectedEmail
+                );
 
-                                                {isTextArea ? (
-                                                    <>
-                                                        <textarea
-                                                            className="form-control"
-                                                            name={item.name} // 👈 changed from `${item.name}Text`
-                                                            maxLength={maxLength}
-                                                            value={formData[item.name]} // 👈 updated
-                                                            onChange={handleChange}
-                                                            rows={4}
-                                                            placeholder="Enter details"
-                                                            style={{ maxWidth: "100%" }}
-                                                        />
-                                                        <div className="text-muted mt-1" style={{ fontSize: "0.85rem" }}>
-                                                            {formData[item.name]?.length || 0}/{maxLength} characters
-                                                        </div>
+                setFormData((prev) => ({
+                    ...prev,
+                    receiverSignature: selectedEmail,
+                    receiverName: selectedLawyer?.UserName || "",
+                }));
+            }}
+        >
+            <option value="">Select a lawyer</option>
+            {FormhOrFormCDetails?.lawyers?.map((lawyer) => (
+                <option key={lawyer._id} value={lawyer.Email}>
+                    {lawyer.UserName} ({lawyer.Role})
+                </option>
+            ))}
+        </select>
+        {errors.receiverSignature && (
+            <div className="invalid-feedback d-block">{errors.receiverSignature}</div>
+        )}
+    </div>
 
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div
-                                                            className="border border-dashed p-4 text-center w-100"
-                                                            style={{ borderRadius: "6px" }}
-                                                            onDragOver={(e) => e.preventDefault()}
-                                                            onDrop={(e) => handleDropFiles(e)}
-                                                        >
-                                                            <div
-                                                                className="card border-0 p-4 text-center"
-                                                                style={{
-                                                                    cursor: "pointer",
-                                                                    borderRadius: "6px",
-                                                                    border: "2px dashed #ccc",
-                                                                }}
-                                                                onClick={() => document.getElementById(`relatedDocsInput`).click()}
-                                                            >
-                                                                <input
-                                                                    type="file"
-                                                                    className="form-control d-none"
-                                                                    id="relatedDocsInput"
-                                                                    onChange={handleMultipleFilesChange}
-                                                                    multiple
-                                                                    accept=".pdf,.doc,.docx,.png,.jpg"
-                                                                    disabled={formData.relatedDocs.length >= 5}
-                                                                />
-                                                                <label className={`d-block ${formData.relatedDocs.length >= 5 ? 'text-muted' : ''}`}>
-                                                                    <i className="bi bi-upload fs-2"></i><br />
-                                                                    <span className="text-primary text-decoration-underline">
-                                                                        {formData.relatedDocs.length >= 5
-                                                                            ? 'Maximum files selected'
-                                                                            : 'Choose files to upload'}
-                                                                    </span>{" "}
-                                                                    {formData.relatedDocs.length >= 5 ? '' : 'or drag and drop here'}
-                                                                </label>
-                                                            </div>
+    <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">
+        Submit
+    </button>
+</form>
 
-                                                            {/* Display uploaded files */}
-                                                            {formData.relatedDocs.length > 0 && (
-                                                                <div className="mt-3">
-                                                                    <strong>Selected Files:</strong>
-                                                                    <ul className="list-group mt-2">
-                                                                        {formData.relatedDocs.map((file, index) => (
-                                                                            <li
-                                                                                key={index}
-                                                                                className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
-                                                                            >
-                                                                                <span className="text-break w-100">{file.name}</span>
-                                                                                <button
-                                                                                    type="button"
-                                                                                    className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
-                                                                                    onClick={() => handleRemoveFile(index)}
-                                                                                >
-                                                                                    Remove
-                                                                                </button>
-                                                                            </li>
-                                                                        ))}
-                                                                    </ul>
-                                                                    <div className="text-muted mt-1">
-                                                                        {formData.relatedDocs.length} file
-                                                                        {formData.relatedDocs.length !== 1 && 's'} selected
-                                                                    </div>
-                                                                </div>
-                                                            )}
-                                                        </div>
-
-                                                    </>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-
-                                </div>
-
-
-
-                                {/* Lawyers Info */}
-                                <div className="mb-4">
-                                    <h6 className="text-danger fw-bold">The Lawyer Providing the CD File:</h6>
-
-                                    <p className="text-danger small fw-bold">
-                                        Please make sure all the mentioned documents are included in the file before signing the Handover Form.
-                                    </p>
-
-                                    {/* <label className="form-label">Signature :</label> */}
-
-                                    <input
-                                        type="text"
-                                        name="providerSignature"
-                                        className="form-control"
-                                        value={formData.providerName}
-                                        onChange={handleChange}
-                                        placeholder="Enter signature image URL"
-                                        disabled={true}
-                                    />
-                                </div>
-
-
-                                {/* Signature - Lawyer Receiving */}
-                                <div className="mb-4">
-                                    <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
-                                    <select
-                                        className="form-select"
-                                        name="receiverSignature"
-                                        value={formData.receiverSignature}
-                                        onChange={(e) => {
-                                            const selectedEmail = e.target.value;
-                                            const selectedLawyer = FormhOrFormCDetails?.lawyers?.find(
-                                                (lawyer) => lawyer.Email === selectedEmail
-                                            );
-
-                                            setFormData((prev) => ({
-                                                ...prev,
-                                                receiverSignature: selectedEmail,
-                                                receiverName: selectedLawyer?.UserName || "",
-                                            }));
-                                        }}
-                                    >
-                                        <option value="">Select a lawyer</option>
-                                        {FormhOrFormCDetails?.lawyers?.map((lawyer) => (
-                                            <option key={lawyer._id} value={lawyer.Email}>
-                                                {lawyer.UserName} ({lawyer.Role})
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-
-
-                                {/* Note */}
-
-                                <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
-                            </form>
                         </div>
                     </div>
                 )
@@ -635,7 +677,7 @@ const FormHandover = ({ token }) => {
                                                     },
                                                 })
                                             }
-                                        format="dd/MM/yyyy"
+                                            format="dd/MM/yyyy"
 
                                             disabled={isReadOnly}
                                         />

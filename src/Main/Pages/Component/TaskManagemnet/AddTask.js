@@ -12,6 +12,7 @@ import { ApiEndPoint } from "../utils/utlis";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { useDispatch, useSelector } from "react-redux";
+import { useAlert } from "../../../../Component/AlertContext";
 
 const AddTask = ({ token }) => {
   const dispatch = useDispatch();
@@ -23,6 +24,7 @@ const AddTask = ({ token }) => {
   const [casenumber, setCaseNumber] = useState("");
   const [TaskTitle, setTaskTitle] = useState("");
   const [discription, setDiscription] = useState("");
+   const { showLoading, showSuccess, showError } = useAlert();
 
   useEffect(() => {
     fetchUsers();
@@ -46,16 +48,18 @@ const AddTask = ({ token }) => {
       createdBy: token?._id,
       dueDate
     };
-
+    
     try {
+      showLoading()
       await axios.post(`${ApiEndPoint}createTask`, caseData);
-      alert("✅ Task Added Successfully!");
+      showSuccess("✅ Task Added Successfully!");
       setCaseNumber("");
       setTaskTitle("");
       setDiscription("");
       setDueDate(new Date());
     } catch (error) {
       console.error('Error creating task:', error);
+      showError('Error creating task:', error);
     }
   };
 

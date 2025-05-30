@@ -196,7 +196,7 @@ const Dashboard = () => {
       case 0:
 
         setCurrentScreen(
-         <AlertProvider>
+          <AlertProvider>
             <BasicCase token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
@@ -256,7 +256,12 @@ const Dashboard = () => {
         setCurrentScreen(<TaskList token={decodedToken} />);
         break;
       case 15:
-        setCurrentScreen(<AddTask token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <AddTask token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 16:
         setCurrentScreen(
@@ -409,9 +414,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`sidebar d-flex flex-column text-white position-relative ${
-          isCollapsed ? "col-1" : "col-2"
-        }`}
+        className={`sidebar d-flex flex-column text-white position-relative ${isCollapsed ? "col-1" : "col-2"
+          }`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -468,42 +472,42 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                  icon: faPersonCircleCheck,
-                  label: "View Users",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faPersonCircleCheck,
+                label: "View Users",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(9);
-                  },
-                }
+                  handlescreen2(9);
+                },
+              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                  icon: faCcMastercard,
-                  label: "Add Case",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faCcMastercard,
+                label: "Add Case",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(11);
-                  },
-                }
+                  handlescreen2(11);
+                },
+              }
               : null,
             decodedToken?.Role !== "client"
               ? {
-                  icon: faTasksAlt,
-                  label: "View Task",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faTasksAlt,
+                label: "View Task",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(14);
-                  },
-                }
+                  handlescreen2(14);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -516,29 +520,29 @@ const Dashboard = () => {
             // },
             decodedToken?.Role !== "client"
               ? {
-                  icon: faWpforms,
-                  label: "Form C List",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faWpforms,
+                label: "Form C List",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(18);
-                  },
-                }
+                  handlescreen2(18);
+                },
+              }
               : null,
             decodedToken?.Role !== "client"
               ? {
-                  icon: faWpforms,
-                  label: "Form H List",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faWpforms,
+                label: "Form H List",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(22);
-                  },
-                }
+                  handlescreen2(22);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -653,6 +657,9 @@ const Dashboard = () => {
               {screen === 17 && (
                 <ScreenHeader title="Form H" onBack={handleBack} />
               )}
+              {screen === 22 && (
+                <ScreenHeader title="Form H List" onBack={handleBack} />
+              )}
             </h3>
 
             {/* Admin Buttons */}
@@ -705,24 +712,24 @@ const Dashboard = () => {
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-              <button
-                className="btn me-2"
-                onClick={() => {
-                  dispatch(Caseinfo(null));
-                  dispatch(clientEmail(null));
-                  dispatch(FormCDetails(null));
+                <button
+                  className="btn me-2"
+                  onClick={() => {
+                    dispatch(Caseinfo(null));
+                    dispatch(clientEmail(null));
+                    dispatch(FormCDetails(null));
 
-                  handlescreen2(5);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUser}
-                  size="1x"
-                  color="white"
-                  className=""
-                />
-              </button>
-            )}
+                    handlescreen2(5);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    size="1x"
+                    color="white"
+                    className=""
+                  />
+                </button>
+              )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"
