@@ -194,9 +194,8 @@ const Dashboard = () => {
 
     switch (screen) {
       case 0:
-
         setCurrentScreen(
-         <AlertProvider>
+          <AlertProvider>
             <BasicCase token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
