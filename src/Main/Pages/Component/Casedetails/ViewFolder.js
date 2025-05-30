@@ -40,6 +40,8 @@ import {
   faThLarge,
   faPlus,
   faChevronRight,
+  faTimes,
+  faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import DragAndDrop from "../DragAndDrop";
 import MoveFolderModal from "./MoveFolderModal";
@@ -84,6 +86,7 @@ const ViewFolder = ({ token }) => {
   const [deletefolderid, setDeletefolderId] = useState(null);
   const [Isfolderdelete, setIsfolderdelete] = useState(false);
   const [sortOption, setSortOption] = useState("nameAsc");
+  const [folderPath, setFolderPath] = useState([]);
 
   const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState("");
@@ -146,7 +149,7 @@ const ViewFolder = ({ token }) => {
   //     }
   //   }, [caseInfo?._id]);
 
-  const fetchFolders = async () => {
+  const fetchFolders = async (preservePath = false) => {
     setLoadingFolders(true);
     setError("");
 
@@ -159,67 +162,58 @@ const ViewFolder = ({ token }) => {
 
       const data = await response.json();
 
-      // Process main folders
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
 
-      let customFolder;
-      if (!FormCDetails) {
-        customFolder = {
-          _id: "personal-folder",
-          folderName: "Personal",
-          caseId: caseIdToUse,
-          files: [],
-          parentId: data?.mainfolder?._id || null,
-          isPersonal: true,
-        };
-      } else {
-        customFolder = {
-          _id: "formc-folder",
-          folderName: "FormC Documents",
-          caseId: caseIdToUse,
-          files: [],
-          parentId: data?.mainfolder?._id || null,
-          isFormCDoc: true,
-        };
-      }
+      let customFolder = !FormCDetails
+        ? {
+            _id: "personal-folder",
+            folderName: "Personal",
+            caseId: caseIdToUse,
+            files: [],
+            parentId: data?.mainfolder?._id || null,
+            isPersonal: true,
+          }
+        : {
+            _id: "formc-folder",
+            folderName: "FormC Documents",
+            caseId: caseIdToUse,
+            files: [],
+            parentId: data?.mainfolder?._id || null,
+            isFormCDoc: true,
+          };
 
       const finalFolders = [customFolder, ...fetchedFolders];
       setFolderList(finalFolders);
       setMainfolderId(data?.mainfolder?._id);
       setMainfolder(data?.mainfolder);
-      setFolderPath([]);
-      setFiles(data?.files || []);
 
-      // Clear localStorage if we used pending data and now have caseInfo
-      //   if (pendingCaseData.caseId && caseInfo?._id) {
-      //     localStorage.removeItem("pendingCaseId");
-      //     localStorage.removeItem("pendingUserId");
-      //     setPendingCaseData({ caseId: null, userId: null });
-      //   }
-    } catch (err) {
-      setError(err.message);
-      let fallbackFolder;
-      if (!FormCDetails) {
-        fallbackFolder = {
-          _id: "personal-folder",
-          folderName: "Personal",
-          files: [],
-          isPersonal: true,
-        };
-      } else {
-        fallbackFolder = {
-          _id: "formc-folder",
-          folderName: "FormC Documents",
-          files: [],
-          isFormCDoc: true,
-        };
+      // ✅ Preserve folder path if needed
+      if (!preservePath) {
+        setFolderPath([]);
       }
 
+      setFiles(data?.files || []);
+    } catch (err) {
+      setError(err.message);
+      let fallbackFolder = !FormCDetails
+        ? {
+            _id: "personal-folder",
+            folderName: "Personal",
+            files: [],
+            isPersonal: true,
+          }
+        : {
+            _id: "formc-folder",
+            folderName: "FormC Documents",
+            files: [],
+            isFormCDoc: true,
+          };
       setFolderList([fallbackFolder]);
     } finally {
       setLoadingFolders(false);
     }
   };
+
   useEffect(() => {
     // if (effectiveCaseInfo?._id) {
     fetchFolders();
@@ -228,14 +222,20 @@ const ViewFolder = ({ token }) => {
 
   // Subfolder fetch function
   const fetchsubFolders = async (parentId) => {
+    if (!parentId) return;
+
     setLoadingFolders(true);
     setError("");
+
     try {
       const response = await fetch(`${ApiEndPoint}getSubFolders/${parentId}`);
       if (!response.ok) throw new Error("Error fetching subfolders");
 
       const data = await response.json();
+
+      // Preserve selected folder and path
       setFolderList(Array.isArray(data) ? data : []);
+      // You may also want to update breadcrumb path here if needed
     } catch (err) {
       setError(err.message);
       setFolderList([]);
@@ -243,6 +243,7 @@ const ViewFolder = ({ token }) => {
       setLoadingFolders(false);
     }
   };
+
   const fetchFormCfile = async () => {
     setLoadingFolders(true);
     setError("");
@@ -350,107 +351,116 @@ const ViewFolder = ({ token }) => {
 
   const handleCreateFolder = async () => {
     let caseData = {
-      caseId: effectiveCaseInfo?._id, // Unique ID for the case
-      folderName: newFolderName, // Folder name being created
-      files: [], // Initialize with an empty array, even if there are no files
-      subFolders: [], // Initialize with an empty array for subfolders
-      parentFolderId: selectedFolder?._id, // Only set if folder is inside another
+      caseId: effectiveCaseInfo?._id,
+      folderName: newFolderName,
+      files: [],
+      subFolders: [],
+      parentFolderId: selectedFolder?._id,
     };
 
     try {
       const response = await axios.post(`${ApiEndPoint}CreateFolder`, caseData);
 
-      // Check if the response contains a success message or the created folder
       if (response.data._id) {
         console.log("📂 Folder created successfully:", response.data);
-        await fetchFolders();
-        //await fetchsubFolders(response.data?.parentId);  // Refresh the folder list after creation
-        // alert("✅ Folder Added Successfully!");
+
+        // Preserve current path view
+        if (folderPath.length > 0) {
+          fetchsubFolders(folderPath[folderPath.length - 1]._id);
+        } else {
+          fetchFolders(true);
+        }
+
         setShowModal(false);
       } else {
-        console.error("Folder creation failed:", response.data.message);
         setShowError(true);
         setShowModal(false);
-
         setMessage(response.data.message);
-        // alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
       }
     } catch (error) {
-      if (error.response) {
-        console.error("API error:", error.response);
-        if (error.response.status === 409) {
-          setShowError(true);
-          setShowModal(false);
-
-          setMessage(
-            "❌ Folder with the same name already exists for this case."
-          );
-          //  alert("❌ Folder with the same name already exists for this case.");
-        } else {
-          setShowError(true);
-          setShowModal(false);
-
-          setMessage(
-            `❌ Error: ${error.response.data.message || "Something went wrong"}`
-          );
-        }
+      setShowModal(false);
+      setShowError(true);
+      if (error.response?.status === 409) {
+        setMessage(
+          "❌ Folder with the same name already exists for this case."
+        );
       } else {
-        console.error("Network or server error:", error.message);
-        setShowError(true);
-        setShowModal(false);
-        setMessage("❌ Network or server error. Please try again later.");
-        // alert("❌ Network or server error. Please try again later.");
+        setMessage(`❌ ${error.response?.data?.message || "Network error"}`);
       }
     }
   };
 
   const handleUpdateFolder = async () => {
     const caseData = {
-      folderId: editFolderId, // The _id (ObjectId) of the folder you want to update
-      newFolderName: newFolderName, // The new name you want to assign
+      folderId: editFolderId,
+      newFolderName: newFolderName,
     };
-    console.log("case data", caseData);
+
     try {
       const response = await axios.put(
         `${ApiEndPoint}updateFolderName`,
         caseData
       );
-      console.log("Folder updated successfully:", response.data.data.parentId);
-      fetchsubFolders(response.data?.data?.parentId);
-      // alert("✅ Folder name updated successfully!");
+
+      if (folderPath.length > 0) {
+        fetchsubFolders(folderPath[folderPath.length - 1]._id);
+      } else {
+        fetchFolders(true);
+      }
+
       setShowModal(false);
     } catch (error) {
-      if (error.response) {
-        console.error("API error:", error.response);
-        setShowError(true);
-        setShowModal(false);
-
-        setMessage(`❌ Error: ${error.response.data.message}`);
-        //  alert(`❌ Error: ${error.response.data.message}`);
-      } else {
-        console.error("Network or server error:", error.message);
-        setShowError(true);
-        setShowModal(false);
-
-        setMessage(`❌ Network or server error. Please try again later.`);
-        //   alert("❌ Network or server error. Please try again later.");
-      }
+      setShowModal(false);
+      setShowError(true);
+      setMessage(`❌ ${error.response?.data?.message || "Network error"}`);
     }
   };
-
   const handleDeleteFolder = async (id) => {
     try {
       await axios.delete(`${ApiEndPoint}deleteFolder/${id}`);
-      // fetchFolders()
-      setFolderList(folderList.filter((folder) => folder._id !== id));
-      setIsfolderdelete(false); // Use `_id` instead of `id` if that's your MongoDB field
+
+      setFolderList((prev) => prev.filter((folder) => folder._id !== id));
+      setIsfolderdelete(false);
       setDeletefolderId(null);
+
       if (selectedFolder?._id === id) {
         setSelectedFolder(null);
+      }
+
+      // Preserve path view
+      if (folderPath.length > 0) {
+        fetchsubFolders(folderPath[folderPath.length - 1]._id);
+      } else {
+        fetchFolders(true);
       }
     } catch (error) {
       console.error("❌ Error deleting folder:", error);
       setError("Error deleting folder");
+    }
+  };
+
+  const handleFileDelete = async (fileId) => {
+    try {
+      const response = await axios.delete(
+        `${ApiEndPoint}/deleteFileFromFolder/${fileId}`
+      );
+
+      if (response.status === 200) {
+        setFiles((prevFiles) =>
+          prevFiles.filter((file) => file._id !== fileId)
+        );
+        setIsdelete(false);
+        setDeletefileId(null);
+
+        // Optionally re-fetch the folder’s contents to reflect changes
+        if (folderPath.length > 0) {
+          fetchsubFolders(folderPath[folderPath.length - 1]._id);
+        } else {
+          fetchFolders(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error deleting file:", error);
     }
   };
 
@@ -465,26 +475,6 @@ const ViewFolder = ({ token }) => {
     setEditFileId(filedetails?._id);
     setIsEditMode(true);
     setShowFileModal(true);
-  };
-  const [folderPath, setFolderPath] = useState([]);
-
-  const handleFileDelete = async (fileId) => {
-    try {
-      const response = await axios.delete(
-        `${ApiEndPoint}/deleteFileFromFolder/${fileId}`
-      );
-
-      if (response.status === 200) {
-        setFiles((prevFiles) =>
-          prevFiles.filter((file) => file._id !== fileId)
-        );
-        console.log("File deleted successfully");
-        setIsdelete(false);
-        setDeletefileId(null);
-      }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-    }
   };
 
   const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(
@@ -642,7 +632,7 @@ const ViewFolder = ({ token }) => {
         // Hide modal after 2 seconds
         if (selectedFolder) fetchCases();
         else {
-          fetchFolders();
+          fetchFolders(true);
         }
         setErrorMessage([]);
       }
@@ -773,13 +763,60 @@ const ViewFolder = ({ token }) => {
     setShowMoveModal(false);
   };
 
+  // const handleMoveFolder = async (movefolder, moveintofolder) => {
+  //   let caseData = {
+  //     folderId: movefolder?._id, // Unique ID for the case
+  //     newParentFolderId: moveintofolder ? moveintofolder?._id : MainfolderId, // Folder name being created
+  //   };
+
+  //   console.log("folder move data", moveintofolder);
+
+  //   try {
+  //     const response = await axios.post(
+  //       `${ApiEndPoint}moveFolderOneToAnotherFolder`,
+  //       caseData
+  //     );
+
+  //     // Check if the response contains a success message or the created folder
+  //     if (response.data._id) {
+  //       console.log("📂 Folder Move successfully:", response.data);
+  //       fetchFolders(true); // Refresh the folder list after creation
+  //       // alert("✅ Folder Move Successfully!");
+  //     } else {
+  //       console.error("Folder Move failed:", response.data.message);
+  //       setShowError(true);
+  //       setMessage(
+  //         `❌ Error: ${response.data.message || "Something went wrong"}`
+  //       );
+  //       //alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
+  //     }
+  //   } catch (error) {
+  //     if (error.response) {
+  //       console.error("API error:", error.response);
+  //       if (error.response.status === 409) {
+  //         setShowError(true);
+  //         setMessage(
+  //           "❌ Folder with the same name already exists for this case."
+  //         );
+  //       } else {
+  //         setShowError(true);
+  //         setMessage(
+  //           `❌ Error: ${error.response.data.message || "Something went wrong"}`
+  //         );
+  //       }
+  //     } else {
+  //       console.error("Network or server error:", error.message);
+  //       setShowError(true);
+  //       setMessage("❌ Network or server error. Please try again later.");
+  //     }
+  //   }
+  // };
+
   const handleMoveFolder = async (movefolder, moveintofolder) => {
     let caseData = {
-      folderId: movefolder?._id, // Unique ID for the case
-      newParentFolderId: moveintofolder ? moveintofolder?._id : MainfolderId, // Folder name being created
+      folderId: movefolder?._id,
+      newParentFolderId: moveintofolder ? moveintofolder?._id : MainfolderId,
     };
-
-    console.log("folder move data", moveintofolder);
 
     try {
       const response = await axios.post(
@@ -787,18 +824,22 @@ const ViewFolder = ({ token }) => {
         caseData
       );
 
-      // Check if the response contains a success message or the created folder
       if (response.data._id) {
-        console.log("📂 Folder Move successfully:", response.data);
-        fetchFolders(); // Refresh the folder list after creation
-        // alert("✅ Folder Move Successfully!");
+        // Preserve current folder view instead of resetting to root
+        if (folderPath.length > 0) {
+          // We're inside a subfolder
+          const currentFolderId = folderPath[folderPath.length - 1]._id;
+          fetchsubFolders(currentFolderId);
+        } else {
+          // In root folder
+          fetchFolders(true);
+        }
       } else {
         console.error("Folder Move failed:", response.data.message);
         setShowError(true);
         setMessage(
           `❌ Error: ${response.data.message || "Something went wrong"}`
         );
-        //alert(`❌ Error: ${response.data.message || 'Something went wrong'}`);
       }
     } catch (error) {
       if (error.response) {
@@ -840,7 +881,7 @@ const ViewFolder = ({ token }) => {
 
       if (response.data.success || response.status === 200) {
         console.log("📂 File moved successfully");
-        fetchFolders(); // Refresh the folders
+        fetchFolders(true); // Refresh the folders
         setSelectedFolder(null);
         setFolderPath([]);
         setMoveFileId(null);
@@ -888,7 +929,7 @@ const ViewFolder = ({ token }) => {
         if (selectedFolder !== null) {
           await fetchCases();
         } else {
-          await fetchFolders();
+          await fetchFolders(true);
         }
 
         // alert("✅ File Editing successfully!");
@@ -1699,7 +1740,9 @@ const ViewFolder = ({ token }) => {
                     >
                       <FontAwesomeIcon
                         icon={faFolder}
-                        className="text-primary me-1"
+                        size="1x"
+                        className="me-2 flex-shrink-0"
+                        style={{ color: "#d3b386" }}
                       />
                     </Button>
 
@@ -2285,15 +2328,20 @@ const ViewFolder = ({ token }) => {
           </Form>
         </Modal.Body>
 
-        <Modal.Footer className="d-flex justify-content-end">
+        <Modal.Footer className="d-flex justify-content-center gap-2">
           <Button variant="primary" onClick={() => setShowModal(false)}>
-            Cancel
+            <FontAwesomeIcon icon={faTimes} />
+            <span className="d-none d-sm-inline ms-1">Cancel</span>
           </Button>
+
           <Button
             variant="primary"
             onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
           >
-            {isEditMode ? "Update" : "Create"}
+            <FontAwesomeIcon icon={isEditMode ? faPen : faPlus} />
+            <span className="d-none d-sm-inline ms-1">
+              {isEditMode ? "Update" : "Create"}
+            </span>
           </Button>
         </Modal.Footer>
       </Modal>
@@ -2336,12 +2384,23 @@ const ViewFolder = ({ token }) => {
             </Form.Group>
           </Form>
         </Modal.Body>
-        <Modal.Footer className="d-flex justify-content-end">
-          <Button variant="primary" onClick={() => setShowFileModal(false)}>
-            Cancel
+        <Modal.Footer className="d-flex justify-content-center gap-2">
+          <Button variant="primary" onClick={() => setShowModal(false)}>
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
+            <span className="d-none d-sm-inline">Cancel</span>
           </Button>
-          <Button variant="primary" onClick={handleUpdateFileName}>
-            {isEditMode ? "Update" : "Create"}
+
+          <Button
+            variant="primary"
+            onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
+          >
+            <FontAwesomeIcon
+              icon={isEditMode ? faPen : faPlus}
+              className="me-1"
+            />
+            <span className="d-none d-sm-inline">
+              {isEditMode ? "Update" : "Create"}
+            </span>
           </Button>
         </Modal.Footer>
       </Modal>
@@ -2355,15 +2414,18 @@ const ViewFolder = ({ token }) => {
           <p className="fs-5">Are you sure you want to delete this file?</p>
         </Modal.Body>
 
-        <Modal.Footer className="d-flex justify-content-end">
+        <Modal.Footer className="d-flex justify-content-center gap-2">
           <Button variant="secondary" onClick={() => setIsdelete(false)}>
-            Cancel
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
+            <span className="d-none d-sm-inline">Cancel</span>
           </Button>
+
           <Button
             variant="danger"
             onClick={() => handleFileDelete(deletefileid)}
           >
-            Delete
+            <FontAwesomeIcon icon={faTrash} className="me-1" />
+            <span className="d-none d-sm-inline">Delete</span>
           </Button>
         </Modal.Footer>
       </Modal>
@@ -2381,15 +2443,18 @@ const ViewFolder = ({ token }) => {
           <p className="fs-5">Are you sure you want to delete this folder?</p>
         </Modal.Body>
 
-        <Modal.Footer className="d-flex justify-content-end">
+        <Modal.Footer className="d-flex justify-content-center gap-2">
           <Button variant="secondary" onClick={() => setIsfolderdelete(false)}>
-            Cancel
+            <FontAwesomeIcon icon={faTimes} className="me-1" />
+            <span className="d-none d-sm-inline">Cancel</span>
           </Button>
+
           <Button
             variant="danger"
             onClick={() => handleDeleteFolder(deletefolderid)}
           >
-            Delete
+            <FontAwesomeIcon icon={faTrash} className="me-1" />
+            <span className="d-none d-sm-inline">Delete</span>
           </Button>
         </Modal.Footer>
       </Modal>

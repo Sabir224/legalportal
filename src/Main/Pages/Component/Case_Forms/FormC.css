@@ -1,0 +1,24 @@
+/* Makes dropdown options stay within viewport */
+select.form-select {
+  max-width: 100%;
+}
+
+/* For the options panel itself */
+select.form-select option {
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+@media (max-width: 768px) {
+  /* On mobile, constrain the dropdown panel */
+  select.form-select {
+    width: 100% !important;
+  }
+
+  /* Optional: make options scrollable */
+  select.form-select {
+    height: auto;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+}
