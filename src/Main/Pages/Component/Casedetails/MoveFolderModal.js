@@ -361,7 +361,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
         <div style={{ marginBottom: "1rem" }}>
           Moving:
           <span
-            key={folder._id}
+            key={folder?._id}
             className="d-flex align-items-center text-truncate"
             style={{
               maxWidth: "100%",
