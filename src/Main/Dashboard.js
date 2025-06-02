@@ -296,7 +296,12 @@ const Dashboard = () => {
         setCurrentScreen(<ViewFormH token={decodedToken} />);
         break;
       case 23:
-        setCurrentScreen(<MOMEditor token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <MOMEditor token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
