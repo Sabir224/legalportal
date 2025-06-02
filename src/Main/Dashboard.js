@@ -90,6 +90,7 @@ import ViewCaseUpdates from "./Pages/ViewCaseUpdates";
 import FAQ from "./Pages/FAQ/FAQ";
 import ViewFormH from "./Pages/Component/Case_Forms/ViewFormH";
 import FormTemplateUploader from "./Pages/Component/Case_Forms/FormTemplateUploader";
+import MOMEditor from "./Pages/Component/Case_Forms/MOMEditor";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -295,7 +296,7 @@ const Dashboard = () => {
         setCurrentScreen(<ViewFormH token={decodedToken} />);
         break;
       case 23:
-        setCurrentScreen(<FormTemplateUploader token={decodedToken} />);
+        setCurrentScreen(<MOMEditor token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -547,19 +548,6 @@ const Dashboard = () => {
                 },
               }
               : null,
-            decodedToken?.Role !== "client"
-              ? {
-                icon: faWpforms,
-                label: "Legal Forms",
-                action: () => {
-                  dispatch(clientEmail(null));
-                  dispatch(Caseinfo(null));
-                  dispatch(FormCDetails(null));
-
-                  handlescreen2(23);
-                },
-              }
-              : null,
             // {
             //   icon: faStickyNote,
             //   label: "Form Hand Over",
@@ -675,6 +663,9 @@ const Dashboard = () => {
               )}
               {screen === 22 && (
                 <ScreenHeader title="Form H List" onBack={handleBack} />
+              )}
+              {screen === 23 && (
+                <ScreenHeader title="View Form MOM" onBack={handleBack} />
               )}
             </h3>
 
