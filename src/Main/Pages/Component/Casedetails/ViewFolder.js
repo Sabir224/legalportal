@@ -361,12 +361,12 @@ const ViewFolder = ({ token }) => {
     try {
       const response = await axios.post(`${ApiEndPoint}CreateFolder`, caseData);
 
-      if (response.data._id) {
+      if (response.data?._id) {
         console.log("📂 Folder created successfully:", response.data);
 
         // Preserve current path view
         if (folderPath.length > 0) {
-          fetchsubFolders(folderPath[folderPath.length - 1]._id);
+          fetchsubFolders(folderPath[folderPath.length - 1]?._id);
         } else {
           fetchFolders(true);
         }
@@ -824,11 +824,11 @@ const ViewFolder = ({ token }) => {
         caseData
       );
 
-      if (response.data._id) {
+      if (response?.data?._id) {
         // Preserve current folder view instead of resetting to root
         if (folderPath.length > 0) {
           // We're inside a subfolder
-          const currentFolderId = folderPath[folderPath.length - 1]._id;
+          const currentFolderId = folderPath[folderPath.length - 1]?._id;
           fetchsubFolders(currentFolderId);
         } else {
           // In root folder
@@ -1694,7 +1694,7 @@ const ViewFolder = ({ token }) => {
     const folder = folderPath[index];
     setFolderPath(newPath);
     setSelectedFolder(folder);
-    fetchsubFolders(folder._id);
+    fetchsubFolders(folder?._id);
   };
 
   return (
@@ -1760,7 +1760,7 @@ const ViewFolder = ({ token }) => {
                             />
                             <span className="text-muted mx-1">...</span>
                             {folderPath.slice(-2).map((folder, index) => (
-                              <React.Fragment key={folder._id}>
+                              <React.Fragment key={folder?._id}>
                                 <FontAwesomeIcon
                                   icon={faChevronRight}
                                   className="fs-12 text-muted mx-1"
@@ -1776,7 +1776,7 @@ const ViewFolder = ({ token }) => {
                           </>
                         ) : (
                           folderPath.map((folder, index) => (
-                            <React.Fragment key={folder._id}>
+                            <React.Fragment key={folder?._id}>
                               {index > 0 && (
                                 <FontAwesomeIcon
                                   icon={faChevronRight}
@@ -1931,7 +1931,7 @@ const ViewFolder = ({ token }) => {
                       })
                       ?.map((folder) => (
                         <Col
-                          key={folder._id}
+                          key={folder?._id}
                           xs={6}
                           sm={viewMode === "grid" ? 6 : 12}
                           md={viewMode === "grid" ? 4 : 12}
@@ -1952,11 +1952,11 @@ const ViewFolder = ({ token }) => {
                               // Ensure full width of column
                             }}
                             onClick={() => {
-                              folder.folderName === "Personal"
+                              folder?.folderName === "Personal"
                                 ? fetchClientDocuments()
-                                : folder.folderName === "FormC Documents"
+                                : folder?.folderName === "FormC Documents"
                                 ? fetchFormCfile()
-                                : fetchsubFolders(folder._id);
+                                : fetchsubFolders(folder?._id);
                               setSelectedFolder(folder);
                               setFolderPath((prevPath) => [
                                 ...prevPath,
@@ -1998,11 +1998,11 @@ const ViewFolder = ({ token }) => {
                                       textOverflow: "ellipsis",
                                       whiteSpace: "nowrap",
                                     }}
-                                    title={folder.folderName}
+                                    title={folder?.folderName}
                                   >
                                     {folder.folderName.length > 30
-                                      ? folder.folderName.slice(0, 27) + "..."
-                                      : folder.folderName}
+                                      ? folder?.folderName.slice(0, 27) + "..."
+                                      : folder?.folderName}
                                   </div>
                                 </div>
                               </div>
@@ -2071,12 +2071,12 @@ const ViewFolder = ({ token }) => {
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setDeletefolderId(folder._id);
+                                      setDeletefolderId(folder?._id);
                                       setIsfolderdelete(true);
                                     }}
                                     disabled={
-                                      folder.folderName === "Personal" ||
-                                      folder.folderName === "FormC Documents"
+                                      folder?.folderName === "Personal" ||
+                                      folder?.folderName === "FormC Documents"
                                     }
                                   >
                                     <FontAwesomeIcon icon={faTrash} />
@@ -2214,7 +2214,7 @@ const ViewFolder = ({ token }) => {
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      setMoveFileId(file._id);
+                                      setMoveFileId(file?._id);
                                       openMoveModal(selectedFolder);
                                     }}
                                   >
@@ -2238,7 +2238,7 @@ const ViewFolder = ({ token }) => {
                                   flexShrink: 0,
                                 }}
                                 onClick={() =>
-                                  handleDownload(file._id, file.fileName)
+                                  handleDownload(file?._id, file?.fileName)
                                 }
                               >
                                 <FontAwesomeIcon
@@ -2259,7 +2259,7 @@ const ViewFolder = ({ token }) => {
                                     flexShrink: 0,
                                   }}
                                   onClick={() => {
-                                    setDeletefileId(file._id);
+                                    setDeletefileId(file?._id);
                                     setIsdelete(true);
                                   }}
                                 >
