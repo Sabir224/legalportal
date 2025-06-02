@@ -1126,21 +1126,6 @@ export default function ViewFormC({ token }) {
                     Client Name
                   </TableCell>
 
-                  {/* Case Number Column - Second */}
-                  <TableCell
-                    sx={{
-                      minWidth: 120,
-                      whiteSpace: "nowrap",
-                      fontWeight: "bold",
-                      backgroundColor: "#001f3f",
-                      color: "#D4AF37",
-                      position: "sticky",
-                      top: 0,
-                      zIndex: 1,
-                    }}
-                  >
-                    Case Number
-                  </TableCell>
 
                   {/* Other Columns */}
                   {keys?.map((key) =>
@@ -1198,7 +1183,7 @@ export default function ViewFormC({ token }) {
                       },
                     }}
                   >
-                    {/* Client Name Cell - First */}
+                   
                     {/* Client Name Cell - First */}
                     <TableCell
                       sx={{
@@ -1265,7 +1250,7 @@ export default function ViewFormC({ token }) {
                         key === "clientName" ||
                         key === "caseId" ||
                         key === "userId" ||
-                        key === "userName"
+                        key === "userName"|| key==="caseNumber"
                       )
                         return null;
 

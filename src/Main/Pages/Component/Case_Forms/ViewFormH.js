@@ -1049,65 +1049,91 @@ export default function ViewFormH({ token }) {
 
                 <Box
                     sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        p: 1,
-                        width: "100%",
-                        height: "100%",
-                        overflow: "hidden",
-                    }}
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            p: 1,
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+          }}
                 >
-                    <TableContainer
-                        component={Paper}
-                        sx={{
-                            flex: 1,
-                            display: "flex",
-                            flexDirection: "column",
-                            overflowY: "auto",
-                            overflowX: "auto",
-                            maxHeight: "100%",
-                            borderRadius: "12px",
-                            boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
-                            "&::-webkit-scrollbar": {
-                                width: "8px",
-                                height: "8px",
-                            },
-                            "&::-webkit-scrollbar-track": {
-                                background: "rgba(0, 31, 63, 0.5)", // Dark navy track
-                            },
-                            "&::-webkit-scrollbar-thumb": {
-                                background: "#D4AF37", // Gold scrollbar thumb
-                                borderRadius: "4px",
-                            },
-                            "&::-webkit-scrollbar-thumb:hover": {
-                                background: "#E6C050", // Lighter gold on hover
-                            },
-                        }}
-                    >
-                        <Table
-                            stickyHeader
-                            size="small"
-                            aria-label="desktop table view"
-                            sx={{
-                                minWidth: "max-content",
-                                tableLayout: "fixed",
-                                width: "fit-content",
-                                backgroundColor: "#001f3f",
-                            }}
-                        >
-                            <TableHead>
-                                <TableRow
-                                    sx={{
-                                        "& .MuiTableCell-root": {
-                                            backgroundColor: "#001f3f !important",
-                                            color: "#D4AF37 !important",
-                                            borderBottom: "2px solid #D4AF37",
-                                        },
-                                    }}
+                     <TableContainer
+                                component={Paper}
+                                sx={{
+                                  flex: 1,
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  overflowY: "auto",
+                                  overflowX: "auto",
+                                  maxHeight: "100%",
+                                  borderRadius: "12px",
+                                  boxShadow: "0px 4px 20px rgba(0, 0, 0, 0.2)",
+                                  "&::-webkit-scrollbar": {
+                                    width: "8px",
+                                    height: "8px",
+                                  },
+                                  "&::-webkit-scrollbar-track": {
+                                    background: "rgba(0, 31, 63, 0.5)", // Dark navy track
+                                  },
+                                  "&::-webkit-scrollbar-thumb": {
+                                    background: "#D4AF37", // Gold scrollbar thumb
+                                    borderRadius: "4px",
+                                  },
+                                  "&::-webkit-scrollbar-thumb:hover": {
+                                    background: "#E6C050", // Lighter gold on hover
+                                  },
+                                }}
+                              >
+                                <Table
+                                  stickyHeader
+                                  size="small"
+                                  aria-label="desktop table view"
+                                  sx={{
+                                    minWidth: "max-content",
+                                    tableLayout: "fixed",
+                                    width: "fit-content",
+                                    backgroundColor: "#001f3f",
+                                    borderCollapse: "collapse",
+                                    "& .MuiTableCell-root": {
+                                      border: "none !important",
+                                    },
+                                  }}
                                 >
+                       
+                            <TableHead>
+                                            <TableRow
+                                              sx={{
+                                                borderBottom: "2px solid #D4AF37",
+                                                "& .MuiTableCell-root": {
+                                                  backgroundColor: "#001f3f !important",
+                                                  color: "#D4AF37 !important",
+                                                  borderBottom: "2px solid #D4AF37",
+                                                },
+                                              }}
+                                            >
+                                            {/* Client Name Column - First */}
+                                                              <TableCell
+                                                                sx={{
+                                                                  minWidth: 120,
+                                                                  whiteSpace: "nowrap",
+                                                                  fontWeight: "bold",
+                                                                  backgroundColor: "#001f3f",
+                                                                  color: "#D4AF37",
+                                                                  position: "sticky",
+                                                                  top: 0,
+                                                                  left: 0,
+                                                                  zIndex: 3,
+                                                                }}
+                                                              >
+                                                                Client Name
+                                                              </TableCell>
+                                            
                                     {keys?.map((key) =>
-                                        key !== "userId" && key !== "userName" && key !== "caseId" ? (
+                                        key !== "clientName" &&
+                    key !== "caseId" &&
+                    key !== "userId" &&
+                    key !== "userName"? (
                                             <TableCell
                                                 key={key}
                                                 sx={{
@@ -1145,9 +1171,59 @@ export default function ViewFormH({ token }) {
 
                             <TableBody>
                                 {todos?.map((todo, index) => (
-                                    <TableRow key={todo._id?.value || todo.id}>
+                                   <TableRow
+                                                      key={todo._id?.value || todo.id}
+                                                      sx={{
+                                                        "& .MuiTableCell-root": {
+                                                          borderBottom: "1px solid rgba(212, 175, 55, 0.2)",
+                                                        },
+                                  
+                                                        "&:not(:last-child)": {
+                                                          borderBottom: "1px solid rgba(212, 175, 55, 0.3)",
+                                                        },
+                                                      }}
+                                                    >
+                                                     {/* Client Name Cell - First */}
+                                                                        <TableCell
+                                                                          sx={{
+                                                                            overflow: "auto",
+                                                                            textOverflow: "ellipsis",
+                                                                            whiteSpace: "normal",
+                                                                            position: "sticky",
+                                                                            left: 0,
+                                                                            backgroundColor: "#0a2d56",
+                                                                            zIndex: 2,
+                                                                            color: "#676a6e",
+                                                                            maxHeight: "120px",
+                                                                            minWidth: "180px",
+                                                                            // Border styling
+                                                                            borderRight: "1px solid rgba(212, 175, 55, 0.3)",
+                                                                            borderTop: "1px solid rgba(212, 175, 55, 0.3)",
+                                                                            borderBottom: "1px solid rgba(212, 175, 55, 0.3)",
+                                                                            // Remove left border to avoid double border with table edge
+                                                                            borderLeft: "none",
+                                                                            // Important to override any other border styles
+                                                                            "&::after": {
+                                                                              content: '""',
+                                                                              position: "absolute",
+                                                                              right: 0,
+                                                                              top: 0,
+                                                                              bottom: 0,
+                                                                              width: "1px",
+                                                                              backgroundColor: "rgba(212, 175, 55, 0.3)",
+                                                                            },
+                                                                          }}
+                                                                        >
+                                                                          {todo.clientName?.value || "Client"}
+                                                                        </TableCell>
                                         {keys?.map((key) => {
-                                            if (key === "userId" || key === "userName" || key === "caseId") return null;
+                                           if (
+                        key === "clientName" ||
+                        key === "caseId" ||
+                        key === "userId" ||
+                        key === "userName"
+                      )
+                         return null;
 
                                             const field = todo[key];
                                             if (!field) return <TableCell key={key}></TableCell>;
@@ -1163,7 +1239,14 @@ export default function ViewFormH({ token }) {
                                                 const checklistKeys = Object.keys(value || {});
 
                                                 content = (
-                                                    <FormControl fullWidth size="small" sx={{ minWidth: 120 }}>
+                                                   <FormControl
+                                                                               fullWidth
+                                                                               size="medium"
+                                                                               sx={{
+                                                                                 minWidth: 140,
+                                                                                 border: "none",
+                                                                               }}
+                                                                             >
                                                         <Select
                                                             multiple
                                                             value={checklistKeys.filter((k) => value[k])} // only selected keys
@@ -1176,30 +1259,56 @@ export default function ViewFormH({ token }) {
                                                             onChange={() => { }} // Prevent editing
                                                             // make it readonly
                                                             sx={{
-                                                                "& .MuiSelect-select": {
-                                                                    py: 1,
-                                                                    color: "#676a6e",
-                                                                },
-                                                            }}
-                                                            MenuProps={{
-                                                                PaperProps: {
-                                                                    sx: {
-                                                                        bgcolor: "#0a2d56",
-                                                                        color: "white",
-                                                                        "& .MuiMenuItem-root": {
-                                                                            "&:hover": {
-                                                                                bgcolor: "rgba(212, 175, 55, 0.2)",
-                                                                            },
-                                                                        },
-                                                                    },
-                                                                },
-                                                            }}
+                                backgroundColor: "rgba(212, 175, 55, 0.1)",
+                                borderRadius: "4px",
+                                "& .MuiSelect-select": {
+                                  py: 1.5,
+                                  color: "#676a6e",
+                                },
+                                "& .MuiOutlinedInput-notchedOutline": {
+                                  border: "none !important",
+                                },
+                                "&:hover": {
+                                  backgroundColor: "rgba(212, 175, 55, 0.15)",
+                                },
+                                "&.Mui-focused": {
+                                  backgroundColor: "rgba(212, 175, 55, 0.2)",
+                                },
+                                "& .MuiSvgIcon-root": {
+                                  color: "rgba(212, 175, 55, 0.7)",
+                                },
+                              }}
+                              MenuProps={{
+                                PaperProps: {
+                                  sx: {
+                                    bgcolor: "#0a2d56",
+                                    color: "white",
+                                    maxHeight: "200px",
+                                    border: "1px solid rgba(212, 175, 55, 0.3)",
+                                    "& .MuiMenuItem-root": {
+                                      minHeight: "48px",
+                                      "&:hover": {
+                                        bgcolor: "rgba(212, 175, 55, 0.2)",
+                                      },
+                                    },
+                                  },
+                                },
+                              }}
                                                         >
                                                             {checklistKeys.map((optionKey) => (
                                                                 <MenuItem key={optionKey} value={optionKey} disabled>
                                                                     <Checkbox
                                                                         checked={!!value[optionKey]}
-                                                                        sx={{ color: "white", "&.Mui-checked": { color: "#d4af37" } }}
+                                                                        sx={{
+                              p: 1,
+                              color: "#D4AF37",
+                              backgroundColor: "rgba(212, 175, 55, 0.1)",
+                              borderRadius: "4px",
+                              "&.Mui-checked": {
+                                color: "#D4AF37",
+                                backgroundColor: "rgba(212, 175, 55, 0.2)",
+                              },
+                            }}
                                                                     />
                                                                     <ListItemText primary={optionKey.toUpperCase()} />
                                                                 </MenuItem>
@@ -1238,13 +1347,16 @@ export default function ViewFormH({ token }) {
                                                     <Checkbox
                                                         checked={Boolean(value)}
                                                         disabled
-                                                        sx={{
-                                                            p: 0.5,
-                                                            color: "#D4AF37",
-                                                            "&.Mui-checked": {
-                                                                color: "#D4AF37",
-                                                            },
-                                                        }}
+                                                         sx={{
+                              p: 1,
+                              color: "#D4AF37",
+                              backgroundColor: "rgba(212, 175, 55, 0.1)",
+                              borderRadius: "4px",
+                              "&.Mui-checked": {
+                                color: "#D4AF37",
+                                backgroundColor: "rgba(212, 175, 55, 0.2)",
+                              },
+                            }}
                                                     />
                                                 );
                                             } else if (normalizedType === "date") {
@@ -1264,13 +1376,21 @@ export default function ViewFormH({ token }) {
                                                                 : ""
                                                         }
                                                         disabled
-                                                        sx={{
-                                                            minWidth: 140,
-                                                            "& .MuiInputBase-input": {
-                                                                py: 1,
-                                                                color: "#676a6e",
-                                                            },
-                                                        }}
+                                                      sx={{
+                                  minWidth: 160,
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    border: "none !important",
+                                  },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    border: "none !important",
+                                  },
+                                  "&:hover": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.15)",
+                                  },
+                                  "&.Mui-focused": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.2)",
+                                  },
+                                }}
                                                     />
 
                                                 );
@@ -1283,32 +1403,38 @@ export default function ViewFormH({ token }) {
                                                         value={value || ""}
                                                         disabled
                                                         sx={{
-                                                            minWidth: 120,
-                                                            "& .MuiInputBase-input": {
-                                                                py: 1,
-                                                                color: "#676a6e",
-                                                            },
-                                                        }}
+                                  minWidth: 160,
+                                  "& .MuiOutlinedInput-notchedOutline": {
+                                    border: "none !important",
+                                  },
+                                  "&:hover .MuiOutlinedInput-notchedOutline": {
+                                    border: "none !important",
+                                  },
+                                  "&:hover": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.15)",
+                                  },
+                                  "&.Mui-focused": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.2)",
+                                  },
+                                }}
                                                     />
                                                 );
                                             }
 
                                             return (
-                                                <TableCell
-                                                    key={key}
-                                                    sx={{
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                        whiteSpace: "nowrap",
-                                                        position: key === "clientName" ? "sticky" : "static",
-                                                        left: key === "clientName" ? 0 : undefined,
-                                                        backgroundColor: key === "clientName" ? "#0a2d56" : undefined,
-                                                        zIndex: key === "clientName" ? 2 : 1,
-                                                        color: "#676a6e",
-                                                    }}
-                                                >
-                                                    {content}
-                                                </TableCell>
+                                               <TableCell
+                                                                         key={key}
+                                                                         sx={{
+                                                                           overflow: "auto",
+                                                                           textOverflow: "ellipsis",
+                                                                           whiteSpace: "normal",
+                                                                           color: "#676a6e",
+                                                                           maxHeight: "120px",
+                                                                           minWidth: "180px",
+                                                                         }}
+                                                                       >
+                                                                         {content}
+                                                                       </TableCell>
                                             );
                                         })}
 
