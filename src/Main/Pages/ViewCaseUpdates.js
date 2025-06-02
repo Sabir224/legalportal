@@ -81,11 +81,13 @@ const ViewCaseUpdates = ({ token }) => {
     }
   };
 
-  const fetchUserDetails = async (email) => {
+  const fetchUserDetails = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5001/api/users/getUserDetail/${email}`);
+      console.log(id)
+      const res = await fetch(`${ApiEndPoint}getLawyerDetailsById/${id}`);
       const data = await res.json();
-      setSelectedUser(data);
+      console.log("data=",data)
+      setSelectedUser(data.user);
       setShowUserModal(true);
     } catch (err) {
       alert('Failed to fetch user details');
@@ -113,7 +115,7 @@ const ViewCaseUpdates = ({ token }) => {
                   <i className="fas fa-user me-1"></i>
                   <span
                     style={{ cursor: 'pointer', textDecoration: 'underline' }}
-                    onClick={() => fetchUserDetails(update.senderEmail)}
+                    onClick={() => fetchUserDetails(update.sentBy)}
                   >
                     {update.senderName || 'Unknown Sender'}
                   </span>
@@ -178,85 +180,85 @@ const ViewCaseUpdates = ({ token }) => {
           </div>
         )}
       </div>
-{/* User Info Modal */}
-<Modal show={showUserModal} onHide={() => setShowUserModal(false)} centered size="sm">
-  <div
-    style={{
-      borderRadius: '8px',
-      overflow: 'hidden',
-      backgroundColor: '#001F3F',
-    }}
-  >
-    <Modal.Body
-      className="p-3 text-center"
-      style={{
-        backgroundColor: '#001F3F',
-        color: 'white',
-      }}
-    >
-      {selectedUser ? (
-        <>
-          <div
-            className="mx-auto mb-3"
+      {/* User Info Modal */}
+      <Modal show={showUserModal} onHide={() => setShowUserModal(false)} centered size="sm">
+        <div
+          style={{
+            borderRadius: '8px',
+            overflow: 'hidden',
+            backgroundColor: '#001F3F',
+          }}
+        >
+          <Modal.Body
+            className="p-3 text-center"
             style={{
-              width: '100px',
-              height: '100px',
-              borderRadius: '50%',
-              overflow: 'hidden',
-              border: '2px solid white',
+              backgroundColor: '#001F3F',
+              color: 'white',
             }}
           >
-            <img
-              src={selectedUser?.ProfilePicture}
-              alt="Profile"
-              className="w-100 h-100 object-fit-cover"
-            />
-          </div>
-          <h5 className="fw-bold mb-2">{selectedUser?.UserName || 'N/A'}</h5>
-          <p className="mb-1">
-            <span className="fw-semibold">Email:</span> {selectedUser?.Email || 'N/A'}
-          </p>
-          <p className="mb-0">
-            <span className="fw-semibold">Role:</span> {selectedUser?.Role || 'N/A'}
-          </p>
-        </>
-      ) : (
-        <div className="py-5">
-          <div className="spinner-border text-light" role="status"></div>
-        </div>
-      )}
-    </Modal.Body>
+            {selectedUser ? (
+              <>
+                <div
+                  className="mx-auto mb-3"
+                  style={{
+                    width: '100px',
+                    height: '100px',
+                    borderRadius: '50%',
+                    overflow: 'hidden',
+                    border: '2px solid white',
+                  }}
+                >
+                  <img
+                    src={selectedUser?.ProfilePicture}
+                    alt="Profile"
+                    className="w-100 h-100 object-fit-cover"
+                  />
+                </div>
+                <h5 className="fw-bold mb-2">{selectedUser?.UserName || 'N/A'}</h5>
+                <p className="mb-1">
+                  <span className="fw-semibold">Email:</span> {selectedUser?.Email || 'N/A'}
+                </p>
+                <p className="mb-0">
+                  <span className="fw-semibold">Role:</span> {selectedUser?.Role || 'N/A'}
+                </p>
+              </>
+            ) : (
+              <div className="py-5">
+                <div className="spinner-border text-light" role="status"></div>
+              </div>
+            )}
+          </Modal.Body>
 
-    <Modal.Footer
-      style={{
-        backgroundColor: '#001F3F',
-        borderTop: 'none',
-        justifyContent: 'center',
-      }}
-    >
-      <Button
-        style={{
-          backgroundColor: '#0e1a2b',
-          color: 'white',
-          border: '2px solid #c0a262',
-          padding: '8px 20px',
-          borderRadius: '12px',
-          fontWeight: '500',
-          fontSize: '15px',
-          lineHeight: '1',
-          minWidth: '80px',
-          textAlign: 'center',
-          transition: 'background-color 0.3s ease',
-        }}
-        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0a262'}
-        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0e1a2b'}
-        onClick={() => setShowUserModal(false)}
-      >
-        Close
-      </Button>
-    </Modal.Footer>
-  </div>
-</Modal>
+          <Modal.Footer
+            style={{
+              backgroundColor: '#001F3F',
+              borderTop: 'none',
+              justifyContent: 'center',
+            }}
+          >
+            <Button
+              style={{
+                backgroundColor: '#0e1a2b',
+                color: 'white',
+                border: '2px solid #c0a262',
+                padding: '8px 20px',
+                borderRadius: '12px',
+                fontWeight: '500',
+                fontSize: '15px',
+                lineHeight: '1',
+                minWidth: '80px',
+                textAlign: 'center',
+                transition: 'background-color 0.3s ease',
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c0a262'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0e1a2b'}
+              onClick={() => setShowUserModal(false)}
+            >
+              Close
+            </Button>
+          </Modal.Footer>
+        </div>
+      </Modal>
 
 
     </div>

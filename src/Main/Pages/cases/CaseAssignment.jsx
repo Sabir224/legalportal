@@ -7,6 +7,7 @@ import { assignCase } from "../../../REDUX/CaseSice";
 import { ApiEndPoint } from "../Component/utils/utlis";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useAlert } from "../../../Component/AlertContext";
 
 export const permissionList = {
   admin: "ALL",
@@ -30,6 +31,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   const [userPermissions, setUserPermissions] = useState({});
   const [clientdetails, setClientDetails] = useState();
   const [clientname, setclientname] = useState(null);
+  const { showLoading, showSuccess, showError } = useAlert();
 
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.cases);
@@ -63,7 +65,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           setSelectedUsers([
             {
               value: clientUser,
-              label: `${clientUser.UserName} (${capitalizeFirst(clientUser.Role)})`,
+              label: `${clientUser.UserName} (${capitalizeFirst(
+                clientUser.Role
+              )})`,
               isClient: true,
             },
           ]);
@@ -78,7 +82,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
       return [];
     }
   };
-
 
   useEffect(() => {
     if (!selectedCase || !casedetails || users.length === 0) return;
@@ -185,9 +188,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
 
   const handleAssign = async (e) => {
     e.preventDefault();
-
+    showLoading();
     if (!selectedCase || selectedUsers.length === 0) {
-      alert("Please select a case and users.");
+      showError("Please select a case and users.");
       return;
     }
 
@@ -209,8 +212,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
     // Build client permissions as a map (even if the client exists)
     const clientPermissionMap = CaseClient
       ? {
-        [CaseClient]: clientPermissions[CaseClient] || [],
-      }
+          [CaseClient]: clientPermissions[CaseClient] || [],
+        }
       : {};
 
     console.log("Users to Assign:", usersData);
@@ -224,13 +227,13 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           caseId: selectedCase,
           users: usersData,
           permissionList: userPermissions,
-          clientPermissions: clientPermissionMap,  // Sending client permissions as a map
+          clientPermissions: clientPermissionMap, // Sending client permissions as a map
           CaseClientId: CaseClient || null,
         })
       ).unwrap();
 
       console.log("Assignment Successful:", response);
-      alert("Users assigned successfully!");
+      showSuccess("Users assigned successfully!");
 
       // Reset the form state
       setSelectedUsers([]);
@@ -239,10 +242,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
       setclientname(null);
     } catch (err) {
       console.error("Error assigning case:", err);
-      alert(`Failed to assign users: ${err.message || err}`);
+      showError(`Failed to assign users: ${err.message || err}`);
     }
   };
-
 
   const capitalizeFirst = (str) => {
     if (!str) return "";
@@ -252,223 +254,36 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   // const [selectedUsers, setSelectedUsers] = useState([]);
   // const [userPermissions, setUserPermissions] = useState({});
   const [clientPermissions, setClientPermissions] = useState({});
+  const customStyles = {
+    menuList: (provided) => ({
+      ...provided,
+      maxHeight: "100px",
+      overflowY: "auto",
+    }),
+    option: (provided) => ({
+      ...provided,
+      height: "40px", // fixed height per option in dropdown
+      display: "flex",
+      alignItems: "center",
+    }),
+    valueContainer: (provided) => ({
+      ...provided,
+      maxHeight: "70px", // fixed height for selected values container
+      overflowY: "auto", // enable vertical scrolling if overflow
+    }),
+  };
+
   return (
     <div className="container mt-1 p-4 rounded shadow main-bgcolor">
       {error && <div className="alert alert-danger">{error}</div>}
 
       <form onSubmit={handleAssign}>
-        {/* <div className="mb-4">
-          <label className="form-label fw-bold" style={{ color: "#c0a262" }}>
-            Select Users
-          </label>
-          <Select
-            options={users.map((user) => ({
-              value: user,
-              label: `${user.UserName}   (${capitalizeFirst(user.Role)})`,
-            }))}
-            isMulti
-            className="basic-multi-select"
-            classNamePrefix="select"
-            value={selectedUsers}
-            onChange={(selected) => setSelectedUsers(selected || [])}
-            placeholder="Search & Select Users..."
-            styles={{
-              control: (base) => ({
-                ...base,
-                backgroundColor: "#0E1833",
-                color: "#FFFFFF",
-                border: "1px solid #c0a262",
-              }),
-              menu: (base) => ({
-                ...base,
-                backgroundColor: "#0E1833",
-              }),
-              option: (base, { isFocused }) => ({
-                ...base,
-                backgroundColor: isFocused ? "#c0a262" : "#0E1833",
-                color: "#FFFFFF",
-              }),
-            }}
-          />
-        </div> */}
-        {/* <Select
-          options={users.map((user) => ({
-            value: user,
-            label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
-          }))}
-          isMulti
-          className="basic-multi-select"
-          classNamePrefix="select"
-          value={selectedUsers}
-          onChange={(selected) => {
-            if (!selected) {
-              setSelectedUsers([]);
-              return;
-            }
-
-            // Separate clients and others
-            const clients = selected.filter((s) => s.value.Role.toLowerCase() === "client");
-            const others = selected.filter((s) => s.value.Role.toLowerCase() !== "client");
-
-            // Only allow one client, keep latest selected client if multiple
-            const latestClient = clients.length > 0 ? [clients[clients.length - 1]] : [];
-
-            // Combine into final selection
-            setSelectedUsers([...latestClient, ...others]);
-          }}
-          placeholder="Search & Select Users..."
-          styles={{
-            control: (base) => ({
-              ...base,
-              backgroundColor: "#0E1833",
-              color: "#FFFFFF",
-              border: "1px solid #c0a262",
-            }),
-            menu: (base) => ({
-              ...base,
-              backgroundColor: "#0E1833",
-            }),
-            option: (base, { isFocused }) => ({
-              ...base,
-              backgroundColor: isFocused ? "#c0a262" : "#0E1833",
-              color: "#FFFFFF",
-            }),
-          }}
-        />
-
-
-
-        {selectedUsers.length > 0 && (
-          <div
-            className="mt-4"
-            style={{
-              maxHeight: "340px",
-              overflowY: "auto",
-              paddingRight: "10px",
-            }}
-          >
-
-            <h5 style={{ color: "#c0a262" }}>Assigned Users</h5>
-
-           
-              {clientname !== null &&
-                <div
-                  className="p-3 mb-3 rounded shadow-sm"
-                  style={{
-                    backgroundColor: "#1A2B4A",
-                    border: "1px solid #c0a262",
-                  }}
-                >
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h6 className="m-0" style={{ color: "#FFFFFF" }}>
-                      {clientname} (Client)
-                    </h6>
-                    <button
-                      className="btn btn-sm d-flex align-items-center justify-content-center"
-                      style={{
-                        color: "white",
-                        border: "none",
-                        width: "30px",
-                        height: "30px",
-                        borderRadius: "50%",
-                      }}
-                  disabled={true} 
-                    >
-                      <FontAwesomeIcon icon={faTimes} size={16} />
-                    </button>
-                  </div>
-                </div>
-              }
-            
-
-            {selectedUsers.map((user) => (
-              <div
-                key={user.value._id}
-                className="p-3 mb-3 rounded shadow-sm"
-                style={{
-                  backgroundColor: "#1A2B4A",
-                  border: "1px solid #c0a262",
-                }}
-              >
-                <div className="d-flex justify-content-between align-items-center">
-                  <h6 className="m-0" style={{ color: "#FFFFFF" }}>
-                    {user.label}
-                  </h6>
-                  <button
-                    className="btn btn-sm d-flex align-items-center justify-content-center"
-                    style={{
-                      color: "white",
-                      border: "none",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                    }}
-                    onClick={() =>
-                      setSelectedUsers(
-                        selectedUsers.filter((u) => u.value._id !== user.value._id)
-                      )
-                    }
-                  >
-                    <FontAwesomeIcon icon={faTimes} size={16} />
-                  </button>
-                </div>
-                {user.value.Role !== 'client' ? (
-                  <div className="mt-3">
-                    <label
-                      className="form-label fw-bold"
-                      style={{ color: "#c0a262" }}
-                    >
-                      Case Permissions
-                    </label>
-
-                    {permissionList?.legal?.map((perm) => (
-                      <div key={perm} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          value={perm}
-                          checked={(userPermissions[user.value._id] || []).includes(
-                            perm
-                          )}
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setUserPermissions((prev) => ({
-                              ...prev,
-                              [user.value._id]: checked
-                                ? [...(prev[user.value._id] || []), perm]
-                                : prev[user.value._id].filter((p) => p !== perm),
-                            }));
-                          }}
-                        />
-                        <label
-                          className="form-check-label"
-                          style={{ color: "#FFFFFF" }}
-                        >
-                          {permissionLabels[perm] || perm}{" "}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )
-                  :
-                  (
-
-                    <div>
-
-                    </div>
-                  )}
-              </div>
-
-            ))}
-          </div>
-        )} */}
-
         <Select
           isMulti
           value={selectedUsers}
           onChange={(selectedOptions) => {
             if (!selectedOptions) return;
-          
+
             const sanitizedOptions = selectedOptions.map((opt) => {
               const user = opt?.value || opt;
               return {
@@ -477,24 +292,21 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                 isClient: user.Role === "client",
               };
             });
-          
-            // Separate clients and non-clients
+
             const clients = sanitizedOptions.filter((opt) => opt.isClient);
             const nonClients = sanitizedOptions.filter((opt) => !opt.isClient);
-          
+
             let finalSelection = [];
-          
+
             if (clients.length > 0) {
-              // If there's at least one client, only pick the last one (override others)
               const latestClient = clients[clients.length - 1];
               finalSelection = [latestClient, ...nonClients];
             } else {
               finalSelection = nonClients;
             }
-          
+
             setSelectedUsers(finalSelection);
           }}
-          
           options={[
             ...(!casedetails?.ClientId
               ? users
@@ -508,6 +320,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           isOptionDisabled={(option) =>
             option.value?.Role === "client" && !!casedetails?.ClientId
           }
+          styles={customStyles}
         />
 
         {selectedUsers.length > 0 && (
@@ -520,140 +333,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
             }}
           >
             <h5 style={{ color: "#c0a262" }}>Assigned Users</h5>
-
-            {/* {selectedUsers.map((user) => (
-              <div
-                key={user?.value?._id}
-                className="p-3 mb-3 rounded shadow-sm"
-                style={{
-                  backgroundColor: "#1A2B4A",
-                  border: "1px solid #c0a262",
-                }}
-              >
-                <div className="d-flex justify-content-between align-items-center">
-                  <h6 className="m-0" style={{ color: "#FFFFFF" }}>
-                    {user?.label || "Unknown"}
-                  </h6>
-                  <button
-                    className="btn btn-sm d-flex align-items-center justify-content-center"
-                    style={{
-                      color: "white",
-                      border: "none",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                    }}
-                    disabled={clientname !== null}
-                    onClick={() => {
-                      const newList = selectedUsers.filter(
-                        (u) => u?.value?._id !== user?.value?._id
-                      );
-                      setSelectedUsers(newList);
-                      setUserPermissions((prev) => {
-                        const updated = { ...prev };
-                        delete updated[user?.value?._id];
-                        return updated;
-                      });
-                      setClientPermissions((prev) => {
-                        const updated = { ...prev };
-                        delete updated[user?.value?._id];
-                        return updated;
-                      });
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faTimes} size={16} />
-                  </button>
-                </div>
-
-                {user?.value?.Role?.toLowerCase() !== "client" ? (
-                  <div className="mt-3">
-                    <label
-                      className="form-label fw-bold"
-                      style={{ color: "#c0a262" }}
-                    >
-                      Case Permissions
-                    </label>
-
-                    {permissionList?.legal?.map((perm) => (
-                      <div key={perm} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          value={perm}
-                          checked={
-                            (userPermissions[user?.value?._id] || []).includes(perm)
-                          }
-                          onChange={(e) => {
-                            const checked = e.target.checked;
-                            setUserPermissions((prev) => ({
-                              ...prev,
-                              [user?.value?._id]: checked
-                                ? [...(prev[user?.value?._id] || []), perm]
-                                : (prev[user?.value?._id] || []).filter(
-                                  (p) => p !== perm
-                                ),
-                            }));
-                          }}
-                        />
-                        <label
-                          className="form-check-label"
-                          style={{ color: "#FFFFFF" }}
-                        >
-                          {permissionLabels[perm] || perm}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div>
-                    {clientname === null && (
-                      <div>
-                        {user?.value?.Role?.toLowerCase() === "client" && (
-                          <div className="mt-3">
-                            <label
-                              className="form-label fw-bold"
-                              style={{ color: "#c0a262" }}
-                            >
-                              Client Permissions
-                            </label>
-
-                            {clientPermissionList.map((perm) => (
-                              <div key={perm} className="form-check">
-                                <input
-                                  className="form-check-input"
-                                  type="checkbox"
-                                  value={perm}
-                                  checked={
-                                    (clientPermissions[user?.value?._id] || []).includes(perm)
-                                  }
-                                  onChange={(e) => {
-                                    const checked = e.target.checked;
-                                    setClientPermissions((prev) => ({
-                                      ...prev,
-                                      [user?.value?._id]: checked
-                                        ? [...(prev[user?.value?._id] || []), perm]
-                                        : (prev[user?.value?._id] || []).filter(
-                                          (p) => p !== perm
-                                        ),
-                                    }));
-                                  }}
-                                />
-                                <label
-                                  className="form-check-label"
-                                  style={{ color: "#FFFFFF" }}
-                                >
-                                  {ClientpermissionLabels[perm] || perm}
-                                </label>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            ))} */}
 
             {selectedUsers.map((user) => (
               <div
@@ -714,9 +393,9 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                           className="form-check-input"
                           type="checkbox"
                           value={perm}
-                          checked={
-                            (userPermissions[user?.value?._id] || []).includes(perm)
-                          }
+                          checked={(
+                            userPermissions[user?.value?._id] || []
+                          ).includes(perm)}
                           onChange={(e) => {
                             const checked = e.target.checked;
                             setUserPermissions((prev) => ({
@@ -724,8 +403,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                               [user?.value?._id]: checked
                                 ? [...(prev[user?.value?._id] || []), perm]
                                 : (prev[user?.value?._id] || []).filter(
-                                  (p) => p !== perm
-                                ),
+                                    (p) => p !== perm
+                                  ),
                             }));
                           }}
                         />
@@ -753,9 +432,11 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                           className="form-check-input"
                           type="checkbox"
                           value={perm}
-                          checked={
-                            (clientPermissions[user?.value?._id] || casedetails.ClientPermissions || []).includes(perm)
-                          }
+                          checked={(
+                            clientPermissions[user?.value?._id] ||
+                            casedetails.ClientPermissions ||
+                            []
+                          ).includes(perm)}
                           onChange={(e) => {
                             const checked = e.target.checked;
                             setClientPermissions((prev) => ({
@@ -763,8 +444,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                               [user?.value?._id]: checked
                                 ? [...(prev[user?.value?._id] || []), perm]
                                 : (prev[user?.value?._id] || []).filter(
-                                  (p) => p !== perm
-                                ),
+                                    (p) => p !== perm
+                                  ),
                             }));
                           }}
                         />
@@ -780,7 +461,6 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                 )}
               </div>
             ))}
-
           </div>
         )}
 

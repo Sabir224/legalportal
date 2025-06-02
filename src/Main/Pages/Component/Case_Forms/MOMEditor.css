@@ -1,0 +1,62 @@
+.mom-container {
+  max-width: 800px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+}
+
+.header {
+  text-align: center;
+  border-bottom: 2px solid #ccc;
+  margin-bottom: 20px;
+}
+
+.logo {
+  max-height: 80px;
+  margin-bottom: 10px;
+}
+
+.attendees {
+  margin-bottom: 20px;
+  border-left: 4px solid #ddd;
+  padding-left: 10px;
+}
+
+.attendees div {
+  margin-bottom: 8px;
+}
+
+.heading-input {
+  font-weight: bold;
+  color: darkred;
+  margin-top: 20px;
+  font-size: 18px;
+  display: block;
+  width: 100%;
+}
+
+.point-input,
+.subpoint-input,
+.subsub-input {
+  display: block;
+  margin: 5px 0;
+  width: 100%;
+}
+
+.add-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  margin-bottom: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.small-btn {
+  font-size: 12px;
+  margin-left: 10px;
+  color: #007bff;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

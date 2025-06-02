@@ -471,12 +471,12 @@ export default function ViewFormC({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-        (key) =>
-          key !== "_id" &&
-          key !== "__v" &&
-          key !== "subtasks" &&
-          key !== "parentId"
-      )
+          (key) =>
+            key !== "_id" &&
+            key !== "__v" &&
+            key !== "subtasks" &&
+            key !== "parentId"
+        )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -1006,7 +1006,7 @@ export default function ViewFormC({ token }) {
         throw new Error("Failed to add user");
       }
 
-      showSuccess("✅ Account Create sucessfully.");
+      showSuccess("✅ Account Created sucessfully.");
       fetchtask();
       // alert("✅ User Added Successfully!");
     } catch (error) {
@@ -1029,14 +1029,13 @@ export default function ViewFormC({ token }) {
         flexDirection: "column",
       }}
     >
-      <div className="p-1" style={{ flexShrink: 0 }}>
+      <div className="p-0" style={{ flexShrink: 0 }}>
         <button
           className="btn btn-success"
           onClick={() => {
             dispatch(FormCDetails(null));
-            dispatch(screenChange(16))
-          }
-          }
+            dispatch(screenChange(16));
+          }}
         >
           + New form
         </button>
@@ -1051,7 +1050,7 @@ export default function ViewFormC({ token }) {
             flex: 1,
             display: "flex",
             flexDirection: "column",
-            p: 3,
+            p: 1,
             width: "100%",
             height: "100%",
             overflow: "hidden",
@@ -1093,11 +1092,16 @@ export default function ViewFormC({ token }) {
                 tableLayout: "fixed",
                 width: "fit-content",
                 backgroundColor: "#001f3f",
+                borderCollapse: "collapse",
+                "& .MuiTableCell-root": {
+                  border: "none !important",
+                },
               }}
             >
               <TableHead>
                 <TableRow
                   sx={{
+                    borderBottom: "2px solid #D4AF37",
                     "& .MuiTableCell-root": {
                       backgroundColor: "#001f3f !important",
                       color: "#D4AF37 !important",
@@ -1105,8 +1109,45 @@ export default function ViewFormC({ token }) {
                     },
                   }}
                 >
+                  {/* Client Name Column - First */}
+                  <TableCell
+                    sx={{
+                      minWidth: 120,
+                      whiteSpace: "nowrap",
+                      fontWeight: "bold",
+                      backgroundColor: "#001f3f",
+                      color: "#D4AF37",
+                      position: "sticky",
+                      top: 0,
+                      left: 0,
+                      zIndex: 3,
+                    }}
+                  >
+                    Client Name
+                  </TableCell>
+
+                  {/* Case Number Column - Second */}
+                  <TableCell
+                    sx={{
+                      minWidth: 120,
+                      whiteSpace: "nowrap",
+                      fontWeight: "bold",
+                      backgroundColor: "#001f3f",
+                      color: "#D4AF37",
+                      position: "sticky",
+                      top: 0,
+                      zIndex: 1,
+                    }}
+                  >
+                    Case Number
+                  </TableCell>
+
+                  {/* Other Columns */}
                   {keys?.map((key) =>
-                    key !== "userId" && key !== "userName" ? (
+                    key !== "clientName" &&
+                    key !== "caseId" &&
+                    key !== "userId" &&
+                    key !== "userName" ? (
                       <TableCell
                         key={key}
                         sx={{
@@ -1117,14 +1158,15 @@ export default function ViewFormC({ token }) {
                           color: "#D4AF37",
                           position: "sticky",
                           top: 0,
-                          left: key === "clientName" ? 0 : undefined,
-                          zIndex: key === "clientName" ? 3 : 1,
+                          zIndex: 1,
                         }}
                       >
                         {formatHeaderLabel(key)}
                       </TableCell>
                     ) : null
                   )}
+
+                  {/* Actions Column */}
                   <TableCell
                     sx={{
                       width: "120px",
@@ -1143,10 +1185,89 @@ export default function ViewFormC({ token }) {
               </TableHead>
 
               <TableBody>
-                {todos?.map((todo, index) => (
-                  <TableRow key={todo._id?.value || todo.id}>
+                {todos?.map((todo) => (
+                  <TableRow
+                    key={todo._id?.value || todo.id}
+                    sx={{
+                      "& .MuiTableCell-root": {
+                        borderBottom: "1px solid rgba(212, 175, 55, 0.2)",
+                      },
+
+                      "&:not(:last-child)": {
+                        borderBottom: "1px solid rgba(212, 175, 55, 0.3)",
+                      },
+                    }}
+                  >
+                    {/* Client Name Cell - First */}
+                    {/* Client Name Cell - First */}
+                    <TableCell
+                      sx={{
+                        overflow: "auto",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "normal",
+                        position: "sticky",
+                        left: 0,
+                        backgroundColor: "#0a2d56",
+                        zIndex: 2,
+                        color: "#676a6e",
+                        maxHeight: "120px",
+                        minWidth: "180px",
+                        // Border styling
+                        borderRight: "1px solid rgba(212, 175, 55, 0.3)",
+                        borderTop: "1px solid rgba(212, 175, 55, 0.3)",
+                        borderBottom: "1px solid rgba(212, 175, 55, 0.3)",
+                        // Remove left border to avoid double border with table edge
+                        borderLeft: "none",
+                        // Important to override any other border styles
+                        "&::after": {
+                          content: '""',
+                          position: "absolute",
+                          right: 0,
+                          top: 0,
+                          bottom: 0,
+                          width: "1px",
+                          backgroundColor: "rgba(212, 175, 55, 0.3)",
+                        },
+                      }}
+                    >
+                      {todo.clientName?.value || "Client"}
+                    </TableCell>
+
+                    {/* Case Number Cell - Second */}
+                    <TableCell
+                      sx={{
+                        overflow: "auto",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "normal",
+                        color: "#676a6e",
+                        maxHeight: "120px",
+                        minWidth: "180px",
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        noWrap
+                        sx={{
+                          color: "#676a6e",
+                          maxHeight: "100px",
+                          overflow: "auto",
+                          whiteSpace: "normal",
+                          border: "none",
+                        }}
+                      >
+                        {todo.caseId?.value?.CaseNumber || ""}
+                      </Typography>
+                    </TableCell>
+
+                    {/* Other Cells */}
                     {keys?.map((key) => {
-                      if (key === "userId" || key === "userName") return null;
+                      if (
+                        key === "clientName" ||
+                        key === "caseId" ||
+                        key === "userId" ||
+                        key === "userName"
+                      )
+                        return null;
 
                       const field = todo[key];
                       if (!field) return <TableCell key={key}></TableCell>;
@@ -1179,7 +1300,6 @@ export default function ViewFormC({ token }) {
                       if (key === "documents") {
                         const userId = todo.userId?.value;
                         const userName = todo.userName?.value;
-                        const clientName = todo.clientName?.value || "Client";
                         const email = todo?._id?.value;
                         content =
                           userId && userName ? (
@@ -1214,25 +1334,21 @@ export default function ViewFormC({ token }) {
                               }}
                               onClick={() => handleClientClick(email)}
                             >
-                              {clientName}
+                              {todo.clientName?.value || "Client"}
                             </Button>
                           );
-                      } else if (key === "caseId") {
-                        content = (
-                          <Typography
-                            variant="body2"
-                            noWrap
-                            sx={{ color: "#676a6e" }}
-                          >
-                            {value?.CaseNumber || ""}
-                          </Typography>
-                        );
                       } else if (key === "createdBy") {
                         content = (
                           <Typography
                             variant="body2"
                             noWrap
-                            sx={{ color: "#676a6e" }}
+                            sx={{
+                              color: "#676a6e",
+                              maxHeight: "100px",
+                              overflow: "auto",
+                              whiteSpace: "normal",
+                              border: "none",
+                            }}
                           >
                             {value?.UserName || ""}
                           </Typography>
@@ -1242,7 +1358,13 @@ export default function ViewFormC({ token }) {
                           <Typography
                             variant="body2"
                             noWrap
-                            sx={{ color: "#676a6e" }}
+                            sx={{
+                              color: "#676a6e",
+                              maxHeight: "100px",
+                              overflow: "auto",
+                              whiteSpace: "normal",
+                              border: "none",
+                            }}
                           >
                             {(value || "").split("T")[0]}
                           </Typography>
@@ -1252,7 +1374,13 @@ export default function ViewFormC({ token }) {
                           <Typography
                             variant="body2"
                             noWrap
-                            sx={{ color: "#676a6e" }}
+                            sx={{
+                              color: "#676a6e",
+                              maxHeight: "100px",
+                              overflow: "auto",
+                              whiteSpace: "normal",
+                              border: "none",
+                            }}
                           >
                             {String(value)}
                           </Typography>
@@ -1261,8 +1389,11 @@ export default function ViewFormC({ token }) {
                         content = (
                           <FormControl
                             fullWidth
-                            size="small"
-                            sx={{ minWidth: 120 }}
+                            size="medium"
+                            sx={{
+                              minWidth: 140,
+                              border: "none",
+                            }}
                           >
                             <Select
                               value={value}
@@ -1278,15 +1409,20 @@ export default function ViewFormC({ token }) {
                               onBlur={handleBlur}
                               disabled={isclient}
                               sx={{
+                                backgroundColor: "rgba(212, 175, 55, 0.1)",
+                                borderRadius: "4px",
                                 "& .MuiSelect-select": {
-                                  py: 1,
+                                  py: 1.5,
                                   color: "#676a6e",
                                 },
                                 "& .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "rgba(212, 175, 55, 0.5)",
+                                  border: "none !important",
                                 },
-                                "&:hover .MuiOutlinedInput-notchedOutline": {
-                                  borderColor: "#D4AF37",
+                                "&:hover": {
+                                  backgroundColor: "rgba(212, 175, 55, 0.15)",
+                                },
+                                "&.Mui-focused": {
+                                  backgroundColor: "rgba(212, 175, 55, 0.2)",
                                 },
                                 "& .MuiSvgIcon-root": {
                                   color: "rgba(212, 175, 55, 0.7)",
@@ -1297,7 +1433,10 @@ export default function ViewFormC({ token }) {
                                   sx: {
                                     bgcolor: "#0a2d56",
                                     color: "white",
+                                    maxHeight: "200px",
+                                    border: "1px solid rgba(212, 175, 55, 0.3)",
                                     "& .MuiMenuItem-root": {
+                                      minHeight: "48px",
                                       "&:hover": {
                                         bgcolor: "rgba(212, 175, 55, 0.2)",
                                       },
@@ -1330,10 +1469,13 @@ export default function ViewFormC({ token }) {
                             onBlur={handleBlur}
                             disabled={isclient}
                             sx={{
-                              p: 0.5,
+                              p: 1,
                               color: "#D4AF37",
+                              backgroundColor: "rgba(212, 175, 55, 0.1)",
+                              borderRadius: "4px",
                               "&.Mui-checked": {
                                 color: "#D4AF37",
+                                backgroundColor: "rgba(212, 175, 55, 0.2)",
                               },
                             }}
                           />
@@ -1341,6 +1483,14 @@ export default function ViewFormC({ token }) {
                       } else if (normalizedType === "date") {
                         content = (
                           <DatePicker
+                            PopperProps={{
+                              sx: {
+                                "& .MuiPaper-root": {
+                                  boxShadow: "none",
+                                  border: "1px solid rgba(212, 175, 55, 0.3)",
+                                },
+                              },
+                            }}
                             value={value ? new Date(value) : null}
                             onChange={(date) =>
                               handleFieldChange(
@@ -1355,7 +1505,7 @@ export default function ViewFormC({ token }) {
                             renderInput={(params) => (
                               <TextField
                                 {...params}
-                                size="small"
+                                size="medium"
                                 fullWidth
                                 onBlur={() =>
                                   handleFieldBlur(
@@ -1367,19 +1517,18 @@ export default function ViewFormC({ token }) {
                                   )
                                 }
                                 sx={{
-                                  minWidth: 140,
-                                  "& .MuiInputBase-input": {
-                                    py: 1,
-                                    color: "#676a6e",
-                                  },
+                                  minWidth: 160,
                                   "& .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "rgba(212, 175, 55, 0.5)",
+                                    border: "none !important",
                                   },
                                   "&:hover .MuiOutlinedInput-notchedOutline": {
-                                    borderColor: "#D4AF37",
+                                    border: "none !important",
                                   },
-                                  "& .MuiInputLabel-root": {
-                                    color: "rgba(212, 175, 55, 0.7)",
+                                  "&:hover": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.15)",
+                                  },
+                                  "&.Mui-focused": {
+                                    backgroundColor: "rgba(212, 175, 55, 0.2)",
                                   },
                                 }}
                               />
@@ -1390,7 +1539,7 @@ export default function ViewFormC({ token }) {
                         content = (
                           <TextField
                             type="text"
-                            size="small"
+                            size="medium"
                             fullWidth
                             value={value || ""}
                             onChange={(e) =>
@@ -1403,22 +1552,29 @@ export default function ViewFormC({ token }) {
                               )
                             }
                             onBlur={handleBlur}
-                            disabled={key === "email" || key === "phone"} // Always disabled for email/phone
+                            disabled={key === "email" || key === "phone"}
+                            multiline
+                            maxRows={3}
                             sx={{
-                              minWidth: 120,
+                              minWidth: 160,
+                              border: "none",
                               "& .MuiInputBase-input": {
-                                py: 1,
+                                py: 1.5,
                                 color: "#676a6e",
+                                maxHeight: "100px",
+                                overflow: "auto",
+                                border: "none",
                               },
                               "& .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "rgba(212, 175, 55, 0.5)",
+                                border: "none !important",
                               },
                               "&:hover .MuiOutlinedInput-notchedOutline": {
-                                borderColor: "#D4AF37",
+                                border: "none !important",
                               },
-                              "& .MuiInputLabel-root": {
-                                color: "rgba(212, 175, 55, 0.7)",
-                              },
+                              "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                {
+                                  border: "none !important",
+                                },
                             }}
                           />
                         );
@@ -1428,26 +1584,24 @@ export default function ViewFormC({ token }) {
                         <TableCell
                           key={key}
                           sx={{
-                            overflow: "hidden",
+                            overflow: "auto",
                             textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                            position:
-                              key === "clientName" ? "sticky" : "static",
-                            left: key === "clientName" ? 0 : undefined,
-                            backgroundColor:
-                              key === "clientName" ? "#0a2d56" : undefined,
-                            zIndex: key === "clientName" ? 2 : 1,
+                            whiteSpace: "normal",
                             color: "#676a6e",
+                            maxHeight: "120px",
+                            minWidth: "180px",
                           }}
                         >
                           {content}
                         </TableCell>
                       );
                     })}
+
+                    {/* Actions Cell */}
                     <TableCell sx={{ color: "" }}>
                       <Box sx={{ position: "relative" }}>
                         <IconButton
-                          size="small"
+                          size="medium"
                           onClick={(e) => handleMenuOpen(e, todo)}
                           disabled={isclient && !todo.userName?.value}
                           sx={{
@@ -1475,13 +1629,14 @@ export default function ViewFormC({ token }) {
                             elevation: 2,
                             sx: {
                               borderRadius: "8px",
-                              minWidth: "180px",
+                              minWidth: "200px",
                               bgcolor: "#0a2d56",
                               color: "white",
                               boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.3)",
                               "& .MuiMenuItem-root": {
-                                fontSize: "0.875rem",
-                                padding: "8px 16px",
+                                fontSize: "0.9rem",
+                                padding: "10px 16px",
+                                minHeight: "48px",
                                 "&:hover": {
                                   backgroundColor: "rgba(212, 175, 55, 0.2)",
                                 },
@@ -1490,7 +1645,7 @@ export default function ViewFormC({ token }) {
                           }}
                           MenuListProps={{
                             sx: {
-                              padding: "4px 0",
+                              padding: "6px 0",
                             },
                           }}
                         >
@@ -1498,15 +1653,15 @@ export default function ViewFormC({ token }) {
                             onClick={(e) => {
                               e.stopPropagation();
                               if (selectedTodo) {
-                                handleSignup(selectedTodo); // Always use selectedTodo
+                                handleSignup(selectedTodo);
                               }
                               handleMenuClose();
                             }}
-                            disabled={selectedTodo?.userName?.value} // Use selectedTodo here too
+                            disabled={selectedTodo?.userName?.value}
                           >
                             <ListItemIcon>
                               <PersonAdd
-                                fontSize="small"
+                                fontSize="medium"
                                 sx={{ color: "#D4AF37" }}
                               />
                             </ListItemIcon>
@@ -1519,7 +1674,7 @@ export default function ViewFormC({ token }) {
                               if (selectedTodo) {
                                 handleDelete(
                                   selectedTodo._id?.value || selectedTodo.id
-                                ); // Always use selectedTodo
+                                );
                               }
                               handleMenuClose();
                             }}
@@ -1527,7 +1682,7 @@ export default function ViewFormC({ token }) {
                             sx={{ color: "error.main" }}
                           >
                             <ListItemIcon>
-                              <DeleteIcon fontSize="small" color="error" />
+                              <DeleteIcon fontSize="medium" color="error" />
                             </ListItemIcon>
                             <ListItemText primary="Delete" />
                           </MenuItem>
@@ -1563,7 +1718,7 @@ export default function ViewFormC({ token }) {
               sx={{
                 flexGrow: 1,
                 overflow: "auto",
-                p: 1.5,
+                p: 1,
                 "&::-webkit-scrollbar": {
                   width: "6px",
                 },
@@ -1582,7 +1737,7 @@ export default function ViewFormC({ token }) {
                   const userName =
                     todo.userName?.value ||
                     todo.createdBy?.value?.UserName ||
-                    "Unnamed User";
+                    todo?.clientName?.value;
                   const isExpanded = expandedUserId === userId;
 
                   return (
@@ -1900,7 +2055,7 @@ export default function ViewFormC({ token }) {
                                           variant="caption"
                                           color="#D4AF37"
                                         >
-                                          View Client
+                                          View Docs
                                         </Typography>
                                       </Box>
                                     </Button>
@@ -2011,14 +2166,14 @@ export default function ViewFormC({ token }) {
                                           borderColor: "rgba(0, 0, 0, 0.23)",
                                         },
                                         "&:hover .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                        },
+                                          {
+                                            borderColor: "#D4AF37",
+                                          },
                                         "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                        {
-                                          borderColor: "#D4AF37",
-                                          borderWidth: "2px",
-                                        },
+                                          {
+                                            borderColor: "#D4AF37",
+                                            borderWidth: "2px",
+                                          },
                                         "& .MuiSvgIcon-root": {
                                           color: "rgba(0, 0, 0, 0.54)",
                                         },
@@ -2084,9 +2239,9 @@ export default function ViewFormC({ token }) {
                                           color: "#D4AF37",
                                         },
                                         "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track":
-                                        {
-                                          backgroundColor: "#D4AF37",
-                                        },
+                                          {
+                                            backgroundColor: "#D4AF37",
+                                          },
                                       }}
                                     />
                                   </Box>
@@ -2119,19 +2274,19 @@ export default function ViewFormC({ token }) {
                                             color: "rgba(0, 0, 0, 0.6)",
                                           },
                                           "& .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor:
-                                              "rgba(0, 0, 0, 0.23)",
-                                          },
+                                            {
+                                              borderColor:
+                                                "rgba(0, 0, 0, 0.23)",
+                                            },
                                           "&:hover .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                          },
+                                            {
+                                              borderColor: "#D4AF37",
+                                            },
                                           "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                          {
-                                            borderColor: "#D4AF37",
-                                            borderWidth: "2px",
-                                          },
+                                            {
+                                              borderColor: "#D4AF37",
+                                              borderWidth: "2px",
+                                            },
                                         },
                                       },
                                     }}
@@ -2171,14 +2326,14 @@ export default function ViewFormC({ token }) {
                                         borderColor: "rgba(0, 0, 0, 0.23)",
                                       },
                                       "&:hover .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "#D4AF37",
-                                      },
+                                        {
+                                          borderColor: "#D4AF37",
+                                        },
                                       "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                      {
-                                        borderColor: "#D4AF37",
-                                        borderWidth: "2px",
-                                      },
+                                        {
+                                          borderColor: "#D4AF37",
+                                          borderWidth: "2px",
+                                        },
                                     }}
                                     InputLabelProps={{ shrink: true }}
                                   />

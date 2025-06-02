@@ -88,6 +88,9 @@ import { AlertProvider } from "../Component/AlertContext";
 import GlobalAlert from "../Component/GlobalAlert";
 import ViewCaseUpdates from "./Pages/ViewCaseUpdates";
 import FAQ from "./Pages/FAQ/FAQ";
+import ViewFormH from "./Pages/Component/Case_Forms/ViewFormH";
+import FormTemplateUploader from "./Pages/Component/Case_Forms/FormTemplateUploader";
+import MOMEditor from "./Pages/Component/Case_Forms/MOMEditor";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -193,7 +196,12 @@ const Dashboard = () => {
 
     switch (screen) {
       case 0:
-        setCurrentScreen(<BasicCase token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <BasicCase token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 1:
         setCurrentScreen(<Case_details token={decodedToken} />);
@@ -249,7 +257,12 @@ const Dashboard = () => {
         setCurrentScreen(<TaskList token={decodedToken} />);
         break;
       case 15:
-        setCurrentScreen(<AddTask token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <AddTask token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 16:
         setCurrentScreen(
@@ -278,6 +291,12 @@ const Dashboard = () => {
         break;
       case 21:
         setCurrentScreen(<FAQ token={decodedToken} />);
+        break;
+      case 22:
+        setCurrentScreen(<ViewFormH token={decodedToken} />);
+        break;
+      case 23:
+        setCurrentScreen(<MOMEditor token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -399,9 +418,8 @@ const Dashboard = () => {
     >
       {/* Sidebar */}
       <div
-        className={`sidebar d-flex flex-column text-white position-relative ${
-          isCollapsed ? "col-1" : "col-2"
-        }`}
+        className={`sidebar d-flex flex-column text-white position-relative ${isCollapsed ? "col-1" : "col-2"
+          }`}
         style={{
           minWidth: isCollapsed ? "50px" : "150px",
           maxWidth: isCollapsed ? "50px" : "180px",
@@ -458,42 +476,42 @@ const Dashboard = () => {
             },
             decodedToken?.Role === "admin"
               ? {
-                  icon: faPersonCircleCheck,
-                  label: "View Users",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faPersonCircleCheck,
+                label: "View Users",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(9);
-                  },
-                }
+                  handlescreen2(9);
+                },
+              }
               : null,
             decodedToken?.Role === "admin"
               ? {
-                  icon: faCcMastercard,
-                  label: "Add Case",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faCcMastercard,
+                label: "Add Case",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(11);
-                  },
-                }
+                  handlescreen2(11);
+                },
+              }
               : null,
             decodedToken?.Role !== "client"
               ? {
-                  icon: faTasksAlt,
-                  label: "View Task",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faTasksAlt,
+                label: "View Task",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(14);
-                  },
-                }
+                  handlescreen2(14);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -506,16 +524,29 @@ const Dashboard = () => {
             // },
             decodedToken?.Role !== "client"
               ? {
-                  icon: faWpforms,
-                  label: "Form C List",
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
+                icon: faWpforms,
+                label: "Form C List",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
 
-                    handlescreen2(18);
-                  },
-                }
+                  handlescreen2(18);
+                },
+              }
+              : null,
+            decodedToken?.Role !== "client"
+              ? {
+                icon: faWpforms,
+                label: "Form H List",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                  handlescreen2(22);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -627,6 +658,15 @@ const Dashboard = () => {
               {screen === 18 && (
                 <ScreenHeader title="Form C List" onBack={handleBack} />
               )}
+              {screen === 17 && (
+                <ScreenHeader title="Form H" onBack={handleBack} />
+              )}
+              {screen === 22 && (
+                <ScreenHeader title="Form H List" onBack={handleBack} />
+              )}
+              {screen === 23 && (
+                <ScreenHeader title="View Form MOM" onBack={handleBack} />
+              )}
             </h3>
 
             {/* Admin Buttons */}
@@ -679,24 +719,24 @@ const Dashboard = () => {
           <div id="notification-profile">
             {(decodedToken?.Role === "lawyer" ||
               decodedToken?.Role === "receptionist") && (
-              <button
-                className="btn me-2"
-                onClick={() => {
-                  dispatch(Caseinfo(null));
-                  dispatch(clientEmail(null));
-                  dispatch(FormCDetails(null));
+                <button
+                  className="btn me-2"
+                  onClick={() => {
+                    dispatch(Caseinfo(null));
+                    dispatch(clientEmail(null));
+                    dispatch(FormCDetails(null));
 
-                  handlescreen2(5);
-                }}
-              >
-                <FontAwesomeIcon
-                  icon={faUser}
-                  size="1x"
-                  color="white"
-                  className=""
-                />
-              </button>
-            )}
+                    handlescreen2(5);
+                  }}
+                >
+                  <FontAwesomeIcon
+                    icon={faUser}
+                    size="1x"
+                    color="white"
+                    className=""
+                  />
+                </button>
+              )}
             {decodedToken?.Role === "client" && (
               <button
                 className="btn"

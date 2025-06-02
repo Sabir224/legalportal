@@ -30,9 +30,18 @@ const screenSlice = createSlice({
     FormCDetails: (state, action) => {
       state.FormCDetails = action.payload;
     },
+    setCaseOpen: (state, action) => {
+      state.isCaseOpen = !!action.payload;
+    },
   },
 });
 
-export const { screenChange, goBackScreen, clientEmail,FormCDetails, Caseinfo } =
-  screenSlice.actions;
+export const {
+  screenChange,
+  setCaseOpen,
+  goBackScreen,
+  clientEmail,
+  FormCDetails,
+  Caseinfo,
+} = screenSlice.actions;
 export default screenSlice.reducer;

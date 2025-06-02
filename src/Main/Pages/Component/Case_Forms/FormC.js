@@ -5,590 +5,701 @@ import { ApiEndPoint } from "../utils/utlis";
 import SuccessModal from "../../AlertModels/SuccessModal";
 import { useAlert } from "../../../../Component/AlertContext";
 import { FaCross, FaDiscord, FaRemoveFormat } from "react-icons/fa";
+import { useSelector } from "react-redux";
+import axios from "axios";
+import {
+  Form,
+  Button,
+  Card,
+  Container,
+  Row,
+  Col,
+  Dropdown,
+  InputGroup,
+} from "react-bootstrap";
 
 const ClientConsultationForm = ({ token }) => {
-    const [fileName, setFileName] = useState(null);
-    const [encryptedLink, setEncryptedLink] = useState("");
-    const [copied, setCopied] = useState(false);
-    const [showLinkGenerator, setShowLinkGenerator] = useState(true); // To control whether the link generator is shown or not
+  const FormCDetails = useSelector((state) => state.screen.FormCDetails);
 
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [successMessage, setSuccessMessage] = useState("");
-    const { showLoading, showSuccess, showError } = useAlert();
+  const [fileName, setFileName] = useState(null);
+  const [encryptedLink, setEncryptedLink] = useState("");
+  const [copied, setCopied] = useState(false);
+  const [showLinkGenerator, setShowLinkGenerator] = useState(true); // To control whether the link generator is shown or not
 
-    const handleGenerateLink = () => {
-        const data = JSON.stringify({ token, timestamp: Date.now() });
-        const encrypted = btoa(data);
-        const link = `${window.location.origin
-            }/client-consultation?data=${encodeURIComponent(encrypted)}`;
-        setEncryptedLink(link);
-        setCopied(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const { showLoading, showSuccess, showError } = useAlert();
+
+  const handleGenerateLink = () => {
+    const data = JSON.stringify({ token, timestamp: Date.now() });
+    const encrypted = btoa(data);
+    const link = `${
+      window.location.origin
+    }/client-consultation?data=${encodeURIComponent(encrypted)}`;
+    setEncryptedLink(link);
+    setCopied(false);
+  };
+
+  //   const showSuccess = (msg) => {
+  //     setSuccessMessage(msg);
+  //     setShowSuccessModal(true);
+  //   };
+
+  const handleCopy = async () => {
+    if (encryptedLink) {
+      try {
+        await navigator.clipboard.writeText(encryptedLink);
+        setCopied(true);
+      } catch (err) {
+        console.error("Copy failed:", err);
+      }
+    }
+  };
+
+  // Check if URL contains the encrypted link (using query params)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("data")) {
+      setShowLinkGenerator(false); // Hide link generator if opening from link
+    }
+  }, []);
+
+  const [clientName, setClientName] = useState("");
+  const [CaseNumber, setCaseNumber] = useState("");
+  const [countryCode, setCountryCode] = useState("+92");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [email, setEmail] = useState("");
+  const [contactAddress, setContactAddress] = useState("");
+  const [individualOrCompany, setIndividualOrCompany] = useState("");
+
+  // Extra Info
+  const [companyName, setCompanyName] = useState("");
+  const [occupation, setOccupation] = useState("");
+  const [opponentDetails, setOpponentDetails] = useState("");
+  const [legalService, setLegalService] = useState("Select");
+  const [practiceArea, setPracticeArea] = useState("Select");
+  const [serviceDetails, setServiceDetails] = useState("");
+  const [desiredOutcome, setDesiredOutcome] = useState("");
+
+  // File Upload - Multiple files
+  const [files, setFiles] = useState([]);
+
+  // Referred By
+  const [referredBy, setReferredBy] = useState("");
+
+  const isDisabled = FormCDetails !== null;
+  useEffect(() => {
+    if (!FormCDetails) return;
+
+    const fetchForm = async () => {
+      try {
+        const response = await axios.get(
+          `${ApiEndPoint}consultation-forms/${FormCDetails}`
+        );
+
+        const data = response.data.form;
+
+        setClientName(data.clientName || "");
+        setCaseNumber(data.caseNumber || "");
+        setCountryCode(data.phone?.countryCode || "+92");
+        setPhoneNumber(data.phone?.number || "");
+        setEmail(data.email || "");
+        setContactAddress(data.address || "");
+        setIndividualOrCompany(data.clientType || "");
+
+        setCompanyName(data.companyName || "");
+        setOccupation(data.occupation || "");
+        setOpponentDetails(data.opponentDetails || "");
+        setLegalService(data.serviceType || "Select");
+        setPracticeArea(data.practiceArea || "Select");
+        setServiceDetails(data.serviceDetails || "");
+        setDesiredOutcome(data.desiredOutcome || "");
+
+        setFiles(data.documents || []);
+        setReferredBy(data.referredBy || "");
+
+        // setForm(response.data.form);
+        // setError('');
+      } catch (err) {
+        console.error(err.response?.data?.message || "Failed to fetch form");
+      } finally {
+      }
     };
 
-    //   const showSuccess = (msg) => {
-    //     setSuccessMessage(msg);
-    //     setShowSuccessModal(true);
-    //   };
+    fetchForm();
+  }, [FormCDetails]);
 
-    const handleCopy = async () => {
-        if (encryptedLink) {
-            try {
-                await navigator.clipboard.writeText(encryptedLink);
-                setCopied(true);
-            } catch (err) {
-                console.error("Copy failed:", err);
-            }
-        }
-    };
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
 
-    // Check if URL contains the encrypted link (using query params)
-    useEffect(() => {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has("data")) {
-            setShowLinkGenerator(false); // Hide link generator if opening from link
-        }
-    }, []);
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const droppedFiles = Array.from(e.dataTransfer.files);
 
-    const [clientName, setClientName] = useState("");
-    const [CaseNumber, setCaseNumber] = useState("");
-    const [countryCode, setCountryCode] = useState("+92");
-    const [phoneNumber, setPhoneNumber] = useState("");
-    const [email, setEmail] = useState("");
-    const [contactAddress, setContactAddress] = useState("");
-    const [individualOrCompany, setIndividualOrCompany] = useState("");
+    if (files.length + droppedFiles.length > 5) {
+      alert("You can only upload up to 5 files.");
+      return;
+    }
 
-    // Extra Info
-    const [companyName, setCompanyName] = useState("");
-    const [occupation, setOccupation] = useState("");
-    const [opponentDetails, setOpponentDetails] = useState("");
-    const [legalService, setLegalService] = useState("Select");
-    const [practiceArea, setPracticeArea] = useState("Select");
-    const [serviceDetails, setServiceDetails] = useState("");
-    const [desiredOutcome, setDesiredOutcome] = useState("");
+    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+  };
 
-    // File Upload - Multiple files
-    const [files, setFiles] = useState([]);
+  const handleFileChange = (e) => {
+    const selected = Array.from(e.target.files);
 
-    // Referred By
-    const [referredBy, setReferredBy] = useState("");
+    if (files.length + selected.length > 5) {
+      alert("You can only upload up to 5 files.");
+      return;
+    }
 
-    const handleDragOver = (e) => {
-        e.preventDefault();
-    };
+    setFiles((prevFiles) => [...prevFiles, ...selected]);
+  };
 
-    const handleDrop = (e) => {
-        e.preventDefault();
-        const droppedFiles = Array.from(e.dataTransfer.files);
+  const removeFile = (index) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
 
-        if (files.length + droppedFiles.length > 5) {
-            alert("You can only upload up to 5 files.");
-            return;
-        }
+  const submitForm = async (formData) => {
+    try {
+      const response = await fetch(`${ApiEndPoint}createConsultation`, {
+        method: "POST",
+        body: formData,
+        // headers are automatically set by browser for FormData
+      });
 
-        setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
-    };
+      const data = await response.json();
 
+      if (!response.ok) {
+        throw new Error(data.message || "Submission failed");
+      }
 
-    const handleFileChange = (e) => {
-        const selected = Array.from(e.target.files);
+      return data;
+    } catch (error) {
+      console.error("Submission error:", error);
+      throw error;
+    }
+  };
 
-        if (files.length + selected.length > 5) {
-            alert("You can only upload up to 5 files.");
-            return;
-        }
+  // Modify your handleSubmit function
+  const handleSubmit = async (e) => {
+    showLoading();
+    e.preventDefault();
 
-        setFiles((prevFiles) => [...prevFiles, ...selected]);
-    };
+    const formData = new FormData();
 
+    // Append all form fields
+    formData.append("clientName", clientName);
+    formData.append("caseNumber", CaseNumber);
+    formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
+    formData.append("email", email);
+    formData.append("address", contactAddress);
+    formData.append("clientType", individualOrCompany);
+    formData.append("companyName", companyName);
+    formData.append("occupation", occupation);
+    formData.append("opponentDetails", opponentDetails);
+    formData.append("serviceType", legalService);
+    formData.append("practiceArea", practiceArea);
+    formData.append("serviceDetails", serviceDetails);
+    formData.append("desiredOutcome", desiredOutcome);
+    formData.append("referredBy", referredBy);
 
-    const removeFile = (index) => {
-        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-    };
+    // Append each file
+    files.forEach((file) => {
+      formData.append("files", file);
+    });
 
-    const submitForm = async (formData) => {
-        try {
-            const response = await fetch(`${ApiEndPoint}createConsultation`, {
-                method: "POST",
-                body: formData,
-                // headers are automatically set by browser for FormData
-            });
+    try {
+      const result = await submitForm(formData);
+      console.log("Success:", result);
+      // Show success message, redirect, etc.
+      // alert('Form submitted successfully!');
+      showSuccess("Form submitted successfully!");
 
-            const data = await response.json();
+      setClientName("");
+      setCountryCode("");
+      setPhoneNumber("");
+      setEmail("");
+      setContactAddress("");
+      setIndividualOrCompany("");
+      setCompanyName("");
+      setOccupation("");
+      setOpponentDetails("");
+      setLegalService("Select");
+      setPracticeArea("Select");
+      setServiceDetails("");
+      setDesiredOutcome("");
+      setReferredBy("");
+      setFiles([]);
 
-            if (!response.ok) {
-                throw new Error(data.message || "Submission failed");
-            }
+      //   showSuccess("Form C is added ");
+    } catch (error) {
+      setDesiredOutcome("");
+      if (error.response) {
+        showError("Error submitting the form.", error.response);
+      } else {
+        showError("Network or server error:", error.message);
+      }
+      // Show error to user
+    }
+  };
 
-            return data;
-        } catch (error) {
-            console.error("Submission error:", error);
-            throw error;
-        }
-    };
+  return (
+    <Container
+      fluid
+      style={{
+        backgroundImage: showLinkGenerator ? "none" : `url(${backgroundImage})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        minHeight: showLinkGenerator ? "auto" : "100vh",
+        display: showLinkGenerator ? "block" : "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        padding: 0,
+      }}
+    >
+      <Row className="justify-content-center w-100 mx-0">
+        <Col xl={8} lg={10} md={10} sm={12} className="px-0">
+          <Card
+            className="shadow-sm mt-1"
+            style={{ maxHeight: "86vh", overflowY: "auto" }}
+          >
+            <Card.Body>
+              {/* Header */}
+              <div className="mb-4">
+                <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                  <Card.Img
+                    src="/logo.png"
+                    alt="Legal Group Logo"
+                    style={{ height: "40px", width: "auto" }}
+                    className="mb-2 mb-md-0"
+                  />
 
-    // Modify your handleSubmit function
-    const handleSubmit = async (e) => {
-        showLoading();
-        e.preventDefault();
+                  {showLinkGenerator && token?.Role !== "client" && (
+                    <div>
+                      <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
+                        <Button
+                          variant="primary"
+                          className="d-flex align-items-center justify-content-center"
+                          style={{
+                            minWidth: "160px",
+                            height: "45px",
+                            lineHeight: "1.2",
+                          }}
+                          onClick={handleGenerateLink}
+                        >
+                          Generate Form Link
+                        </Button>
 
-        const formData = new FormData();
-
-        // Append all form fields
-        formData.append("clientName", clientName);
-        formData.append("caseNumber", CaseNumber);
-        formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
-        formData.append("email", email);
-        formData.append("contactAddress", contactAddress);
-        formData.append("individualOrCompany", individualOrCompany);
-        formData.append("companyName", companyName);
-        formData.append("occupation", occupation);
-        formData.append("opponentDetails", opponentDetails);
-        formData.append("legalService", legalService);
-        formData.append("practiceArea", practiceArea);
-        formData.append("serviceDetails", serviceDetails);
-        formData.append("desiredOutcome", desiredOutcome);
-        formData.append("referredBy", referredBy);
-
-        // Append each file
-        files.forEach((file) => {
-            formData.append("files", file);
-        });
-
-        try {
-            const result = await submitForm(formData);
-            console.log("Success:", result);
-            // Show success message, redirect, etc.
-            // alert('Form submitted successfully!');
-            showSuccess("Form submitted successfully!");
-
-            setClientName("")
-            setCountryCode("")
-            setPhoneNumber("")
-            setEmail("")
-            setContactAddress("")
-            setIndividualOrCompany("")
-            setCompanyName("")
-            setOccupation("")
-            setOpponentDetails("")
-            setLegalService("Select")
-            setPracticeArea("Select")
-            setServiceDetails("")
-            setDesiredOutcome("")
-            setReferredBy("")
-            setFiles([])
-
-            //   showSuccess("Form C is added ");
-        } catch (error) {
-            setDesiredOutcome("")
-            if (error.response) {
-                showError("Error submitting the form.", error.response);
-            } else {
-                showError("Network or server error:", error.message);
-            }
-            // Show error to user
-        }
-    };
-
-    return (
-        <div
-            style={{
-                backgroundImage: showLinkGenerator ? "none" : `url(${backgroundImage})`, // Background image when link opens
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                height: showLinkGenerator ? "auto" : "100vh",
-                display: showLinkGenerator ? "block" : "flex",
-                justifyContent: "center",
-                alignItems: "center",
-            }}
-        >
-            <div
-                className="card shadow-sm mt-1"
-                style={{
-                    maxHeight: "86vh",
-                    overflowY: "auto",
-                    maxWidth: showLinkGenerator ? "auto" : "90vw",
-                }}
-            >
-                <div className="card-body">
-                    {/* Header */}
-                    <div className="mb-4">
-                        {showLinkGenerator && (
-                            <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                {/* Logo on the left */}
-                                <img
-                                    src="/logo.png"
-                                    alt="Legal Group Logo"
-                                    className="mb-2 mb-md-0"
-                                    style={{ height: "40px" }}
-                                />
-
-                                {/* Buttons on the right */}
-                                <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
-                                    <button
-                                        type="button"
-                                        className="btn btn-primary d-flex  m-0 p-0  align-items-center justify-content-center"
-                                        style={{
-                                            minWidth: "160px",
-                                            height: "45px",
-                                            lineHeight: "1.2",
-                                        }}
-                                        onClick={handleGenerateLink}
-                                    >
-                                        Generate Form Link
-                                    </button>
-
-                                    {encryptedLink && (
-                                        <button
-                                            className="btn btn-primary m-0 p-0 d-flex align-items-center justify-content-center"
-                                            onClick={handleCopy}
-                                            title={copied ? "Copied!" : "Copy Link"}
-                                            style={{
-                                                width: "45px",
-                                                height: "45px",
-                                            }}
-                                        >
-                                            <i
-                                                className={`fas ${copied ? "fa-check-circle" : "fa-copy"}`}
-                                                style={{ fontSize: "1.2rem" }}
-                                            ></i>
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
+                        {encryptedLink && (
+                          <Button
+                            variant="primary"
+                            className="d-flex align-items-center justify-content-center"
+                            onClick={handleCopy}
+                            title={copied ? "Copied!" : "Copy Link"}
+                            style={{
+                              width: "45px",
+                              height: "45px",
+                            }}
+                          >
+                            <i
+                              className={`fas ${
+                                copied ? "fa-check-circle" : "fa-copy"
+                              }`}
+                            ></i>
+                          </Button>
                         )}
-
-
-                        <h4 className="card-title mb-2">Client Consultation Brief</h4>
-                        <p className="text-muted small">
-                            Greetings from AWS Legal Group!
-                            <br />
-                            Thank you for consulting us regarding your legal matter. To ensure
-                            we provide the highest quality service, please complete this form
-                            with detailed information regarding the legal services you require
-                            and include all relevant documents. Your information will be
-                            treated with strict confidentiality and used solely to understand
-                            your needs and assist you accordingly.
-                        </p>
+                      </div>
                     </div>
-
-                    {/* Encrypted Link Generator */}
-
-                    {/* Form Start */}
-                    <form onSubmit={handleSubmit}>
-                        {/* Personal Info */}
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Case Number(Optional) <span className="text-danger">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                maxLength="255"
-                                value={CaseNumber}
-                                onChange={(e) => setCaseNumber(e.target.value)}
-                            />
-                            <div className="form-text text-end">{clientName.length}/255</div>
-                        </div>
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Client Name(s) <span className="text-danger">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                maxLength="255"
-                                value={clientName}
-                                onChange={(e) => setClientName(e.target.value)}
-                                required
-                            />
-                            <div className="form-text text-end">{clientName.length}/255</div>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Phone Number <span className="text-danger">*</span>
-                            </label>
-                            <div className="d-flex gap-2">
-                                <select
-                                    className="form-select w-25"
-                                    value={countryCode}
-                                    onChange={(e) => setCountryCode(e.target.value)}
-                                >
-                                    <option>+92</option>
-                                    <option>+1</option>
-                                    <option>+44</option>
-                                </select>
-                                <input
-                                    type="tel"
-                                    className="form-control w-75"
-                                    value={phoneNumber}
-                                    onChange={(e) => setPhoneNumber(e.target.value)}
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Email Address <span className="text-danger">*</span>
-                            </label>
-                            <input
-                                type="email"
-                                className="form-control"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">Contact Address</label>
-                            <p className="text-muted small">
-                                Please provide your complete correspondence address, including
-                                the country
-                            </p>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={contactAddress}
-                                onChange={(e) => setContactAddress(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">Individual or Company</label>
-                            <p className="text-muted small">
-                                Please specify if the legal service will be provided to you in
-                                your personal capacity or on behalf of a company
-                            </p>
-                            <select
-                                className="form-select"
-                                value={individualOrCompany}
-                                onChange={(e) => setIndividualOrCompany(e.target.value)}
-                            >
-                                <option value="">Select</option>
-                                <option value="individual">Individual</option>
-                                <option value="company">Company</option>
-                            </select>
-                        </div>
-
-                        {/* Extra Info */}
-                        <div className="mb-3">
-                            <label className="form-label">Company Name</label>
-                            <p className="text-muted small">
-                                Please provide us with the name of the company you are
-                                representing (if applicable)
-                            </p>
-                            <input
-                                type="text"
-                                className="form-control mt-1"
-                                value={companyName}
-                                onChange={(e) => setCompanyName(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Client Occupation / Business Activity
-                            </label>
-                            <input
-                                type="text"
-                                className="form-control"
-                                value={occupation}
-                                onChange={(e) => setOccupation(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">Opponent Details</label>
-                            <p className="text-muted small">
-                                Please provide the name, contact details, contact address and
-                                nationality of the opposing party (if applicable)
-                            </p>
-                            <textarea
-                                className="form-control mt-1"
-                                rows="3"
-                                maxLength="2000"
-                                value={opponentDetails}
-                                onChange={(e) => setOpponentDetails(e.target.value)}
-                            ></textarea>
-                            <div className="form-text text-end">
-                                {opponentDetails.length}/2000
-                            </div>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">Legal Service Required</label>
-                            <select
-                                className="form-select"
-                                value={legalService}
-                                onChange={(e) => setLegalService(e.target.value)}
-                            >
-                                <option>Select</option>
-                                <option>Consultation</option>
-                                <option>Representation</option>
-                            </select>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">Practice Area</label>
-                            <select
-                                className="form-select"
-                                value={practiceArea}
-                                onChange={(e) => setPracticeArea(e.target.value)}
-                            >
-                                <option>Select</option>
-                                <option>Civil Law</option>
-                                <option>Corporate Law</option>
-                                <option>Criminal Law</option>
-                            </select>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Details on Service Required{" "}
-                                <span className="text-danger">*</span>
-                            </label>
-                            <p className="text-muted small">
-                                Please provide as much information as possible on your
-                                situation, a history of relevant events, and the sort of legal
-                                service you require from us
-                            </p>
-                            <textarea
-                                className="form-control mt-1"
-                                rows="4"
-                                maxLength="2000"
-                                value={serviceDetails}
-                                onChange={(e) => setServiceDetails(e.target.value)}
-                                required
-                            ></textarea>
-                            <div className="form-text text-end">
-                                {serviceDetails.length}/2000
-                            </div>
-                        </div>
-
-                        <div className="mb-3">
-                            <label className="form-label">
-                                Desired Outcome / Suggested Action{" "}
-                                <span className="text-danger">*</span>
-                            </label>
-                            <p className="text-muted small">
-                                If there is a specific outcome or idea you have in mind, this
-                                will help steer our conversation
-                            </p>
-                            <textarea
-                                className="form-control mt-1"
-                                rows="4"
-                                maxLength="2000"
-                                value={desiredOutcome}
-                                onChange={(e) => setDesiredOutcome(e.target.value)}
-                                required
-                            ></textarea>
-                            <div className="form-text text-end">
-                                {desiredOutcome.length}/2000
-                            </div>
-                        </div>
-
-                        {/* Relevant Documents */}
-                        <div className="mb-3">
-                            <label className="form-label">Relevant Documents</label>
-                            <p className="text-muted small">
-                                Please provide us with copies of documents relevant to the
-                                presented legal matter. You can upload multiple files (PDF, DOC,
-                                JPG, PNG).
-                            </p>
-                            <div
-                                className="border border-dashed p-4 text-center"
-                                style={{ borderRadius: "6px" }}
-                            >
-                                <div
-                                    className="card border-0 p-4 text-center"
-                                    style={{
-                                        cursor: "pointer",
-                                        borderRadius: "6px",
-                                        border: "2px dashed #ccc",
-                                    }}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
-                                >
-                                    <input
-                                        type="file"
-                                        className="form-control d-none"
-                                        id="fileUpload"
-                                        onChange={handleFileChange}
-                                        multiple
-                                        disabled={files.length >= 5}
-                                    />
-
-                                    <label htmlFor="fileUpload" className={`d-block ${files.length >= 5 ? 'text-muted' : ''}`}>
-                                        <i className="bi bi-upload fs-2"></i><br />
-                                        <span className="text-primary text-decoration-underline">
-                                            {files.length >= 5 ? 'Maximum files selected' : 'Choose files to upload'}
-                                        </span>{" "}
-                                        {!files.length >= 5 && 'or drag and drop here'}
-                                    </label>
-
-                                </div>
-
-                                {/* Display uploaded files */}
-                                {files.length > 0 && (
-                                    <div className="mt-3">
-                                        <strong>Selected Files:</strong>
-                                        <ul className="list-group mt-2">
-                                            {files.map((file, index) => (
-                                                <li
-                                                    key={index}
-                                                    className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
-                                                >
-                                                    <span className="text-break w-100 " style={{fontSize:16}}>{file.name}</span>
-                                                    <button
-                                                        type="button"
-                                                        className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
-                                                        onClick={() => removeFile(index)}
-                                                    >
-                                                        X
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                        <div className="text-muted mt-1" style={{fontSize:16}}>
-                                            {files.length} file{files.length !== 1 && 's'} selected
-                                        </div>
-                                    </div>
-
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Referred By */}
-                        <div className="mb-4">
-                            <label className="form-label">Referred By</label>
-                            <p className="text-muted small">
-                                Please let us know how you discovered AWS Legal Group
-                            </p>
-                            <input
-                                type="text"
-                                className="form-control mt-1"
-                                value={referredBy}
-                                onChange={(e) => setReferredBy(e.target.value)}
-                            />
-                        </div>
-
-                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">
-                            Submit
-                        </button>
-                    </form>
-
-                    {/* <SuccessModal
-            show={showSuccessModal}
-            handleClose={() => setShowSuccessModal(false)}
-            message={successMessage}
-          /> */}
+                  )}
                 </div>
-            </div>
-        </div>
-    );
+
+                <Card.Title className="mb-2">
+                  Client Consultation Brief
+                </Card.Title>
+                <Card.Text className="text-muted small">
+                  Greetings from AWS Legal Group!
+                  <br />
+                  Thank you for consulting us regarding your legal matter...
+                </Card.Text>
+              </div>
+
+              <Form onSubmit={handleSubmit}>
+                {/* Personal Info */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Case Number(Optional) <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    maxLength="255"
+                    value={CaseNumber}
+                    onChange={(e) => setCaseNumber(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                  <Form.Text className="text-end">
+                    {CaseNumber.length}/255
+                  </Form.Text>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Client Name(s) <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="text"
+                    maxLength="255"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  />
+                  <Form.Text className="text-end">
+                    {clientName.length}/255
+                  </Form.Text>
+                </Form.Group>
+
+                {/* Phone Number - Fixed with InputGroup */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Phone Number <span className="text-danger">*</span>
+                  </Form.Label>
+                  <InputGroup>
+                    <Dropdown>
+                      <Dropdown.Toggle
+                        variant="outline-secondary"
+                        id="dropdown-country-code"
+                        style={{ maxWidth: "120px" }}
+                        disabled={isDisabled}
+                      >
+                        {countryCode}
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu>
+                        <Dropdown.Item onClick={() => setCountryCode("+92")}>
+                          +92
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setCountryCode("+1")}>
+                          +1
+                        </Dropdown.Item>
+                        <Dropdown.Item onClick={() => setCountryCode("+44")}>
+                          +44
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                    <Form.Control
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      required
+                      disabled={isDisabled}
+                    />
+                  </InputGroup>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Email Address <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Contact Address</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={contactAddress}
+                    onChange={(e) => setContactAddress(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                </Form.Group>
+
+                {/* Individual/Company Dropdown - Fixed */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Individual or Company <span className="text-danger">*</span>
+                  </Form.Label>
+                  <InputGroup>
+                    <Dropdown className="w-100">
+                      <Dropdown.Toggle
+                        variant="outline-secondary"
+                        id="dropdown-individual-company"
+                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
+                        disabled={isDisabled}
+                      >
+                        <span>
+                          {individualOrCompany === "individual"
+                            ? "Individual"
+                            : individualOrCompany === "company"
+                            ? "Company"
+                            : "Select"}
+                        </span>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="w-100">
+                        <Dropdown.Item
+                          onClick={() => setIndividualOrCompany("individual")}
+                        >
+                          Individual
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => setIndividualOrCompany("company")}
+                        >
+                          Company
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </InputGroup>
+                </Form.Group>
+
+                {/* Extra Info */}
+                <Form.Group className="mb-3">
+                  <Form.Label>Company Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Client Occupation / Business Activity</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={occupation}
+                    onChange={(e) => setOccupation(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>Opponent Details</Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={3}
+                    maxLength="2000"
+                    value={opponentDetails}
+                    onChange={(e) => setOpponentDetails(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                  <Form.Text className="text-end">
+                    {opponentDetails.length}/2000
+                  </Form.Text>
+                </Form.Group>
+
+                {/* Legal Service Dropdown */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Legal Service Required{" "}
+                    <span className="text-danger">*</span>
+                  </Form.Label>
+                  <InputGroup>
+                    <Dropdown className="w-100">
+                      <Dropdown.Toggle
+                        variant="outline-secondary"
+                        id="dropdown-legal-service"
+                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
+                        disabled={isDisabled}
+                      >
+                        <span>
+                          {legalService !== "" && legalService !== "Select"
+                            ? legalService
+                            : "Select"}
+                        </span>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="w-100">
+                        <Dropdown.Item
+                          onClick={() => setLegalService("Consultation")}
+                        >
+                          Consultation
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => setLegalService("Representation")}
+                        >
+                          Representation
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </InputGroup>
+                </Form.Group>
+
+                {/* Practice Area Dropdown */}
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Practice Area <span className="text-danger">*</span>
+                  </Form.Label>
+                  <InputGroup>
+                    <Dropdown className="w-100">
+                      <Dropdown.Toggle
+                        variant="outline-secondary"
+                        id="dropdown-practice-area"
+                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
+                        disabled={isDisabled}
+                      >
+                        <span>
+                          {practiceArea !== "" && practiceArea !== "Select"
+                            ? practiceArea
+                            : "Select"}
+                        </span>
+                      </Dropdown.Toggle>
+                      <Dropdown.Menu className="w-100">
+                        <Dropdown.Item
+                          onClick={() => setPracticeArea("Civil Law")}
+                        >
+                          Civil Law
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => setPracticeArea("Corporate Law")}
+                        >
+                          Corporate Law
+                        </Dropdown.Item>
+                        <Dropdown.Item
+                          onClick={() => setPracticeArea("Criminal Law")}
+                        >
+                          Criminal Law
+                        </Dropdown.Item>
+                      </Dropdown.Menu>
+                    </Dropdown>
+                  </InputGroup>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Details on Service Required{" "}
+                    <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    maxLength="2000"
+                    value={serviceDetails}
+                    onChange={(e) => setServiceDetails(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  />
+                  <Form.Text className="text-end">
+                    {serviceDetails.length}/2000
+                  </Form.Text>
+                </Form.Group>
+
+                <Form.Group className="mb-3">
+                  <Form.Label>
+                    Desired Outcome / Suggested Action{" "}
+                    <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Control
+                    as="textarea"
+                    rows={4}
+                    maxLength="2000"
+                    value={desiredOutcome}
+                    onChange={(e) => setDesiredOutcome(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  />
+                  <Form.Text className="text-end">
+                    {desiredOutcome.length}/2000
+                  </Form.Text>
+                </Form.Group>
+
+                {/* File Upload */}
+                <Form.Group className="mb-3">
+                  <Form.Label>Relevant Documents</Form.Label>
+                  <Card className="border-dashed p-4 text-center">
+                    <Card.Body
+                      className="p-4 text-center"
+                      style={{ cursor: "pointer", border: "2px dashed #ccc" }}
+                      onDragOver={handleDragOver}
+                      onDrop={handleDrop}
+                    >
+                      <Form.Control
+                        type="file"
+                        className="d-none"
+                        id="fileUpload"
+                        onChange={handleFileChange}
+                        multiple
+                        disabled={isDisabled || files.length >= 5}
+                      />
+                      <Form.Label
+                        htmlFor="fileUpload"
+                        className={`d-block ${
+                          files.length >= 5 || isDisabled ? "text-muted" : ""
+                        }`}
+                      >
+                        <i className="bi bi-upload fs-2"></i>
+                        <br />
+                        <span className="text-primary text-decoration-underline">
+                          {files.length >= 5
+                            ? "Maximum files selected"
+                            : "Choose files to upload"}
+                        </span>{" "}
+                        {!files.length >= 5 && "or drag and drop here"}
+                      </Form.Label>
+                    </Card.Body>
+
+                    {files.length > 0 && (
+                      <div className="mt-3">
+                        <strong>Selected Files:</strong>
+                        <ul className="list-group mt-2">
+                          {files.map((file, index) => (
+                            <li
+                              key={index}
+                              className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
+                            >
+                              <span className="text-break w-100">
+                                {file.name}
+                              </span>
+                              <Button
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => removeFile(index)}
+                                disabled={isDisabled}
+                              >
+                                X
+                              </Button>
+                            </li>
+                          ))}
+                        </ul>
+                        <div className="text-muted mt-1">
+                          {files.length} file{files.length !== 1 && "s"}{" "}
+                          selected
+                        </div>
+                      </div>
+                    )}
+                  </Card>
+                </Form.Group>
+
+                {/* Referred By */}
+                <Form.Group className="mb-4">
+                  <Form.Label>Referred By</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={referredBy}
+                    onChange={(e) => setReferredBy(e.target.value)}
+                    disabled={isDisabled}
+                  />
+                </Form.Group>
+
+                <Button
+                  variant="primary"
+                  type="submit"
+                  className="w-100 mt-3 mb-2"
+                  disabled={isDisabled}
+                >
+                  Submit
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
+  );
 };
 
 export default ClientConsultationForm;
