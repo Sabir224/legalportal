@@ -162,6 +162,7 @@ const ViewFolder = ({ token }) => {
 
       const data = await response.json();
 
+      console.log("folder",data)
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
 
       let customFolder = !FormCDetails

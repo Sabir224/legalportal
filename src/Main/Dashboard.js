@@ -117,7 +117,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (cookies.token) {
       try {
-        handlescreen2(0); // Decode and store token
+        handlescreen2(0); 
+        console.log("token dashborad",jwtDecode(cookies.token))// Decode and store token
         setDecodedToken(jwtDecode(cookies.token));
       } catch (error) {
         console.error("Invalid token:", error);
@@ -189,6 +190,22 @@ const Dashboard = () => {
       // localStorage.removeItem("pendingScreenIndex");
     }
   }, [dispatch]);
+
+
+
+  useEffect(() => {
+    // Retrieve any stored caseId, userId, and screenIndex from localStorage
+    const pendingCaseId = localStorage.getItem("acknowledgeCaseId");
+    const pendingUserId = localStorage.getItem("acknowledgeUserId");
+    const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
+    console.log("________________:", pendingScreenIndex, decodedToken);
+    if (pendingCaseId && pendingUserId && pendingScreenIndex && jwtDecode(cookies.token)?._id===pendingUserId) {
+      console.log("____________Checkt");
+      handlescreen2(Number(pendingScreenIndex));
+      setCurrentScreen(<Case_details token={decodedToken} />);
+    }
+  }, [dispatch]);
+
   useEffect(() => {
     // if (!authValidator.validateToken()) {
     //   return;

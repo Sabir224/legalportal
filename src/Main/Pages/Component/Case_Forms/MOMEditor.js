@@ -685,41 +685,41 @@ const MOMEditor = () => {
                             </div>
                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                                 <label className="form-label fw-bold">Date</label>
-                                   {editMode || !hasData ? (
-                                        <DatePicker
-                                            value={selectedDate}
-                                            onChange={(date) => setSelectedDate(date)}
-                                            format="dd/MM/yyyy"
-                                            slotProps={{
-                                                textField: {
-                                                    size: "small",
-                                                    fullWidth: true,
-                                                    sx: {
-                                                        width: '100%',
-                                                        minWidth: 0,
-                                                        '& input': {
-                                                            fontSize: '0.75rem',
-                                                            padding: '6px 8px',
-                                                        },
-                                                        '& .MuiInputBase-root': {
-                                                            width: '100%',
-                                                        }
+                                {editMode || !hasData ? (
+                                    <DatePicker
+                                        value={selectedDate}
+                                        onChange={(date) => setSelectedDate(date)}
+                                        format="dd/MM/yyyy"
+                                        slotProps={{
+                                            textField: {
+                                                size: "small",
+                                                fullWidth: true,
+                                                sx: {
+                                                    width: '100%',
+                                                    minWidth: 0,
+                                                    '& input': {
+                                                        fontSize: '0.75rem',
+                                                        padding: '6px 8px',
                                                     },
+                                                    '& .MuiInputBase-root': {
+                                                        width: '100%',
+                                                    }
                                                 },
-                                            }}
-                                        />
-                                    ) : (
-                                        <div className="form-control-plaintext">
-                                            {selectedDate?.toLocaleDateString('en-GB')}
-                                        </div>
-                                    )}
-                                 </div>
+                                            },
+                                        }}
+                                    />
+                                ) : (
+                                    <div className="form-control-plaintext">
+                                        {selectedDate?.toLocaleDateString('en-GB')}
+                                    </div>
+                                )}
+                            </div>
 
 
                             <div className="col-12">
                                 <label className="form-label fw-bold">Case Type</label>
                                 {editMode || !hasData ? (
-                                    <input type="text" className="form-control form-control-sm" placeholder="Family / Civil / ..." value={caseType} onChange={(e) => setCaseType(e.target.value)} />
+                                    <input type="text" className="form-control form-control-sm " placeholder="Family / Civil / ..." value={caseType} onChange={(e) => setCaseType(e.target.value)} />
                                 ) : (
                                     <div className="form-control-plaintext">{caseType}</div>
                                 )}
@@ -750,11 +750,22 @@ const MOMEditor = () => {
                                         value={heading.title}
                                         onChange={(e) => updateHeadingTitle(hIndex, e.target.value)}
                                         rows={1}
+                                        style={{
+                                            overflow: 'hidden',
+                                            resize: 'none',
+                                            minHeight: '38px',
+                                        }}
                                         onInput={(e) => {
                                             e.target.style.height = 'auto';
                                             e.target.style.height = e.target.scrollHeight + 'px';
                                         }}
                                         onKeyDown={(e) => {
+                                            // Block Enter key to prevent new line
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                            }
+
+                                            // Allow Tab for tab character
                                             if (e.key === 'Tab') {
                                                 e.preventDefault();
                                                 const start = e.target.selectionStart;
@@ -768,6 +779,7 @@ const MOMEditor = () => {
                                             }
                                         }}
                                     />
+
                                     <button
                                         onClick={() => {
                                             setDeleteItem(heading)
@@ -797,9 +809,14 @@ const MOMEditor = () => {
                                                     value={point.text}
                                                     onChange={(e) => updatePoint(hIndex, pIndex, e.target.value)}
                                                     rows={1}
+                                                    style={{
+                                                        overflow: 'hidden',         // ⛔ disables scrollbars
+                                                        resize: 'none',             // ⛔ disables manual resizing
+                                                        minHeight: '38px',          // ✅ base height (same as Bootstrap form-control-sm)
+                                                    }}
                                                     onInput={(e) => {
-                                                        e.target.style.height = 'auto';
-                                                        e.target.style.height = e.target.scrollHeight + 'px';
+                                                        e.target.style.height = 'auto'; // reset height
+                                                        e.target.style.height = e.target.scrollHeight + 'px'; // set height to scroll height
                                                     }}
                                                     onKeyDown={(e) => {
                                                         if (e.key === 'Tab') {
@@ -816,6 +833,7 @@ const MOMEditor = () => {
                                                     }}
                                                 />
                                             </div>
+
                                         ) : (
                                             <p className="mb-1 mb-md-2 small" style={{ whiteSpace: 'pre-wrap' }}>
                                                 {point.text}

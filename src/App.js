@@ -34,6 +34,7 @@ import { screenChange } from "./REDUX/sliece";
 import ClientConsultationForm from "./Main/Pages/Component/Case_Forms/FormC";
 import { AlertProvider } from "./Component/AlertContext";
 import GlobalAlert from "./Component/GlobalAlert";
+
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
   const navigate = useNavigate();
@@ -52,6 +53,29 @@ function CaseRedirectHandler() {
       navigate("/Dashboards");
     }
   }, [caseId, userId, navigate, location.pathname]);
+
+  return null;
+}
+
+const AcknowledgeCaseHandoverRedirectHandler =()=> {
+  const { caseId,userId } = useParams();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // Only proceed if we're on the case redirect path and params exist
+    if (location.pathname.startsWith("/acknowledgeCaseHandover/") && caseId) {
+      // Store the case information in localStorage
+      localStorage.setItem("acknowledgeCaseId", caseId);
+      localStorage.setItem("acknowledgeUserId", userId);
+
+      localStorage.setItem("pendingScreenIndex", "1");
+      // localStorage.setItem("isPendingCase", "true"); // Flag to indicate we have pending case
+
+      // Navigate to dashboard
+      navigate("/Dashboards");
+    }
+  }, [caseId, userId,navigate, location.pathname]);
 
   return null;
 }
@@ -136,6 +160,7 @@ function App() {
           }
         />
         <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
+        <Route path="/acknowledgeCaseHandover/:caseId/:userId" element={<AcknowledgeCaseHandoverRedirectHandler />} />
         <Route path="/client-consultation" element={
           <AlertProvider>
             <ClientConsultationForm />

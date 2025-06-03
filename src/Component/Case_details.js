@@ -32,7 +32,7 @@ import { faComment } from "@fortawesome/free-solid-svg-icons/faComment";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { screenChange } from "../REDUX/sliece";
+import { Caseinfo, screenChange } from "../REDUX/sliece";
 import { ApiEndPoint } from "../Main/Pages/Component/utils/utlis";
 import PartiesDetails from "../Main/Pages/Component/Casedetails/PartiesDetails";
 import ExhibitDetails from "../Main/Pages/Component/Casedetails/ExhibitDetails";
@@ -66,19 +66,32 @@ const Case_details = ({ token }) => {
     const pendingCaseId = localStorage.getItem("pendingCaseId");
     const pendingUserId = localStorage.getItem("pendingUserId");
     const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
+    const acknowledgeCaseId = localStorage.getItem("acknowledgeCaseId");
+    const acknowledgeUserId = localStorage.getItem("acknowledgeUserId");
 
-    if (pendingCaseId && pendingUserId && pendingScreenIndex) {
+    if ((pendingCaseId || acknowledgeCaseId) && (pendingUserId || acknowledgeUserId) && pendingScreenIndex) {
       setPendingCaseData({
-        caseId: pendingCaseId,
-        userId: pendingUserId,
+        caseId: pendingCaseId || acknowledgeCaseId,
+        userId: pendingUserId || acknowledgeUserId,
         screenIndex: pendingScreenIndex,
       });
       setEffectiveCaseInfo({
-        _id: pendingCaseId,
-        ClientId: pendingUserId,
+        _id: pendingCaseId || acknowledgeCaseId,
+        ClientId: pendingUserId || acknowledgeUserId,
       });
+
+      console.log("reduxCaseInfo",reduxCaseInfo)
+      dispatch(reduxCaseInfo ? Caseinfo(reduxCaseInfo) : Caseinfo({
+        _id: pendingCaseId || acknowledgeCaseId,
+      }));
+
     } else {
       setEffectiveCaseInfo(reduxCaseInfo || global.CaseId);
+      console.log("reduxCaseInfo else",reduxCaseInfo)
+
+      dispatch(reduxCaseInfo ? Caseinfo(reduxCaseInfo) : Caseinfo({
+        _id: pendingCaseId || acknowledgeCaseId,
+      }));
     }
   }, []);
 
