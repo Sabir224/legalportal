@@ -60,9 +60,10 @@ const FormHandover = ({ token }) => {
         const getData = async () => {
 
             try {
+                console.log("reduxCaseInfo?._id",reduxCaseInfo?._id)
                 const result = await fetchFormHData(reduxCaseInfo?._id);
                 setFormhOrFormCDetails(result);
-
+                console.log("form c",FormCselected)
                 // If Form H exists
                 if (result?.form) {
                     const form = result.form;
@@ -86,6 +87,9 @@ const FormHandover = ({ token }) => {
                         receiverSignature: form.receiverSignature || "",
                         isrecevied: form.isReceived || false,
                     });
+                    if (FormCselected) {
+                        setFormData(FormCselected)
+                    }
                 }
                 // If Form H does not exist, fallback to initial blank data
                 else if (result?.case && result?.client) {
@@ -108,6 +112,9 @@ const FormHandover = ({ token }) => {
                         isrecevied: false
 
                     });
+                    if (FormCselected) {
+                        setFormData(FormCselected)
+                    }
                 }
 
                 console.log("Form H API Response: ", result);
@@ -308,8 +315,8 @@ const FormHandover = ({ token }) => {
     const handlegotoform = async (formCid, item) => {
         if (item.name === "cForm") {
 
-            console.log(formCid)
-            dispatch(FormCDetails(formCid));
+            console.log(formData)
+            dispatch(FormCDetails(formData));
             dispatch(screenChange(16))
         }
     };
@@ -667,7 +674,7 @@ const FormHandover = ({ token }) => {
                                     </div>
 
                                     <div className="mb-3">
-                                        <label className="form-label">Handover Date/ Time:</label>
+                                        <label className="form-label">Handover Date:</label>
                                         <DatePicker
                                             value={formData.handoverDateTime ? new Date(formData.handoverDateTime) : null}
                                             onChange={(date) =>

@@ -94,10 +94,11 @@ const AddCase = () => {
     }
     try {
       showLoading();
-      await axios.post(`${ApiEndPoint}cases`, caseData);
+     const reponse= await axios.post(`${ApiEndPoint}cases`, caseData);
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
       showSuccess("Form submitted successfully!");
+      console.log("reponse=",reponse.data)
       setCaseNumber("");
       setCaseType("");
       setDiscription("");
