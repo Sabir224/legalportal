@@ -672,84 +672,88 @@ const ViewFolder = ({ token }) => {
       setLoading(false);
     }
   };
-  const handleFileChange = (input) => {
-    setErrorMessage([]);
-    let files = Array.isArray(input) ? input : Array.from(input.target.files);
+ const handleFileChange = (input) => {
+  setErrorMessage([]);
 
-    let validFiles = [];
-    let totalFiles = selectedFiles.length; // Track total files
+  let files = Array.isArray(input)
+    ? input
+    : Array.from(input.target.files || []);
 
-    let invalidSizeFiles = [];
-    let invalidTypeFiles = [];
-    let invalidLengthFiles = [];
+  // If input is coming from rename/remove operation (i.e. full file list), replace selectedFiles
+  const isReplace = input?.target?.files && selectedFiles.length !== 0;
 
-    for (let file of files) {
-      if (totalFiles > 10) break; // Stop if we reach the limit
+  let validFiles = [];
+  let invalidSizeFiles = [];
+  let invalidTypeFiles = [];
+  let invalidLengthFiles = [];
 
-      if (file.name.length > 40) {
-        // Truncate file name for display
-        let truncatedName =
-          file.name.substring(0, 20) + "..." + file.name.slice(-10);
-        invalidLengthFiles.push(truncatedName); // Store truncated name
-        continue; // Skip this file
-      }
+  let totalFiles = isReplace ? 0 : selectedFiles.length;
 
-      const fileType = getFileType(file.name);
-      if (fileType === "other") {
-        invalidTypeFiles.push(file.name); // Store file name if type is not allowed
-      } else if (!validateFileSize(file)) {
-        invalidSizeFiles.push(
-          `${file.name} (Max ${(
-            (sizeLimits[fileType] || 2 * 1024 * 1024) /
-            (1024 * 1024)
-          ).toFixed(1)}MB)` // Show max limit
-        );
-      } else {
-        validFiles.push(file);
-        totalFiles++; // Increment total count
-      }
+  for (let file of files) {
+    if (totalFiles >= 10) break;
+
+    if (file.name.length > 40) {
+      let truncatedName =
+        file.name.substring(0, 20) + "..." + file.name.slice(-10);
+      invalidLengthFiles.push(truncatedName);
+      continue;
     }
 
-    let fileLimitExceeded = totalFiles > 10;
-    if (fileLimitExceeded) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
-      ]);
-      validFiles = validFiles.slice(0, 10 - selectedFiles.length);
+    const fileType = getFileType(file.name);
+    if (fileType === "other") {
+      invalidTypeFiles.push(file.name);
+    } else if (!validateFileSize(file)) {
+      invalidSizeFiles.push(
+        `${file.name} (Max ${(
+          (sizeLimits[fileType] || 2 * 1024 * 1024) /
+          (1024 * 1024)
+        ).toFixed(1)}MB)`
+      );
+    } else {
+      validFiles.push(file);
+      totalFiles++;
     }
+  }
 
-    if (invalidSizeFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following files exceed the size limit: ${invalidSizeFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
+  if (totalFiles > 10) {
+    setErrorMessage((prev) => [
+      ...prev,
+      `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
+    ]);
+    validFiles = validFiles.slice(0, 10 - selectedFiles.length);
+  }
 
-    if (invalidTypeFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following file extensions are not allowed: ${invalidTypeFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
+  if (invalidSizeFiles.length > 0) {
+    setErrorMessage((prev) => [
+      ...prev,
+      `The following files exceed the size limit: ${invalidSizeFiles.join(", ")}`,
+    ]);
+  }
 
-    if (invalidLengthFiles.length > 0) {
-      setErrorMessage((prevErrors) => [
-        ...prevErrors,
-        `The following files have names longer than 40 characters: ${invalidLengthFiles.join(
-          ", "
-        )}`,
-      ]);
-    }
+  if (invalidTypeFiles.length > 0) {
+    setErrorMessage((prev) => [
+      ...prev,
+      `The following file extensions are not allowed: ${invalidTypeFiles.join(", ")}`,
+    ]);
+  }
 
-    setSelectedFiles((prevFiles) => [...prevFiles, ...validFiles].slice(0, 5));
+  if (invalidLengthFiles.length > 0) {
+    setErrorMessage((prev) => [
+      ...prev,
+      `The following files have names longer than 40 characters: ${invalidLengthFiles.join(", ")}`,
+    ]);
+  }
 
-    if (!Array.isArray(input)) input.target.value = "";
-  };
+  // Replace or Append
+  if (isReplace) {
+    setSelectedFiles(validFiles.slice(0, 5));
+  } else {
+    setSelectedFiles((prev) => [...prev, ...validFiles].slice(0, 5));
+  }
+
+  if (!Array.isArray(input)) input.target.value = "";
+};
+
 
   const [showMoveModal, setShowMoveModal] = useState(false);
   const [folderToMove, setFolderToMove] = useState(null);
