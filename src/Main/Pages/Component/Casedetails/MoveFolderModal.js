@@ -74,7 +74,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, isfile, onMove }) 
         setIsUsingPendingCase(false);
       }
     } catch (err) {
-      showError(err.message);
+      setError(err.message);
       setFolderList([]);
     } finally {
       setLoadingFolders(false);
@@ -100,7 +100,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, isfile, onMove }) 
 
       setFolderList(validFolders);
     } catch (err) {
-      showError(err.message);
+      setError(err.message);
       setFolderList([]);
     } finally {
       setLoadingFolders(false);

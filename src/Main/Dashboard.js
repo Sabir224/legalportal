@@ -3,13 +3,20 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./Dashboard.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
+  faAddressCard,
   faBook,
   faBookBible,
+  faBookOpen,
   faBookReader,
   faBriefcase,
   faCalendar,
+  faCashRegister,
   faForward,
   faHome,
+  faList,
+  faList12,
+  faListAlt,
+  faListDots,
   faMessage,
   faNoteSticky,
   faPerson,
@@ -20,7 +27,9 @@ import {
   faPersonWalkingDashedLineArrowRight,
   faPowerOff,
   faQuestion,
+  faRegistered,
   faSignOut,
+  faStamp,
   faStreetView,
   faTasks,
   faTasksAlt,
@@ -517,7 +526,8 @@ const Dashboard = () => {
               : null,
             decodedToken?.Role === "admin"
               ? {
-                icon: faCcMastercard,
+                icon: faBookOpen,
+                
                 label: "Add Case",
                 action: () => {
                   dispatch(clientEmail(null));
@@ -552,7 +562,7 @@ const Dashboard = () => {
             // },
             decodedToken?.Role !== "client"
               ? {
-                icon: faWpforms,
+                icon: faList12,
                 label: "Form C List",
                 action: () => {
                   dispatch(clientEmail(null));
@@ -565,7 +575,7 @@ const Dashboard = () => {
               : null,
             decodedToken?.Role !== "client"
               ? {
-                icon: faWpforms,
+                icon: faList,
                 label: "Form H List",
                 action: () => {
                   dispatch(clientEmail(null));
