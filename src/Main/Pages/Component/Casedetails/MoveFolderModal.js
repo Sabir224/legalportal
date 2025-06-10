@@ -10,8 +10,9 @@ import {
   faFolderTree,
   faXmark,
 } from "@fortawesome/free-solid-svg-icons";
+import { useAlert } from "../../../../Component/AlertContext";
 
-const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
+const MoveFolderModal = ({ show, onClose, folder, allFolders, isfile, onMove }) => {
   const [newParentId, setNewParentId] = useState(null);
   const [folderList, setFolderList] = useState(allFolders);
   const [selectedFolder, setSelectedFolder] = useState(null);
@@ -23,6 +24,8 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
   const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
   const [isUsingPendingCase, setIsUsingPendingCase] = useState(false);
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+    const { showLoading, showSuccess, showError } = useAlert();
+  
 
   // Initialize case data
   useEffect(() => {
@@ -63,7 +66,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
           (!folder?.parentId || f.parentId !== folder._id)
       );
 
-      setFolderList(filteredFolders);
+      setFolderList(validFolders);
 
       // Clear pending data if we used it successfully
       if (isUsingPendingCase) {
@@ -71,7 +74,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
         setIsUsingPendingCase(false);
       }
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
       setFolderList([]);
     } finally {
       setLoadingFolders(false);
@@ -95,9 +98,9 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
           (!folder?.parentId || f.parentId !== folder._id)
       );
 
-      setFolderList(filteredFolders);
+      setFolderList(validFolders);
     } catch (err) {
-      setError(err.message);
+      showError(err.message);
       setFolderList([]);
     } finally {
       setLoadingFolders(false);
@@ -110,10 +113,9 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
     // Prevent moving a folder into itself or its own subfolder
     if (
       selectedFolder &&
-      (selectedFolder._id === folder._id ||
-        folderPath.some((f) => f._id === folder._id))
+      (selectedFolder._id === folder._id )
     ) {
-      setError("Cannot move folder into itself or its subfolder");
+      showError("Cannot move folder into itself ");
       return;
     }
 
@@ -378,7 +380,7 @@ const MoveFolderModal = ({ show, onClose, folder, allFolders, onMove }) => {
           <Form.Label>Select New Parent Folder</Form.Label>
           <div className="d-flex flex-wrap gap-2">
             {folderList
-              .filter((folderItem) => folderItem?._id !== folder?._id)
+              // .filter((folderItem) => folderItem?._id !== folder?._id)
               .map((folderItem) => (
                 <Col key={folderItem._id} xs={12} sm={6} md={4} lg={3}>
                   <Card

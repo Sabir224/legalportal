@@ -89,6 +89,7 @@ const ViewFolder = ({ token }) => {
   const [folderPath, setFolderPath] = useState([]);
 
   const [showError, setShowError] = useState(false);
+  const [isfile, setisfile] = useState(false);
   const [message, setMessage] = useState("");
 
   const baseStyle = {
@@ -162,26 +163,26 @@ const ViewFolder = ({ token }) => {
 
       const data = await response.json();
 
-      console.log("folder",data)
+      console.log("folder", data)
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
 
       let customFolder = !FormCDetails
         ? {
-            _id: "personal-folder",
-            folderName: "Personal",
-            caseId: caseIdToUse,
-            files: [],
-            parentId: data?.mainfolder?._id || null,
-            isPersonal: true,
-          }
+          _id: "personal-folder",
+          folderName: "Personal",
+          caseId: caseIdToUse,
+          files: [],
+          parentId: data?.mainfolder?._id || null,
+          isPersonal: true,
+        }
         : {
-            _id: "formc-folder",
-            folderName: "FormC Documents",
-            caseId: caseIdToUse,
-            files: [],
-            parentId: data?.mainfolder?._id || null,
-            isFormCDoc: true,
-          };
+          _id: "formc-folder",
+          folderName: "FormC Documents",
+          caseId: caseIdToUse,
+          files: [],
+          parentId: data?.mainfolder?._id || null,
+          isFormCDoc: true,
+        };
 
       const finalFolders = [customFolder, ...fetchedFolders];
       setFolderList(finalFolders);
@@ -198,17 +199,17 @@ const ViewFolder = ({ token }) => {
       setError(err.message);
       let fallbackFolder = !FormCDetails
         ? {
-            _id: "personal-folder",
-            folderName: "Personal",
-            files: [],
-            isPersonal: true,
-          }
+          _id: "personal-folder",
+          folderName: "Personal",
+          files: [],
+          isPersonal: true,
+        }
         : {
-            _id: "formc-folder",
-            folderName: "FormC Documents",
-            files: [],
-            isFormCDoc: true,
-          };
+          _id: "formc-folder",
+          folderName: "FormC Documents",
+          files: [],
+          isFormCDoc: true,
+        };
       setFolderList([fallbackFolder]);
     } finally {
       setLoadingFolders(false);
@@ -491,8 +492,8 @@ const ViewFolder = ({ token }) => {
     let apiaddress = IsPersonal
       ? `${ApiEndPoint}download/${fileId}`
       : FormCDetails != null
-      ? `${ApiEndPoint}formCDownloadFile/${fileId}`
-      : `${ApiEndPoint}downloadFileFromFolder/${fileId}`;
+        ? `${ApiEndPoint}formCDownloadFile/${fileId}`
+        : `${ApiEndPoint}downloadFileFromFolder/${fileId}`;
     console.log("file apiaddress", apiaddress);
     if (IsPersonal) {
       console.log("Download Response JSON:", fileId);
@@ -672,87 +673,87 @@ const ViewFolder = ({ token }) => {
       setLoading(false);
     }
   };
- const handleFileChange = (input) => {
-  setErrorMessage([]);
+  const handleFileChange = (input) => {
+    setErrorMessage([]);
 
-  let files = Array.isArray(input)
-    ? input
-    : Array.from(input.target.files || []);
+    let files = Array.isArray(input)
+      ? input
+      : Array.from(input.target.files || []);
 
-  // If input is coming from rename/remove operation (i.e. full file list), replace selectedFiles
-  const isReplace = input?.target?.files && selectedFiles.length !== 0;
+    // If input is coming from rename/remove operation (i.e. full file list), replace selectedFiles
+    const isReplace = input?.target?.files && selectedFiles.length !== 0;
 
-  let validFiles = [];
-  let invalidSizeFiles = [];
-  let invalidTypeFiles = [];
-  let invalidLengthFiles = [];
+    let validFiles = [];
+    let invalidSizeFiles = [];
+    let invalidTypeFiles = [];
+    let invalidLengthFiles = [];
 
-  let totalFiles = isReplace ? 0 : selectedFiles.length;
+    let totalFiles = isReplace ? 0 : selectedFiles.length;
 
-  for (let file of files) {
-    if (totalFiles >= 10) break;
+    for (let file of files) {
+      if (totalFiles >= 10) break;
 
-    if (file.name.length > 40) {
-      let truncatedName =
-        file.name.substring(0, 20) + "..." + file.name.slice(-10);
-      invalidLengthFiles.push(truncatedName);
-      continue;
+      if (file.name.length > 40) {
+        let truncatedName =
+          file.name.substring(0, 20) + "..." + file.name.slice(-10);
+        invalidLengthFiles.push(truncatedName);
+        continue;
+      }
+
+      const fileType = getFileType(file.name);
+      if (fileType === "other") {
+        invalidTypeFiles.push(file.name);
+      } else if (!validateFileSize(file)) {
+        invalidSizeFiles.push(
+          `${file.name} (Max ${(
+            (sizeLimits[fileType] || 2 * 1024 * 1024) /
+            (1024 * 1024)
+          ).toFixed(1)}MB)`
+        );
+      } else {
+        validFiles.push(file);
+        totalFiles++;
+      }
     }
 
-    const fileType = getFileType(file.name);
-    if (fileType === "other") {
-      invalidTypeFiles.push(file.name);
-    } else if (!validateFileSize(file)) {
-      invalidSizeFiles.push(
-        `${file.name} (Max ${(
-          (sizeLimits[fileType] || 2 * 1024 * 1024) /
-          (1024 * 1024)
-        ).toFixed(1)}MB)`
-      );
+    if (totalFiles > 10) {
+      setErrorMessage((prev) => [
+        ...prev,
+        `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
+      ]);
+      validFiles = validFiles.slice(0, 10 - selectedFiles.length);
+    }
+
+    if (invalidSizeFiles.length > 0) {
+      setErrorMessage((prev) => [
+        ...prev,
+        `The following files exceed the size limit: ${invalidSizeFiles.join(", ")}`,
+      ]);
+    }
+
+    if (invalidTypeFiles.length > 0) {
+      setErrorMessage((prev) => [
+        ...prev,
+        `The following file extensions are not allowed: ${invalidTypeFiles.join(", ")}`,
+      ]);
+    }
+
+    if (invalidLengthFiles.length > 0) {
+      setErrorMessage((prev) => [
+        ...prev,
+        `The following files have names longer than 40 characters: ${invalidLengthFiles.join(", ")}`,
+      ]);
+    }
+
+    // Replace or Append
+    if (isReplace) {
+      setSelectedFiles(validFiles.slice(0, 5));
     } else {
-      validFiles.push(file);
-      totalFiles++;
+      setSelectedFiles((prev) => [...prev, ...validFiles].slice(0, 5));
     }
-  }
 
-  if (totalFiles > 10) {
-    setErrorMessage((prev) => [
-      ...prev,
-      `Maximum 10 files can be uploaded at any time and allow first 5 for upload`,
-    ]);
-    validFiles = validFiles.slice(0, 10 - selectedFiles.length);
-  }
-
-  if (invalidSizeFiles.length > 0) {
-    setErrorMessage((prev) => [
-      ...prev,
-      `The following files exceed the size limit: ${invalidSizeFiles.join(", ")}`,
-    ]);
-  }
-
-  if (invalidTypeFiles.length > 0) {
-    setErrorMessage((prev) => [
-      ...prev,
-      `The following file extensions are not allowed: ${invalidTypeFiles.join(", ")}`,
-    ]);
-  }
-
-  if (invalidLengthFiles.length > 0) {
-    setErrorMessage((prev) => [
-      ...prev,
-      `The following files have names longer than 40 characters: ${invalidLengthFiles.join(", ")}`,
-    ]);
-  }
-
-  // Replace or Append
-  if (isReplace) {
-    setSelectedFiles(validFiles.slice(0, 5));
-  } else {
-    setSelectedFiles((prev) => [...prev, ...validFiles].slice(0, 5));
-  }
-
-  if (!Array.isArray(input)) input.target.value = "";
-};
+    if (!Array.isArray(input)) input.target.value = "";
+  };
 
 
   const [showMoveModal, setShowMoveModal] = useState(false);
@@ -766,6 +767,7 @@ const ViewFolder = ({ token }) => {
   const closeMoveModal = () => {
     setFolderToMove(null);
     setShowMoveModal(false);
+    setisfile(false)
   };
 
   // const handleMoveFolder = async (movefolder, moveintofolder) => {
@@ -869,6 +871,7 @@ const ViewFolder = ({ token }) => {
   };
 
   const handlefileMove = async (movefolder, moveintofolder) => {
+
     let caseData = {
       fileId: moveFileId,
       sourceFolderId: movefolder?._id,
@@ -885,10 +888,18 @@ const ViewFolder = ({ token }) => {
       console.log("Move file API response:", response.data);
 
       if (response.data.success || response.status === 200) {
+        if (folderPath.length > 0) {
+          // We're inside a subfolder
+          const currentFolderId = folderPath[folderPath.length - 1]?._id;
+          fetchsubFolders(currentFolderId);
+        } else {
+          // In root folder
+          fetchFolders(true);
+        }
         console.log("📂 File moved successfully");
-        fetchFolders(true); // Refresh the folders
+       // fetchFolders(true); // Refresh the folders
         setSelectedFolder(null);
-        setFolderPath([]);
+      //  setFolderPath([]);
         setMoveFileId(null);
         // alert("✅ File moved successfully!");
       } else {
@@ -1945,9 +1956,8 @@ const ViewFolder = ({ token }) => {
                           className="mb-2 d-flex col-12 col-md-auto"
                         >
                           <Card
-                            className={`flex-grow-1 d-flex flex-column ${
-                              viewMode === "grid" ? "grid-card" : "list-card"
-                            }`}
+                            className={`flex-grow-1 d-flex flex-column ${viewMode === "grid" ? "grid-card" : "list-card"
+                              }`}
                             style={{
                               background: "#18273e",
                               border: "1px solid white",
@@ -1960,8 +1970,8 @@ const ViewFolder = ({ token }) => {
                               folder?.folderName === "Personal"
                                 ? fetchClientDocuments()
                                 : folder?.folderName === "FormC Documents"
-                                ? fetchFormCfile()
-                                : fetchsubFolders(folder?._id);
+                                  ? fetchFormCfile()
+                                  : fetchsubFolders(folder?._id);
                               setSelectedFolder(folder);
                               setFolderPath((prevPath) => [
                                 ...prevPath,
@@ -2140,9 +2150,8 @@ const ViewFolder = ({ token }) => {
                       className="mb-2 d-flex"
                     >
                       <Card
-                        className={`flex-grow-1 d-flex flex-column ${
-                          viewMode === "grid" ? "grid-card" : "list-card"
-                        }`}
+                        className={`flex-grow-1 d-flex flex-column ${viewMode === "grid" ? "grid-card" : "list-card"
+                          }`}
                         style={{
                           background: "#18273e",
                           border: "1px solid white",
@@ -2220,6 +2229,7 @@ const ViewFolder = ({ token }) => {
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       setMoveFileId(file?._id);
+                                      setisfile(true)
                                       openMoveModal(selectedFolder);
                                     }}
                                   >
@@ -2298,6 +2308,7 @@ const ViewFolder = ({ token }) => {
         onClose={closeMoveModal}
         folder={folderToMove !== null ? folderToMove : Mainfolder}
         allFolders={folderList} // array of all folders you have
+        isfile={isfile}
         onMove={moveFileId !== null ? handlefileMove : handleMoveFolder}
       />
 
@@ -2390,14 +2401,15 @@ const ViewFolder = ({ token }) => {
           </Form>
         </Modal.Body>
         <Modal.Footer className="d-flex justify-content-center gap-2">
-          <Button variant="primary" onClick={() => setShowModal(false)}>
+          <Button variant="primary" onClick={() => setShowFileModal(false)}>
             <FontAwesomeIcon icon={faTimes} className="me-1" />
             <span className="d-none d-sm-inline">Cancel</span>
           </Button>
 
           <Button
             variant="primary"
-            onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
+             onClick={handleUpdateFileName}
+            //onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
           >
             <FontAwesomeIcon
               icon={isEditMode ? faPen : faPlus}

@@ -17,13 +17,15 @@ import {
 const AddCase = () => {
   const [Priority, setPriority] = useState("High");
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const selectedclientdetails = useSelector(
-    (state) => state.screen.clientEmail
-  );
+  const [caseTypedropdownOpen, setCaseTypedropdownOpen] = useState(false);
+  const selectedclientdetails = null
+  // const selectedclientdetails = useSelector(
+  //   (state) => state.screen.clientEmail
+  // );
   // Form fields
   const [casenumber, setCaseNumber] = useState("");
   const [clientname, setClientname] = useState("");
-  const [casetype, setCaseType] = useState("");
+  const [casetype, setCaseType] = useState("High");
   const [discription, setDiscription] = useState("");
 
   const [PreviewCaseId, setPreviewCaseId] = useState("");
@@ -34,19 +36,26 @@ const AddCase = () => {
 
   const { showLoading, showSuccess, showError } = useAlert();
   useEffect(() => {
-    const fetchNextCaseId = async () => {
-      const res = await fetch(`${ApiEndPoint}getNextCaseId`);
-      const data = await res.json();
-      setPreviewCaseId(data.nextCaseId);
-    };
+
 
     fetchNextCaseId();
-  }, []);
+  }, [PreviewCaseId]);
+
+  const fetchNextCaseId = async () => {
+    const res = await fetch(`${ApiEndPoint}getNextCaseId`);
+    const data = await res.json();
+    setPreviewCaseId(data.nextCaseId);
+  };
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+  const toggleCaseTypeDropdown = () => setCaseTypedropdownOpen(!caseTypedropdownOpen);
   const handleRoleSelect = (role) => {
     setPriority(role);
     setDropdownOpen(false);
+  };
+  const handleCaseTypeRoleSelect = (role) => {
+    setCaseType(role);
+    setCaseTypedropdownOpen(false);
   };
 
   // Close dropdown if clicking outside
@@ -94,11 +103,13 @@ const AddCase = () => {
     }
     try {
       showLoading();
-     const reponse= await axios.post(`${ApiEndPoint}cases`, caseData);
+      const reponse = await axios.post(`${ApiEndPoint}cases`, caseData);
 
       await new Promise((resolve) => setTimeout(resolve, 2000));
       showSuccess("Form submitted successfully!");
-      console.log("reponse=",reponse.data)
+      console.log("reponse=", reponse.data)
+      fetchNextCaseId();
+      setClientname("")
       setCaseNumber("");
       setCaseType("");
       setDiscription("");
@@ -120,7 +131,7 @@ const AddCase = () => {
         className="card shadow-sm mx-3 mx-md-5 mt-2 mt-md-3 mb-2 border-0 d-flex flex-column"
         style={{
           borderRadius: "12px",
-          maxHeight: "80vh", // Adjust as needed for header/footer
+          // maxHeight: "80vh", // Adjust as needed for header/footer
           display: "flex",
           flexDirection: "column",
         }}
@@ -153,23 +164,23 @@ const AddCase = () => {
                 state: selectedclientdetails?.UserName,
                 setState: setClientname,
               },
-              {
-                label: "Case Type",
-                icon: <BsType className="fs-5" />,
-                state: casetype,
-                setState: setCaseType,
-              },
+              // {
+              //   label: "Case Type",
+              //   icon: <BsType className="fs-5" />,
+              //   state: casetype,
+              //   setState: setCaseType,
+              // },
               {
                 label: "Description (Optional)",
                 icon: <FaAudioDescription className="fs-5" />,
                 state: discription,
                 setState: setDiscription,
               },
-              {
-                label: "Client Email",
-                icon: <FaRegEnvelope className="fs-5" />,
-                state: selectedclientdetails?.Email,
-              },
+              // {
+              //   label: "Client Email",
+              //   icon: <FaRegEnvelope className="fs-5" />,
+              //   state: selectedclientdetails?.Email,
+              // },
             ]
               .filter(Boolean)
               .map(({ label, icon, state, setState, type = "text" }, index) => (
@@ -222,6 +233,88 @@ const AddCase = () => {
                 </div>
               ))}
 
+
+
+            <div className="col-12 col-md-6">
+              <label
+                className="form-label fw-semibold mb-2 d-block"
+                style={{
+                  color: "#18273e",
+                  fontSize: "0.95rem",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                Case Type
+              </label>
+              <div className="input-group">
+                <div className="position-relative w-100" ref={dropdownRef}>
+                  <button
+                    className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                    style={{
+                      cursor: "pointer",
+                      border: "1px solid #d3b386",
+                      borderRadius: "6px",
+                      backgroundColor: caseTypedropdownOpen ? "#fff9f0" : "white",
+                      boxShadow: "none",
+                      height: "auto",
+                      minHeight: "42px",
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                    }}
+                    onClick={toggleCaseTypeDropdown}
+                    aria-expanded={caseTypedropdownOpen}
+                    aria-haspopup="listbox"
+                  >
+                    <span>{casetype || "Select Priority"}</span>
+                    <FaChevronDown
+                      className={`transition-all fs-6 ${caseTypedropdownOpen ? "rotate-180" : ""
+                        }`}
+                      style={{ color: "#18273e" }}
+                    />
+                  </button>
+                  {caseTypedropdownOpen && (
+                    <ul
+                      className="list-group position-absolute w-100 mt-1 shadow-sm"
+                      style={{
+                        zIndex: 1000,
+                        border: "1px solid #d3b386",
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                      }}
+                      role="listbox"
+                    >
+                      {["Civil", "Real State", "Family"].map((role) => (
+                        <li
+                          key={role}
+                          className="list-group-item list-group-item-action px-3 py-2"
+                          style={{
+                            cursor: "pointer",
+                            backgroundColor:
+                              role === casetype ? "#F8D4A1" : "white",
+                            border: "none",
+                            borderBottom: "1px solid #f0f0f0",
+                            transition: "all 0.2s ease",
+                            fontSize: "0.95rem",
+                          }}
+                          onClick={() => handleCaseTypeRoleSelect(role)}
+                          role="option"
+                          aria-selected={role === casetype}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f5e9d9")
+                          }
+                          onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            role === casetype ? "#F8D4A1" : "white")
+                          }
+                        >
+                          {role}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
             {/* Priority Dropdown */}
             <div className="col-12 col-md-6">
               <label
@@ -255,9 +348,8 @@ const AddCase = () => {
                   >
                     <span>{Priority || "Select Priority"}</span>
                     <FaChevronDown
-                      className={`transition-all fs-6 ${
-                        dropdownOpen ? "rotate-180" : ""
-                      }`}
+                      className={`transition-all fs-6 ${dropdownOpen ? "rotate-180" : ""
+                        }`}
                       style={{ color: "#18273e" }}
                     />
                   </button>
@@ -292,8 +384,8 @@ const AddCase = () => {
                             (e.currentTarget.style.backgroundColor = "#f5e9d9")
                           }
                           onMouseLeave={(e) =>
-                            (e.currentTarget.style.backgroundColor =
-                              role === Priority ? "#F8D4A1" : "white")
+                          (e.currentTarget.style.backgroundColor =
+                            role === Priority ? "#F8D4A1" : "white")
                           }
                         >
                           {role}

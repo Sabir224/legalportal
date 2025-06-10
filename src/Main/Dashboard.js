@@ -117,8 +117,8 @@ const Dashboard = () => {
   useEffect(() => {
     if (cookies.token) {
       try {
-        handlescreen2(0); 
-        console.log("token dashborad",jwtDecode(cookies.token))// Decode and store token
+        handlescreen2(0);
+        console.log("token dashborad", jwtDecode(cookies.token))// Decode and store token
         setDecodedToken(jwtDecode(cookies.token));
       } catch (error) {
         console.error("Invalid token:", error);
@@ -199,7 +199,7 @@ const Dashboard = () => {
     const pendingUserId = localStorage.getItem("acknowledgeUserId");
     const pendingScreenIndex = localStorage.getItem("pendingScreenIndex");
     console.log("________________:", pendingScreenIndex, decodedToken);
-    if (pendingCaseId && pendingUserId && pendingScreenIndex && jwtDecode(cookies.token)?._id===pendingUserId) {
+    if (pendingCaseId && pendingUserId && pendingScreenIndex && jwtDecode(cookies.token)?._id === pendingUserId) {
       console.log("____________Checkt");
       handlescreen2(Number(pendingScreenIndex));
       setCurrentScreen(<Case_details token={decodedToken} />);
@@ -265,7 +265,13 @@ const Dashboard = () => {
         );
         break;
       case 12:
-        setCurrentScreen(<ViewFolder token={decodedToken} />);
+        setCurrentScreen(
+
+          <AlertProvider>
+            <ViewFolder token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 13:
         setCurrentScreen(<Task token={decodedToken} />);
