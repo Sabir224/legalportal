@@ -645,11 +645,10 @@ const BasicCase = ({ token }) => {
                   <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
                     <div className="d-flex align-items-center gap-2">
                       <span
-                        className={`rounded-circle ${
-                          item.Status.toLowerCase() === "case filed"
+                        className={`rounded-circle ${item.Status.toLowerCase() === "case filed"
                             ? "bg-success"
                             : "bg-danger"
-                        }`}
+                          }`}
                         style={{
                           width: "12px",
                           height: "12px",
@@ -765,7 +764,7 @@ const BasicCase = ({ token }) => {
 
                 {/* Desktop View - Horizontal Layout */}
                 <div
-                  className="d-none d-md-flex justify-content-between align-items-center p-3"
+                  className="d-none d-md-flex justify-content-between gap-5 align-items-center p-3"
                   style={{ cursor: "pointer" }}
                   onClick={(e) => {
                     if (
@@ -778,11 +777,10 @@ const BasicCase = ({ token }) => {
                 >
                   <span className="col d-flex align-items-center text-start">
                     <span
-                      className={`me-2 rounded-circle ${
-                        item.Status.toLowerCase() === "case filed"
+                      className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
                           ? "bg-success"
                           : "bg-danger"
-                      }`}
+                        }`}
                       style={{
                         width: "10px",
                         height: "10px",
@@ -800,13 +798,18 @@ const BasicCase = ({ token }) => {
                   <span className="col d-flex align-items-center text-start">
                     {item["CaseType"]}
                   </span>
-                  <input
-                    className="col form-control"
-                    type="text"
-                    value={item.notes || ""}
-                    onChange={(e) => handleEdit(index, e.target.value)}
-                    onClick={(e) => e.stopPropagation()}
-                  />
+
+                  <div className="">
+                    <input
+                      className="col form-control"
+                      type="text"
+                      value={item.notes || ""}
+                      onChange={(e) => handleEdit(index, e.target.value)}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+
+
 
                   {/* Permission Dropdown */}
                   <div className="col text-end">
