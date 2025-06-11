@@ -18,6 +18,7 @@ const AddCase = () => {
   const [Priority, setPriority] = useState("High");
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [caseTypedropdownOpen, setCaseTypedropdownOpen] = useState(false);
+  const [caseSubTypedropdownOpen, setCaseSubTypedropdownOpen] = useState(false);
   const selectedclientdetails = null
   // const selectedclientdetails = useSelector(
   //   (state) => state.screen.clientEmail
@@ -25,14 +26,15 @@ const AddCase = () => {
   // Form fields
   const [casenumber, setCaseNumber] = useState("");
   const [clientname, setClientname] = useState("");
-  const [casetype, setCaseType] = useState("High");
+  const [casetype, setCaseType] = useState("Consultation");
+  const [caseSubType, setCaseSubType] = useState("Civil Law");
   const [discription, setDiscription] = useState("");
 
   const [PreviewCaseId, setPreviewCaseId] = useState("");
   const dropdownRef = useRef(null);
   const regexCaseNumber = /^[a-zA-Z0-9\s/]+$/; // Letters, numbers, spaces, and slashes
   const regexClientName = /^[a-zA-Z\s]+$/; // Letters and spaces
-  const regexCaseType = /^[a-zA-Z\s]+$/; // Letters and spaces
+  const regexCaseType = /^[a-zA-Z\s-]+$/; // Letters and spaces
 
   const { showLoading, showSuccess, showError } = useAlert();
   useEffect(() => {
@@ -40,6 +42,31 @@ const AddCase = () => {
 
     fetchNextCaseId();
   }, [PreviewCaseId]);
+
+  const Subtypelist = [
+    "Alternative Dispute Resolution (ADR)",
+    "Arbitration Law",
+    "Banking Law",
+    "Media Law",
+    "Civil Law",
+    "Commercial Law",
+    "Construction Law",
+    "Criminal Law",
+    "Corporate Services",
+    "Debit Collection",
+    "Family Law",
+    "Fintech Law",
+    "Intellectual Property Law",
+    "Inheritance Law",
+    "DIFC Legal Services ",
+    "Mergers & Acquisitions",
+    "Maritime Law",
+    "Rental & Tenancy",
+    "Real Estate Law",
+    "Insurance Law",
+    "Wills Registration",
+    "Labor Law",
+  ]
 
   const fetchNextCaseId = async () => {
     const res = await fetch(`${ApiEndPoint}getNextCaseId`);
@@ -49,6 +76,7 @@ const AddCase = () => {
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const toggleCaseTypeDropdown = () => setCaseTypedropdownOpen(!caseTypedropdownOpen);
+  const toggleCaseSubTypeDropdown = () => setCaseSubTypedropdownOpen(!caseSubTypedropdownOpen);
   const handleRoleSelect = (role) => {
     setPriority(role);
     setDropdownOpen(false);
@@ -56,6 +84,10 @@ const AddCase = () => {
   const handleCaseTypeRoleSelect = (role) => {
     setCaseType(role);
     setCaseTypedropdownOpen(false);
+  };
+  const handleCaseSubTypeRoleSelect = (role) => {
+    setCaseSubType(role);
+    setCaseSubTypedropdownOpen(false);
   };
 
   // Close dropdown if clicking outside
@@ -158,10 +190,16 @@ const AddCase = () => {
                 state: casenumber,
                 setState: setCaseNumber,
               },
+              // {
+              //   label: "Client Name",
+              //   icon: <BsPerson className="fs-5" />,
+              //   state: selectedclientdetails?.UserName,
+              //   setState: setClientname,
+              // },
               {
                 label: "Client Name",
                 icon: <BsPerson className="fs-5" />,
-                state: selectedclientdetails?.UserName,
+                state: clientname,
                 setState: setClientname,
               },
               // {
@@ -265,7 +303,7 @@ const AddCase = () => {
                     aria-expanded={caseTypedropdownOpen}
                     aria-haspopup="listbox"
                   >
-                    <span>{casetype || "Select Priority"}</span>
+                    <span>{casetype || "Select Case type"}</span>
                     <FaChevronDown
                       className={`transition-all fs-6 ${caseTypedropdownOpen ? "rotate-180" : ""
                         }`}
@@ -283,7 +321,7 @@ const AddCase = () => {
                       }}
                       role="listbox"
                     >
-                      {["Civil", "Real State", "Family"].map((role) => (
+                      {["Consultation", "Litigation","Non-Litigation"].map((role) => (
                         <li
                           key={role}
                           className="list-group-item list-group-item-action px-3 py-2"
@@ -305,6 +343,92 @@ const AddCase = () => {
                           onMouseLeave={(e) =>
                           (e.currentTarget.style.backgroundColor =
                             role === casetype ? "#F8D4A1" : "white")
+                          }
+                        >
+                          {role}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+
+
+
+            <div className="col-12 col-md-6">
+              <label
+                className="form-label fw-semibold mb-2 d-block"
+                style={{
+                  color: "#18273e",
+                  fontSize: "0.95rem",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                Case Sub Type
+              </label>
+              <div className="input-group">
+                <div className="position-relative w-100" ref={dropdownRef}>
+                  <button
+                    className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                    style={{
+                      cursor: "pointer",
+                      border: "1px solid #d3b386",
+                      borderRadius: "6px",
+                      backgroundColor: caseSubTypedropdownOpen ? "#fff9f0" : "white",
+                      boxShadow: "none",
+                      height: "auto",
+                      minHeight: "42px",
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                    }}
+                    onClick={toggleCaseSubTypeDropdown}
+                    aria-expanded={caseSubTypedropdownOpen}
+                    aria-haspopup="listbox"
+                  >
+                    <span>{caseSubType || "Select Case SUb type"}</span>
+                    <FaChevronDown
+                      className={`transition-all fs-6 ${caseSubTypedropdownOpen ? "rotate-180" : ""
+                        }`}
+                      style={{ color: "#18273e" }}
+                    />
+                  </button>
+                  {caseSubTypedropdownOpen && (
+                    <ul
+                      className="list-group position-absolute w-100 mt-1 shadow-sm"
+                      style={{
+                        zIndex: 1000,
+                        border: "1px solid #d3b386",
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                        maxHeight: "200px", // Fixed height for scroll
+                        overflowY: "auto", // Enable vertical scrolling
+                        // minWidth: "100%",
+                      }}
+                      role="listbox"
+                    >
+                      {Subtypelist.map((role) => (
+                        <li
+                          key={role}
+                          className="list-group-item list-group-item-action px-3 py-2"
+                          style={{
+                            cursor: "pointer",
+                            backgroundColor:
+                              role === caseSubType ? "#F8D4A1" : "white",
+                            border: "none",
+                            borderBottom: "1px solid #f0f0f0",
+                            transition: "all 0.2s ease",
+                            fontSize: "0.95rem",
+                          }}
+                          onClick={() => handleCaseSubTypeRoleSelect(role)}
+                          role="option"
+                          aria-selected={role === caseSubType}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f5e9d9")
+                          }
+                          onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            role === caseSubType ? "#F8D4A1" : "white")
                           }
                         >
                           {role}
