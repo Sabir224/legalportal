@@ -110,6 +110,7 @@ const AddCase = () => {
       CaseNumber: casenumber,
       Name: selectedclientdetails?.UserName,
       CaseType: casetype,
+      CaseSubType:caseSubType,
       Description: discription,
       Priority: Priority,
       ClientId: selectedclientdetails?._id,
@@ -133,6 +134,8 @@ const AddCase = () => {
 
       return;
     }
+
+    console.log("Case Data=",caseData)
     try {
       showLoading();
       const reponse = await axios.post(`${ApiEndPoint}cases`, caseData);

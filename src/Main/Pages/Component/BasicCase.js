@@ -70,6 +70,19 @@ const BasicCase = ({ token }) => {
     setcasedetails(caseinfo);
     setShowAssignModal(true);
   };
+  const handleUpdateStatus = async (caseinfo) => {
+    // console.log("CaseId:", caseId);
+    setSelectedCase(caseinfo?._id);
+    try {
+      const response = await axios.put(`${ApiEndPoint}updateCaseStatus/${caseinfo?._id}`);
+      fetchCases()
+      console.log("Status updated:", response.data);
+      // Optionally update UI or state here
+    } catch (error) {
+      console.error("Error updating case status:", error.response?.data || error.message);
+    }
+    setcasedetails(caseinfo);
+  };
 
   const handleCloseModal = () => {
     setShowAssignModal(false);
@@ -618,7 +631,7 @@ const BasicCase = ({ token }) => {
       {/* Table Section */}
       <div className="card mb-3 shadow">
         {/* Table Header - Hidden on mobile */}
-        <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
+        <div className="card-header d-none d-md-flex justify-content-between align-items-center gap-4 px-3">
           <span className="col text-start">Status</span>
           <span className="col text-start">Case Number</span>
           <span className="col text-start">Request Number</span>
@@ -646,8 +659,8 @@ const BasicCase = ({ token }) => {
                     <div className="d-flex align-items-center gap-2">
                       <span
                         className={`rounded-circle ${item.Status.toLowerCase() === "case filed"
-                            ? "bg-success"
-                            : "bg-danger"
+                          ? "bg-success"
+                          : "bg-danger"
                           }`}
                         style={{
                           width: "12px",
@@ -764,7 +777,7 @@ const BasicCase = ({ token }) => {
 
                 {/* Desktop View - Horizontal Layout */}
                 <div
-                  className="d-none d-md-flex justify-content-between gap-5 align-items-center p-3"
+                  className="d-none d-md-flex justify-content-between gap-4 align-items-center p-3"
                   style={{ cursor: "pointer" }}
                   onClick={(e) => {
                     if (
@@ -775,11 +788,11 @@ const BasicCase = ({ token }) => {
                     }
                   }}
                 >
-                  <span className="col d-flex align-items-center text-start">
+                  <span className="col d-flex m-0 p-0 align-items-center text-start">
                     <span
                       className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
-                          ? "bg-success"
-                          : "bg-danger"
+                        ? "bg-success"
+                        : "bg-danger"
                         }`}
                       style={{
                         width: "10px",
@@ -789,13 +802,13 @@ const BasicCase = ({ token }) => {
                     ></span>
                     {item.Status}
                   </span>
-                  <span className="col d-flex align-items-center text-start">
+                  <span className="col d-flex m-0 p-0 align-items-center text-start">
                     {item["CaseNumber"]}
                   </span>
-                  <span className="col d-flex align-items-center text-start">
+                  <span className="col d-flex m-0 p-0 align-items-center text-start">
                     {item["SerialNumber"]}
                   </span>
-                  <span className="col d-flex align-items-center text-start">
+                  <span className="col d-flex  m-0 p-0 align-items-center text-start">
                     {item["CaseType"]}
                   </span>
 
@@ -812,7 +825,9 @@ const BasicCase = ({ token }) => {
 
 
                   {/* Permission Dropdown */}
-                  <div className="col text-end">
+                  {/* <div className="col text-end"> */}
+                  <div className="col d-flex align-items-center justify-content-end">
+
                     <Dropdown
                       show={dropdownOpen === index}
                       onToggle={(isOpen) =>
@@ -820,7 +835,7 @@ const BasicCase = ({ token }) => {
                       }
                     >
                       <Dropdown.Toggle
-                        variant="custom"
+                        variant=""
                         size="sm"
                         className="custom-dropdown-toggle"
                         onClick={(e) => {
@@ -859,6 +874,18 @@ const BasicCase = ({ token }) => {
                               }}
                             >
                               Update Case
+                            </Dropdown.Item>
+                          </>
+                        )}
+                        {token.Role === "admin" && (
+                          <>
+                            <Dropdown.Item
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleUpdateStatus(item);
+                              }}
+                            >
+                              {item.IsActive ? "Deactivate" : "Activate"}
                             </Dropdown.Item>
                           </>
                         )}
