@@ -891,7 +891,7 @@ const BasicCase = ({ token }) => {
                         )}
 
                         <Dropdown.Item>View Details</Dropdown.Item>
-                        <Dropdown.Item>Other Action</Dropdown.Item>
+                        {/* <Dropdown.Item>Other Action</Dropdown.Item> */}
                       </Dropdown.Menu>
                     </Dropdown>
                   </div>
