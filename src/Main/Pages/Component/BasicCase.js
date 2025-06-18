@@ -9,8 +9,9 @@ import filepath from "../../../utils/dataset.csv";
 import axios from "axios";
 import { ApiEndPoint } from "./utils/utlis";
 import CaseAssignmentForm from "../cases/CaseAssignment";
-import { Dropdown, Modal } from "react-bootstrap";
+import { Button, Dropdown, Form, Modal } from "react-bootstrap";
 import { Backdrop, CircularProgress } from "@mui/material";
+import { useAlert } from "../../../Component/AlertContext";
 
 const BasicCase = ({ token }) => {
   const [caseNumber, setCaseNumber] = useState("");
@@ -19,6 +20,13 @@ const BasicCase = ({ token }) => {
   const screen = useSelector((state) => state.screen.value);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState([]);
+  const [showMergeModal, setShowMergeModal] = useState(false);
+  // const [selectedCase, setSelectedCase] = useState(null);
+  const [selectedCourtCaseId, setSelectedCourtCaseId] = useState("");
+  const [availableCases, setAvailableCases] = useState([]); // populate this list as needed
+
+  const { showLoading, showSuccess, showError } = useAlert();
+
   const casesPerPage = 50; // Show 50 cases per page
   const [filters, setFilters] = useState({
     status: "All",
@@ -84,6 +92,22 @@ const BasicCase = ({ token }) => {
     setcasedetails(caseinfo);
   };
 
+
+  const mergeCaseWithCourt = async (oldCaseId, newCaseId) => {
+
+    //  console.log(oldCaseId,"  oldCaseId   ",newCaseId)
+    try {
+      const response = await axios.put(
+        `${ApiEndPoint}MergeCaseWithCourt/${oldCaseId}/${newCaseId}`
+      );
+      showSuccess("Merge Successfully")
+      fetchCases()
+      console.log("response.data of merge", response.data);
+    } catch (error) {
+      console.error("Error merging cases:", error);
+      showError("Error merging cases" );
+    }
+  };
   const handleCloseModal = () => {
     setShowAssignModal(false);
     setSelectedCase(null);
@@ -715,6 +739,32 @@ const BasicCase = ({ token }) => {
                             </Dropdown.Item>
                           </>
                         )}
+
+                        {token.Role === "admin" && (
+                          <>
+                            <Dropdown.Item
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleUpdateStatus(item);
+                              }}
+                            >
+                              {item.IsActive ? "Deactivate" : "Activate"}
+                            </Dropdown.Item>
+                          </>
+                        )}
+
+
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowMergeModal(true);
+                            }}
+                          >
+                            Merge With
+                          </Dropdown.Item>
+                        )}
                         <Dropdown.Item
                           onClick={(e) => {
                             if (
@@ -890,6 +940,21 @@ const BasicCase = ({ token }) => {
                           </>
                         )}
 
+
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowMergeModal(true);
+                            }}
+                          >
+                            Merge With
+                          </Dropdown.Item>
+                        )}
+
+
+
                         <Dropdown.Item>View Details</Dropdown.Item>
                         {/* <Dropdown.Item>Other Action</Dropdown.Item> */}
                       </Dropdown.Menu>
@@ -1008,6 +1073,60 @@ const BasicCase = ({ token }) => {
           </div>
         </div>
       )}
+
+      <Modal show={showMergeModal} onHide={() => setShowMergeModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Merge Case</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="mergeWithCase" className="w-100">
+              <Form.Label>Select Case to Merge With</Form.Label>
+              <Form.Select
+                className="w-100"
+                value={selectedCourtCaseId}
+                onChange={(e) => setSelectedCourtCaseId(e.target.value)}
+              >
+                <option value="">-- Select Case --</option>
+                {data
+                  .filter((caseItem) => {
+                    if (!selectedCase) return false;
+                    return selectedCase?.IsDubiCourts
+                      ? caseItem?.IsDubiCourts === false
+                      : caseItem?.IsDubiCourts === true;
+                  })
+                  .map((caseItem) => (
+                    <option key={caseItem?._id} value={caseItem?._id}>
+                      {caseItem?.CaseNumber || caseItem?._id}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
+
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowMergeModal(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              let old = selectedCase?.IsDubiCourts ? selectedCourtCaseId : selectedCase._id
+              let newcase = selectedCase?.IsDubiCourts ? selectedCase._id : selectedCourtCaseId
+              mergeCaseWithCourt(
+                old,
+                newcase,
+              );
+              setShowMergeModal(false);
+            }}
+            disabled={!selectedCourtCaseId}
+          >
+            Merge
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
     </div>
   );
 };

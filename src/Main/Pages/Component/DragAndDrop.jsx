@@ -341,11 +341,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Modal, Form } from "react-bootstrap";
 import { useDropzone } from "react-dropzone";
 import { useState, useEffect } from "react";
+import { useSelector } from "react-redux";
 
-const COURT_STAGES = ["Hearing", "Filing", "Order"];
+
+const COURT_STAGES = ["First Instance", "Appeal", "Cassation"];
 const DOC_TYPES = ["Application", "Reply", "Order"];
 const LAWYER_INITIALS = ["Raheem", "Sabir", "Hannan"];
-const VERSIONS = ["v1", "v2","v3","v4","v5", "Final"];
+const VERSIONS = ["v1", "v2", "v3", "v4", "v5", "Final"];
+
 
 const DragAndDrop = ({
   showModal,
@@ -355,10 +358,25 @@ const DragAndDrop = ({
   uploadSuccess,
   selectedFiles = [],
   handleFileUpload,
+  assignlawyer,
   errorMessage,
 }) => {
   const [editableFiles, setEditableFiles] = useState([]);
   const [allFilesValid, setAllFilesValid] = useState(false);
+
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+
+  const CASE_REF = reduxCaseInfo?.CaseId // 🔁 You can pass this dynamically if needed
+
+  // 🔁 You can pass this dynamically if needed
+
+  const getDatePrefix = () => {
+    const now = new Date();
+    const yy = now.getFullYear().toString().slice(-2);
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    return `${CASE_REF}_${yy}${mm}${dd}`;
+  };
 
   useEffect(() => {
     if (selectedFiles.length > 0) {
@@ -371,13 +389,12 @@ const DragAndDrop = ({
         version: "",
       }));
       setEditableFiles(initialFiles);
-      checkAllFilesValid(initialFiles); // <--- Add this
+      checkAllFilesValid(initialFiles);
     } else {
       setEditableFiles([]);
-      setAllFilesValid(false); // <--- Reset
+      setAllFilesValid(false);
     }
-  }, [selectedFiles, allFilesValid]);
-
+  }, [selectedFiles]);
 
   const onDrop = (acceptedFiles) => {
     const filesToAdd = acceptedFiles.slice(0, 5 - editableFiles.length);
@@ -396,9 +413,7 @@ const DragAndDrop = ({
     }
   };
 
-  const { getRootProps, getInputProps } = useDropzone({
-    onDrop,
-  });
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
 
   const handleDropdownChange = (index, field, value) => {
     const updatedFiles = [...editableFiles];
@@ -409,7 +424,12 @@ const DragAndDrop = ({
     const ext = originalFile.name.split(".").pop();
 
     if (courtStage && docType && initials && version) {
-      const newName = `${courtStage}_${docType}_${initials}_${version}.${ext}`;
+      const datePrefix = getDatePrefix();
+
+      const words = initials.trim().split(" ");
+      const UserInitials = words.map((w) => w[0].toUpperCase()).join("");
+
+      const newName = `${datePrefix}_${courtStage}_${docType}_${UserInitials}_${version}.${ext}`;
       const renamedFile = new File([originalFile], newName, {
         type: originalFile.type,
         lastModified: originalFile.lastModified,
@@ -425,6 +445,7 @@ const DragAndDrop = ({
     }
 
     setEditableFiles(updatedFiles);
+    checkAllFilesValid(updatedFiles);
   };
 
   const handleRemoveFile = (index) => {
@@ -432,23 +453,16 @@ const DragAndDrop = ({
     updatedFiles.splice(index, 1);
     setEditableFiles(updatedFiles);
     handleFileChange({ target: { files: updatedFiles.map((f) => f.file) } });
+    checkAllFilesValid(updatedFiles);
   };
+
   const isValidFileName = (name) =>
-    /^[^_]+_[^_]+_[^_]+_[^_]+\.[a-zA-Z0-9]+$/.test(name);
+    /^[^_]+_[0-9]{6}_[^_]+_[^_]+_[^_]+_[^_]+\.[a-zA-Z0-9]+$/.test(name);
 
   const checkAllFilesValid = (files) => {
-    const allValid = files.every((fileObj) => {
-      const { displayName, courtStage, docType, initials, version } = fileObj;
-      console.log("isValidFileName(displayName)", isValidFileName(displayName))
-      return (
-        isValidFileName(displayName)
-      );
-    });
-
-    console.log("allvalid", allValid)
+    const allValid = files.every((fileObj) => isValidFileName(fileObj.displayName));
     setAllFilesValid(allValid);
   };
-
 
   return (
     <>
@@ -486,7 +500,6 @@ const DragAndDrop = ({
             </div>
           </div>
 
-
           {errorMessage.length > 0 && (
             <div className="text-danger mt-3">
               <ul className="ps-3 mb-0">
@@ -504,16 +517,14 @@ const DragAndDrop = ({
           )}
           {editableFiles.some(f => !isValidFileName(f.displayName)) && (
             <p className="text-danger small mt-2">
-              Some files are not properly named. Please complete all dropdowns.
+              Some files are not properly named. Please complete all selections.
             </p>
           )}
-          <div style={{ maxHeight: "30vh", padding: '10px', overflowY: "auto" }}>
 
+          <div style={{ maxHeight: "30vh", overflowY: "auto", padding: "10px" }}>
             {editableFiles.length > 0 && !uploadSuccess && (
               <div className="mt-4">
-                <h6>
-                  Selected Files ({editableFiles.length}/5):
-                </h6>
+                <h6>Selected Files ({editableFiles.length}/5):</h6>
                 <ul className="list-unstyled">
                   {editableFiles.map((fileObj, index) => (
                     <li key={index} className="mb-3 border-bottom pb-2">
@@ -555,7 +566,7 @@ const DragAndDrop = ({
                           onChange={(e) => handleDropdownChange(index, "initials", e.target.value)}
                         >
                           <option value="">Lawyer</option>
-                          {LAWYER_INITIALS.map((opt) => (
+                          {assignlawyer.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </Form.Select>
@@ -573,9 +584,7 @@ const DragAndDrop = ({
                     </li>
                   ))}
                 </ul>
-
               </div>
-
             )}
           </div>
         </Modal.Body>
@@ -592,10 +601,10 @@ const DragAndDrop = ({
             {uploading ? "Uploading..." : "Upload"}
           </Button>
         </Modal.Footer>
-
       </Modal>
     </>
   );
 };
 
 export default DragAndDrop;
+

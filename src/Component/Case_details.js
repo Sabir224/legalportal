@@ -80,14 +80,14 @@ const Case_details = ({ token }) => {
         ClientId: pendingUserId || acknowledgeUserId,
       });
 
-      console.log("reduxCaseInfo",reduxCaseInfo)
+      console.log("reduxCaseInfo", reduxCaseInfo)
       dispatch(reduxCaseInfo ? Caseinfo(reduxCaseInfo) : Caseinfo({
         _id: pendingCaseId || acknowledgeCaseId,
       }));
 
     } else {
       setEffectiveCaseInfo(reduxCaseInfo || global.CaseId);
-      console.log("reduxCaseInfo else",reduxCaseInfo)
+      console.log("reduxCaseInfo else", reduxCaseInfo)
 
       dispatch(reduxCaseInfo ? Caseinfo(reduxCaseInfo) : Caseinfo({
         _id: pendingCaseId || acknowledgeCaseId,
@@ -600,14 +600,26 @@ const Case_details = ({ token }) => {
 
   return (
     <div
-      className="container-fluid m-0 p-0"
+      className="position-relative container-fluid m-0 p-0"
       style={{
         maxHeight: "84vh", // yeh maximum height set karega
         overflowY: "hidden", // aur yeh scroll enable karega agar content zyada ho
         padding: "0 10px",
       }}
     >
-      <div className="row m-0 w-80">
+
+      {/* Main Block (always rendered) */}
+      <div
+        className="row m-0 w-80"
+        style={
+          !(reduxCaseInfo?.IsDubiCourts && !reduxCaseInfo?.CaseMergeWith)
+            ? {
+              pointerEvents: "none", // disables interaction
+              opacity: 0.6, // optional: greyed-out appearance
+            }
+            : {}
+        }
+      >
         {/* Left Sidebar Column */}
         <div className="d-md-none w-100">
           <div
@@ -906,6 +918,32 @@ const Case_details = ({ token }) => {
           </div>
         </div>
       </div>
+
+      {!(
+        reduxCaseInfo?.IsDubiCourts && !reduxCaseInfo?.CaseMergeWith
+      ) && (
+          <div
+            className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+            style={{
+              backgroundColor: "rgba(255, 255, 255, 0.6)", // translucent white
+              zIndex: 10,
+            }}
+          >
+            <div
+              className="text-center px-5 py-3 rounded"
+              style={{
+                fontSize: "1.25rem",
+                fontWeight: "500",
+                backgroundColor: "#fff",
+                color: "#343a40",
+                boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
+              }}
+            >
+              Case is merged with a Dubai Courts Case
+            </div>
+          </div>
+        )}
+
     </div>
   );
 };
