@@ -7,7 +7,8 @@ import Case_details from "./Component/Case_details";
 //import FAQ from "./Main/Pages/FAQ/FAQ";
 import SignIn from "./Main/Pages/SignIn";
 //import ViewCaseUpdates from "./Main/Pages/ViewCaseUpdates";
-import SignUp_Screen from "./Main/Pages/SignUp_Screen";
+//import CaseSummary from "./Main/Pages/CaseSummary";
+//import SignUp_Screen from "./Main/Pages/SignUp_Screen";
 import ResetPassword from "./Main/Pages/ResetPassword";
 import ForgotPassword from "./Main/Pages/ForgotPassword";
 import { useGlobalTokenCheck } from "./Main/Pages/Component/utils/useGlobalTokenCheck";
@@ -142,13 +143,15 @@ function App() {
       <GlobalTokenValidator />
       <Routes>
         {/* Public routes */}
-        <Route path="/" element={<SignIn />} />
+       <Route path="/" element={<SignIn />} />
         {/*<Route path="/" element={<FAQ />} />*/}
         {/*<Route path="/" element={<UpdateCase />}/>*/}
         {/*<Route path="/" element={<ViewCaseUpdates />}/>*/}
-         <Route path="/SignUp" element={<SignUp_Screen />} />
+          {/*<Route path="/SignUp" element={<SignUp_Screen />} />*/}
+          {/* <Route path="/" element={<CaseSummary />} />*/}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
+  
 
         {/* Protected routes */}
         <Route
