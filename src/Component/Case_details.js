@@ -105,7 +105,7 @@ const Case_details = ({ token }) => {
   const getCaseId = () => {
     // Only use pending caseId if available
     return (
-      pendingCaseData?.caseId || (global.CaseId ? global.CaseId._id : null)
+      reduxCaseInfo?._id || pendingCaseData?.caseId || (global.CaseId ? global.CaseId._id : null)
     );
   };
 
@@ -597,6 +597,36 @@ const Case_details = ({ token }) => {
       </>
     );
   }
+  const handlePortalCaseClick = async () => {
+
+    try {
+      const caseIdToUse = getCaseId();
+      if (!caseIdToUse) {
+        console.error("No case ID available");
+      }
+
+      const caseResponse = await axios.get(
+        `${ApiEndPoint}getCaseById/${reduxCaseInfo?.CaseMergeWith}`,
+        { withCredentials: true }
+      );
+      console.log("caseResponse.data.caseDetails", caseResponse.data.clientCase)
+      dispatch(Caseinfo(caseResponse.data.clientCase));
+      fetchCases()
+      // setCaseData(caseResponse.data.caseDetails);
+
+    } catch (err) {
+      console.error("Error fetching case or party data:", err);
+      setError(err.message);
+    } finally {
+      setTimeout(() => {
+        setLoading(false);
+        setIsDataFetched(true);
+      }, 1000);
+    }
+    // alert("Open portal case with ID: " + caseId);
+    // ya koi bhi logic: window.open, modal show, redirect, etc.
+  }
+
 
   return (
     <div
@@ -611,14 +641,14 @@ const Case_details = ({ token }) => {
       {/* Main Block (always rendered) */}
       <div
         className="row m-0 w-80"
-        style={
-          !(reduxCaseInfo?.IsDubiCourts && !reduxCaseInfo?.CaseMergeWith)
-            ? {
-              pointerEvents: "none", // disables interaction
-              opacity: 0.6, // optional: greyed-out appearance
-            }
-            : {}
-        }
+      // style={
+      //   !(reduxCaseInfo?.IsDubiCourts && !reduxCaseInfo?.CaseMergeWith)
+      //     ? {
+      //       pointerEvents: "none", // disables interaction
+      //       opacity: 0.6, // optional: greyed-out appearance
+      //     }
+      //     : {}
+      // }
       >
         {/* Left Sidebar Column */}
         <div className="d-md-none w-100">
@@ -919,8 +949,8 @@ const Case_details = ({ token }) => {
         </div>
       </div>
 
-      {!(
-        reduxCaseInfo?.IsDubiCourts && !reduxCaseInfo?.CaseMergeWith
+      {(
+        !reduxCaseInfo?.IsDubiCourts && reduxCaseInfo?.CaseMergeWith
       ) && (
           <div
             className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
@@ -939,7 +969,16 @@ const Case_details = ({ token }) => {
                 boxShadow: "0px 0px 10px rgba(0,0,0,0.2)",
               }}
             >
-              Case is merged with a Dubai Courts Case
+              <span>
+                Case is merged with a Dubai Court Portal Case:{" "}
+                <a
+                  href="#"
+                  onClick={() => handlePortalCaseClick()}
+                  style={{ color: "blue", textDecoration: "underline", cursor: "pointer" }}
+                >
+                  View Case
+                </a>
+              </span>
             </div>
           </div>
         )}
