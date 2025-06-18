@@ -2038,7 +2038,7 @@ const ViewFolder = ({ token }) => {
                                     minWidth: 0,
                                   }}
                                 >
-                                  <div
+                                  {/* <div
                                     className="text-white"
                                     style={{
                                       fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
@@ -2051,6 +2051,21 @@ const ViewFolder = ({ token }) => {
                                     {folder.folderName.length > 30
                                       ? folder?.folderName.slice(0, 27) + "..."
                                       : folder?.folderName}
+                                  </div> */}
+
+                                  <div
+                                    className="text-white"
+                                    style={{
+                                      fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
+                                      whiteSpace: "normal", // allow wrapping
+                                      wordBreak: "break-word", // break long words if needed
+                                      overflow: "hidden",
+                                      maxHeight: "3em", // restrict height to ~2 lines
+                                      lineHeight: "1.4em",
+                                    }}
+                                    title={folder?.folderName}
+                                  >
+                                    {folder?.folderName}
                                   </div>
                                 </div>
                               </div>
@@ -2209,7 +2224,7 @@ const ViewFolder = ({ token }) => {
                                 minWidth: 0,
                               }}
                             >
-                              <div
+                              {/* <div
                                 className="text-white"
                                 style={{
                                   fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
@@ -2219,7 +2234,23 @@ const ViewFolder = ({ token }) => {
                                 {file.fileName.length > 15
                                   ? file.fileName.slice(0, 27) + "..."
                                   : file.fileName}
-                              </div>
+                              </div> */}
+
+                              <div
+  className="text-white"
+  style={{
+    fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
+    whiteSpace: "normal",        // allow line wrapping
+    wordBreak: "break-word",     // prevent layout breaking
+    overflow: "hidden",          
+    maxHeight: "3em",            // optional: limit to ~2 lines
+    lineHeight: "1.4em"
+  }}
+  title={file?.fileName}
+>
+  {file?.fileName}
+</div>
+
                             </div>
                           </div>
 
@@ -2354,6 +2385,7 @@ const ViewFolder = ({ token }) => {
         selectedFiles={selectedFiles}
         handleFileUpload={handleFileUpload}
         assignlawyer={assignlawyer}
+        token={token}
         errorMessage={errorMessage}
       />
 

@@ -345,9 +345,101 @@ import { useSelector } from "react-redux";
 
 
 const COURT_STAGES = ["First Instance", "Appeal", "Cassation"];
-const DOC_TYPES = ["Application", "Reply", "Order"];
+const DOC_TYPES = [
+  "Power of Attorney (POA)",
+  "Agreement",
+  "Contract",
+  "Memorandum of Understanding (MOU)",
+  "Legal Opinion",
+  "Court Pleadings",
+  "Affidavit",
+  "Declaration",
+  "Witness Statement",
+  "Letter of Intent (LOI)",
+  "Notice of Termination",
+  "Settlement Agreement",
+  "Case Summary",
+  "Evidence",
+  "Witness List",
+  "Civil Complaint",
+  "Compensation Claim Form",
+  "Supporting Documents for Compensation",
+  "Receipts/Invoices for Damages",
+  "Police Report",
+  "Charge Sheet",
+  "Bail Application",
+  "Witness Testimony",
+  "Forensic Report",
+  "Character Reference Letter",
+  "Divorce Petition",
+  "Child Custody Agreement",
+  "Marriage Certificate",
+  "Birth Certificates of Children",
+  "Financial Disclosure Forms",
+  "Prenuptial Agreement",
+  "Guardianship Agreement",
+  "Articles of Incorporation",
+  "Shareholder Agreement",
+  "Non-Disclosure Agreement (NDA)",
+  "Business License",
+  "Tax Certificates",
+  "Compliance Report",
+  "Corporate Resolutions",
+  "Property Deed",
+  "Lease Agreement",
+  "Mortgage Contract",
+  "Purchase Agreement",
+  "Title Certificate",
+  "Property Appraisal Report",
+  "Employment Contract",
+  "Termination Letter",
+  "Salary Slip",
+  "Unpaid Salary Claim Form",
+  "Labor Complaint Form",
+  "Visa and Work Permit",
+  "Trademark Registration Certificate",
+  "Patent Application",
+  "Copyright Registration",
+  "Licensing Agreement",
+  "Cease-and-Desist Letter",
+  "Invoice",
+  "Receipt",
+  "Bank Statement",
+  "Payment Proof",
+  "Financial Audit Report",
+  "Tax Filing Documents",
+  "Passport",
+  "Visa Copy",
+  "Emirates ID",
+  "Trade License",
+  "Police Clearance Certificate",
+  "Permit Application",
+  "Compliance Certificates",
+  "Regulatory Filings",
+  "Environmental Assessment Report",
+  "Discovery Documents",
+  "Case File Index",
+  "Motion to Dismiss",
+  "Appeal Documents",
+  "Court Hearing Notice",
+  "Insurance Policy",
+  "Claim Forms",
+  "Medical Reports",
+  "Debt Acknowledgment Letter",
+  "Demand Letter",
+  "Correspondence Logs"
+];
+
 const LAWYER_INITIALS = ["Raheem", "Sabir", "Hannan"];
-const VERSIONS = ["v1", "v2", "v3", "v4", "v5", "Final"];
+const VERSIONS = [
+  "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9", "v10",
+  "v11", "v12", "v13", "v14", "v15", "v16", "v17", "v18", "v19", "v20",
+  "v21", "v22", "v23", "v24", "v25", "v26", "v27", "v28", "v29", "v30",
+  "v31", "v32", "v33", "v34", "v35", "v36", "v37", "v38", "v39", "v40",
+  "v41", "v42", "v43", "v44", "v45", "v46", "v47", "v48", "v49", "v50",
+  "Final"
+];
+
 
 
 const DragAndDrop = ({
@@ -359,6 +451,7 @@ const DragAndDrop = ({
   selectedFiles = [],
   handleFileUpload,
   assignlawyer,
+  token,
   errorMessage,
 }) => {
   const [editableFiles, setEditableFiles] = useState([]);
@@ -423,13 +516,22 @@ const DragAndDrop = ({
     const originalFile = updatedFiles[index].file;
     const ext = originalFile.name.split(".").pop();
 
+    const getInitials = (str) => {
+  if (!str) return "";
+  return str
+    .split(" ")
+    .map(word => word[0]?.toUpperCase())
+    .join("");
+};
+
+
     if (courtStage && docType && initials && version) {
       const datePrefix = getDatePrefix();
 
       const words = initials.trim().split(" ");
       const UserInitials = words.map((w) => w[0].toUpperCase()).join("");
-
-      const newName = `${datePrefix}_${courtStage}_${docType}_${UserInitials}_${version}.${ext}`;
+      
+      const newName = `${datePrefix}_${getInitials(courtStage)}_${getInitials(docType)}_${UserInitials}_${version}.${ext}`;
       const renamedFile = new File([originalFile], newName, {
         type: originalFile.type,
         lastModified: originalFile.lastModified,
