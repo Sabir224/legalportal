@@ -91,6 +91,39 @@ const ViewFolder = ({ token }) => {
   const [showError, setShowError] = useState(false);
   const [isfile, setisfile] = useState(false);
   const [message, setMessage] = useState("");
+  const [assignlawyer, setassgnlawyer] = useState([]);
+
+
+
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+
+  // const CASE_REF = reduxCaseInfo?.CaseId // 🔁 You can pass this dynamically if needed
+
+  // console.log("CASE_REF?._id", reduxCaseInfo)
+
+
+  useEffect(() => {
+
+    fetchLawyers();
+
+  }, []);
+  // Function to fetch cases
+  const fetchLawyers = async () => {
+    try {
+
+      const caseResponse = await axios.get(
+        `${ApiEndPoint}getCaseLawyersUserNames/${reduxCaseInfo?._id}`
+      );
+      console.log("caseResponse.data", caseResponse.data)
+      setassgnlawyer(caseResponse.data?.lawyers)
+    } catch (err) {
+      console.error("Error fetching case or party data:", err);
+
+    } finally {
+
+    }
+  };
+
 
   const baseStyle = {
     backgroundColor: "#18273e",
@@ -693,7 +726,7 @@ const ViewFolder = ({ token }) => {
     for (let file of files) {
       if (totalFiles >= 10) break;
 
-      if (file.name.length > 40) {
+      if (file.name.length > 80) {
         let truncatedName =
           file.name.substring(0, 20) + "..." + file.name.slice(-10);
         invalidLengthFiles.push(truncatedName);
@@ -897,9 +930,9 @@ const ViewFolder = ({ token }) => {
           fetchFolders(true);
         }
         console.log("📂 File moved successfully");
-       // fetchFolders(true); // Refresh the folders
+        // fetchFolders(true); // Refresh the folders
         setSelectedFolder(null);
-      //  setFolderPath([]);
+        //  setFolderPath([]);
         setMoveFileId(null);
         // alert("✅ File moved successfully!");
       } else {
@@ -2320,6 +2353,7 @@ const ViewFolder = ({ token }) => {
         uploadSuccess={uploadSuccess}
         selectedFiles={selectedFiles}
         handleFileUpload={handleFileUpload}
+        assignlawyer={assignlawyer}
         errorMessage={errorMessage}
       />
 
@@ -2408,8 +2442,8 @@ const ViewFolder = ({ token }) => {
 
           <Button
             variant="primary"
-             onClick={handleUpdateFileName}
-            //onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
+            onClick={handleUpdateFileName}
+          //onClick={isEditMode ? handleUpdateFolder : handleCreateFolder}
           >
             <FontAwesomeIcon
               icon={isEditMode ? faPen : faPlus}

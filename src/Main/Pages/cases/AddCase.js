@@ -113,6 +113,7 @@ const AddCase = () => {
       CaseSubType:caseSubType,
       Description: discription,
       Priority: Priority,
+      IsDubiCourts:false,
       ClientId: selectedclientdetails?._id,
     };
     if (!regexCaseNumber.test(casenumber)) {
