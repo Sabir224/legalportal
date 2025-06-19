@@ -57,8 +57,10 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
+import { useAlert } from '../../../../Component/AlertContext';
 
 export default function ViewFormC({ token }) {
+  const { showLoading, showSuccess, showError } = useAlert();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const dispatch = useDispatch();
@@ -99,17 +101,17 @@ export default function ViewFormC({ token }) {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
 
-  const [showError, setShowError] = useState(false);
+  // const [showError, setShowError] = useState(false);
   const [message, setMessage] = useState('');
   // const { showLoading, showSuccess, showError } = useAlert();
 
   const handleToggleExpand = (userId) => {
     setExpandedUserId(expandedUserId === userId ? null : userId);
   };
-  const showSuccess = (msg) => {
-    setSuccessMessage(msg);
-    setShowSuccessModal(true);
-  };
+  // const showSuccess = (msg) => {
+  //   setSuccessMessage(msg);
+  //   setShowSuccessModal(true);
+  // };
 
   useEffect(() => {
     if (!SocketService.socket || !SocketService.socket.connected) {
@@ -366,13 +368,13 @@ export default function ViewFormC({ token }) {
         await fetchtask();
         setOpenTaskId(previousOpenTaskId);
       } else {
-        setMessage('⚠️ Column deletion failed.');
-        setShowError(true);
+        showError('⚠️ Column deletion failed.');
+        // showError('⚠️ Column deletion failed.');
       }
     } catch (error) {
       console.error('❌ Error deleting column:', error);
-      setMessage('❌ Failed to delete the column.');
-      setShowError(true);
+      showError('❌ Failed to delete the column.');
+      // showError(true);
     }
   };
 
@@ -934,6 +936,7 @@ export default function ViewFormC({ token }) {
     // Replace with your actual logic
     console.log('Signup clicked for:', todo);
     try {
+      showLoading()
       const formData = new FormData();
       formData.append('UserName', todo?.clientName?.value);
       formData.append('Email', todo?.email?.value);
@@ -956,8 +959,8 @@ export default function ViewFormC({ token }) {
       fetchtask();
       // alert("✅ User Added Successfully!");
     } catch (error) {
-      setMessage('⚠️ Account Creation failed.');
-      setShowError(true);
+      showError('⚠️ Account Creation failed.');
+      // setShowError(true);
       // alert("❌ Failed to Add User! Check Console.");
       console.error('Error adding user:', error);
     }
@@ -2288,7 +2291,7 @@ export default function ViewFormC({ token }) {
         </Modal.Footer>
       </Modal>
 
-      <ErrorModal show={showError} handleClose={() => setShowError(false)} message={message} />
+      {/* <ErrorModal show={showError} handleClose={() => setShowError(false)} message={message} /> */}
 
       <ConfirmModal
         show={showConfirm}

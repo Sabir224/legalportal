@@ -313,7 +313,12 @@ const Dashboard = () => {
         );
         break;
       case 18:
-        setCurrentScreen(<ViewFormC token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <ViewFormC token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 19:
         setCurrentScreen(<DocumentFormCShow token={decodedToken} />);
@@ -527,7 +532,7 @@ const Dashboard = () => {
             decodedToken?.Role === "admin"
               ? {
                 icon: faBookOpen,
-                
+
                 label: "Add Case",
                 action: () => {
                   dispatch(clientEmail(null));

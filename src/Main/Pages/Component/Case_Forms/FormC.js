@@ -33,9 +33,8 @@ const ClientConsultationForm = ({ token }) => {
   const handleGenerateLink = () => {
     const data = JSON.stringify({ token, timestamp: Date.now() });
     const encrypted = btoa(data);
-    const link = `${
-      window.location.origin
-    }/client-consultation?data=${encodeURIComponent(encrypted)}`;
+    const link = `${window.location.origin
+      }/client-consultation?data=${encodeURIComponent(encrypted)}`;
     setEncryptedLink(link);
     setCopied(false);
   };
@@ -89,12 +88,13 @@ const ClientConsultationForm = ({ token }) => {
 
   const isDisabled = FormCDetails !== null;
   useEffect(() => {
+    console.log("FormCDetails", FormCDetails)
     if (!FormCDetails) return;
 
     const fetchForm = async () => {
       try {
         const response = await axios.get(
-          `${ApiEndPoint}consultation-forms/${FormCDetails}`
+          `${ApiEndPoint}consultation-forms/${FormCDetails?.checklist?.cForm}`
         );
 
         const data = response.data.form;
@@ -244,6 +244,27 @@ const ClientConsultationForm = ({ token }) => {
     }
   };
 
+
+  const fetchSignedUrl = async (filePath) => {
+    try {
+      console.log(filePath)
+      const response = await fetch(`${ApiEndPoint}/downloadFileByUrl/${encodeURIComponent(filePath)}`);
+      const data = await response.json();
+
+      console.log("data=", data)
+      if (response.ok) {
+        window.open(data.url, '_blank'); // <-- Open in new tab
+        // return data.signedUrl;
+        return data.url;
+      } else {
+        throw new Error(data.error || "Unknown error");
+      }
+    } catch (err) {
+      console.error("Error fetching signed URL:", err);
+      return null;
+    }
+  };
+
   return (
     <Container
       fluid
@@ -304,9 +325,8 @@ const ClientConsultationForm = ({ token }) => {
                             }}
                           >
                             <i
-                              className={`fas ${
-                                copied ? "fa-check-circle" : "fa-copy"
-                              }`}
+                              className={`fas ${copied ? "fa-check-circle" : "fa-copy"
+                                }`}
                             ></i>
                           </Button>
                         )}
@@ -437,8 +457,8 @@ const ClientConsultationForm = ({ token }) => {
                           {individualOrCompany === "individual"
                             ? "Individual"
                             : individualOrCompany === "company"
-                            ? "Company"
-                            : "Select"}
+                              ? "Company"
+                              : "Select"}
                         </span>
                       </Dropdown.Toggle>
                       <Dropdown.Menu className="w-100">
@@ -627,9 +647,8 @@ const ClientConsultationForm = ({ token }) => {
                       />
                       <Form.Label
                         htmlFor="fileUpload"
-                        className={`d-block ${
-                          files.length >= 5 || isDisabled ? "text-muted" : ""
-                        }`}
+                        className={`d-block ${files.length >= 5 || isDisabled ? "text-muted" : ""
+                          }`}
                       >
                         <i className="bi bi-upload fs-2"></i>
                         <br />
@@ -654,6 +673,15 @@ const ClientConsultationForm = ({ token }) => {
                               <span className="text-break w-100">
                                 {file.name}
                               </span>
+                              {isDisabled &&
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
+                                  onClick={() => fetchSignedUrl(file.path)}
+                                >
+                                  download
+                                </button>
+                              }
                               <Button
                                 variant="outline-danger"
                                 size="sm"

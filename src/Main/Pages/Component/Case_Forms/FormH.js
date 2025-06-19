@@ -57,80 +57,80 @@ const FormHandover = ({ token }) => {
 
     useEffect(() => {
 
-        const getData = async () => {
 
-            try {
-                console.log("reduxCaseInfo?._id",reduxCaseInfo?._id)
-                const result = await fetchFormHData(reduxCaseInfo?._id);
-                setFormhOrFormCDetails(result);
-                console.log("form c",FormCselected)
-                // If Form H exists
-                if (result?.form) {
-                    const form = result.form;
-                    setIsFilled(true);
-                    setFormData({
-                        clientName: form.clientName || "",
-                        caseNumber: form.caseNumber || reduxCaseInfo?.CaseNumber || "",
-                        handoverDateTime: form.handoverDateTime || "",
-                        checklist: {
-                            cForm: form.checklist?.cForm || FormCselected,
-                            lForm: form.checklist?.lForm || "",
-                            lfa: form.checklist?.lfa || "",
-                            poa: form.checklist?.poa || "",
-                        },
-                        legalOpinion: form.legalOpinionText || "",
-                        caseStrategy: form.caseStrategyText || "",
-                        relatedDocs: form.relatedDocsFiles || [],
-                        providerName: form.providerName || "",
-                        providerSignature: form.providerSignature || "",
-                        receiverName: form.receiverName || "",
-                        receiverSignature: form.receiverSignature || "",
-                        isrecevied: form.isReceived || false,
-                    });
-                    if (FormCselected) {
-                        setFormData(FormCselected)
-                    }
-                }
-                // If Form H does not exist, fallback to initial blank data
-                else if (result?.case && result?.client) {
-                    setFormData({
-                        clientName: result.client?.UserName || "",
-                        caseNumber: result.case?.CaseNumber || reduxCaseInfo?.CaseNumber || "",
-                        handoverDateTime: "",
-                        checklist: {
-                            cForm: FormCselected ? FormCselected : "",
-                            lForm: "",
-                            lfa: "",
-                            poa: "",
-                        },
-                        legalOpinion: "",
-                        caseStrategy: "",
-                        relatedDocs: [],
-                        providerName: token?.UserName,
-                        providerSignature: token?.email,
-                        receiverSignature: "",
-                        isrecevied: false
-
-                    });
-                    if (FormCselected) {
-                        setFormData(FormCselected)
-                    }
-                }
-
-                console.log("Form H API Response: ", result);
-            } catch (err) {
-                console.error("Error loading Form H or related data:", err);
-            } finally {
-                // setLoading(false);
-            }
-        };
 
         if (reduxCaseInfo) {
             getData();
         }
     }, [reduxCaseInfo]);
 
+    const getData = async () => {
 
+        try {
+            console.log("reduxCaseInfo?._id", reduxCaseInfo?._id)
+            const result = await fetchFormHData(reduxCaseInfo?._id);
+            setFormhOrFormCDetails(result);
+            console.log("form c", FormCselected)
+            // If Form H exists
+            if (result?.form) {
+                const form = result.form;
+                setIsFilled(true);
+                setFormData({
+                    clientName: form.clientName || "",
+                    caseNumber: form.caseNumber || reduxCaseInfo?.CaseNumber || "",
+                    handoverDateTime: form.handoverDateTime || "",
+                    checklist: {
+                        cForm: form.checklist?.cForm || FormCselected,
+                        lForm: form.checklist?.lForm || "",
+                        lfa: form.checklist?.lfa || "",
+                        poa: form.checklist?.poa || "",
+                    },
+                    legalOpinion: form.legalOpinionText || "",
+                    caseStrategy: form.caseStrategyText || "",
+                    relatedDocs: form.relatedDocsFiles || [],
+                    providerName: form.providerName || "",
+                    providerSignature: form.providerSignature || "",
+                    receiverName: form.receiverName || "",
+                    receiverSignature: form.receiverSignature || "",
+                    isrecevied: form.isReceived || false,
+                });
+                if (FormCselected) {
+                    setFormData(FormCselected)
+                }
+            }
+            // If Form H does not exist, fallback to initial blank data
+            else if (result?.case && result?.client) {
+                setFormData({
+                    clientName: result.client?.UserName || "",
+                    caseNumber: result.case?.CaseNumber || reduxCaseInfo?.CaseNumber || "",
+                    handoverDateTime: "",
+                    checklist: {
+                        cForm: FormCselected ? FormCselected : "",
+                        lForm: "",
+                        lfa: "",
+                        poa: "",
+                    },
+                    legalOpinion: "",
+                    caseStrategy: "",
+                    relatedDocs: [],
+                    providerName: token?.UserName,
+                    providerSignature: token?.email,
+                    receiverSignature: "",
+                    isrecevied: false
+
+                });
+                if (FormCselected) {
+                    setFormData(FormCselected)
+                }
+            }
+
+            console.log("Form H API Response: ", result);
+        } catch (err) {
+            console.error("Error loading Form H or related data:", err);
+        } finally {
+            // setLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -278,8 +278,8 @@ const FormHandover = ({ token }) => {
                     "Content-Type": "multipart/form-data",
                 },
             });
-
             showSuccess("Form submitted successfully!");
+            getData()
             console.log(res.data);
         } catch (error) {
             if (error.response) {
