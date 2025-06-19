@@ -344,7 +344,18 @@ import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 
 
-const COURT_STAGES = ["First Instance", "Appeal", "Cassation"];
+const COURT_STAGES = [
+  " Pre-Litigation",
+  "Filing a Case",
+  "Initial Review",
+  "Evidence Submission",
+  "Hearings",
+  "Judgment",
+  "Appeals",
+  "Execution",
+  "Specialized Stages",
+  "Under Review"
+];
 const DOC_TYPES = [
   "Power of Attorney (POA)",
   "Agreement",
@@ -517,12 +528,12 @@ const DragAndDrop = ({
     const ext = originalFile.name.split(".").pop();
 
     const getInitials = (str) => {
-  if (!str) return "";
-  return str
-    .split(" ")
-    .map(word => word[0]?.toUpperCase())
-    .join("");
-};
+      if (!str) return "";
+      return str
+        .split(" ")
+        .map(word => word[0]?.toUpperCase())
+        .join("");
+    };
 
 
     if (courtStage && docType && initials && version) {
@@ -530,7 +541,7 @@ const DragAndDrop = ({
 
       const words = initials.trim().split(" ");
       const UserInitials = words.map((w) => w[0].toUpperCase()).join("");
-      
+
       const newName = `${datePrefix}_${getInitials(courtStage)}_${getInitials(docType)}_${UserInitials}_${version}.${ext}`;
       const renamedFile = new File([originalFile], newName, {
         type: originalFile.type,

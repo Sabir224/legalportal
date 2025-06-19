@@ -44,29 +44,46 @@ const AddCase = () => {
   }, [PreviewCaseId]);
 
   const Subtypelist = [
-    "Alternative Dispute Resolution (ADR)",
-    "Arbitration Law",
-    "Banking Law",
-    "Media Law",
-    "Civil Law",
+    "Civil Case",
     "Commercial Law",
-    "Construction Law",
-    "Criminal Law",
-    "Corporate Services",
-    "Debit Collection",
+    "Criminal Case",
     "Family Law",
-    "Fintech Law",
-    "Intellectual Property Law",
-    "Inheritance Law",
-    "DIFC Legal Services ",
-    "Mergers & Acquisitions",
-    "Maritime Law",
-    "Rental & Tenancy",
-    "Real Estate Law",
-    "Insurance Law",
-    "Wills Registration",
-    "Labor Law",
+    "Real Estate Case",
+    "Labor Case",
+    "Construction Case",
+    "Maritime Case",
+    "Personal Injury Case", ,
+    "Technology Case",
+    "Financial Case",
+    "Public Law",
+    "Consumer Case",
+    "Environmental Case"
+
   ]
+  // const Subtypelist = [
+  //   "Alternative Dispute Resolution (ADR)",
+  //   "Arbitration Law",
+  //   "Banking Law",
+  //   "Media Law",
+  //   "Civil Law",
+  //   "Commercial Law",
+  //   "Construction Law",
+  //   "Criminal Law",
+  //   "Corporate Services",
+  //   "Debit Collection",
+  //   "Family Law",
+  //   "Fintech Law",
+  //   "Intellectual Property Law",
+  //   "Inheritance Law",
+  //   "DIFC Legal Services ",
+  //   "Mergers & Acquisitions",
+  //   "Maritime Law",
+  //   "Rental & Tenancy",
+  //   "Real Estate Law",
+  //   "Insurance Law",
+  //   "Wills Registration",
+  //   "Labor Law",
+  // ]
 
   const fetchNextCaseId = async () => {
     const res = await fetch(`${ApiEndPoint}getNextCaseId`);
@@ -110,10 +127,10 @@ const AddCase = () => {
       CaseNumber: casenumber,
       Name: selectedclientdetails?.UserName,
       CaseType: casetype,
-      CaseSubType:caseSubType,
+      CaseSubType: caseSubType,
       Description: discription,
       Priority: Priority,
-      IsDubiCourts:false,
+      IsDubiCourts: false,
       ClientId: selectedclientdetails?._id,
     };
     if (!regexCaseNumber.test(casenumber)) {
@@ -136,7 +153,7 @@ const AddCase = () => {
       return;
     }
 
-    console.log("Case Data=",caseData)
+    console.log("Case Data=", caseData)
     try {
       showLoading();
       const reponse = await axios.post(`${ApiEndPoint}cases`, caseData);
@@ -325,7 +342,7 @@ const AddCase = () => {
                       }}
                       role="listbox"
                     >
-                      {["Consultation", "Litigation","Non-Litigation"].map((role) => (
+                      {["Consultation", "Litigation", "Non-Litigation"].map((role) => (
                         <li
                           key={role}
                           className="list-group-item list-group-item-action px-3 py-2"
