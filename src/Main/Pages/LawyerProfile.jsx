@@ -265,7 +265,7 @@ const LawyerProfile = ({ token }) => {
 
   const handleStartTimeChange = (time) => {
     setNewStartTime(time);
-    setNewEndTime(new Date(time.getTime() + 15 * 60000)); // Default end time +30 mins
+    setNewEndTime(new Date(time.getTime() + 60 * 60000)); // Default end time +30 mins
   };
 
   const generateMultipleTimeSlots = (startTime, endTime) => {
@@ -275,7 +275,7 @@ const LawyerProfile = ({ token }) => {
 
     while (current < end) {
       let nextSlot = new Date(current);
-      nextSlot.setMinutes(current.getMinutes() + 15); // Move forward 15 minutes
+      nextSlot.setMinutes(current.getMinutes() + 60); // Move forward 15 minutes
 
       if (nextSlot > end) {
         nextSlot = new Date(end); // Adjust last slot
@@ -915,8 +915,8 @@ const LawyerProfile = ({ token }) => {
           isPopupVisible
             ? "Delete successfully"
             : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
-            ? "Delete successfully"
-            : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
+              ? "Delete successfully"
+              : new Intl.DateTimeFormat("en-US", options).format(selectedDate)
         );
         setTimeout(() => {
           setIsPopupVisible(false);
@@ -2817,9 +2817,8 @@ const LawyerProfile = ({ token }) => {
           xs={12}
           md={5}
           lg={5}
-          className={`card border rounded d-flex flex-column mb-3 mt-3 p-1 ${
-            showFiles ? "d-none d-md-block" : ""
-          }`}
+          className={`card border rounded d-flex flex-column mb-3 mt-3 p-1 ${showFiles ? "d-none d-md-block" : ""
+            }`}
           style={{
             background: "#001f3f",
             backdropFilter: "blur(10px)",
@@ -3474,9 +3473,8 @@ const LawyerProfile = ({ token }) => {
           xs={12}
           md={5}
           lg={5}
-          className={`card border rounded p-3 mb-3 mt-3 ${
-            !showFiles ? "d-none d-md-block" : ""
-          }`}
+          className={`card border rounded p-3 mb-3 mt-3 ${!showFiles ? "d-none d-md-block" : ""
+            }`}
           style={{
             background: "#001f3f",
             backdropFilter: "blur(10px)",
@@ -3670,8 +3668,8 @@ const LawyerProfile = ({ token }) => {
                             ? selectedDate?.getDate() === date?.getDate()
                               ? "#d2a85a"
                               : isPastDate(date)
-                              ? "rgba(255, 255, 255, 0.1)"
-                              : ""
+                                ? "rgba(255, 255, 255, 0.1)"
+                                : ""
                             : "transparent",
                           backdropFilter:
                             date && isPastDate(date) ? "blur(4px)" : "none",
@@ -3681,8 +3679,8 @@ const LawyerProfile = ({ token }) => {
                             ? selectedDate?.getDate() === date?.getDate()
                               ? "#001f3f"
                               : isPastDate(date)
-                              ? "#888"
-                              : "white"
+                                ? "#888"
+                                : "white"
                             : "transparent",
                           display: "flex",
                           alignItems: "center",
@@ -3731,15 +3729,13 @@ const LawyerProfile = ({ token }) => {
                                 onClick={() => {
                                   setNewStartTime(
                                     new Date(
-                                      `${selectedDate.toDateString()} ${
-                                        slot.startTime
+                                      `${selectedDate.toDateString()} ${slot.startTime
                                       }`
                                     )
                                   );
                                   setNewEndTime(
                                     new Date(
-                                      `${selectedDate.toDateString()} ${
-                                        slot.endTime
+                                      `${selectedDate.toDateString()} ${slot.endTime
                                       }`
                                     )
                                   );
@@ -3756,8 +3752,8 @@ const LawyerProfile = ({ token }) => {
                                   background: slot.isBooked
                                     ? "green"
                                     : selectedTime === slot.startTime
-                                    ? "#d2a85a"
-                                    : "#16213e",
+                                      ? "#d2a85a"
+                                      : "#16213e",
                                   color: "white",
                                   cursor: slot.isBooked
                                     ? "not-allowed"
@@ -3842,6 +3838,7 @@ const LawyerProfile = ({ token }) => {
                             </div>
 
                             {/* End Time Picker */}
+                            {/* End Time Picker */}
                             <div className="col-12 col-lg-4">
                               <label
                                 className="simple-text mb-1"
@@ -3858,19 +3855,32 @@ const LawyerProfile = ({ token }) => {
                                     onChange={(time) => setNewEndTime(time)}
                                     showTimeSelect
                                     showTimeSelectOnly
-                                    timeIntervals={15}
+                                    timeIntervals={15} // Allow quarter-hour steps like 4:15, 5:15
                                     timeCaption="Time"
                                     dateFormat="h:mm aa"
                                     className="form-control"
                                     disabled={editingSlotIndex !== null}
                                     minTime={
                                       newStartTime
-                                        ? new Date(
-                                            newStartTime.getTime() + 15 * 60000
-                                          )
+                                        ? new Date(newStartTime.getTime() + 60 * 60000) // 1 hour later
                                         : new Date()
                                     }
-                                    maxTime={new Date().setHours(23, 45)}
+                                    maxTime={
+                                      newStartTime
+                                        ? new Date(newStartTime.getTime() + 5 * 60 * 60000) // 5 hours later
+                                        : new Date()
+                                    }
+                                    includeTimes={
+                                      newStartTime
+                                        ? [
+                                          new Date(newStartTime.getTime() + 1 * 60 * 60000),
+                                          new Date(newStartTime.getTime() + 2 * 60 * 60000),
+                                          new Date(newStartTime.getTime() + 3 * 60 * 60000),
+                                          new Date(newStartTime.getTime() + 4 * 60 * 60000),
+                                          new Date(newStartTime.getTime() + 5 * 60 * 60000),
+                                        ]
+                                        : []
+                                    }
                                   />
                                 </div>
                               </div>
@@ -4004,7 +4014,7 @@ const LawyerProfile = ({ token }) => {
                               padding: "10px",
                               background:
                                 selectedDate?.toDateString() ===
-                                date.toDateString()
+                                  date.toDateString()
                                   ? "#d2a85a"
                                   : "#16213e",
                               borderRadius: "5px",
@@ -4045,15 +4055,13 @@ const LawyerProfile = ({ token }) => {
                                       setslotbookuserid(slot);
                                       setNewStartTime(
                                         new Date(
-                                          `${date.toDateString()} ${
-                                            slot.startTime
+                                          `${date.toDateString()} ${slot.startTime
                                           }`
                                         )
                                       );
                                       setNewEndTime(
                                         new Date(
-                                          `${date.toDateString()} ${
-                                            slot.endTime
+                                          `${date.toDateString()} ${slot.endTime
                                           }`
                                         )
                                       );
@@ -4074,7 +4082,7 @@ const LawyerProfile = ({ token }) => {
                                       background:
                                         selectedSlot?.date ===
                                           date.toDateString() &&
-                                        selectedSlot?.time === slot.startTime
+                                          selectedSlot?.time === slot.startTime
                                           ? "#d2a85a"
                                           : "green",
                                       color: "white",
@@ -4137,7 +4145,7 @@ const LawyerProfile = ({ token }) => {
                 </button>
                 <h3
                   className="text-center m-0"
-                  style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)" }}
+                  style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)" ,color:"white"}}
                 >
                   {currentDate.toLocaleString("default", { month: "long" })}{" "}
                   {currentDate.getFullYear()}
@@ -4249,7 +4257,7 @@ const LawyerProfile = ({ token }) => {
                                   background:
                                     selectedSlot?.date ===
                                       date.toDateString() &&
-                                    selectedSlot?.time === slot.startTime
+                                      selectedSlot?.time === slot.startTime
                                       ? "#d2a85a"
                                       : "green",
                                   color: "white",
@@ -4285,6 +4293,7 @@ const LawyerProfile = ({ token }) => {
                     fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "5px",
+                    color:'white'
                   }}
                 >
                   {popupmessage}
