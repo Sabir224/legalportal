@@ -268,30 +268,21 @@ const LawyerProfile = ({ token }) => {
     setNewEndTime(new Date(time.getTime() + 60 * 60000)); // Default end time +30 mins
   };
 
-  const generateMultipleTimeSlots = (startTime, endTime) => {
+  const generateMultipleTimeSlots = (startTime, endTime, formatTime) => {
     const slots = [];
     let current = new Date(startTime);
     const end = new Date(endTime);
 
     while (current < end) {
-      let nextSlot = new Date(current);
-      nextSlot.setMinutes(current.getMinutes() + 60); // Move forward 15 minutes
+      let nextSlot = new Date(current.getTime() + 60 * 60000); // Move forward 60 minutes
 
       if (nextSlot > end) {
         nextSlot = new Date(end); // Adjust last slot
       }
 
       slots.push({
-        startTime: current.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }),
-        endTime: nextSlot.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        }),
+        startTime: formatTime(current),
+        endTime: formatTime(nextSlot),
         isBooked: false,
       });
 
@@ -304,28 +295,33 @@ const LawyerProfile = ({ token }) => {
 
     return slots;
   };
+
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   const handleAddTimeSlot = async () => {
     if (selectedDate && newStartTime && newEndTime) {
-      const formatTime = (date) =>
-        date.toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        });
+      // ✅ Custom 12-hour AM/PM time formatter
+      const formatTime = (date) => {
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        const ampm = hours >= 12 ? "PM" : "AM";
+        hours = hours % 12 || 12; // convert 0 to 12
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        return `${hours}:${minutes} ${ampm}`;
+      };
 
+      console.log(newStartTime, "      =       ", newEndTime)
       if (newEndTime <= newStartTime) {
-        //alert("End time must be after start time!");
         return;
       }
 
+      // ✅ Updated generateMultipleTimeSlots should use custom formatTime
       const newSlots = await generateMultipleTimeSlots(
         newStartTime,
-        newEndTime
+        newEndTime,
+        formatTime // pass it in if needed
       );
 
-      // Use a Promise to wait for state update
       let updatedAppointmentDetails;
       await setAppointmentDetails((prevDetails) => {
         const updatedSlots = [...prevDetails.availableSlots];
@@ -354,7 +350,6 @@ const LawyerProfile = ({ token }) => {
         return updatedAppointmentDetails;
       });
 
-      // Ensure state update before proceeding
       await sleep(1000);
 
       setNewStartTime(null);
@@ -362,25 +357,22 @@ const LawyerProfile = ({ token }) => {
 
       const formatDate = (date) => {
         const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, "0"); // Ensure 2-digit month
-        const day = String(date.getDate()).padStart(2, "0"); // Ensure 2-digit day
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
         return `${year}-${month}-${day}`;
       };
 
       console.log("Updated Appointment Details:", updatedAppointmentDetails);
 
-      // Use the updated appointment details instead of the outdated state
       const formattedSlots = {
-        availableSlots: updatedAppointmentDetails.availableSlots?.map(
-          (slot) => ({
-            date: formatDate(new Date(slot.date)), // Convert date to YYYY-MM-DD
-            slots: slot.slots?.map((slotTime) => ({
-              startTime: convertTo24HourFormat(slotTime.startTime),
-              endTime: convertTo24HourFormat(slotTime.endTime),
-              isBooked: slotTime.isBooked,
-            })),
-          })
-        ),
+        availableSlots: updatedAppointmentDetails.availableSlots?.map((slot) => ({
+          date: formatDate(new Date(slot.date)),
+          slots: slot.slots?.map((slotTime) => ({
+            startTime: convertTo24HourFormat(slotTime.startTime),
+            endTime: convertTo24HourFormat(slotTime.endTime),
+            isBooked: slotTime.isBooked,
+          })),
+        })),
       };
 
       console.log("Formatted Slots for API:", formattedSlots);
@@ -395,6 +387,7 @@ const LawyerProfile = ({ token }) => {
             },
           }
         );
+
         console.log("Post Appointment Data:", response.data);
         setError(null);
         if (response.data?.errorCode === 400) {
@@ -404,15 +397,14 @@ const LawyerProfile = ({ token }) => {
           setbgcolor("green");
           await setIsAddpop(true);
           setpopupcolor("popupconfirm");
-          await setIsAddedorUpdated(true); // Set email sent confirmation
+          await setIsAddedorUpdated(true);
           setTimeout(() => {
             setpopupcolor("popup");
             setIsAddpop(false);
-            // Close popup after showing confirmation
-            setIsAddedorUpdated(false); // Reset confirmation state after a delay
+            setIsAddedorUpdated(false);
           }, 2000);
         }
-        // console.log("response : ",response)
+
         fetchLawyerDetails();
         setAppointmentDetails({ availableSlots: [] });
       } catch (error) {
@@ -421,12 +413,12 @@ const LawyerProfile = ({ token }) => {
           error.response?.data || error.message
         );
         setError(error.message);
-        // throw error;
       }
     } else {
-      //  alert("Please select a date, start time, and end time");
+      // alert("Please select a date, start time, and end time");
     }
   };
+
 
   const updateSlot = async () => {
     // slot update when is note
@@ -874,18 +866,17 @@ const LawyerProfile = ({ token }) => {
       setIsLoading(false); // Hide loader
     }
   };
-  const convertTo24HourFormat = (timeString) => {
-    const [time, modifier] = timeString.split(" ");
+  const convertTo24HourFormat = (time12h) => {
+    const [time, modifier] = time12h.split(" ");
     let [hours, minutes] = time.split(":");
 
-    if (modifier === "PM" && hours !== "12") {
-      hours = String(Number(hours) + 12);
-    } else if (modifier === "AM" && hours === "12") {
-      hours = "00";
-    }
+    hours = parseInt(hours);
+    if (modifier === "PM" && hours < 12) hours += 12;
+    if (modifier === "AM" && hours === 12) hours = 0;
 
-    return `${hours}:${minutes}`; // Returns HH:MM format
+    return `${String(hours).padStart(2, "0")}:${minutes}`;
   };
+
 
   const handleDelete = async (lawyerId, slotId) => {
     console.log(lawyerId, "         ", slotId);
@@ -4145,7 +4136,7 @@ const LawyerProfile = ({ token }) => {
                 </button>
                 <h3
                   className="text-center m-0"
-                  style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)" ,color:"white"}}
+                  style={{ fontSize: "clamp(0.9rem, 2vw, 1.2rem)", color: "white" }}
                 >
                   {currentDate.toLocaleString("default", { month: "long" })}{" "}
                   {currentDate.getFullYear()}
@@ -4293,7 +4284,7 @@ const LawyerProfile = ({ token }) => {
                     fontSize: "18px",
                     fontWeight: "bold",
                     marginBottom: "5px",
-                    color:'white'
+                    color: 'white'
                   }}
                 >
                   {popupmessage}
