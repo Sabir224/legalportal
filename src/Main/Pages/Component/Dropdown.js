@@ -3,7 +3,7 @@ import { BsFillArrowDownSquareFill } from "react-icons/bs";
 import { FaArrowAltCircleDown } from "react-icons/fa";
 
 const Dropdown = ({ options, onSelect, placeholder = `Select an option` }) => {
-    const [selected, setSelected] = useState(null);
+    const [selected, setSelected] = useState({UserName : "All"});
     const [isOpen, setIsOpen] = useState(false);
 
     const handleSelect = (option) => {

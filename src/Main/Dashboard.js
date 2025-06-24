@@ -100,6 +100,7 @@ import FAQ from "./Pages/FAQ/FAQ";
 import ViewFormH from "./Pages/Component/Case_Forms/ViewFormH";
 import FormTemplateUploader from "./Pages/Component/Case_Forms/FormTemplateUploader";
 import MOMEditor from "./Pages/Component/Case_Forms/MOMEditor";
+import ReceptionistCalendar from "./Pages/ReceptionistCalendar";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -244,6 +245,7 @@ const Dashboard = () => {
       case 5:
         setCurrentScreen(<LawyerProfile token={decodedToken} />);
         break;
+      
       case 6:
         setCurrentScreen(<CaseFilingForm token={decodedToken} />);
         break;
@@ -339,6 +341,9 @@ const Dashboard = () => {
             <GlobalAlert />
           </AlertProvider>
         );
+        break;
+        case 24:
+        setCurrentScreen(<ReceptionistCalendar token={decodedToken} />);
         break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
@@ -591,6 +596,19 @@ const Dashboard = () => {
                 },
               }
               : null,
+            decodedToken?.Role === "receptionist"
+              ? {
+                icon: faCalendar,
+                label: "Meeting Calendar",
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+
+                  handlescreen2(24);
+                },
+              }
+              : null,
             // {
             //   icon: faStickyNote,
             //   label: "Form Hand Over",
@@ -709,6 +727,9 @@ const Dashboard = () => {
               )}
               {screen === 23 && (
                 <ScreenHeader title="View Form MOM" onBack={handleBack} />
+              )}
+              {screen === 24 && (
+                <ScreenHeader title="Meeting Calendar" onBack={handleBack} />
               )}
             </h3>
 

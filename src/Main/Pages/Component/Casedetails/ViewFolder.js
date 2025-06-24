@@ -2069,83 +2069,83 @@ const ViewFolder = ({ token }) => {
                                   </div>
                                 </div>
                               </div>
-
-                              {/* Action Buttons - Stacked on small screens */}
-                              <div className="mt-auto pt-2">
-                                <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
-                                  <Button
-                                    variant="success"
-                                    size="sm"
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{
-                                      background: "#ebbf46",
-                                      border: "none",
-                                      width: "36px",
-                                      height: "36px",
-                                      flexShrink: 0,
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openEditModal(folder);
-                                    }}
-                                    disabled={
-                                      folder.folderName === "Personal" ||
-                                      folder.folderName === "FormC Documents"
-                                    }
-                                  >
-                                    <FontAwesomeIcon icon={faEdit} />
-                                  </Button>
-                                  <Button
-                                    variant="success"
-                                    size="sm"
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{
-                                      background: "#007bff",
-                                      border: "none",
-                                      width: "36px",
-                                      height: "36px",
-                                      flexShrink: 0,
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      openMoveModal(folder);
-                                    }}
-                                    disabled={
-                                      folder.folderName === "Personal" ||
-                                      folder.folderName === "FormC Documents"
-                                    }
-                                  >
-                                    <img
-                                      src={movefolder}
-                                      alt="Move Folder"
-                                      style={{ width: "18px", height: "18px" }}
-                                    />
-                                  </Button>
-                                  <Button
-                                    variant="danger"
-                                    size="sm"
-                                    className="d-flex align-items-center justify-content-center"
-                                    style={{
-                                      background: "#dc3545",
-                                      border: "none",
-                                      width: "36px",
-                                      height: "36px",
-                                      flexShrink: 0,
-                                    }}
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setDeletefolderId(folder?._id);
-                                      setIsfolderdelete(true);
-                                    }}
-                                    disabled={
-                                      folder?.folderName === "Personal" ||
-                                      folder?.folderName === "FormC Documents"
-                                    }
-                                  >
-                                    <FontAwesomeIcon icon={faTrash} />
-                                  </Button>
+                              {token?.Role != "client" &&
+                                < div className="mt-auto pt-2">
+                                  <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
+                                    <Button
+                                      variant="success"
+                                      size="sm"
+                                      className="d-flex align-items-center justify-content-center"
+                                      style={{
+                                        background: "#ebbf46",
+                                        border: "none",
+                                        width: "36px",
+                                        height: "36px",
+                                        flexShrink: 0,
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openEditModal(folder);
+                                      }}
+                                      disabled={
+                                        folder.folderName === "Personal" ||
+                                        folder.folderName === "FormC Documents"
+                                      }
+                                    >
+                                      <FontAwesomeIcon icon={faEdit} />
+                                    </Button>
+                                    <Button
+                                      variant="success"
+                                      size="sm"
+                                      className="d-flex align-items-center justify-content-center"
+                                      style={{
+                                        background: "#007bff",
+                                        border: "none",
+                                        width: "36px",
+                                        height: "36px",
+                                        flexShrink: 0,
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openMoveModal(folder);
+                                      }}
+                                      disabled={
+                                        folder.folderName === "Personal" ||
+                                        folder.folderName === "FormC Documents"
+                                      }
+                                    >
+                                      <img
+                                        src={movefolder}
+                                        alt="Move Folder"
+                                        style={{ width: "18px", height: "18px" }}
+                                      />
+                                    </Button>
+                                    <Button
+                                      variant="danger"
+                                      size="sm"
+                                      className="d-flex align-items-center justify-content-center"
+                                      style={{
+                                        background: "#dc3545",
+                                        border: "none",
+                                        width: "36px",
+                                        height: "36px",
+                                        flexShrink: 0,
+                                      }}
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setDeletefolderId(folder?._id);
+                                        setIsfolderdelete(true);
+                                      }}
+                                      disabled={
+                                        folder?.folderName === "Personal" ||
+                                        folder?.folderName === "FormC Documents"
+                                      }
+                                    >
+                                      <FontAwesomeIcon icon={faTrash} />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
+                              }
                             </div>
                           </Card>
                         </Col>
@@ -2237,26 +2237,26 @@ const ViewFolder = ({ token }) => {
                               </div> */}
 
                               <div
-  className="text-white"
-  style={{
-    fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
-    whiteSpace: "normal",        // allow line wrapping
-    wordBreak: "break-word",     // prevent layout breaking
-    overflow: "hidden",          
-    maxHeight: "3em",            // optional: limit to ~2 lines
-    lineHeight: "1.4em"
-  }}
-  title={file?.fileName}
->
-  {file?.fileName}
-</div>
+                                className="text-white"
+                                style={{
+                                  fontSize: "clamp(0.8rem, 1.5vw, 0.9rem)",
+                                  whiteSpace: "normal",        // allow line wrapping
+                                  wordBreak: "break-word",     // prevent layout breaking
+                                  overflow: "hidden",
+                                  maxHeight: "3em",            // optional: limit to ~2 lines
+                                  lineHeight: "1.4em"
+                                }}
+                                title={file?.fileName}
+                              >
+                                {file?.fileName}
+                              </div>
 
                             </div>
                           </div>
 
                           <div className="mt-auto pt-2">
                             <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
-                              {!IsPersonal && !FormCDetails && (
+                              {!IsPersonal && !FormCDetails  && token?.Role!="client" && (
                                 <>
                                   <Button
                                     variant="danger"
@@ -2325,7 +2325,7 @@ const ViewFolder = ({ token }) => {
                                   className="fs-6"
                                 />
                               </Button>
-                              {!IsPersonal && !FormCDetails && (
+                              {!IsPersonal && !FormCDetails && token?.Role!="client" && (
                                 <Button
                                   variant="danger"
                                   size="sm"
@@ -2365,8 +2365,8 @@ const ViewFolder = ({ token }) => {
               </Row>
             </Card.Body>
           </div>
-        </Card.Body>
-      </Card>
+        </Card.Body >
+      </Card >
       <MoveFolderModal
         show={showMoveModal}
         onClose={closeMoveModal}
@@ -2547,7 +2547,7 @@ const ViewFolder = ({ token }) => {
         handleClose={() => setShowError(false)}
         message={message}
       />
-    </div>
+    </div >
   );
 };
 

@@ -1505,7 +1505,7 @@ const ClientAppointment = () => {
                   </>
                 )}
                 {isLoading && (
-                  <div className="loading-indicator">
+                  <div className="loading-indicator" style={{color:'white'}}>
                     <p>Sending...</p>
                     <div className="spinner"></div>{" "}
                     {/* You can style a spinner here */}
