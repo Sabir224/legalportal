@@ -2085,6 +2085,7 @@ const UserProfile = ({ token }) => {
                 <div className="d-block d-md-none">
                   <FilesSection
                     files={files}
+                    token={token}
                     handleDownload={handleDownload}
                     handleFileDelete={handleFileDelete}
                     showUploadModal={showUploadModal} // This was missing
@@ -2105,6 +2106,7 @@ const UserProfile = ({ token }) => {
                 <div className="d-none d-md-block">
                   <FilesSection
                     files={files}
+                    token={token}
                     handleDownload={handleDownload}
                     handleFileDelete={handleFileDelete}
                     showUploadModal={showUploadModal} // This was missing
@@ -2138,6 +2140,7 @@ const UserProfile = ({ token }) => {
                 handleTimeClick={handleTimeClick}
                 setupdateslot={setupdateslot}
                 setSelectedSlot={setSelectedSlot}
+                token={token}
               />
             )}
           </div>

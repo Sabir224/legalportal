@@ -484,7 +484,7 @@ const DragAndDrop = ({
 
   useEffect(() => {
     if (selectedFiles.length > 0) {
-      const initialFiles = selectedFiles.map((file) => ({
+      const initialFiles = selectedFiles?.map((file) => ({
         file: file,
         displayName: file.name,
         courtStage: "",
@@ -503,7 +503,7 @@ const DragAndDrop = ({
   const onDrop = (acceptedFiles) => {
     const filesToAdd = acceptedFiles.slice(0, 5 - editableFiles.length);
     if (filesToAdd.length > 0) {
-      const newFiles = filesToAdd.map((file) => ({
+      const newFiles = filesToAdd?.map((file) => ({
         file: file,
         displayName: file.name,
         courtStage: "",
@@ -512,7 +512,7 @@ const DragAndDrop = ({
         version: "",
       }));
       handleFileChange({
-        target: { files: [...editableFiles, ...newFiles].map((f) => f.file) },
+        target: { files: [...editableFiles, ...newFiles]?.map((f) => f.file) },
       });
     }
   };
@@ -540,7 +540,7 @@ const DragAndDrop = ({
       const datePrefix = getDatePrefix();
 
       const words = initials.trim().split(" ");
-      const UserInitials = words.map((w) => w[0].toUpperCase()).join("");
+      const UserInitials = words?.map((w) => w[0].toUpperCase()).join("");
 
       const newName = `${datePrefix}_${getInitials(courtStage)}_${getInitials(docType)}_${UserInitials}_${version}.${ext}`;
       const renamedFile = new File([originalFile], newName, {
@@ -554,7 +554,7 @@ const DragAndDrop = ({
         displayName: newName,
       };
 
-      handleFileChange({ target: { files: updatedFiles.map((f) => f.file) } });
+      handleFileChange({ target: { files: updatedFiles?.map((f) => f.file) } });
     }
 
     setEditableFiles(updatedFiles);
@@ -565,7 +565,7 @@ const DragAndDrop = ({
     const updatedFiles = [...editableFiles];
     updatedFiles.splice(index, 1);
     setEditableFiles(updatedFiles);
-    handleFileChange({ target: { files: updatedFiles.map((f) => f.file) } });
+    handleFileChange({ target: { files: updatedFiles?.map((f) => f.file) } });
     checkAllFilesValid(updatedFiles);
   };
 
@@ -578,80 +578,84 @@ const DragAndDrop = ({
   };
 
   return (
-    <>
-      <Modal show={showModal} onHide={onHide} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Upload Files</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div
-            {...getRootProps()}
-            className="border border-2 border-dashed rounded p-3 text-center d-flex flex-column align-items-center justify-content-center"
-            style={{ borderColor: "#18273e" }}
-          >
-            <input {...getInputProps()} />
-            <div className="d-flex flex-column align-items-center justify-content-center">
-              {uploading ? (
-                <>
-                  <FontAwesomeIcon icon={faSpinner} spin size="3x" className="text-dark" />
-                  <p className="mt-2">Uploading...</p>
-                </>
-              ) : uploadSuccess ? (
-                <>
-                  <FontAwesomeIcon icon={faCheckCircle} size="3x" className="text-success" />
-                  <p className="mt-2">Upload Successful!</p>
-                </>
-              ) : (
-                <>
-                  <FontAwesomeIcon icon={faFileArrowUp} size="3x" className="text-dark" />
-                  <p className="small mb-1">Drag and drop files here</p>
-                  <p className="small mb-1">OR</p>
-                  <p className="small">Click to choose file</p>
-                  <p className="text-muted small">Maximum 5 files allowed</p>
-                </>
-              )}
-            </div>
+  <>
+    <Modal show={showModal} onHide={onHide} centered>
+      <Modal.Header closeButton>
+        <Modal.Title>Upload Files</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        <div
+          {...getRootProps()}
+          className="border border-2 border-dashed rounded p-3 text-center d-flex flex-column align-items-center justify-content-center"
+          style={{ borderColor: "#18273e" }}
+        >
+          <input {...getInputProps()} />
+          <div className="d-flex flex-column align-items-center justify-content-center">
+            {uploading ? (
+              <>
+                <FontAwesomeIcon icon={faSpinner} spin size="3x" className="text-dark" />
+                <p className="mt-2">Uploading...</p>
+              </>
+            ) : uploadSuccess ? (
+              <>
+                <FontAwesomeIcon icon={faCheckCircle} size="3x" className="text-success" />
+                <p className="mt-2">Upload Successful!</p>
+              </>
+            ) : (
+              <>
+                <FontAwesomeIcon icon={faFileArrowUp} size="3x" className="text-dark" />
+                <p className="small mb-1">Drag and drop files here</p>
+                <p className="small mb-1">OR</p>
+                <p className="small">Click to choose file</p>
+                <p className="text-muted small">Maximum 5 files allowed</p>
+              </>
+            )}
           </div>
+        </div>
 
-          {errorMessage.length > 0 && (
-            <div className="text-danger mt-3">
-              <ul className="ps-3 mb-0">
-                {errorMessage.map((msg, index) => (
-                  <li key={index} className="mb-1">
-                    {msg.split(/,|:/).map((part, i) => (
-                      <div key={i}>
-                        {i > 0 && <span>({i})</span>} {part.trim()}
-                      </div>
-                    ))}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {editableFiles.some(f => !isValidFileName(f.displayName)) && (
-            <p className="text-danger small mt-2">
-              Some files are not properly named. Please complete all selections.
-            </p>
-          )}
+        {errorMessage.length > 0 && (
+          <div className="text-danger mt-3">
+            <ul className="ps-3 mb-0">
+              {errorMessage?.map((msg, index) => (
+                <li key={index} className="mb-1">
+                  {msg.split(/,|:/)?.map((part, i) => (
+                    <div key={i}>
+                      {i > 0 && <span>({i})</span>} {part.trim()}
+                    </div>
+                  ))}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
 
-          <div style={{ maxHeight: "30vh", overflowY: "auto", padding: "10px" }}>
-            {editableFiles.length > 0 && !uploadSuccess && (
-              <div className="mt-4">
-                <h6>Selected Files ({editableFiles.length}/5):</h6>
-                <ul className="list-unstyled">
-                  {editableFiles.map((fileObj, index) => (
-                    <li key={index} className="mb-3 border-bottom pb-2">
-                      <div className="d-flex align-items-center mb-2">
-                        <FontAwesomeIcon icon={faFile} className="me-2 text-dark" />
-                        <span className="me-auto text-break">{fileObj.displayName}</span>
-                        <FontAwesomeIcon
-                          icon={faTimes}
-                          className="text-danger ms-2"
-                          role="button"
-                          onClick={() => handleRemoveFile(index)}
-                          title="Remove file"
-                        />
-                      </div>
+        {editableFiles.some(f => !isValidFileName(f.displayName)) && token?.Role !== "client" && (
+          <p className="text-danger small mt-2">
+            Some files are not properly named. Please complete all selections.
+          </p>
+        )}
+
+        <div style={{ maxHeight: "30vh", overflowY: "auto", padding: "10px" }}>
+          {editableFiles.length > 0 && !uploadSuccess && (
+            <div className="mt-4">
+              <h6>Selected Files ({editableFiles.length}/5):</h6>
+              <ul className="list-unstyled">
+                {editableFiles?.map((fileObj, index) => (
+                  <li key={index} className="mb-3 border-bottom pb-2">
+                    <div className="d-flex align-items-center mb-2">
+                      <FontAwesomeIcon icon={faFile} className="me-2 text-dark" />
+                      <span className="me-auto text-break">{fileObj.displayName}</span>
+                      <FontAwesomeIcon
+                        icon={faTimes}
+                        className="text-danger ms-2"
+                        role="button"
+                        onClick={() => handleRemoveFile(index)}
+                        title="Remove file"
+                      />
+                    </div>
+
+                    {/* Conditionally show dropdowns only if user is not client */}
+                    {token?.Role !== "client" && (
                       <div className="d-flex flex-wrap gap-2">
                         <Form.Select
                           size="sm"
@@ -659,64 +663,72 @@ const DragAndDrop = ({
                           onChange={(e) => handleDropdownChange(index, "courtStage", e.target.value)}
                         >
                           <option value="">Court Stage</option>
-                          {COURT_STAGES.map((opt) => (
+                          {COURT_STAGES?.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </Form.Select>
+
                         <Form.Select
                           size="sm"
                           value={fileObj.docType}
                           onChange={(e) => handleDropdownChange(index, "docType", e.target.value)}
                         >
                           <option value="">Doc Type</option>
-                          {DOC_TYPES.map((opt) => (
+                          {DOC_TYPES?.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </Form.Select>
+
                         <Form.Select
                           size="sm"
                           value={fileObj.initials}
                           onChange={(e) => handleDropdownChange(index, "initials", e.target.value)}
                         >
                           <option value="">Lawyer</option>
-                          {assignlawyer.map((opt) => (
+                          {assignlawyer?.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </Form.Select>
+
                         <Form.Select
                           size="sm"
                           value={fileObj.version}
                           onChange={(e) => handleDropdownChange(index, "version", e.target.value)}
                         >
                           <option value="">Version</option>
-                          {VERSIONS.map((opt) => (
+                          {VERSIONS?.map((opt) => (
                             <option key={opt} value={opt}>{opt}</option>
                           ))}
                         </Form.Select>
                       </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </Modal.Body>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </Modal.Body>
 
-        <Modal.Footer className="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
-          <Button
-            className="px-4 w-100 w-md-auto"
-            style={{ backgroundColor: "#18273e", color: "white" }}
-            onClick={() => handleFileUpload(editableFiles.map((f) => f.file))}
-            disabled={
-              uploading || uploadSuccess || editableFiles.length === 0 || !allFilesValid
-            }
-          >
-            {uploading ? "Uploading..." : "Upload"}
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </>
-  );
+      <Modal.Footer className="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2">
+        <Button
+          className="px-4 w-100 w-md-auto"
+          style={{ backgroundColor: "#18273e", color: "white" }}
+          onClick={() => handleFileUpload(editableFiles?.map((f) => f.file))}
+          disabled={
+            uploading ||
+            uploadSuccess ||
+            editableFiles.length === 0 ||
+            (token?.Role !== "client" && !editableFiles.every(f => isValidFileName(f.displayName)))
+          }
+        >
+          {uploading ? "Uploading..." : "Upload"}
+        </Button>
+      </Modal.Footer>
+    </Modal>
+  </>
+);
+
 };
 
 export default DragAndDrop;

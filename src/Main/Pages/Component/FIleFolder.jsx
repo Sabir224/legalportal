@@ -29,6 +29,7 @@ const FilesSection = ({
   handleFileUpload,
   errorMessage,
   isMobile,
+  token,
   isUser,
 }) => {
   const getFileTypeIcon = (fileName) => {
@@ -214,6 +215,7 @@ const FilesSection = ({
           selectedFiles={selectedFiles}
           handleFileUpload={handleFileUpload}
           errorMessage={errorMessage}
+          token={token}
         />
       )}
     </div>

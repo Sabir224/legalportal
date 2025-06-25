@@ -19,6 +19,7 @@ const AddCase = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [caseTypedropdownOpen, setCaseTypedropdownOpen] = useState(false);
   const [caseSubTypedropdownOpen, setCaseSubTypedropdownOpen] = useState(false);
+  const [caseStagedropdownOpen, setCaseStagedropdownOpen] = useState(false);
   const selectedclientdetails = null
   // const selectedclientdetails = useSelector(
   //   (state) => state.screen.clientEmail
@@ -28,6 +29,7 @@ const AddCase = () => {
   const [clientname, setClientname] = useState("");
   const [casetype, setCaseType] = useState("Consultation");
   const [caseSubType, setCaseSubType] = useState("Civil Law");
+  const [caseStage, setCaseStage] = useState("Pre-Litigation");
   const [discription, setDiscription] = useState("");
 
   const [PreviewCaseId, setPreviewCaseId] = useState("");
@@ -60,6 +62,18 @@ const AddCase = () => {
     "Environmental Case"
 
   ]
+  const COURT_STAGES = [
+    "Pre-Litigation",
+    "Filing a Case",
+    "Initial Review",
+    "Evidence Submission",
+    "Hearings",
+    "Judgment",
+    "Appeals",
+    "Execution",
+    "Specialized Stages",
+    "Under Review"
+  ];
   // const Subtypelist = [
   //   "Alternative Dispute Resolution (ADR)",
   //   "Arbitration Law",
@@ -91,9 +105,30 @@ const AddCase = () => {
     setPreviewCaseId(data.nextCaseId);
   };
 
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-  const toggleCaseTypeDropdown = () => setCaseTypedropdownOpen(!caseTypedropdownOpen);
-  const toggleCaseSubTypeDropdown = () => setCaseSubTypedropdownOpen(!caseSubTypedropdownOpen);
+  const toggleDropdown = () => {
+    setCaseStagedropdownOpen(false);
+     setCaseTypedropdownOpen(false);
+     setCaseSubTypedropdownOpen(false);
+      setDropdownOpen(!dropdownOpen);
+  };
+  const toggleCaseTypeDropdown = () => {
+    setCaseStagedropdownOpen(false);
+     setCaseTypedropdownOpen(!caseTypedropdownOpen);
+     setCaseSubTypedropdownOpen(false);
+      setDropdownOpen(false);
+  }
+  const toggleCaseSubTypeDropdown = () => {
+setCaseStagedropdownOpen(false);
+     setCaseTypedropdownOpen(false);
+     setCaseSubTypedropdownOpen(!caseSubTypedropdownOpen);
+      setDropdownOpen(false);
+  }
+  const toggleCaseStageDropdown = () => {
+    setCaseStagedropdownOpen(!caseStagedropdownOpen);
+    setCaseTypedropdownOpen(false);
+    setCaseSubTypedropdownOpen(false);
+    setDropdownOpen(false);
+  }
   const handleRoleSelect = (role) => {
     setPriority(role);
     setDropdownOpen(false);
@@ -105,6 +140,10 @@ const AddCase = () => {
   const handleCaseSubTypeRoleSelect = (role) => {
     setCaseSubType(role);
     setCaseSubTypedropdownOpen(false);
+  };
+  const handleCaseStageRoleSelect = (role) => {
+    setCaseStage(role);
+    setCaseStagedropdownOpen(false);
   };
 
   // Close dropdown if clicking outside
@@ -131,6 +170,7 @@ const AddCase = () => {
       Description: discription,
       Priority: Priority,
       IsDubiCourts: false,
+      CaseStage:caseStage,
       ClientId: selectedclientdetails?._id,
     };
     if (!regexCaseNumber.test(casenumber)) {
@@ -164,7 +204,9 @@ const AddCase = () => {
       fetchNextCaseId();
       setClientname("")
       setCaseNumber("");
-      setCaseType("");
+      setCaseType("Consultation");
+      setCaseSubType("Civil Law");
+      setCaseStage("Pre-Litigation");
       setDiscription("");
     } catch (error) {
       if (error.response) {
@@ -444,6 +486,90 @@ const AddCase = () => {
                           onClick={() => handleCaseSubTypeRoleSelect(role)}
                           role="option"
                           aria-selected={role === caseSubType}
+                          onMouseEnter={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#f5e9d9")
+                          }
+                          onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            role === caseSubType ? "#F8D4A1" : "white")
+                          }
+                        >
+                          {role}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="col-12 col-md-6">
+              <label
+                className="form-label fw-semibold mb-2 d-block"
+                style={{
+                  color: "#18273e",
+                  fontSize: "0.95rem",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                Case Stage
+              </label>
+              <div className="input-group">
+                <div className="position-relative w-100" ref={dropdownRef}>
+                  <button
+                    className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                    style={{
+                      cursor: "pointer",
+                      border: "1px solid #d3b386",
+                      borderRadius: "6px",
+                      backgroundColor: caseStagedropdownOpen ? "#fff9f0" : "white",
+                      boxShadow: "none",
+                      height: "auto",
+                      minHeight: "42px",
+                      fontSize: "0.95rem",
+                      transition: "all 0.2s ease",
+                    }}
+                    onClick={toggleCaseStageDropdown}
+                    aria-expanded={caseStagedropdownOpen}
+                    aria-haspopup="listbox"
+                  >
+                    <span>{caseStage || "Select Case SUb type"}</span>
+                    <FaChevronDown
+                      className={`transition-all fs-6 ${caseStagedropdownOpen ? "rotate-180" : ""
+                        }`}
+                      style={{ color: "#18273e" }}
+                    />
+                  </button>
+                  {caseStagedropdownOpen && (
+                    <ul
+                      className="list-group position-absolute w-100 mt-1 shadow-sm"
+                      style={{
+                        zIndex: 1000,
+                        border: "1px solid #d3b386",
+                        borderRadius: "6px",
+                        overflow: "hidden",
+                        maxHeight: "200px", // Fixed height for scroll
+                        overflowY: "auto", // Enable vertical scrolling
+                        // minWidth: "100%",
+                      }}
+                      role="listbox"
+                    >
+                      {COURT_STAGES.map((role) => (
+                        <li
+                          key={role}
+                          className="list-group-item list-group-item-action px-3 py-2"
+                          style={{
+                            cursor: "pointer",
+                            backgroundColor:
+                              role === caseStage ? "#F8D4A1" : "white",
+                            border: "none",
+                            borderBottom: "1px solid #f0f0f0",
+                            transition: "all 0.2s ease",
+                            fontSize: "0.95rem",
+                          }}
+                          onClick={() => handleCaseStageRoleSelect(role)}
+                          role="option"
+                          aria-selected={role === caseStage}
                           onMouseEnter={(e) =>
                             (e.currentTarget.style.backgroundColor = "#f5e9d9")
                           }
