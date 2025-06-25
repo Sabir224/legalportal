@@ -20,6 +20,7 @@ const MeetingsSection = ({
   handleTimeClick,
   setupdateslot,
   setSelectedSlot,
+  token,
 }) => {
   return (
     <Row

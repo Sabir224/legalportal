@@ -1327,8 +1327,8 @@ const ReceptionistCalendar = ({ token }) => {
                 minute: "2-digit",
                 hour12: true,
             }),
-            formattedDate: new Date(formattedDate).toLocaleDateString("en-GB"),
-            ClientMessage: "",
+            formattedDate: formattedDate,
+            ClientMessage: ClientMessage,
             AssignedUsers: [],
             meetingLink: meeting,
         };
@@ -1387,7 +1387,7 @@ const ReceptionistCalendar = ({ token }) => {
                         body: JSON.stringify(updatedSlot),
                     }
                 );
-                //  SocketService.bookAppointment(updatedSlot);
+                  SocketService.bookAppointment(updatedSlot);
 
                 const update = await responseupdate.json();
                 console.log("Mail sent successfully:", update);

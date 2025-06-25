@@ -1848,32 +1848,36 @@ const ViewFolder = ({ token }) => {
                 <div className="d-flex flex-wrap justify-content-between align-items-center gap-2">
                   {!IsPersonal && !FormCDetails && (
                     <div className="d-flex align-items-center gap-2">
-                      <Button
-                        variant="light"
-                        size="sm"
-                        onClick={() => setShowUploadModal(true)}
-                        className="d-inline-flex align-items-center gap-1"
-                      >
-                        <FontAwesomeIcon icon={faUpload} />
-                        <span className="d-none d-md-inline">Upload</span>
-                      </Button>
+                      {token?.Role != "client" &&
+                        <Button
+                          variant="light"
+                          size="sm"
+                          onClick={() => setShowUploadModal(true)}
+                          className="d-inline-flex align-items-center gap-1"
+                        >
+                          <FontAwesomeIcon icon={faUpload} />
+                          <span className="d-none d-md-inline">Upload</span>
+                        </Button>
+                      }
                     </div>
                   )}
                   {!IsPersonal && !FormCDetails && (
                     <div className="d-flex align-items-center gap-2">
-                      <Button
-                        variant="light"
-                        size="sm"
-                        onClick={() => {
-                          setNewFolderName("");
-                          setIsEditMode(false);
-                          setShowModal(true);
-                        }}
-                        className="d-inline-flex align-items-center gap-1"
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
-                        <span className="d-none d-md-inline">New</span>
-                      </Button>
+                      {token?.Role != "client" &&
+                        <Button
+                          variant="light"
+                          size="sm"
+                          onClick={() => {
+                            setNewFolderName("");
+                            setIsEditMode(false);
+                            setShowModal(true);
+                          }}
+                          className="d-inline-flex align-items-center gap-1"
+                        >
+                          <FontAwesomeIcon icon={faPlus} />
+                          <span className="d-none d-md-inline">New</span>
+                        </Button>
+                      }
                     </div>
                   )}
 
@@ -2256,7 +2260,7 @@ const ViewFolder = ({ token }) => {
 
                           <div className="mt-auto pt-2">
                             <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
-                              {!IsPersonal && !FormCDetails  && token?.Role!="client" && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && (
                                 <>
                                   <Button
                                     variant="danger"
@@ -2325,7 +2329,7 @@ const ViewFolder = ({ token }) => {
                                   className="fs-6"
                                 />
                               </Button>
-                              {!IsPersonal && !FormCDetails && token?.Role!="client" && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && (
                                 <Button
                                   variant="danger"
                                   size="sm"
