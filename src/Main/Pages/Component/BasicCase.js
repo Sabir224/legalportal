@@ -21,8 +21,13 @@ const BasicCase = ({ token }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredData, setFilteredData] = useState([]);
   const [showMergeModal, setShowMergeModal] = useState(false);
+  const [showCaseStages, setShowCaseStages] = useState(false);
+  const [showCaseType, setShowCaseType] = useState(false);
   // const [selectedCase, setSelectedCase] = useState(null);
+  const [selectedCase, setSelectedCase] = useState(null);
   const [selectedCourtCaseId, setSelectedCourtCaseId] = useState("");
+  const [selectedCaseType, setSelectedCaseType] = useState();
+  const [selectedCaseStage, setSelectedCaseStage] = useState("");
   const [availableCases, setAvailableCases] = useState([]); // populate this list as needed
 
   const { showLoading, showSuccess, showError } = useAlert();
@@ -37,11 +42,22 @@ const BasicCase = ({ token }) => {
   });
   // console.log("_________Token:0", token.Role);
 
+  const COURT_STAGES = [
+    "Pre-Litigation",
+    "Filing a Case",
+    "Initial Review",
+    "Evidence Submission",
+    "Hearings",
+    "Judgment",
+    "Appeals",
+    "Execution",
+    "Specialized Stages",
+    "Under Review"
+  ];
   const dispatch = useDispatch();
 
   const [responseData, setResponseData] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedCase, setSelectedCase] = useState(null);
   const [casedetails, setcasedetails] = useState(null);
   const [loaderOpen, setLoaderOpen] = useState(false);
   const updateFunction = async (item) => {
@@ -105,7 +121,7 @@ const BasicCase = ({ token }) => {
       console.log("response.data of merge", response.data);
     } catch (error) {
       console.error("Error merging cases:", error);
-      showError("Error merging cases" );
+      showError("Error merging cases");
     }
   };
   const handleCloseModal = () => {
@@ -286,6 +302,35 @@ const BasicCase = ({ token }) => {
     } catch (err) {
       setError(err.message);
       setLoading(false);
+    }
+  };
+
+
+
+
+  const updateCaseStage = async (caseId, newStage) => {
+    try {
+      const response = await axios.put(`${ApiEndPoint}updateCaseStage/${caseId}/${newStage}`);
+
+      console.log("Update successful:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error updating case stage:", error.response?.data || error.message);
+    }
+  };
+
+
+
+  const updateCaseTypeAndFolder = async (caseId, newCaseType) => {
+    try {
+      const response = await axios.post(
+        `${ApiEndPoint}updateCaseTypeAndFolder/${caseId}/${newCaseType}`
+      );
+
+      console.log("✅ Success:", response.data.message);
+      console.log("🔄 Updated Folder Name:", response.data.updatedFolderName);
+    } catch (error) {
+      console.error("❌ Error:", error.response?.data?.error || error.message);
     }
   };
 
@@ -629,6 +674,14 @@ const BasicCase = ({ token }) => {
   //   </div>
   // );
 
+
+  // Allowed transitions
+  const allowedTransitions = [
+    "Consultation->Non-Litigation",
+    "Consultation->Litigation",
+    "Non-Litigation->Litigation",
+  ];
+
   return (
     <div
       className="container-fluid m-0 p-0 w-80"
@@ -763,6 +816,30 @@ const BasicCase = ({ token }) => {
                             }}
                           >
                             Merge With
+                          </Dropdown.Item>
+                        )}
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setSelectedCaseType(item?.CaseType)
+                              setShowCaseType(true);
+                            }}
+                          >
+                            Update Case Type
+                          </Dropdown.Item>
+                        )}
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowCaseStages(true);
+                            }}
+                          >
+                            Set Case Stage
                           </Dropdown.Item>
                         )}
                         <Dropdown.Item
@@ -952,6 +1029,28 @@ const BasicCase = ({ token }) => {
                             Merge With
                           </Dropdown.Item>
                         )}
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowCaseType(true);
+                            }}
+                          >
+                            Update Case Type
+                          </Dropdown.Item>
+                        )}
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowCaseStages(true);
+                            }}
+                          >
+                            Set Case Stage
+                          </Dropdown.Item>
+                        )}
 
 
 
@@ -1126,6 +1225,111 @@ const BasicCase = ({ token }) => {
           </Button>
         </Modal.Footer>
       </Modal>
+
+
+
+
+
+
+
+
+      <Modal show={showCaseStages} onHide={() => setShowCaseStages(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Case Stage</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="mergeWithCase" className="w-100">
+              <Form.Label>Select Case  Stage</Form.Label>
+              <Form.Select
+                className="w-100"
+                value={selectedCaseStage}
+                onChange={(e) => setSelectedCaseStage(e.target.value)}
+              >
+                <option value="">-- Select Case --</option>
+                {COURT_STAGES.map((caseItem) => (
+                  <option key={caseItem} value={caseItem}>
+                    {caseItem}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowCaseStages(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+
+
+              updateCaseStage(selectedCase._id, selectedCaseStage)
+              setShowCaseStages(false);
+            }}
+            disabled={!selectedCaseStage}
+          >
+            Save
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+
+
+
+
+      <Modal show={showCaseType} onHide={() => setShowCaseType(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Update Case Type</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="mergeWithCase" className="w-100">
+              <Form.Label>Select Case Type</Form.Label>
+
+              <Form.Select
+                className="w-100"
+                value={selectedCaseType}
+                onChange={(e) => setSelectedCaseType(e.target.value)}
+              >
+              
+                <option value="">-- Select Case --</option>
+                {["Consultation", "Litigation", "Non-Litigation"]
+                  .filter((targetType) =>
+                    allowedTransitions.includes(
+                      `${selectedCase?.CaseType}->${targetType}`
+                    )
+                  )
+                  .map((caseItem) => (
+                    <option key={caseItem} value={caseItem}>
+                      {caseItem}
+                    </option>
+                  ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowCaseType(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              console.log("Selected case =", selectedCase);
+               updateCaseTypeAndFolder(selectedCase._id, selectedCaseType);
+              setShowCaseType(false);
+            }}
+            disabled={!selectedCaseType}
+          >
+            Update
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
 
     </div>
   );
