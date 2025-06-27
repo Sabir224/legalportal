@@ -323,14 +323,16 @@ const BasicCase = ({ token }) => {
 
   const updateCaseTypeAndFolder = async (caseId, newCaseType) => {
     try {
+      showLoading()
       const response = await axios.post(
         `${ApiEndPoint}updateCaseTypeAndFolder/${caseId}/${newCaseType}`
       );
-
-      console.log("✅ Success:", response.data.message);
+      fetchCases()
+      showSuccess("✅ Success:", response.data.message);
       console.log("🔄 Updated Folder Name:", response.data.updatedFolderName);
     } catch (error) {
-      console.error("❌ Error:", error.response?.data?.error || error.message);
+      console.log("error", error?.response?.data?.message)
+      showError(`❌ Error: ${error?.response?.data?.message}`);
     }
   };
 
@@ -1295,19 +1297,13 @@ const BasicCase = ({ token }) => {
                 value={selectedCaseType}
                 onChange={(e) => setSelectedCaseType(e.target.value)}
               >
-              
+
                 <option value="">-- Select Case --</option>
-                {["Consultation", "Litigation", "Non-Litigation"]
-                  .filter((targetType) =>
-                    allowedTransitions.includes(
-                      `${selectedCase?.CaseType}->${targetType}`
-                    )
-                  )
-                  .map((caseItem) => (
-                    <option key={caseItem} value={caseItem}>
-                      {caseItem}
-                    </option>
-                  ))}
+                {["Consultation", "Litigation", "Non-Litigation"].map((caseItem) => (
+                  <option key={caseItem} value={caseItem}>
+                    {caseItem}
+                  </option>
+                ))}
               </Form.Select>
             </Form.Group>
           </Form>
@@ -1320,7 +1316,7 @@ const BasicCase = ({ token }) => {
             variant="primary"
             onClick={() => {
               console.log("Selected case =", selectedCase);
-               updateCaseTypeAndFolder(selectedCase._id, selectedCaseType);
+              updateCaseTypeAndFolder(selectedCase._id, selectedCaseType);
               setShowCaseType(false);
             }}
             disabled={!selectedCaseType}
