@@ -429,7 +429,7 @@ const ClientAppointment = () => {
     console.log(`Meeting Created Request: ${JSON.stringify(meetingDetails)}`);
 
     try {
-      const response = await fetch(`${ApiEndPoint}createmeeting`, {
+      const response = await fetch(`${ApiEndPoint}CreateTeamMeeting`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -441,10 +441,14 @@ const ClientAppointment = () => {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
+      // const responseData = await response.json(); // Parse JSON response
+      // await setmeetingLink(responseData.googleMeetLink); // Extract Google Meet link
+      // meeting = responseData.googleMeetLink;
+      // console.log(`Meeting Created: ${responseData.googleMeetLink}`);
       const responseData = await response.json(); // Parse JSON response
-      await setmeetingLink(responseData.googleMeetLink); // Extract Google Meet link
-      meeting = responseData.googleMeetLink;
-      console.log(`Meeting Created: ${responseData.googleMeetLink}`);
+      await setmeetingLink(responseData.meetingLink); // Extract Google Meet link
+      meeting = responseData.meetingLink;
+      console.log(`Meeting Created: ${responseData.meetingLink}`);
     } catch (error) {
       console.error("Error creating meeting:", error.message);
     }
