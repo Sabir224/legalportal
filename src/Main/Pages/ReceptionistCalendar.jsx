@@ -1297,17 +1297,6 @@ const ReceptionistCalendar = ({ token }) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
         const lawyerId = lawyerData?._id;
 
         console.log("time ", slot);
