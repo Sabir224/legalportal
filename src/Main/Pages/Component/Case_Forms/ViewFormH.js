@@ -9,7 +9,7 @@ import SocketService from '../../../../SocketService';
 import ErrorModal from '../../AlertModels/ErrorModal';
 import ConfirmModal from '../../AlertModels/ConfirmModal';
 import SuccessModal from '../../AlertModels/SuccessModal';
-import { Caseinfo, screenChange, FormCDetails } from '../../../../REDUX/sliece';
+import { Caseinfo, screenChange, FormCDetails, FormHDetails } from '../../../../REDUX/sliece';
 import {
   Accordion,
   AccordionSummary,
@@ -434,8 +434,8 @@ export default function ViewFormH({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-          (key) => key !== '_id' && key !== '__v' && key !== 'subtasks' && key !== 'parentId'
-        )
+        (key) => key !== '_id' && key !== '__v' && key !== 'subtasks' && key !== 'parentId'
+      )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -558,13 +558,21 @@ export default function ViewFormH({ token }) {
     }
   };
 
-  const handleUserClick = (userId, userName) => {
-    console.log('User Clicked:', userId, userName);
-    let item = { ClientId: userId };
-    dispatch(FormCDetails(null));
-    dispatch(Caseinfo(item));
+  const handleUserClick = async (todo, userId, userName) => {
 
-    dispatch(screenChange(12));
+    console.log("CaseId", todo._id?.value)
+    let caseId = todo._id?.value
+  
+      dispatch(FormHDetails(todo._id?.value));
+      dispatch(screenChange(12));
+      // You can show success message here or update UI
+
+
+    // console.log('User Clicked:', userId, userName);
+    // let item = { ClientId: userId };
+    // dispatch(FormCDetails(null));
+    // dispatch(Caseinfo(item));
+
 
     // Navigate or fetch user details, etc.
   };
@@ -1176,7 +1184,7 @@ export default function ViewFormH({ token }) {
                                   ? selected.map((item) => item.toUpperCase()).join(', ')
                                   : 'Checklist Options'
                               }
-                              onChange={() => {}}
+                              onChange={() => { }}
                               sx={{
                                 backgroundColor: 'rgba(212, 175, 55, 0.1)',
                                 borderRadius: '4px',
@@ -1235,7 +1243,7 @@ export default function ViewFormH({ token }) {
                             </Select>
                           </FormControl>
                         );
-                      } 
+                      }
                       else if (key === 'relatedDocsFiles') {
                         content = (
                           <Button
@@ -1250,13 +1258,13 @@ export default function ViewFormH({ token }) {
                                 backgroundColor: 'transparent',
                               },
                             }}
-                            onClick={() => handleUserClick(todo.userId?.value, todo.userName?.value || 'Unknown User')}
+                            onClick={() => handleUserClick(todo, todo.userId?.value, todo.userName?.value || 'Unknown User')}
                           >
                             {todo.clientName?.value || 'Unknown User'}
                           </Button>
                         );
                       }
-                       else if (key === 'createdBy') {
+                      else if (key === 'createdBy') {
                         content = (
                           <Typography
                             variant="body2"
@@ -1376,10 +1384,10 @@ export default function ViewFormH({ token }) {
                             value={
                               value
                                 ? new Date(value).toLocaleDateString('en-GB', {
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                    year: 'numeric',
-                                  })
+                                  day: '2-digit',
+                                  month: '2-digit',
+                                  year: 'numeric',
+                                })
                                 : ''
                             }
                             disabled

@@ -52,6 +52,7 @@ const ViewFolder = ({ token }) => {
   const [folderList, setFolderList] = useState([]);
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const FormCDetails = useSelector((state) => state.screen.FormCDetails);
+  const FormHDetails = useSelector((state) => state.screen.FormHDetails);
   console.log("FormCDetails", FormCDetails);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [showModal, setShowModal] = useState(false);
@@ -199,16 +200,19 @@ const ViewFolder = ({ token }) => {
       console.log("folder", data)
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
 
-      let customFolder = !FormCDetails
-        ? {
-          _id: "personal-folder",
-          folderName: "Personal",
+      let customFolder;
+
+      if (FormHDetails) {
+        customFolder = {
+          _id: "formh-folder",
+          folderName: "Form H Documents",
           caseId: caseIdToUse,
           files: [],
           parentId: data?.mainfolder?._id || null,
-          isPersonal: true,
-        }
-        : {
+          isFormHDoc: true,
+        };
+      } else if (FormCDetails) {
+        customFolder = {
           _id: "formc-folder",
           folderName: "FormC Documents",
           caseId: caseIdToUse,
@@ -216,6 +220,17 @@ const ViewFolder = ({ token }) => {
           parentId: data?.mainfolder?._id || null,
           isFormCDoc: true,
         };
+      } else {
+        customFolder = {
+          _id: "personal-folder",
+          folderName: "Personal",
+          caseId: caseIdToUse,
+          files: [],
+          parentId: data?.mainfolder?._id || null,
+          isPersonal: true,
+        };
+      }
+
 
       const finalFolders = [customFolder, ...fetchedFolders];
       setFolderList(finalFolders);
@@ -230,19 +245,31 @@ const ViewFolder = ({ token }) => {
       setFiles(data?.files || []);
     } catch (err) {
       setError(err.message);
-      let fallbackFolder = !FormCDetails
-        ? {
-          _id: "personal-folder",
-          folderName: "Personal",
+      let fallbackFolder;
+
+      if (FormHDetails) {
+        fallbackFolder = {
+          _id: "formh-folder",
+          folderName: "Form H Documents",
           files: [],
-          isPersonal: true,
-        }
-        : {
+          isFormHDoc: true,
+        };
+      } else if (FormCDetails) {
+        fallbackFolder = {
           _id: "formc-folder",
           folderName: "FormC Documents",
           files: [],
           isFormCDoc: true,
         };
+      } else {
+        fallbackFolder = {
+          _id: "personal-folder",
+          folderName: "Personal",
+          files: [],
+          isPersonal: true,
+        };
+      }
+
       setFolderList([fallbackFolder]);
     } finally {
       setLoadingFolders(false);
@@ -279,13 +306,12 @@ const ViewFolder = ({ token }) => {
     }
   };
 
-  const fetchFormCfile = async () => {
+  const fetchFormCfile = async (folder) => {
     setLoadingFolders(true);
     setError("");
+    let uriapi = folder === "Form H Documents" ? `${ApiEndPoint}getFormHFile/${FormHDetails}` : `${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`
     try {
-      const response = await fetch(
-        `${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`
-      );
+      const response = await fetch(uriapi);
       if (!response.ok) throw new Error("Error fetching subfolders");
 
       const data = await response.json();
@@ -517,108 +543,129 @@ const ViewFolder = ({ token }) => {
   )}&body=${encodeURIComponent("")}`;
   const [activeTab, setActiveTab] = useState("documents");
 
-  const handleDownload = async (fileId, fileName) => {
+  const handleDownload = async (fileId, fileName,filePath) => {
     console.log("file name", fileId);
 
     // let apiaddress = FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}download/${fileId}`
-
-    let apiaddress = IsPersonal
-      ? `${ApiEndPoint}download/${fileId}`
-      : FormCDetails != null
-        ? `${ApiEndPoint}formCDownloadFile/${fileId}`
-        : `${ApiEndPoint}downloadFileFromFolder/${fileId}`;
-    console.log("file apiaddress", apiaddress);
-    if (IsPersonal) {
-      console.log("Download Response JSON:", fileId);
-
+    // if (FormHDetails) {
       try {
-        const response = await fetch(apiaddress, {
-          method: "POST", // Changed to POST to send body
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}), // Sending email in request body
-        });
+        console.log(filePath)
+        const response = await fetch(`${ApiEndPoint}/downloadFileByUrl/${encodeURIComponent(filePath)}`);
+        const data = await response.json();
 
-        // Log the raw response before processing
-        console.log("Raw Response:", response);
-
-        if (!response.ok) {
-          const errorText = await response.text(); // Get the error response if available
-          throw new Error(`Failed to fetch the file: ${errorText}`);
+        console.log("data=", data)
+        if (response.ok) {
+          window.open(data.url, '_blank'); // <-- Open in new tab
+          // return data.signedUrl;
+          return data.url;
+        } else {
+          throw new Error(data.error || "Unknown error");
         }
-
-        // Log the JSON response before downloading (if applicable)
-        const jsonResponse = await response.json();
-        console.log("Download Response JSON:", jsonResponse);
-
-        // Check if the response contains a signed URL instead of a file blob
-        if (jsonResponse.downloadUrl) {
-          console.log("Signed URL received:", jsonResponse.downloadUrl);
-          window.open(jsonResponse.downloadUrl, "_blank");
-          return;
-        }
-
-        // Validate content type
-        const contentType = response.headers.get("Content-Type");
-        console.log("Content-Type:", contentType);
-        if (
-          !contentType ||
-          (!contentType.startsWith("application/") &&
-            contentType !== "application/octet-stream")
-        ) {
-          throw new Error("Invalid content type: " + contentType);
-        }
-
-        // Process the file blob
-        const blob = await response.blob();
-        console.log("Blob Data:", blob);
-
-        // Create a URL and trigger download
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = fileName || "downloaded_file"; // Default filename if none is provided
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-
-        // Cleanup
-        setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      } catch (error) {
-        console.error("Error downloading file:", error);
+      } catch (err) {
+        console.error("Error fetching signed URL:", err);
+        return null;
       }
-    } else {
-      try {
-        const response = await fetch(apiaddress, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({}), // No email needed anymore
-        });
+    // } else
+    //  {
 
-        console.log("Raw Response:", response);
+    //   let apiaddress = IsPersonal
+    //     ? `${ApiEndPoint}download/${fileId}`
+    //     : FormCDetails != null
+    //       ? `${ApiEndPoint}formCDownloadFile/${fileId}`
+    //       : `${ApiEndPoint}downloadFileFromFolder/${fileId}`;
+    //   console.log("file apiaddress", apiaddress);
+    //   if (IsPersonal) {
+    //     console.log("Download Response JSON:", fileId);
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to fetch the file: ${errorText}`);
-        }
+    //     try {
+    //       const response = await fetch(apiaddress, {
+    //         method: "POST", // Changed to POST to send body
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({}), // Sending email in request body
+    //       });
 
-        const jsonResponse = await response.json();
-        console.log("Download Response JSON:", jsonResponse);
+    //       // Log the raw response before processing
+    //       console.log("Raw Response:", response);
 
-        if (jsonResponse.downloadUrl) {
-          console.log("Signed URL received:", jsonResponse.downloadUrl);
-          window.open(jsonResponse.downloadUrl, "_blank");
-          return;
-        }
+    //       if (!response.ok) {
+    //         const errorText = await response.text(); // Get the error response if available
+    //         throw new Error(`Failed to fetch the file: ${errorText}`);
+    //       }
 
-        throw new Error("Signed URL not received in the response");
-      } catch (error) {
-        console.error("Error downloading file:", error);
-      }
-    }
+    //       // Log the JSON response before downloading (if applicable)
+    //       const jsonResponse = await response.json();
+    //       console.log("Download Response JSON:", jsonResponse);
+
+    //       // Check if the response contains a signed URL instead of a file blob
+    //       if (jsonResponse.downloadUrl) {
+    //         console.log("Signed URL received:", jsonResponse.downloadUrl);
+    //         window.open(jsonResponse.downloadUrl, "_blank");
+    //         return;
+    //       }
+
+    //       // Validate content type
+    //       const contentType = response.headers.get("Content-Type");
+    //       console.log("Content-Type:", contentType);
+    //       if (
+    //         !contentType ||
+    //         (!contentType.startsWith("application/") &&
+    //           contentType !== "application/octet-stream")
+    //       ) {
+    //         throw new Error("Invalid content type: " + contentType);
+    //       }
+
+    //       // Process the file blob
+    //       const blob = await response.blob();
+    //       console.log("Blob Data:", blob);
+
+    //       // Create a URL and trigger download
+    //       const url = window.URL.createObjectURL(blob);
+    //       const a = document.createElement("a");
+    //       a.href = url;
+    //       a.download = fileName || "downloaded_file"; // Default filename if none is provided
+    //       document.body.appendChild(a);
+    //       a.click();
+    //       document.body.removeChild(a);
+
+    //       // Cleanup
+    //       setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    //     } catch (error) {
+    //       console.error("Error downloading file:", error);
+    //     }
+    //   } else {
+    //     try {
+    //       const response = await fetch(apiaddress, {
+    //         method: "POST",
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //         },
+    //         body: JSON.stringify({}), // No email needed anymore
+    //       });
+
+    //       console.log("Raw Response:", response);
+
+    //       if (!response.ok) {
+    //         const errorText = await response.text();
+    //         throw new Error(`Failed to fetch the file: ${errorText}`);
+    //       }
+
+    //       const jsonResponse = await response.json();
+    //       console.log("Download Response JSON:", jsonResponse);
+
+    //       if (jsonResponse.downloadUrl) {
+    //         console.log("Signed URL received:", jsonResponse.downloadUrl);
+    //         window.open(jsonResponse.downloadUrl, "_blank");
+    //         return;
+    //       }
+
+    //       throw new Error("Signed URL not received in the response");
+    //     } catch (error) {
+    //       console.error("Error downloading file:", error);
+    //     }
+    //   }
+    // }
   };
 
   const onHide = () => {
@@ -2006,15 +2053,14 @@ const ViewFolder = ({ token }) => {
                             onClick={() => {
                               folder?.folderName === "Personal"
                                 ? fetchClientDocuments()
-                                : folder?.folderName === "FormC Documents"
-                                  ? fetchFormCfile()
+                                : folder?.folderName === "FormC Documents" || folder?.folderName === "Form H Documents"
+                                  ? fetchFormCfile(folder?.folderName)
                                   : fetchsubFolders(folder?._id);
+
                               setSelectedFolder(folder);
-                              setFolderPath((prevPath) => [
-                                ...prevPath,
-                                folder,
-                              ]);
+                              setFolderPath((prevPath) => [...prevPath, folder]);
                             }}
+
                             onMouseEnter={(e) =>
                               viewMode === "grid" &&
                               e.currentTarget.classList.add("card-hover")
@@ -2260,7 +2306,7 @@ const ViewFolder = ({ token }) => {
 
                           <div className="mt-auto pt-2">
                             <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
-                              {!IsPersonal && !FormCDetails && token?.Role != "client" && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetails && (
                                 <>
                                   <Button
                                     variant="danger"
@@ -2321,7 +2367,7 @@ const ViewFolder = ({ token }) => {
                                   flexShrink: 0,
                                 }}
                                 onClick={() =>
-                                  handleDownload(file?._id, file?.fileName)
+                                  handleDownload(file?._id, file?.fileName,file?.filePath)
                                 }
                               >
                                 <FontAwesomeIcon
@@ -2329,7 +2375,7 @@ const ViewFolder = ({ token }) => {
                                   className="fs-6"
                                 />
                               </Button>
-                              {!IsPersonal && !FormCDetails && token?.Role != "client" && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetails && (
                                 <Button
                                   variant="danger"
                                   size="sm"

@@ -48,6 +48,7 @@ import {
   Caseinfo,
   clientEmail,
   FormCDetails,
+  FormHDetails,
   goBackScreen,
   screenChange,
 } from "../REDUX/sliece";
@@ -245,7 +246,7 @@ const Dashboard = () => {
       case 5:
         setCurrentScreen(<LawyerProfile token={decodedToken} />);
         break;
-      
+
       case 6:
         setCurrentScreen(<CaseFilingForm token={decodedToken} />);
         break;
@@ -342,7 +343,7 @@ const Dashboard = () => {
           </AlertProvider>
         );
         break;
-        case 24:
+      case 24:
         setCurrentScreen(<ReceptionistCalendar token={decodedToken} />);
         break;
       default:
@@ -506,6 +507,7 @@ const Dashboard = () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
                 dispatch(FormCDetails(null));
+                dispatch(FormHDetails(null));
 
                 handlescreen2(0);
               },
@@ -516,6 +518,7 @@ const Dashboard = () => {
               action: () => {
                 dispatch(clientEmail(null));
                 dispatch(FormCDetails(null));
+                dispatch(FormHDetails(null));
 
                 dispatch(Caseinfo(null));
                 handlescreen2(3);
@@ -529,6 +532,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(9);
                 },
@@ -543,6 +547,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(11);
                 },
@@ -556,6 +561,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(14);
                 },
@@ -578,6 +584,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(18);
                 },
@@ -591,6 +598,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(22);
                 },
@@ -604,6 +612,7 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(24);
                 },
@@ -616,6 +625,7 @@ const Dashboard = () => {
             //     dispatch(clientEmail(null));
             //     dispatch(Caseinfo(null));
             //     dispatch(FormCDetails(null));
+            // dispatch(FormHDetails(null));
 
             //     handlescreen2(17);
             //   },
@@ -627,6 +637,7 @@ const Dashboard = () => {
                 dispatch(clientEmail(null));
                 dispatch(Caseinfo(null));
                 dispatch(FormCDetails(null));
+                dispatch(FormHDetails(null));
 
                 handlescreen2(21);
               },
@@ -741,6 +752,8 @@ const Dashboard = () => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+
                   handlescreen2(8);
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
@@ -763,6 +776,8 @@ const Dashboard = () => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+
 
                   handlescreen2(11);
                 }}
@@ -789,6 +804,7 @@ const Dashboard = () => {
                     dispatch(Caseinfo(null));
                     dispatch(clientEmail(null));
                     dispatch(FormCDetails(null));
+                    dispatch(FormHDetails(null));
 
                     handlescreen2(5);
                   }}
@@ -808,6 +824,7 @@ const Dashboard = () => {
                   dispatch(Caseinfo(null));
                   dispatch(clientEmail(null));
                   dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
                   handlescreen2(4);
                 }}
