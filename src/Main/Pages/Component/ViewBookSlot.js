@@ -649,7 +649,7 @@ const ContactForm = ({ slotbookuserid }) => {
             <h5 className="mb-0 fs-6 fs-md-5">
               {usersDetails?.UserName &&
                 usersDetails.UserName.charAt(0).toUpperCase() +
-                  usersDetails.UserName.slice(1)}
+                usersDetails.UserName.slice(1)}
             </h5>
           </div>
 
@@ -659,7 +659,7 @@ const ContactForm = ({ slotbookuserid }) => {
               <h6 className="mb-0 fs-6">
                 {lawyerDetails?.UserName &&
                   lawyerDetails.UserName.charAt(0).toUpperCase() +
-                    lawyerDetails.UserName.slice(1)}
+                  lawyerDetails.UserName.slice(1)}
               </h6>
             </div>
           )}
@@ -722,12 +722,23 @@ const ContactForm = ({ slotbookuserid }) => {
             className="btn d-inline-flex align-items-center py-1 px-3 fw-bold fs-6"
             style={{ color: "white", backgroundColor: "#d3b386" }}
           >
-            <img
+            {/* <img
               src="https://cdn4.iconfinder.com/data/icons/logos-brands-in-colors/48/google-meet-512.png"
               alt="Google Meet"
               width="20"
               height="20"
               className="me-2"
+            /> */}
+
+            <img
+              src="https://play-lh.googleusercontent.com/jKU64njy8urP89V1O63eJxMtvWjDGETPlHVIhDv9WZAYzsSxRWyWZkUlBJZj_HbkHA=w480-h960-rw"
+              alt="Microsoft Teams"
+              style={{
+                width: '25px',
+                height: '25px',
+                borderRadius: '50%',
+                padding:2
+              }}
             />
             Join Meeting
           </a>
@@ -830,8 +841,8 @@ export const UpdateForm = ({ user }) => {
     setIsEditing(false);
     setShow(true);
   }, [user]);
-  const handleSave = async () => {};
-  const handleDelete = async () => {};
+  const handleSave = async () => { };
+  const handleDelete = async () => { };
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
