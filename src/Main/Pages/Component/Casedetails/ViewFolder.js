@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Card, Col, Modal, Form, Row, Dropdown } from "react-bootstrap";
 import { ApiEndPoint } from "../utils/utlis";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import ViewDocumentsAndAdd from "./ViewDocumentsAndAdd";
 import { BsDownload, BsPen, BsTrash } from "react-icons/bs";
@@ -47,13 +47,14 @@ import DragAndDrop from "../DragAndDrop";
 import MoveFolderModal from "./MoveFolderModal";
 import movefolder from "./Icons/movefolder.png";
 import ErrorModal from "../../AlertModels/ErrorModal";
+import { Caseinfo, FormHDetails, LitigationFormH } from "../../../../REDUX/sliece";
 
 const ViewFolder = ({ token }) => {
   const [folderList, setFolderList] = useState([]);
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const FormCDetails = useSelector((state) => state.screen.FormCDetails);
-  const FormHDetails = useSelector((state) => state.screen.FormHDetails);
-  console.log("FormCDetails", FormCDetails);
+  const FormHDetailsInfo = useSelector((state) => state.screen.FormHDetails);
+  const litigationform = useSelector((state) => state.screen.LitigationFormH);
   const [selectedFolder, setSelectedFolder] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [showFileModal, setShowFileModal] = useState(false);
@@ -86,8 +87,10 @@ const ViewFolder = ({ token }) => {
   const [deletefileid, setDeletefileId] = useState(null);
   const [deletefolderid, setDeletefolderId] = useState(null);
   const [Isfolderdelete, setIsfolderdelete] = useState(false);
+  const [IsFormH, setIsFormH] = useState(false);
   const [sortOption, setSortOption] = useState("nameAsc");
   const [folderPath, setFolderPath] = useState([]);
+  const dispatch = useDispatch();
 
   const [showError, setShowError] = useState(false);
   const [isfile, setisfile] = useState(false);
@@ -190,28 +193,38 @@ const ViewFolder = ({ token }) => {
 
     try {
       const caseIdToUse = effectiveCaseInfo?._id;
-      if (!caseIdToUse) throw new Error("No case ID available");
+      //if (!caseIdToUse) throw new Error("No case ID available");
 
-      const response = await fetch(`${ApiEndPoint}getFolders/${caseIdToUse}`);
+      console.log("APi call address FormHDetailsInfo =", FormHDetailsInfo)
+      console.log("APi call address caseInfo =", caseInfo)
+      let uriapi = (FormHDetailsInfo && caseInfo) ? `${ApiEndPoint}getFoldersByNameAndCaseId/1 Form Folder/${caseIdToUse}` : `${ApiEndPoint}getFolders/${caseIdToUse}`
+
+      console.log("APi call address =", uriapi)
+      const response = await fetch(uriapi);
       if (!response.ok) throw new Error("Error fetching folders");
 
       const data = await response.json();
 
       console.log("folder", data)
       const fetchedFolders = Array.isArray(data?.folders) ? data.folders : [];
+      console.log("fetchedFolders", fetchedFolders)
 
-      let customFolder;
+      let customFolder = null;
 
-      if (FormHDetails) {
-        customFolder = {
-          _id: "formh-folder",
-          folderName: "Form H Documents",
-          caseId: caseIdToUse,
-          files: [],
-          parentId: data?.mainfolder?._id || null,
-          isFormHDoc: true,
-        };
+      if (FormHDetailsInfo) {
+        setIsFormH(true)
+        if (!caseInfo) {
+          customFolder = {
+            _id: "formh-folder",
+            folderName: "Form H Documents",
+            caseId: caseIdToUse,
+            files: [],
+            parentId: data?.mainfolder?._id || null,
+            isFormHDoc: true,
+          };
+        }
       } else if (FormCDetails) {
+
         customFolder = {
           _id: "formc-folder",
           folderName: "FormC Documents",
@@ -232,7 +245,15 @@ const ViewFolder = ({ token }) => {
       }
 
 
-      const finalFolders = [customFolder, ...fetchedFolders];
+      console.log("finalFolders")
+
+      const finalFolders = [
+        ...(customFolder ? [customFolder] : []),
+        ...fetchedFolders,
+      ];
+
+      console.log("finalFolders", finalFolders)
+
       setFolderList(finalFolders);
       setMainfolderId(data?.mainfolder?._id);
       setMainfolder(data?.mainfolder);
@@ -242,12 +263,14 @@ const ViewFolder = ({ token }) => {
         setFolderPath([]);
       }
 
+
       setFiles(data?.files || []);
     } catch (err) {
       setError(err.message);
       let fallbackFolder;
-
-      if (FormHDetails) {
+      console.log("form detail in catch = ", FormHDetailsInfo)
+      if (FormHDetailsInfo) {
+        setIsFormH(true)
         fallbackFolder = {
           _id: "formh-folder",
           folderName: "Form H Documents",
@@ -280,7 +303,7 @@ const ViewFolder = ({ token }) => {
     // if (effectiveCaseInfo?._id) {
     fetchFolders();
     // }
-  }, [effectiveCaseInfo?._id]);
+  }, [effectiveCaseInfo?._id, FormHDetailsInfo]);
 
   // Subfolder fetch function
   const fetchsubFolders = async (parentId) => {
@@ -309,7 +332,7 @@ const ViewFolder = ({ token }) => {
   const fetchFormCfile = async (folder) => {
     setLoadingFolders(true);
     setError("");
-    let uriapi = folder === "Form H Documents" ? `${ApiEndPoint}getFormHFile/${FormHDetails}` : `${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`
+    let uriapi = folder === "Form H Documents" ? `${ApiEndPoint}getFormHFile/${FormHDetailsInfo}` : `${ApiEndPoint}getFormCDetailsAndFilesByEmail/${FormCDetails}`
     try {
       const response = await fetch(uriapi);
       if (!response.ok) throw new Error("Error fetching subfolders");
@@ -543,28 +566,28 @@ const ViewFolder = ({ token }) => {
   )}&body=${encodeURIComponent("")}`;
   const [activeTab, setActiveTab] = useState("documents");
 
-  const handleDownload = async (fileId, fileName,filePath) => {
+  const handleDownload = async (fileId, fileName, filePath) => {
     console.log("file name", fileId);
 
     // let apiaddress = FormCDetails!=null ? `${ApiEndPoint}formCDownloadFile/${fileId}` : `${ApiEndPoint}download/${fileId}`
-    // if (FormHDetails) {
-      try {
-        console.log(filePath)
-        const response = await fetch(`${ApiEndPoint}/downloadFileByUrl/${encodeURIComponent(filePath)}`);
-        const data = await response.json();
+    // if (FormHDetailsInfo) {
+    try {
+      console.log(filePath)
+      const response = await fetch(`${ApiEndPoint}/downloadFileByUrl/${encodeURIComponent(filePath)}`);
+      const data = await response.json();
 
-        console.log("data=", data)
-        if (response.ok) {
-          window.open(data.url, '_blank'); // <-- Open in new tab
-          // return data.signedUrl;
-          return data.url;
-        } else {
-          throw new Error(data.error || "Unknown error");
-        }
-      } catch (err) {
-        console.error("Error fetching signed URL:", err);
-        return null;
+      console.log("data=", data)
+      if (response.ok) {
+        window.open(data.url, '_blank'); // <-- Open in new tab
+        // return data.signedUrl;
+        return data.url;
+      } else {
+        throw new Error(data.error || "Unknown error");
       }
+    } catch (err) {
+      console.error("Error fetching signed URL:", err);
+      return null;
+    }
     // } else
     //  {
 
@@ -1779,9 +1802,9 @@ const ViewFolder = ({ token }) => {
       className="text-primary hover-underline cursor-pointer text-truncate"
       style={{ maxWidth: "50px" }}
       onClick={onClick}
-      title={folder.folderName}
+      title={folder?.folderName}
     >
-      {folder.folderName}
+      {folder?.folderName}
     </span>
   );
 
@@ -1825,7 +1848,13 @@ const ViewFolder = ({ token }) => {
                       variant="link"
                       size="sm"
                       onClick={async () => {
-                        await fetchCases();
+                        //   await fetchCases();
+                        if (FormHDetailsInfo && litigationform && IsFormH) {
+                          setIsFormH(false)
+                          dispatch(FormHDetails(null));
+                          dispatch(LitigationFormH(null));
+                        }
+
                         await setSelectedFolder(null);
                         setFolderPath([]);
                         fetchFolders();
@@ -1988,15 +2017,15 @@ const ViewFolder = ({ token }) => {
                   <>
                     {[...folderList]
                       .sort((a, b) => {
-                        const aStartsWithNumber = /^\d+/.test(a.folderName);
-                        const bStartsWithNumber = /^\d+/.test(b.folderName);
+                        const aStartsWithNumber = /^\d+/.test(a?.folderName);
+                        const bStartsWithNumber = /^\d+/.test(b?.folderName);
 
                         if (sortOption === "nameAsc") {
                           if (aStartsWithNumber && !bStartsWithNumber)
                             return -1;
                           if (!aStartsWithNumber && bStartsWithNumber) return 1;
-                          return a.folderName.localeCompare(
-                            b.folderName,
+                          return a?.folderName.localeCompare(
+                            b?.folderName,
                             undefined,
                             {
                               numeric: true,
@@ -2009,8 +2038,8 @@ const ViewFolder = ({ token }) => {
                           if (aStartsWithNumber && !bStartsWithNumber) return 1;
                           if (!aStartsWithNumber && bStartsWithNumber)
                             return -1;
-                          return b.folderName.localeCompare(
-                            a.folderName,
+                          return b?.folderName.localeCompare(
+                            a?.folderName,
                             undefined,
                             {
                               numeric: true,
@@ -2138,8 +2167,8 @@ const ViewFolder = ({ token }) => {
                                         openEditModal(folder);
                                       }}
                                       disabled={
-                                        folder.folderName === "Personal" ||
-                                        folder.folderName === "FormC Documents"
+                                        folder?.folderName === "Personal" ||
+                                        folder?.folderName === "FormC Documents"
                                       }
                                     >
                                       <FontAwesomeIcon icon={faEdit} />
@@ -2160,8 +2189,8 @@ const ViewFolder = ({ token }) => {
                                         openMoveModal(folder);
                                       }}
                                       disabled={
-                                        folder.folderName === "Personal" ||
-                                        folder.folderName === "FormC Documents"
+                                        folder?.folderName === "Personal" ||
+                                        folder?.folderName === "FormC Documents"
                                       }
                                     >
                                       <img
@@ -2306,7 +2335,7 @@ const ViewFolder = ({ token }) => {
 
                           <div className="mt-auto pt-2">
                             <div className="d-flex justify-content-end gap-1 gap-sm-2 flex-wrap">
-                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetails && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetailsInfo && (
                                 <>
                                   <Button
                                     variant="danger"
@@ -2367,7 +2396,7 @@ const ViewFolder = ({ token }) => {
                                   flexShrink: 0,
                                 }}
                                 onClick={() =>
-                                  handleDownload(file?._id, file?.fileName,file?.filePath)
+                                  handleDownload(file?._id, file?.fileName, file?.filePath)
                                 }
                               >
                                 <FontAwesomeIcon
@@ -2375,7 +2404,7 @@ const ViewFolder = ({ token }) => {
                                   className="fs-6"
                                 />
                               </Button>
-                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetails && (
+                              {!IsPersonal && !FormCDetails && token?.Role != "client" && !FormHDetailsInfo && (
                                 <Button
                                   variant="danger"
                                   size="sm"

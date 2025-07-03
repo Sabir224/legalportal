@@ -9,7 +9,7 @@ import SocketService from '../../../../SocketService';
 import ErrorModal from '../../AlertModels/ErrorModal';
 import ConfirmModal from '../../AlertModels/ConfirmModal';
 import SuccessModal from '../../AlertModels/SuccessModal';
-import { Caseinfo, screenChange, FormCDetails, FormHDetails } from '../../../../REDUX/sliece';
+import { Caseinfo, screenChange, FormCDetails, FormHDetails, LitigationFormH } from '../../../../REDUX/sliece';
 import {
   Accordion,
   AccordionSummary,
@@ -560,18 +560,51 @@ export default function ViewFormH({ token }) {
 
   const handleUserClick = async (todo, userId, userName) => {
 
-    console.log("CaseId", todo._id?.value)
-    let caseId = todo._id?.value
-  
-      dispatch(FormHDetails(todo._id?.value));
-      dispatch(screenChange(12));
-      // You can show success message here or update UI
+    // console.log("form H", todo)
+    // let caseId = todo.caseId?.value
+    // let item = { ClientId: userId };
+
+    //   dispatch(FormHDetails(todo._id?.value));
+    //   dispatch(screenChange(12));
+    //   dispatch(Caseinfo(item));
+    // You can show success message here or update UI
 
 
+
+
+    console.log("form H", todo);
+
+    const caseId = todo.caseId?.value;
+    const item = { ClientId: userId };
+    try {
+
+      // Call API to get case info by caseId
+      const response = await axios.get(`${ApiEndPoint}/getCaseById/${caseId}`);
+      const caseData = response.data;
+
+      console.log("✅ Case Info:", caseData);
+      console.log("case data= ", caseData?.clientCase.CaseType)
+      if (caseData?.clientCase.CaseType === "Litigation") {
+        // Dispatch actions
+        dispatch(Caseinfo(caseData?.clientCase));
+        dispatch(FormHDetails(todo._id?.value));
+        dispatch(FormHDetails(todo._id?.value));
+        dispatch(LitigationFormH(true));
+        dispatch(screenChange(12));
+      } else {
+        console.log("case info =", null)
+        dispatch(FormHDetails(todo._id?.value));
+        dispatch(screenChange(12));
+        dispatch(Caseinfo(item));
+      }
+
+    } catch (error) {
+
+      console.error("❌ Failed to fetch case info:", error);
+    }
     // console.log('User Clicked:', userId, userName);
     // let item = { ClientId: userId };
     // dispatch(FormCDetails(null));
-    // dispatch(Caseinfo(item));
 
 
     // Navigate or fetch user details, etc.
@@ -1107,6 +1140,366 @@ export default function ViewFormH({ token }) {
 
               <TableBody>
                 {todos?.map((todo) => (
+                  // <TableRow
+                  //   key={todo._id?.value || todo.id}
+                  //   sx={{
+                  //     '& .MuiTableCell-root': {
+                  //       borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+                  //     },
+                  //     '&:not(:last-child)': {
+                  //       borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
+                  //     },
+                  //   }}
+                  // >
+                  //   {/* Client Name Cell - First */}
+                  //   <TableCell
+                  //     sx={{
+                  //       overflow: 'auto',
+                  //       textOverflow: 'ellipsis',
+                  //       whiteSpace: 'normal',
+                  //       position: 'sticky',
+                  //       left: 0,
+                  //       backgroundColor: '#0a2d56',
+                  //       zIndex: 2,
+                  //       color: '#676a6e',
+                  //       maxHeight: '120px',
+                  //       minWidth: '180px',
+                  //       borderRight: '1px solid rgba(212, 175, 55, 0.3)',
+                  //       borderTop: '1px solid rgba(212, 175, 55, 0.3)',
+                  //       borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
+                  //       borderLeft: 'none',
+                  //       '&::after': {
+                  //         content: '""',
+                  //         position: 'absolute',
+                  //         right: 0,
+                  //         top: 0,
+                  //         bottom: 0,
+                  //         width: '1px',
+                  //         backgroundColor: 'rgba(212, 175, 55, 0.3)',
+                  //       },
+                  //     }}
+                  //   >
+                  //     {todo.clientName?.value || 'Client'}
+                  //   </TableCell>
+
+                  //   {/* Other Cells */}
+                  //   {keys?.map((key) => {
+                  //     if (key === 'clientName' || key === 'caseId' || key === 'userId' || key === 'userName')
+                  //       return null;
+
+                  //     const field = todo[key];
+                  //     if (!field) return <TableCell key={key}></TableCell>;
+
+                  //     const { value, type, enum: enumOptions } = field;
+                  //     const normalizedType = type?.toLowerCase();
+
+                  //     let content;
+
+                  //     // Checklist handling
+                  //     if (key === 'checklist') {
+                  //       const checklistKeys = Object.keys(value || {});
+
+                  //       content = (
+                  //         <FormControl
+                  //           fullWidth
+                  //           size="medium"
+                  //           sx={{
+                  //             minWidth: 140,
+                  //             border: 'none',
+                  //           }}
+                  //         >
+                  //           <Select
+                  //             multiple
+                  //             value={checklistKeys.filter((k) => value[k])}
+                  //             displayEmpty
+                  //             renderValue={(selected) =>
+                  //               selected.length > 0
+                  //                 ? selected.map((item) => item.toUpperCase()).join(', ')
+                  //                 : 'Checklist Options'
+                  //             }
+                  //             onChange={() => { }}
+                  //             sx={{
+                  //               backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  //               borderRadius: '4px',
+                  //               '& .MuiSelect-select': {
+                  //                 py: 1.5,
+                  //                 color: '#676a6e',
+                  //               },
+                  //               '& .MuiOutlinedInput-notchedOutline': {
+                  //                 border: 'none !important',
+                  //               },
+                  //               '&:hover': {
+                  //                 backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                  //               },
+                  //               '&.Mui-focused': {
+                  //                 backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                  //               },
+                  //               '& .MuiSvgIcon-root': {
+                  //                 color: 'rgba(212, 175, 55, 0.7)',
+                  //               },
+                  //             }}
+                  //             MenuProps={{
+                  //               PaperProps: {
+                  //                 sx: {
+                  //                   bgcolor: '#0a2d56',
+                  //                   color: 'white',
+                  //                   maxHeight: '120px',
+                  //                   border: '1px solid rgba(212, 175, 55, 0.3)',
+                  //                   '& .MuiMenuItem-root': {
+                  //                     minHeight: '48px',
+                  //                     '&:hover': {
+                  //                       bgcolor: 'rgba(212, 175, 55, 0.2)',
+                  //                     },
+                  //                   },
+                  //                 },
+                  //               },
+                  //             }}
+                  //           >
+                  //             {checklistKeys.map((optionKey) => (
+                  //               <MenuItem key={optionKey} value={optionKey}  disabled>
+                  //                 <Checkbox
+                  //                   checked={!!value[optionKey]}
+                  //                   sx={{
+                  //                     p: 1,
+                  //                     color: '#D4AF37',
+                  //                     backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  //                     borderRadius: '4px',
+                  //                     '&.Mui-checked': {
+                  //                       color: '#D4AF37',
+                  //                       backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                  //                     },
+                  //                   }}
+                  //                 />
+                  //                 <ListItemText primary={optionKey.toUpperCase()} />
+                  //               </MenuItem>
+                  //             ))}
+                  //           </Select>
+                  //         </FormControl>
+                  //       );
+                  //     }
+                  //     else if (key === 'relatedDocsFiles') {
+                  //       content = (
+                  //         <Button
+                  //           sx={{
+                  //             textTransform: 'none',
+                  //             textDecoration: 'underline',
+                  //             p: 0,
+                  //             minWidth: 'auto',
+                  //             color: '#D4AF37',
+                  //             '&:hover': {
+                  //               color: '#E6C050',
+                  //               backgroundColor: 'transparent',
+                  //             },
+                  //           }}
+                  //           onClick={() => handleUserClick(todo, todo.userId?.value, todo.userName?.value || 'Unknown User')}
+                  //         >
+                  //           {todo.clientName?.value || 'Unknown User'}
+                  //         </Button>
+                  //       );
+                  //     }
+                  //     else if (key === 'createdBy') {
+                  //       content = (
+                  //         <Typography
+                  //           variant="body2"
+                  //           sx={{
+                  //             color: '#676a6e',
+
+                  //             maxHeight: '120px',
+                  //             overflowY: 'auto',
+                  //             whiteSpace: 'normal',
+                  //             border: 'none',
+                  //           }}
+                  //         >
+                  //           {value?.UserName || ''}
+                  //         </Typography>
+                  //       );
+                  //     } else if (key === 'createdAt') {
+                  //       content = (
+                  //         <Typography
+                  //           variant="body2"
+                  //           sx={{
+                  //             color: '#676a6e',
+
+                  //             maxHeight: '120px',
+                  //             overflowY: 'auto',
+                  //             whiteSpace: 'normal',
+                  //             border: 'none',
+                  //           }}
+                  //         >
+                  //           {(value || '').split('T')[0]}
+                  //         </Typography>
+                  //       );
+                  //     } else if (enumOptions) {
+                  //       content = (
+                  //         <FormControl
+                  //           fullWidth
+                  //           size="medium"
+                  //           sx={{
+                  //             minWidth: 140,
+                  //             border: 'none',
+                  //             height: '100%',
+                  //           }}
+                  //         >
+                  //           <Select
+                  //             value={value}
+                  //             disabled
+
+                  //             sx={{
+                  //               backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  //               borderRadius: '4px',
+
+                  //               '& .MuiSelect-select': {
+                  //                 py: 1.5,
+                  //                 color: '#676a6e',
+                  //                 maxHeight: '100px',
+                  //                 overflowY: 'auto',
+                  //               },
+                  //               '& .MuiOutlinedInput-notchedOutline': {
+                  //                 border: 'none !important',
+                  //               },
+                  //               '&:hover': {
+                  //                 backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                  //               },
+                  //               '&.Mui-focused': {
+                  //                 backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                  //               },
+                  //               '& .MuiSvgIcon-root': {
+                  //                 color: 'rgba(212, 175, 55, 0.7)',
+                  //               },
+                  //             }}
+                  //             MenuProps={{
+                  //               PaperProps: {
+                  //                 sx: {
+                  //                   bgcolor: '#0a2d56',
+                  //                   color: 'white',
+                  //                   maxHeight: '200px',
+                  //                   border: '1px solid rgba(212, 175, 55, 0.3)',
+                  //                   '& .MuiMenuItem-root': {
+                  //                     minHeight: '48px',
+                  //                     '&:hover': {
+                  //                       bgcolor: 'rgba(212, 175, 55, 0.2)',
+                  //                     },
+                  //                   },
+                  //                 },
+                  //               },
+                  //             }}
+                  //           >
+                  //             {enumOptions.map((option) => (
+                  //               <MenuItem key={option} value={option}>
+                  //                 {option}
+                  //               </MenuItem>
+                  //             ))}
+                  //           </Select>
+                  //         </FormControl>
+                  //       );
+                  //     } else if (normalizedType === 'boolean') {
+                  //       content = (
+                  //         <Checkbox
+                  //           checked={Boolean(value)}
+                  //           disabled
+                  //           sx={{
+                  //             p: 1,
+                  //             color: '#D4AF37',
+                  //             backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                  //             borderRadius: '4px',
+                  //             '&.Mui-checked': {
+                  //               color: '#D4AF37',
+                  //               backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                  //             },
+                  //           }}
+                  //         />
+                  //       );
+                  //     } else if (normalizedType === 'date') {
+                  //       content = (
+                  //         <TextField
+                  //           type="text"
+                  //           size="medium"
+                  //           fullWidth
+                  //           value={
+                  //             value
+                  //               ? new Date(value).toLocaleDateString('en-GB', {
+                  //                 day: '2-digit',
+                  //                 month: '2-digit',
+                  //                 year: 'numeric',
+                  //               })
+                  //               : ''
+                  //           }
+                  //           disabled
+                  //           sx={{
+                  //             minWidth: 160,
+                  //             border: 'none',
+                  //             '& .MuiInputBase-input': {
+                  //               py: 1.5,
+                  //               color: '#676a6e',
+                  //               maxHeight: '120px',
+                  //               overflowY: 'auto',
+                  //               border: 'none',
+                  //             },
+                  //             '& .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //             '&:hover .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //           }}
+                  //         />
+                  //       );
+                  //     } else {
+                  //       content = (
+                  //         <TextField
+                  //           type="text"
+                  //           size="medium"
+                  //           fullWidth
+                  //           value={value || ''}
+                  //           disabled
+                  //           multiline
+                  //           maxRows={3}
+                  //           sx={{
+                  //             minWidth: 160,
+                  //             border: 'none',
+                  //             height: '100%',
+                  //             '& .MuiInputBase-input': {
+                  //               py: 1.5,
+                  //               color: '#676a6e',
+                  //               maxHeight: '100px',
+                  //               overflowY: 'auto',
+                  //               border: 'none',
+                  //             },
+                  //             '& .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //             '&:hover .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //             '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                  //               border: 'none !important',
+                  //             },
+                  //           }}
+                  //         />
+                  //       );
+                  //     }
+
+                  //     return (
+                  //       <TableCell
+                  //         key={key}
+                  //         sx={{
+                  //           overflow: 'hidden',
+                  //           textOverflow: 'ellipsis',
+                  //           whiteSpace: 'normal',
+                  //           color: '#676a6e',
+                  //           height: '120px',
+                  //           minWidth: '180px',
+                  //         }}
+                  //       >
+                  //         {content}
+                  //       </TableCell>
+                  //     );
+                  //   })}
+                  // </TableRow>
+
                   <TableRow
                     key={todo._id?.value || todo.id}
                     sx={{
@@ -1151,8 +1544,7 @@ export default function ViewFormH({ token }) {
 
                     {/* Other Cells */}
                     {keys?.map((key) => {
-                      if (key === 'clientName' || key === 'caseId' || key === 'userId' || key === 'userName')
-                        return null;
+                      if (key === 'clientName' || key === 'caseId' || key === 'userId' || key === 'userName') return null;
 
                       const field = todo[key];
                       if (!field) return <TableCell key={key}></TableCell>;
@@ -1162,47 +1554,30 @@ export default function ViewFormH({ token }) {
 
                       let content;
 
-                      // Checklist handling
                       if (key === 'checklist') {
                         const checklistKeys = Object.keys(value || {});
 
                         content = (
-                          <FormControl
-                            fullWidth
-                            size="medium"
-                            sx={{
-                              minWidth: 140,
-                              border: 'none',
-                            }}
-                          >
+                          <FormControl fullWidth size="medium" sx={{ minWidth: 140, border: 'none' }}>
                             <Select
                               multiple
                               value={checklistKeys.filter((k) => value[k])}
                               displayEmpty
+                              disabled
                               renderValue={(selected) =>
                                 selected.length > 0
                                   ? selected.map((item) => item.toUpperCase()).join(', ')
                                   : 'Checklist Options'
                               }
-                              onChange={() => { }}
                               sx={{
                                 backgroundColor: 'rgba(212, 175, 55, 0.1)',
                                 borderRadius: '4px',
                                 '& .MuiSelect-select': {
                                   py: 1.5,
-                                  color: '#676a6e',
+                                  color: '#000',
                                 },
                                 '& .MuiOutlinedInput-notchedOutline': {
                                   border: 'none !important',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                },
-                                '& .MuiSvgIcon-root': {
-                                  color: 'rgba(212, 175, 55, 0.7)',
                                 },
                               }}
                               MenuProps={{
@@ -1212,12 +1587,6 @@ export default function ViewFormH({ token }) {
                                     color: 'white',
                                     maxHeight: '120px',
                                     border: '1px solid rgba(212, 175, 55, 0.3)',
-                                    '& .MuiMenuItem-root': {
-                                      minHeight: '48px',
-                                      '&:hover': {
-                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                      },
-                                    },
                                   },
                                 },
                               }}
@@ -1226,6 +1595,7 @@ export default function ViewFormH({ token }) {
                                 <MenuItem key={optionKey} value={optionKey} disabled>
                                   <Checkbox
                                     checked={!!value[optionKey]}
+                                    disabled
                                     sx={{
                                       p: 1,
                                       color: '#D4AF37',
@@ -1243,8 +1613,7 @@ export default function ViewFormH({ token }) {
                             </Select>
                           </FormControl>
                         );
-                      }
-                      else if (key === 'relatedDocsFiles') {
+                      } else if (key === 'relatedDocsFiles') {
                         content = (
                           <Button
                             sx={{
@@ -1258,95 +1627,40 @@ export default function ViewFormH({ token }) {
                                 backgroundColor: 'transparent',
                               },
                             }}
-                            onClick={() => handleUserClick(todo, todo.userId?.value, todo.userName?.value || 'Unknown User')}
+                            onClick={() =>
+                              handleUserClick(todo, todo.userId?.value, todo.userName?.value || 'Unknown User')
+                            }
                           >
                             {todo.clientName?.value || 'Unknown User'}
                           </Button>
                         );
-                      }
-                      else if (key === 'createdBy') {
+                      } else if (key === 'createdBy') {
                         content = (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: '#676a6e',
-
-                              maxHeight: '120px',
-                              overflowY: 'auto',
-                              whiteSpace: 'normal',
-                              border: 'none',
-                            }}
-                          >
+                          <Typography variant="body2" sx={{ color: '#000' }}>
                             {value?.UserName || ''}
                           </Typography>
                         );
                       } else if (key === 'createdAt') {
                         content = (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: '#676a6e',
-
-                              maxHeight: '120px',
-                              overflowY: 'auto',
-                              whiteSpace: 'normal',
-                              border: 'none',
-                            }}
-                          >
+                          <Typography variant="body2" sx={{ color: '#000' }}>
                             {(value || '').split('T')[0]}
                           </Typography>
                         );
                       } else if (enumOptions) {
                         content = (
-                          <FormControl
-                            fullWidth
-                            size="medium"
-                            sx={{
-                              minWidth: 140,
-                              border: 'none',
-                              height: '100%',
-                            }}
-                          >
+                          <FormControl fullWidth size="medium" sx={{ minWidth: 140, border: 'none' }}>
                             <Select
                               value={value}
                               disabled
                               sx={{
                                 backgroundColor: 'rgba(212, 175, 55, 0.1)',
                                 borderRadius: '4px',
-
                                 '& .MuiSelect-select': {
                                   py: 1.5,
-                                  color: '#676a6e',
-                                  maxHeight: '100px',
-                                  overflowY: 'auto',
+                                  color: '#000',
                                 },
                                 '& .MuiOutlinedInput-notchedOutline': {
                                   border: 'none !important',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                },
-                                '& .MuiSvgIcon-root': {
-                                  color: 'rgba(212, 175, 55, 0.7)',
-                                },
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    bgcolor: '#0a2d56',
-                                    color: 'white',
-                                    maxHeight: '200px',
-                                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                                    '& .MuiMenuItem-root': {
-                                      minHeight: '48px',
-                                      '&:hover': {
-                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                      },
-                                    },
-                                  },
                                 },
                               }}
                             >
@@ -1365,11 +1679,11 @@ export default function ViewFormH({ token }) {
                             disabled
                             sx={{
                               p: 1,
-                              color: '#D4AF37',
+                              color: '#000',
                               backgroundColor: 'rgba(212, 175, 55, 0.1)',
                               borderRadius: '4px',
                               '&.Mui-checked': {
-                                color: '#D4AF37',
+                                color: '#000',
                                 backgroundColor: 'rgba(212, 175, 55, 0.2)',
                               },
                             }}
@@ -1393,21 +1707,14 @@ export default function ViewFormH({ token }) {
                             disabled
                             sx={{
                               minWidth: 160,
-                              border: 'none',
                               '& .MuiInputBase-input': {
                                 py: 1.5,
-                                color: '#676a6e',
+                                color: '#000',
                                 maxHeight: '120px',
                                 overflowY: 'auto',
                                 border: 'none',
                               },
                               '& .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                                 border: 'none !important',
                               },
                             }}
@@ -1425,22 +1732,14 @@ export default function ViewFormH({ token }) {
                             maxRows={3}
                             sx={{
                               minWidth: 160,
-                              border: 'none',
-                              height: '100%',
                               '& .MuiInputBase-input': {
                                 py: 1.5,
-                                color: '#676a6e',
+                                color: '#000',
                                 maxHeight: '100px',
                                 overflowY: 'auto',
                                 border: 'none',
                               },
                               '& .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
                                 border: 'none !important',
                               },
                             }}
@@ -1457,7 +1756,6 @@ export default function ViewFormH({ token }) {
                             whiteSpace: 'normal',
                             color: '#676a6e',
                             height: '120px',
-
                             minWidth: '180px',
                           }}
                         >
@@ -1466,6 +1764,7 @@ export default function ViewFormH({ token }) {
                       );
                     })}
                   </TableRow>
+
                 ))}
               </TableBody>
             </Table>
