@@ -369,84 +369,84 @@ const BasicCase = ({ token }) => {
 
   //     {/* Filters Container */}
 
-  //     <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-  //       {/* Search Input on the Left */}
-  //       <input
-  //         type="text"
-  //         className="form-control me-3"
-  //         style={{ maxWidth: "250px" }} // Adjust width as needed
-  //         placeholder="Search..."
-  //         value={searchQuery}
-  //         onChange={(e) => handleSearch(e.target.value)}
-  //       />
+  // <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
+  //     //   {/* Search Input on the Left */}
+  //   <input
+  //     type="text"
+  //     className="form-control me-3"
+  //     style={{ maxWidth: "250px" }} // Adjust width as needed
+  //     placeholder="Search..."
+  //     value={searchQuery}
+  //     onChange={(e) => handleSearch(e.target.value)}
+  //   />
 
-  //       {/* Filter & Sorting Dropdowns */}
-  //       <div className="d-flex flex-wrap gap-2">
-  //         {/* Status Filter */}
-  //         <select
-  //           className="form-select w-auto"
-  //           onChange={(e) => handleFilterChange("status", e.target.value)}
-  //         >
-  //           <option value="All">All Status</option>
-  //           <option value="Open">Open</option>
-  //           <option value="Closed">Closed</option>
-  //           <option value="Pending">Pending</option>
-  //         </select>
+  //     //   {/* Filter & Sorting Dropdowns */}
+  //   <div className="d-flex flex-wrap gap-2">
+  //     {/* Status Filter */}
+  //     <select
+  //       className="form-select w-auto"
+  //       onChange={(e) => handleFilterChange("status", e.target.value)}
+  //     >
+  //       <option value="All">All Status</option>
+  //       <option value="Open">Open</option>
+  //       <option value="Closed">Closed</option>
+  //       <option value="Pending">Pending</option>
+  //     </select>
 
-  //         {/* Case Type Filter */}
-  //         <select
-  //           className="form-select w-auto"
-  //           onChange={(e) => handleFilterChange("caseType", e.target.value)}
-  //         >
-  //           <option value="All">All Case Types</option>
-  //           <option value="Civil">Civil</option>
-  //           <option value="Criminal">Criminal</option>
-  //           <option value="Family">Family</option>
-  //         </select>
+  //     {/* Case Type Filter */}
+  //     <select
+  //       className="form-select w-auto"
+  //       onChange={(e) => handleFilterChange("caseType", e.target.value)}
+  //     >
+  //       <option value="All">All Case Types</option>
+  //       <option value="Civil">Civil</option>
+  //       <option value="Criminal">Criminal</option>
+  //       <option value="Family">Family</option>
+  //     </select>
 
-  //         {/* Priority Filter */}
-  //         <select
-  //           className="form-select w-auto"
-  //           onChange={(e) => handleFilterChange("priority", e.target.value)}
-  //         >
-  //           <option value="All">All Priorities</option>
-  //           <option value="High">High</option>
-  //           <option value="Medium">Medium</option>
-  //           <option value="Low">Low</option>
-  //         </select>
+  //     {/* Priority Filter */}
+  //     <select
+  //       className="form-select w-auto"
+  //       onChange={(e) => handleFilterChange("priority", e.target.value)}
+  //     >
+  //       <option value="All">All Priorities</option>
+  //       <option value="High">High</option>
+  //       <option value="Medium">Medium</option>
+  //       <option value="Low">Low</option>
+  //     </select>
 
-  //         {/* Sorting Options */}
-  //         <select
-  //           className="form-select w-auto"
-  //           onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-  //         >
-  //           <option value="createdAt">Sort by Created Date</option>
-  //           <option value="updatedAt">Sort by Updated Date</option>
-  //           <option value="CaseNumber">Sort by Case Number</option>
-  //         </select>
+  //     {/* Sorting Options */}
+  //     <select
+  //       className="form-select w-auto"
+  //       onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+  //     >
+  //       <option value="createdAt">Sort by Created Date</option>
+  //       <option value="updatedAt">Sort by Updated Date</option>
+  //       <option value="CaseNumber">Sort by Case Number</option>
+  //     </select>
 
-  //         <select
-  //           className="form-select w-auto"
-  //           onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
-  //         >
-  //           <option value="asc">Ascending</option>
-  //           <option value="desc">Descending</option>
-  //         </select>
-  //       </div>
-  //     </div>
+  //     <select
+  //       className="form-select w-auto"
+  //       onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
+  //     >
+  //       <option value="asc">Ascending</option>
+  //       <option value="desc">Descending</option>
+  //     </select>
+  //   </div>
+  // </div>
 
-  //     <div className="card mb-3 shadow">
-  //       <div
-  //         className="card-header d-flex justify-content-between align-items-center px-3"
-  //         style={{ height: "8vh" }}
-  //       >
-  //         <span className="col text-start">Status</span>
-  //         <span className="col text-start">Case Number</span>
-  //         <span className="col text-start">Request Number</span>
-  //         <span className="col text-start">Case Type</span>
-  //         <span className="col text-start">Purpose</span>
-  //         <span className="col text-end">Action</span>
-  //       </div>
+  // <div className="card mb-3 shadow">
+  //   <div
+  //     className="card-header d-flex justify-content-between align-items-center px-3"
+  //     style={{ height: "8vh" }}
+  //   >
+  //     <span className="col text-start">Status</span>
+  //     <span className="col text-start">Case Number</span>
+  //     <span className="col text-start">Request Number</span>
+  //     <span className="col text-start">Case Type</span>
+  //     <span className="col text-start">Purpose</span>
+  //     <span className="col text-end">Action</span>
+  //   </div>
 
   //       <div className="card-list p-0">
   //         {getFilteredCases().map((item, index) => (
@@ -694,6 +694,72 @@ const BasicCase = ({ token }) => {
         maxWidth: "100%",
       }}
     >
+
+      <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
+         {/* Search Input on the Left */}
+        <input
+          type="text"
+          className="form-control me-3"
+          style={{ maxWidth: "250px" }} // Adjust width as needed
+          placeholder="Search..."
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+        />
+
+         {/* Filter & Sorting Dropdowns */}
+        <div className="d-flex flex-wrap gap-2">
+          {/* Status Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("status", e.target.value)}
+          >
+            <option value="All">All Status</option>
+            <option value="Open">Open</option>
+            <option value="Closed">Closed</option>
+            <option value="Pending">Pending</option>
+          </select>
+
+          {/* Case Type Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("caseType", e.target.value)}
+          >
+            <option value="All">All Case Types</option>
+            <option value="Civil">Civil</option>
+            <option value="Criminal">Criminal</option>
+            <option value="Family">Family</option>
+          </select>
+
+          {/* Priority Filter */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("priority", e.target.value)}
+          >
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select>
+
+          {/* Sorting Options */}
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+          >
+            <option value="createdAt">Sort by Created Date</option>
+            <option value="updatedAt">Sort by Updated Date</option>
+            <option value="CaseNumber">Sort by Case Number</option>
+          </select>
+
+          <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("sortOrder", e.target.value)}
+          >
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+          </select>
+        </div>
+      </div>
       {/* Search and Filters Section */}
       <div className="row mb-3 g-2 align-items-center px-2">
         <div className="col-12">
