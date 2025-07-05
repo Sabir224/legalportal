@@ -601,57 +601,7 @@ const LawyerProfile = ({ token }) => {
       setLoading(false);
     }
 
-    // try {
-    //   console.log("Fetching all booked appointments");
-    //   const response = await axios.get(`${ApiEndPoint}GetAllBookAppointments`);
 
-    //   if (!response.data || response.data.length === 0) {
-    //     throw new Error("No appointment data found");
-    //   }
-
-    //   let temp = {
-    //     availableSlots: {},
-    //   };
-
-    //   response.data.forEach((element) => {
-    //     if (element.availableSlots) {
-    //       element.availableSlots.forEach((slot) => {
-    //         if (!temp.availableSlots[slot.date]) {
-    //           temp.availableSlots[slot.date] = [];
-    //         }
-
-    //         temp.availableSlots[slot.date] = [
-    //           ...temp.availableSlots[slot.date],
-    //           ...slot.slots?.map((s) => ({
-    //             startTime: convertTo12HourFormat(s.startTime),
-    //             endTime: convertTo12HourFormat(s.endTime),
-    //             isBooked: s.isBooked,
-    //             byBook: s.byBook,
-    //             meetingLink: s.meetingLink,
-    //             FklawyerId: s.lawyerId,
-    //             _id: s._id,
-    //           })),
-    //         ];
-    //       });
-    //     }
-    //   });
-
-    //   // Convert the object into an array format for consistency
-    //   temp.availableSlots = Object.entries(temp.availableSlots).map(
-    //     ([date, slots]) => ({
-    //       date,
-    //       slots,
-    //     })
-    //   );
-
-    //   console.log("Formatted Appointment Details", temp);
-    //   setDataAppointmentDetails(temp);
-    //   setLoading(false);
-    // } catch (err) {
-    //   console.error("Error fetching booked appointments:", err);
-    //   setError(err.message);
-    //   setLoading(false);
-    // }
 
     // try {
     //   const response = await axios.get(
@@ -730,6 +680,59 @@ const LawyerProfile = ({ token }) => {
         setLoading(false);
       } catch (err) {
         console.error("Error fetching appointments:", err);
+        setError(err.message);
+        setLoading(false);
+      }
+
+
+      try {
+        console.log("Fetching all booked appointments");
+        const response = await axios.get(`${ApiEndPoint}GetAllBookAppointments`);
+
+        if (!response.data || response.data.length === 0) {
+          throw new Error("No appointment data found");
+        }
+
+        let temp = {
+          availableSlots: {},
+        };
+
+        response.data.forEach((element) => {
+          if (element.availableSlots) {
+            element.availableSlots.forEach((slot) => {
+              if (!temp.availableSlots[slot.date]) {
+                temp.availableSlots[slot.date] = [];
+              }
+
+              temp.availableSlots[slot.date] = [
+                ...temp.availableSlots[slot.date],
+                ...slot.slots?.map((s) => ({
+                  startTime: convertTo12HourFormat(s.startTime),
+                  endTime: convertTo12HourFormat(s.endTime),
+                  isBooked: s.isBooked,
+                  byBook: s.byBook,
+                  meetingLink: s.meetingLink,
+                  FklawyerId: s.lawyerId,
+                  _id: s._id,
+                })),
+              ];
+            });
+          }
+        });
+
+        // Convert the object into an array format for consistency
+        temp.availableSlots = Object.entries(temp.availableSlots).map(
+          ([date, slots]) => ({
+            date,
+            slots,
+          })
+        );
+
+        console.log("Formatted Appointment Details", temp);
+        setDataAppointmentDetails(temp);
+        setLoading(false);
+      } catch (err) {
+        console.error("Error fetching booked appointments:", err);
         setError(err.message);
         setLoading(false);
       }
@@ -1150,6 +1153,7 @@ const LawyerProfile = ({ token }) => {
         setDataAppointmentDetails(temp);
         setLoading(false);
       } catch (err) {
+        setDataAppointmentDetails([]);
         setError(err.message);
         setLoading(false);
       }
