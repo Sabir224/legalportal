@@ -35,7 +35,7 @@ const BasicCase = ({ token }) => {
   const casesPerPage = 50; // Show 50 cases per page
   const [filters, setFilters] = useState({
     status: "All",
-    caseType: "All",
+    CaseType: "All",
     priority: "All",
     sortBy: "createdAt",
     sortOrder: "desc",
@@ -226,9 +226,9 @@ const BasicCase = ({ token }) => {
       );
     }
 
-    if (filters.caseType && filters.caseType !== "All") {
+    if (filters.CaseType && filters.CaseType !== "All") {
       filteredCases = filteredCases.filter(
-        (item) => item.Name === filters.caseType
+        (item) => item.CaseType === filters.CaseType
       );
     }
 
@@ -696,19 +696,41 @@ const BasicCase = ({ token }) => {
     >
 
       <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-         {/* Search Input on the Left */}
-        <input
+        {/* Search Input on the Left */}
+        {/* <input
           type="text"
           className="form-control me-3"
           style={{ maxWidth: "250px" }} // Adjust width as needed
           placeholder="Search..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-        />
+        /> */}
 
-         {/* Filter & Sorting Dropdowns */}
+        {/* Filter & Sorting Dropdowns */}
         <div className="d-flex flex-wrap gap-2">
           {/* Status Filter */}
+
+          {/* Priority Filter */}
+          {/* <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("priority", e.target.value)}
+          >
+            <option value="All">All Priorities</option>
+            <option value="High">High</option>
+            <option value="Medium">Medium</option>
+            <option value="Low">Low</option>
+          </select> */}
+
+          {/* Sorting Options */}
+          {/* <select
+            className="form-select w-auto"
+            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
+          >
+            <option value="createdAt">Sort by Created Date</option>
+            <option value="updatedAt">Sort by Updated Date</option>
+            <option value="CaseNumber">Sort by Case Number</option>
+          </select> */}
+
           <select
             className="form-select w-auto"
             onChange={(e) => handleFilterChange("status", e.target.value)}
@@ -722,33 +744,12 @@ const BasicCase = ({ token }) => {
           {/* Case Type Filter */}
           <select
             className="form-select w-auto"
-            onChange={(e) => handleFilterChange("caseType", e.target.value)}
+            onChange={(e) => handleFilterChange("CaseType", e.target.value)}
           >
             <option value="All">All Case Types</option>
-            <option value="Civil">Civil</option>
-            <option value="Criminal">Criminal</option>
-            <option value="Family">Family</option>
-          </select>
-
-          {/* Priority Filter */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("priority", e.target.value)}
-          >
-            <option value="All">All Priorities</option>
-            <option value="High">High</option>
-            <option value="Medium">Medium</option>
-            <option value="Low">Low</option>
-          </select>
-
-          {/* Sorting Options */}
-          <select
-            className="form-select w-auto"
-            onChange={(e) => handleFilterChange("sortBy", e.target.value)}
-          >
-            <option value="createdAt">Sort by Created Date</option>
-            <option value="updatedAt">Sort by Updated Date</option>
-            <option value="CaseNumber">Sort by Case Number</option>
+            <option value="Consultation">Consultation</option>
+            <option value="Non-Litigation">Non-Litigation</option>
+            <option value="Litigation">Litigation</option>
           </select>
 
           <select
