@@ -86,7 +86,7 @@ const ViewCaseUpdates = ({ token }) => {
       console.log(id)
       const res = await fetch(`${ApiEndPoint}getLawyerDetailsById/${id}`);
       const data = await res.json();
-      console.log("data=",data)
+      console.log("data=", data)
       setSelectedUser(data.user);
       setShowUserModal(true);
     } catch (err) {
@@ -133,53 +133,56 @@ const ViewCaseUpdates = ({ token }) => {
           ))
         )}
       </section>
-
-      <div className="bg-white border-top px-4 py-3" style={{ position: 'sticky', bottom: 0, zIndex: 10 }}>
-        {formVisible ? (
-          <section className="card shadow p-3 mb-0">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <h2 className="h6 mb-0">
-                <i className="fas fa-pen-nib me-2"></i>Send New Update
-              </h2>
-              <button className="btn btn-sm" style={{ background: '#18273e', color: 'white' }} onClick={() => setFormVisible(false)}>
-                <i className="fas fa-eye-slash me-1"></i>
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit}>
-              <div className="mb-2">
-                <label htmlFor="updateText" className="form-label">
-                  <i className="fas fa-comment-dots me-1"></i>Update Message:
-                </label>
-                <textarea
-                  id="updateText"
-                  className="form-control"
-                  value={updateText}
-                  onChange={(e) => setUpdateText(e.target.value)}
-                  placeholder="Type your update here..."
-                  rows={3}
-                  maxLength={100}
-                />
-                <small className="text-muted">{updateText.length}/100 characters</small>
+      {
+        token?.Role !== "client" &&
+        <div className="bg-white border-top px-4 py-3" style={{ position: 'sticky', bottom: 0, zIndex: 10 }}>
+          {formVisible ? (
+            <section className="card shadow p-3 mb-0">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <h2 className="h6 mb-0">
+                  <i className="fas fa-pen-nib me-2"></i>Send New Update
+                </h2>
+                <button className="btn btn-sm" style={{ background: '#18273e', color: 'white' }} onClick={() => setFormVisible(false)}>
+                  <i className="fas fa-eye-slash me-1"></i>
+                </button>
               </div>
 
-              <button type="submit" className="btn" style={{ background: '#18273e', color: 'white' }}>
-                <i className="fas fa-paper-plane me-1"></i>Send Update
-              </button>
-
-              {messageSent && (
-                <div className="alert alert-success mt-2 d-flex align-items-center" role="alert">
-                  <i className="fas fa-check-circle me-2"></i>Update sent successfully!
+              <form onSubmit={handleSubmit}>
+                <div className="mb-2">
+                  <label htmlFor="updateText" className="form-label">
+                    <i className="fas fa-comment-dots me-1"></i>Update Message:
+                  </label>
+                  <textarea
+                    id="updateText"
+                    className="form-control"
+                    value={updateText}
+                    onChange={(e) => setUpdateText(e.target.value)}
+                    placeholder="Type your update here..."
+                    rows={3}
+                    maxLength={100}
+                  />
+                  <small className="text-muted">{updateText.length}/100 characters</small>
                 </div>
-              )}
-            </form>
-          </section>
-        ) : (
-          <div className="btn fw-bold w-100" onClick={() => setFormVisible(true)} style={{ cursor: 'pointer', background: '#18273e', color: 'white' }}>
-            <i className="fas fa-plus-circle me-2"></i>Add Case Update
-          </div>
-        )}
-      </div>
+
+                <button type="submit" className="btn" style={{ background: '#18273e', color: 'white' }}>
+                  <i className="fas fa-paper-plane me-1"></i>Send Update
+                </button>
+
+                {messageSent && (
+                  <div className="alert alert-success mt-2 d-flex align-items-center" role="alert">
+                    <i className="fas fa-check-circle me-2"></i>Update sent successfully!
+                  </div>
+                )}
+              </form>
+            </section>
+          ) : (
+            <div className="btn fw-bold w-100" onClick={() => setFormVisible(true)} style={{ cursor: 'pointer', background: '#18273e', color: 'white' }}>
+              <i className="fas fa-plus-circle me-2"></i>Add Case Update
+            </div>
+          )}
+        </div>
+      }
+
       {/* User Info Modal */}
       <Modal show={showUserModal} onHide={() => setShowUserModal(false)} centered size="sm">
         <div
