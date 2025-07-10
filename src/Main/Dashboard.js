@@ -456,7 +456,7 @@ const Dashboard = () => {
         <span className="d-none d-md-inline fs-4 text-white">{title}</span>
         {/* Show smaller font size on mobile */}
         <span className="d-inline-block d-md-none text-white"
-        style={{fontSize:15}}
+          style={{ fontSize: 15 }}
         >
           {title}</span>
       </span>
@@ -509,6 +509,7 @@ const Dashboard = () => {
 
         {/* Sidebar Items */}
         <div className="d-flex flex-column align-items-start px-2 mt-3">
+
           {[
             {
               icon: faHome,
@@ -787,8 +788,6 @@ const Dashboard = () => {
                   dispatch(clientEmail(null));
                   dispatch(FormCDetails(null));
                   dispatch(FormHDetails(null));
-
-
                   handlescreen2(11);
                 }}
                 style={{ gap: "10px", cursor: "pointer" }}
@@ -806,16 +805,16 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            {(decodedToken?.Role === "lawyer" ||
-              decodedToken?.Role === "receptionist") && (
-                <button
-                  className="btn me-2"
+            {(decodedToken?.Role !== "admin" ||
+              decodedToken?.Role !== "client") && (
+                <div
+                  className="d-flex align-items-center px-2"
+                  style={{ cursor: "pointer" }}
                   onClick={() => {
                     dispatch(Caseinfo(null));
                     dispatch(clientEmail(null));
                     dispatch(FormCDetails(null));
                     dispatch(FormHDetails(null));
-
                     handlescreen2(5);
                   }}
                 >
@@ -823,9 +822,13 @@ const Dashboard = () => {
                     icon={faUser}
                     size="1x"
                     color="white"
-                    className=""
+                    className="me-2"
                   />
-                </button>
+                  <p className="text-white m-0 fw-bold">
+                    {decodedToken?.Role?.toUpperCase()}
+                  </p>
+                </div>
+
               )}
             {decodedToken?.Role === "client" && (
               <button

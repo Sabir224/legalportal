@@ -62,6 +62,46 @@ const Case_details = ({ token }) => {
   const [pendingCaseData, setPendingCaseData] = useState(null);
   const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
+
+  const [lastActiveSectionId, setLastActiveSectionId] = useState(null);
+  const sectionRefs = useRef({});
+  const previousActiveSections = useRef([]);
+
+  useEffect(() => {
+    // Find which section is new
+    const newlyAdded = activeSections.find(
+      (id) => !previousActiveSections.current.includes(id)
+    );
+
+    if (newlyAdded) {
+      setLastActiveSectionId(newlyAdded);
+    }
+
+    // Update previous for next render
+    previousActiveSections.current = activeSections;
+  }, [activeSections]);
+
+
+  useEffect(() => {
+    const ref = sectionRefs.current[lastActiveSectionId];
+    if (ref && ref.current) {
+      // Delay to ensure DOM is painted
+      setTimeout(() => {
+        ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [lastActiveSectionId]);
+
+
+
+
+
+
+
+
+
+
+
   useEffect(() => {
     const pendingCaseId = localStorage.getItem("pendingCaseId");
     const pendingUserId = localStorage.getItem("pendingUserId");
@@ -632,7 +672,7 @@ const Case_details = ({ token }) => {
     <div
       className="position-relative container-fluid m-0 p-0"
       style={{
-        maxHeight: "84vh", // yeh maximum height set karega
+        maxHeight: "86vh", // yeh maximum height set karega
         overflowY: "hidden", // aur yeh scroll enable karega agar content zyada ho
         padding: "0 10px",
       }}
@@ -891,7 +931,41 @@ const Case_details = ({ token }) => {
               </div>
 
               {/* Sections */}
-              {sections.map(
+
+              {sections.map((section) => {
+                if (!activeSections.includes(section.id)) return null;
+
+                // Assign a ref for each section
+                if (!sectionRefs.current[section.id]) {
+                  sectionRefs.current[section.id] = React.createRef();
+                }
+
+                return (
+                  <div className="col-12" key={section.id} ref={sectionRefs.current[section.id]}>
+                    <div
+                      className="p-3"
+                      style={{
+                        boxShadow: "4px 4px 6px rgba(0, 0, 0, 0.1)",
+                        borderRadius: "8px",
+                        background: "#16213e",
+                      }}
+                    >
+                      <div className="d-flex align-items-center mb-2" style={{ color: "#c0a262" }}>
+                        <img
+                          src={require(`../Main/Pages/Component/Casedetails/Icons/${section.id}.png`)}
+                          style={{ height: "20px", marginRight: "10px" }}
+                          alt={`${section.title} icon`}
+                        />
+                        <h3 className="m-0" style={{ fontSize: "18px" }}>{section.title}</h3>
+                      </div>
+                      <div className="text-white" style={{ fontSize: "13px" }}>{section.content}</div>
+                    </div>
+                  </div>
+                );
+              })}
+
+
+              {/* {sections.map(
                 (section) =>
                   activeSections.includes(section.id) && (
                     <div className="col-12" key={section.id}>
@@ -925,7 +999,7 @@ const Case_details = ({ token }) => {
                       </div>
                     </div>
                   )
-              )}
+              )} */}
             </div>
 
             <style jsx>{`
