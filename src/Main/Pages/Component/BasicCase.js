@@ -23,10 +23,15 @@ const BasicCase = ({ token }) => {
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [showCaseStages, setShowCaseStages] = useState(false);
   const [showCaseType, setShowCaseType] = useState(false);
+  const [showSubCaseType, setShowSubCaseType] = useState(false);
+  const [showStatusFilter, setStatusFilter] = useState(false);
+  const [showCaseFilter, setCaseFilter] = useState(false);
+  const [showCaseTypeFilter, setCaseTypeFilter] = useState(false);
   // const [selectedCase, setSelectedCase] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
   const [selectedCourtCaseId, setSelectedCourtCaseId] = useState("");
   const [selectedCaseType, setSelectedCaseType] = useState();
+  const [selectedSubCaseType, setSelectedSubCaseType] = useState();
   const [selectedCaseStage, setSelectedCaseStage] = useState("");
   const [availableCases, setAvailableCases] = useState([]); // populate this list as needed
 
@@ -54,6 +59,23 @@ const BasicCase = ({ token }) => {
     "Specialized Stages",
     "Under Review"
   ];
+
+  const Subtypelist = [
+    "Civil Case",
+    "Commercial Law",
+    "Criminal Case",
+    "Family Law",
+    "Real Estate Case",
+    "Labor Case",
+    "Construction Case",
+    "Maritime Case",
+    "Personal Injury Case", ,
+    "Technology Case",
+    "Financial Case",
+    "Public Law",
+    "Consumer Case",
+    "Environmental Case"
+  ]
   const dispatch = useDispatch();
 
   const [responseData, setResponseData] = useState(null);
@@ -330,6 +352,20 @@ const BasicCase = ({ token }) => {
       fetchCases()
       showSuccess("✅ Success:", response.data.message);
       console.log("🔄 Updated Folder Name:", response.data.updatedFolderName);
+    } catch (error) {
+      console.log("error", error?.response?.data?.message)
+      showError(`❌ Error: ${error?.response?.data?.message}`);
+    }
+  };
+  const updateCaseSubTypeAndFolder = async (caseId, newCaseType) => {
+    try {
+      showLoading()
+      const response = await axios.post(
+        `${ApiEndPoint}updateCaseSubType/${caseId}/${newCaseType}`
+      );
+      fetchCases()
+      showSuccess("✅ Success:", response.data.message);
+      console.log("🔄 Updated CaseType:", response.data.Case);
     } catch (error) {
       console.log("error", error?.response?.data?.message)
       showError(`❌ Error: ${error?.response?.data?.message}`);
@@ -695,23 +731,20 @@ const BasicCase = ({ token }) => {
       }}
     >
 
-      <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
-        {/* Search Input on the Left */}
-        {/* <input
+      {/* <div className="d-flex align-items-center flex-wrap gap-2 mb-3">
+        <input
           type="text"
           className="form-control me-3"
           style={{ maxWidth: "250px" }} // Adjust width as needed
           placeholder="Search..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-        /> */}
+        />
 
-        {/* Filter & Sorting Dropdowns */}
+       
         <div className="d-flex flex-wrap gap-2">
-          {/* Status Filter */}
-
-          {/* Priority Filter */}
-          {/* <select
+      
+          <select
             className="form-select w-auto"
             onChange={(e) => handleFilterChange("priority", e.target.value)}
           >
@@ -719,17 +752,17 @@ const BasicCase = ({ token }) => {
             <option value="High">High</option>
             <option value="Medium">Medium</option>
             <option value="Low">Low</option>
-          </select> */}
+          </select>
 
-          {/* Sorting Options */}
-          {/* <select
+      
+          <select
             className="form-select w-auto"
             onChange={(e) => handleFilterChange("sortBy", e.target.value)}
           >
             <option value="createdAt">Sort by Created Date</option>
             <option value="updatedAt">Sort by Updated Date</option>
             <option value="CaseNumber">Sort by Case Number</option>
-          </select> */}
+          </select>
 
           <select
             className="form-select w-auto"
@@ -741,7 +774,6 @@ const BasicCase = ({ token }) => {
             <option value="Pending">Pending</option>
           </select>
 
-          {/* Case Type Filter */}
           <select
             className="form-select w-auto"
             onChange={(e) => handleFilterChange("CaseType", e.target.value)}
@@ -760,7 +792,7 @@ const BasicCase = ({ token }) => {
             <option value="desc">Descending</option>
           </select>
         </div>
-      </div>
+      </div> */}
       {/* Search and Filters Section */}
       <div className="row mb-3 g-2 align-items-center px-2">
         <div className="col-12">
@@ -778,10 +810,184 @@ const BasicCase = ({ token }) => {
       <div className="card mb-3 shadow">
         {/* Table Header - Hidden on mobile */}
         <div className="card-header d-none d-md-flex justify-content-between align-items-center gap-4 px-3">
-          <span className="col text-start">Status</span>
-          <span className="col text-start">Case Number</span>
+          <span className="col text-start">Status
+            <Dropdown
+              show={showStatusFilter}
+              onToggle={(isOpen) => { setStatusFilter(!showStatusFilter) }
+
+
+              }
+            >
+              <Dropdown.Toggle
+                variant=""
+                size="sm"
+                className="custom-dropdown-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setStatusFilter(!showStatusFilter)
+                }}
+              ></Dropdown.Toggle>
+
+              <Dropdown.Menu>
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("status", "All")
+                    setStatusFilter(false)
+                  }}
+                >
+                  All Status
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  onClick={async (event) => {
+                    event.stopPropagation();
+                    handleFilterChange("status", "Open")
+                    setStatusFilter(false)
+
+                  }}
+                >
+                  Open
+                </Dropdown.Item>
+
+
+
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("status", "Closed")
+                    setStatusFilter(false)
+
+                  }}
+                >
+                  Closed
+                </Dropdown.Item>
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("status", "Pending")
+                    setStatusFilter(false)
+
+                  }}
+                >
+                  Pending
+                </Dropdown.Item>
+
+              </Dropdown.Menu>
+            </Dropdown>
+          </span>
+          <span className="col text-start">Case Number
+            <Dropdown
+              show={showCaseFilter}
+              onToggle={(isOpen) => {
+                setCaseFilter(!showCaseFilter)
+              }
+              }
+            >
+              <Dropdown.Toggle
+                variant=""
+                size="sm"
+                className="custom-dropdown-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCaseFilter(!showCaseFilter)
+
+                }}
+              ></Dropdown.Toggle>
+
+              <Dropdown.Menu>
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("sortOrder", "asc")
+                    setCaseFilter(false)
+                  }}
+                >
+                  Ascending
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  onClick={async (event) => {
+                    event.stopPropagation();
+                    handleFilterChange("sortOrder", "desc")
+                    setCaseFilter(false)
+                  }}
+                >
+                  Descending
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          </span>
           <span className="col text-start">Request Number</span>
-          <span className="col text-start">Case Type</span>
+          <span className="col text-start">Case Type
+            <Dropdown
+              show={showCaseTypeFilter}
+              onToggle={(isOpen) => { setCaseTypeFilter(!showCaseTypeFilter) }
+
+              }
+            >
+              <Dropdown.Toggle
+                variant=""
+                size="sm"
+                className="custom-dropdown-toggle"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCaseTypeFilter(!showCaseTypeFilter)
+                }}
+              ></Dropdown.Toggle>
+
+              <Dropdown.Menu>
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("CaseType", "All")
+                    setCaseTypeFilter(false)
+                  }}
+                >
+                  All Case Types
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  onClick={async (event) => {
+                    event.stopPropagation();
+                    handleFilterChange("CaseType", "Consultation")
+                    setCaseTypeFilter(false)
+
+                  }}
+                >
+                  Consultation
+                </Dropdown.Item>
+
+
+
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("CaseType", "Non-Litigation")
+                    setCaseTypeFilter(false)
+                  }}
+                >
+                  Non-Litigation
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    handleFilterChange("CaseType", "Litigation")
+                    setCaseTypeFilter(false)
+                  }}
+                >
+                  Litigation
+                </Dropdown.Item>
+
+              </Dropdown.Menu>
+            </Dropdown>
+          </span>
           <span className="col text-start">Purpose</span>
           <span className="col text-end">Action</span>
         </div>
@@ -897,7 +1103,19 @@ const BasicCase = ({ token }) => {
                               setShowCaseType(true);
                             }}
                           >
-                            Update Case Type
+                            {item?.CaseType ? "Update" : "Add"} Case Type
+                          </Dropdown.Item>
+                        )}
+                        {token.Role === "admin" && (
+                          <Dropdown.Item
+                            onClick={(event) => {
+                              event.preventDefault()
+                              event.stopPropagation();
+                              setSelectedCase(item);
+                              setShowSubCaseType(true);
+                            }}
+                          >
+                            {item?.CaseSubType ? "Update" : "Add"} Case Sub Type
                           </Dropdown.Item>
                         )}
                         {token.Role === "admin" && (
@@ -1106,8 +1324,24 @@ const BasicCase = ({ token }) => {
                               setShowCaseType(true);
                             }}
                           >
-                            Update Case Type
+                            {item?.CaseType ? "Update" : "Add"} Case Type
                           </Dropdown.Item>
+                        )}
+
+
+                        {token.Role === "admin" && (
+                          <div>
+
+                            <Dropdown.Item
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setSelectedCase(item);
+                                setShowSubCaseType(true);
+                              }}
+                            >
+                              {item?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                            </Dropdown.Item>
+                          </div>
                         )}
                         {token.Role === "admin" && (
                           <Dropdown.Item
@@ -1212,35 +1446,37 @@ const BasicCase = ({ token }) => {
       </Modal>
 
       {/* MUI Loader */}
-      {loaderOpen && (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            backgroundColor: "#16213e",
-            padding: "24px 32px",
-            borderRadius: "12px",
-            boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
-            zIndex: 2000,
-            display: "flex",
-            alignItems: "center",
-            flexDirection: "column",
-          }}
-        >
-          <CircularProgress sx={{ color: "#d2a85a" }} />
+      {
+        loaderOpen && (
           <div
             style={{
-              marginTop: 16,
-              fontWeight: "500",
-              color: "white",
+              position: "fixed",
+              top: "50%",
+              left: "50%",
+              transform: "translate(-50%, -50%)",
+              backgroundColor: "#16213e",
+              padding: "24px 32px",
+              borderRadius: "12px",
+              boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
+              zIndex: 2000,
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
             }}
           >
-            Updating Case...
+            <CircularProgress sx={{ color: "#d2a85a" }} />
+            <div
+              style={{
+                marginTop: 16,
+                fontWeight: "500",
+                color: "white",
+              }}
+            >
+              Updating Case...
+            </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
       <Modal show={showMergeModal} onHide={() => setShowMergeModal(false)} centered>
         <Modal.Header closeButton>
@@ -1338,7 +1574,7 @@ const BasicCase = ({ token }) => {
               updateCaseStage(selectedCase._id, selectedCaseStage)
               setShowCaseStages(false);
             }}
-            disabled={!selectedCaseStage}
+          disabled={!selectedCaseStage}
           >
             Save
           </Button>
@@ -1352,7 +1588,7 @@ const BasicCase = ({ token }) => {
 
       <Modal show={showCaseType} onHide={() => setShowCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>Update Case Type</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseType ? "Update" : "Add"} Case Type</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -1364,8 +1600,7 @@ const BasicCase = ({ token }) => {
                 value={selectedCaseType}
                 onChange={(e) => setSelectedCaseType(e.target.value)}
               >
-
-                <option value="">-- Select Case --</option>
+                <option value="">Select the option</option>
                 {["Consultation", "Litigation", "Non-Litigation"].map((caseItem) => (
                   <option key={caseItem} value={caseItem}>
                     {caseItem}
@@ -1373,6 +1608,7 @@ const BasicCase = ({ token }) => {
                 ))}
               </Form.Select>
             </Form.Group>
+
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -1386,15 +1622,58 @@ const BasicCase = ({ token }) => {
               updateCaseTypeAndFolder(selectedCase._id, selectedCaseType);
               setShowCaseType(false);
             }}
-            disabled={!selectedCaseType}
+          disabled={!selectedCaseType}
           >
-            Update
+            {selectedCase?.CaseType ? "Update" : "Add"}
           </Button>
         </Modal.Footer>
       </Modal>
 
 
-    </div>
+      <Modal show={showSubCaseType} onHide={() => setShowSubCaseType(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedCase?.CaseSubType ? "Update" : "Add"} Case Sub Type</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="mergeWithCase" className="w-100">
+              <Form.Label>Select Case Sub Type</Form.Label>
+
+              <Form.Select
+                className="w-100"
+                value={selectedSubCaseType}
+                onChange={(e) => setSelectedSubCaseType(e.target.value)}
+              >
+                <option value="">Select the option</option>
+                {Subtypelist.map((caseItem) => (
+                  <option key={caseItem} value={caseItem}>
+                    {caseItem}
+                  </option>
+                ))}
+              </Form.Select>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="primary" onClick={() => setShowSubCaseType(false)}>
+            Cancel
+          </Button>
+          <Button
+            variant="primary"
+            onClick={() => {
+              console.log("Selected case =", selectedCase);
+              updateCaseSubTypeAndFolder(selectedCase._id, selectedSubCaseType);
+              setShowSubCaseType(false);
+            }}
+            disabled={!selectedSubCaseType}
+          >
+            {selectedCase?.CaseSubType ? "Update" : "Add"}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+
+
+    </div >
   );
 };
 

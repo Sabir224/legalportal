@@ -257,7 +257,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
   const customStyles = {
     menuList: (provided) => ({
       ...provided,
-      maxHeight: "100px",
+      maxHeight: "200px",
       overflowY: "auto",
     }),
     option: (provided) => ({

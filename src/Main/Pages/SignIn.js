@@ -32,7 +32,7 @@ const SignIn = () => {
       const response = await fetch(`${ApiEndPoint}loginUser`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ Email: email, Password: password }),
+        body: JSON.stringify({ Email: email.trim(), Password: password }),
         credentials: "include",
       });
 

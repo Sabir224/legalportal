@@ -108,6 +108,7 @@ const Dashboard = () => {
   const screen = useSelector((state) => state.screen.value);
   const [currenScreen, setCurrentScreen] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
 
   const dispatch = useDispatch();
   const [isSheetOpen, setSheetOpen] = useState(false);
@@ -116,7 +117,7 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
-
+  let caseDetailsScreenTitle = `Case Details ${reduxCaseInfo?.CaseNumber ? `(${reduxCaseInfo?.CaseNumber})` : ""}`
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
@@ -450,9 +451,18 @@ const Dashboard = () => {
           <FaArrowLeft color="white" />
         </button>
       )}
-      <span style={{}}>{title}</span>
+      <span>
+        {/* Show normal font size on desktop */}
+        <span className="d-none d-md-inline fs-4 text-white">{title}</span>
+        {/* Show smaller font size on mobile */}
+        <span className="d-inline-block d-md-none text-white"
+        style={{fontSize:15}}
+        >
+          {title}</span>
+      </span>
     </div>
   );
+
 
   // This function will reset the view state
   const handleBack = () => {
@@ -698,7 +708,7 @@ const Dashboard = () => {
             <h3 className="m-0">
               {screen === 0 && <ScreenHeader title="Master List" />}
               {screen === 1 && (
-                <ScreenHeader title="Case Details" onBack={handleGoBack} />
+                <ScreenHeader title={caseDetailsScreenTitle} onBack={handleGoBack} />
               )}
               {screen === 2 && <ScreenHeader title="Appointment" />}
               {screen === 3 && <ScreenHeader title="Chat" />}
