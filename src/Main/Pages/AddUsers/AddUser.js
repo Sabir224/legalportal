@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
-import "./AddUser.css";
-import "bootstrap/dist/css/bootstrap.min.css";
+import React, { useState, useRef, useEffect } from 'react';
+import './AddUser.css';
+import 'bootstrap/dist/css/bootstrap.min.css';
 import {
   FaUser,
   FaPhone,
@@ -20,34 +20,34 @@ import {
   FaChair,
   FaRegEnvelope,
   FaFilter,
-} from "react-icons/fa";
-import { Link } from "react-router-dom";
-import { ApiEndPoint } from "../Component/utils/utlis";
-import { useDispatch } from "react-redux";
-import { screenChange } from "../../../REDUX/sliece";
-import { BsPerson } from "react-icons/bs";
+} from 'react-icons/fa';
+import { Link } from 'react-router-dom';
+import { ApiEndPoint } from '../Component/utils/utlis';
+import { useDispatch } from 'react-redux';
+import { screenChange } from '../../../REDUX/sliece';
+import { BsPerson } from 'react-icons/bs';
 
 const AddUser = () => {
   const dispatch = useDispatch();
-  const [selectedRole, setSelectedRole] = useState("client");
+  const [selectedRole, setSelectedRole] = useState('client');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
 
   // Form fields
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [contactNumber, setContactNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [address, setAddress] = useState("");
-  const [bio, setBio] = useState("");
-  const [language, setLanguage] = useState("");
-  const [location, setLocation] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [department, setDepartment] = useState("");
-  const [position, setPosition] = useState("");
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [contactNumber, setContactNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [address, setAddress] = useState('');
+  const [bio, setBio] = useState('');
+  const [language, setLanguage] = useState('');
+  const [location, setLocation] = useState('');
+  const [expertise, setExpertise] = useState('');
+  const [department, setDepartment] = useState('');
+  const [position, setPosition] = useState('');
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
@@ -67,43 +67,43 @@ const AddUser = () => {
   const handleAddUser = async () => {
     try {
       const formData = new FormData();
-      formData.append("UserName", name);
-      formData.append("Email", email);
-      formData.append("Password", password);
-      formData.append("Role", selectedRole);
-      formData.append("Contact", contactNumber);
-      formData.append("Bio", bio);
-      formData.append("Address", address);
-      formData.append("Position", position);
+      formData.append('UserName', name);
+      formData.append('Email', email);
+      formData.append('Password', password);
+      formData.append('Role', selectedRole);
+      formData.append('Contact', contactNumber);
+      formData.append('Bio', bio);
+      formData.append('Address', address);
+      formData.append('Position', position);
       if (selectedFile) {
-        formData.append("file", selectedFile);
+        formData.append('file', selectedFile);
       }
 
       const response = await fetch(`${ApiEndPoint}users`, {
-        method: "POST",
+        method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add user");
+        throw new Error('Failed to add user');
       }
       dispatch(screenChange(9));
-      alert("✅ User Added Successfully!");
+      alert('✅ User Added Successfully!');
 
-      setName("");
-      setEmail("");
-      setPassword("");
-      setConfirmPassword("");
-      setSelectedRole("");
-      setContactNumber("");
-      setBio("");
-      setAddress("");
-      setPosition("");
+      setName('');
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setSelectedRole('');
+      setContactNumber('');
+      setBio('');
+      setAddress('');
+      setPosition('');
       setSelectedFile(null);
       setPreview(null);
     } catch (error) {
-      alert("❌ Failed to Add User! Check Console.");
-      console.error("Error adding user:", error);
+      alert('❌ Failed to Add User! Check Console.');
+      console.error('Error adding user:', error);
     }
   };
 
@@ -115,9 +115,9 @@ const AddUser = () => {
       }
     };
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
 
@@ -130,10 +130,10 @@ const AddUser = () => {
     <div
       className="container card shadow m-0 p-3 p-md-5"
       style={{
-        maxHeight: "86.6vh",
-        overflowY: "auto",
-        maxWidth: "1200px", // Added max-width for better control on larger screens
-        margin: "0 auto", // Center the container
+        maxHeight: '86.6vh',
+        overflowY: 'auto',
+        maxWidth: '1200px', // Added max-width for better control on larger screens
+        margin: '0 auto', // Center the container
       }}
     >
       {/* Profile Picture Upload */}
@@ -145,110 +145,104 @@ const AddUser = () => {
               alt="Preview"
               className="rounded-circle"
               style={{
-                width: "100px",
-                height: "100px",
-                objectFit: "cover",
+                width: '100px',
+                height: '100px',
+                objectFit: 'cover',
               }}
             />
           ) : (
             <div
               className="border d-inline-flex align-items-center justify-content-center"
               style={{
-                width: "100px",
-                height: "100px",
-                borderRadius: "50%",
-                border: "2px solid #18273e",
-                cursor: "pointer",
-                backgroundColor: "#18273e",
+                width: '100px',
+                height: '100px',
+                borderRadius: '50%',
+                border: '2px solid #18273e',
+                cursor: 'pointer',
+                backgroundColor: '#18273e',
               }}
             >
               <FaUpload className="fs-4 text-white" />
             </div>
           )}
         </label>
-        <input
-          type="file"
-          id="fileUpload"
-          className="d-none"
-          accept="image/*"
-          onChange={handleFileChange}
-        />
+        <input type="file" id="fileUpload" className="d-none" accept="image/*" onChange={handleFileChange} />
       </div>
 
       {/* Form Fields */}
       <div className="row g-3">
-        {" "}
+        {' '}
         {/* Added g-3 for consistent gutter spacing */}
         {[
-          { label: "Name", icon: <FaUser />, state: name, setState: setName },
+          { label: 'Name', icon: <FaUser />, state: name, setState: setName },
           {
-            label: "Email",
+            label: 'Email',
             icon: <FaRegEnvelope />,
             state: email,
             setState: setEmail,
-            type: "email",
+            type: 'email',
           },
           {
-            label: "Contact Number",
+            label: 'Contact Number',
             icon: <FaPhone />,
             state: contactNumber,
             setState: setContactNumber,
           },
           {
-            label: "Password",
+            label: 'Password',
             icon: <FaLock />,
             state: password,
             setState: setPassword,
-            type: "password",
+            type: 'password',
           },
           {
-            label: "Confirm Password",
+            label: 'Confirm Password',
             icon: <FaLock />,
             state: confirmPassword,
             setState: setConfirmPassword,
-            type: "password",
+            type: 'password',
           },
           {
-            label: "Address",
+            label: 'Address',
             icon: <FaMapMarkerAlt />,
             state: address,
             setState: setAddress,
           },
           {
-            label: "Language",
+            label: 'Language',
             icon: <FaGlobe />,
             state: language,
             setState: setLanguage,
           },
-          selectedRole !== "client" && {
-            label: "Location",
+          selectedRole !== 'client' && {
+            label: 'Location',
             icon: <FaMapMarkedAlt />,
             state: location,
             setState: setLocation,
           },
-          selectedRole !== "client" && {
-            label: "Expertise",
+          selectedRole !== 'client' && {
+            label: 'Expertise',
             icon: <FaBriefcase />,
             state: expertise,
             setState: setExpertise,
           },
-          selectedRole !== "client" && {
-            label: "Department",
+          selectedRole !== 'client' && {
+            label: 'Department',
             icon: <FaBuilding />,
             state: department,
             setState: setDepartment,
           },
-          selectedRole !== "client" && {
-            label: "Position",
+          selectedRole !== 'client' && {
+            label: 'Position',
             icon: <FaChair />,
             state: position,
             setState: setPosition,
           },
         ]
           .filter(Boolean)
-          .map(({ label, icon, state, setState, type = "text" }, index) => (
+          .map(({ label, icon, state, setState, type = 'text' }, index) => (
             <div key={index} className="col-12 col-md-6 mb-3">
-              <label className="form-label" style={{ color: "#18273e" }}>
+              <label className="form-label" style={{ color: '#18273e' }}>
                 {label}
               </label>
               <div className="input-group">
@@ -259,8 +253,8 @@ const AddUser = () => {
                   placeholder={label}
                   value={state}
                   style={{
-                    border: "1px solid #18273e",
-                    minWidth: "0", // Changed from fixed width to flexible
+                    border: '1px solid #18273e',
+                    minWidth: '0', // Changed from fixed width to flexible
                   }}
                   onChange={(e) => setState(e.target.value)}
                 />
@@ -269,7 +263,7 @@ const AddUser = () => {
           ))}
         {/* Role Dropdown */}
         <div className="col-12 col-md-6 mb-3">
-          <label className="form-label" style={{ color: "#18273e" }}>
+          <label className="form-label" style={{ color: '#18273e' }}>
             Role
           </label>
           <div className="input-group">
@@ -277,41 +271,39 @@ const AddUser = () => {
               <div
                 className="form-control d-flex align-items-center justify-content-between"
                 style={{
-                  cursor: "pointer",
-                  border: "1px solid #18273e",
-                  color: "#18273e",
-                  minWidth: "0", // Changed from fixed width to flexible
+                  cursor: 'pointer',
+                  border: '1px solid #18273e',
+                  color: '#18273e',
+                  minWidth: '0', // Changed from fixed width to flexible
                 }}
                 onClick={toggleDropdown}
               >
-                {selectedRole || "Select Role"} <FaChevronDown />
+                {selectedRole || 'Select Role'} <FaChevronDown />
               </div>
               {dropdownOpen && (
                 <ul
                   className="list-group position-absolute w-100 mt-1"
                   style={{
                     zIndex: 1000,
-                    maxHeight: "200px",
-                    overflowY: "auto",
+                    maxHeight: '200px',
+                    overflowY: 'auto',
                   }}
                 >
-                  {["client", "lawyer", "finance", "receptionist"].map(
-                    (role) => (
-                      <li
-                        key={role}
-                        className="list-group-item list-group-item-action"
-                        style={{
-                          cursor: "pointer",
-                          backgroundColor: "#18273e",
-                          color: "white",
-                          borderColor: "#d3b386",
-                        }}
-                        onClick={() => handleRoleSelect(role)}
-                      >
-                        {role}
-                      </li>
-                    )
-                  )}
+                  {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
+                    <li
+                      key={role}
+                      className="list-group-item list-group-item-action"
+                      style={{
+                        cursor: 'pointer',
+                        backgroundColor: '#18273e',
+                        color: 'white',
+                        borderColor: '#d3b386',
+                      }}
+                      onClick={() => handleRoleSelect(role)}
+                    >
+                      {role}
+                    </li>
+                  ))}
                 </ul>
               )}
             </div>
@@ -320,9 +312,9 @@ const AddUser = () => {
       </div>
 
       {/* Bio Section */}
-      {selectedRole !== "client" && (
+      {selectedRole !== 'client' && (
         <div className="mb-3">
-          <label className="form-label" style={{ color: "#18273e" }}>
+          <label className="form-label" style={{ color: '#18273e' }}>
             Bio
           </label>
           <textarea
@@ -330,7 +322,7 @@ const AddUser = () => {
             placeholder="Short bio"
             rows="3"
             value={bio}
-            style={{ border: "1px solid #18273e" }}
+            style={{ border: '1px solid #18273e' }}
             onChange={(e) => setBio(e.target.value)}
           ></textarea>
         </div>
@@ -341,9 +333,9 @@ const AddUser = () => {
         <button
           className="btn btn-primary px-4 py-2" // Added padding for better touch targets
           style={{
-            backgroundColor: "#d3b386",
-            border: "none",
-            minWidth: "150px", // Ensures button has good size on mobile
+            backgroundColor: '#d3b386',
+            border: 'none',
+            minWidth: '150px', // Ensures button has good size on mobile
           }}
           onClick={handleAddUser}
         >
