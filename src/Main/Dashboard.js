@@ -805,7 +805,7 @@ const Dashboard = () => {
           </div>
 
           <div id="notification-profile">
-            {(decodedToken?.Role !== "admin" ||
+            {(decodedToken?.Role !== "admin" &&
               decodedToken?.Role !== "client") && (
                 <div
                   className="d-flex align-items-center px-2"
