@@ -68,6 +68,7 @@ const ViewFolder = ({ token }) => {
   const [files, setFiles] = useState([]);
   const [hoveredBtn, setHoveredBtn] = useState(null);
   const [loadingFolders, setLoadingFolders] = useState(false);
+  const [IsfolderClick, setIsfolderClick] = useState(false);
   const [email, setEmail] = useState("raheemakbar999@gmail.com");
   const [subject, setSubject] = useState("Meeting Confirmation");
   const [clientDetails, setClientDetails] = useState({});
@@ -2080,15 +2081,23 @@ const ViewFolder = ({ token }) => {
                               // Ensure full width of column
                             }}
                             onClick={() => {
-                              folder?.folderName === "Personal"
-                                ? fetchClientDocuments()
-                                : folder?.folderName === "FormC Documents" || folder?.folderName === "Form H Documents"
-                                  ? fetchFormCfile(folder?.folderName)
-                                  : fetchsubFolders(folder?._id);
+                              if (selectedFolder?._id === folder?._id) return; 
+
+                              if (folder?.folderName === "Personal") {
+                                fetchClientDocuments();
+                              } else if (
+                                folder?.folderName === "FormC Documents" ||
+                                folder?.folderName === "Form H Documents"
+                              ) {
+                                fetchFormCfile(folder?.folderName);
+                              } else {
+                                fetchsubFolders(folder?._id);
+                              }
 
                               setSelectedFolder(folder);
                               setFolderPath((prevPath) => [...prevPath, folder]);
                             }}
+
 
                             onMouseEnter={(e) =>
                               viewMode === "grid" &&
