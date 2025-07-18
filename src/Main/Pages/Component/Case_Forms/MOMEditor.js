@@ -7,8 +7,18 @@ import { ApiEndPoint } from "../utils/utlis";
 import { useSelector } from "react-redux";
 import ConfirmModal from "../../AlertModels/ConfirmModal";
 import { useAlert } from "../../../../Component/AlertContext";
+import {
+    Form,
+    Button,
+    Card,
+    Container,
+    Row,
+    Col,
+    Dropdown,
+    InputGroup,
+} from "react-bootstrap";
 
-const MOMEditor = () => {
+const MOMEditor = ({ token }) => {
     const [headings, setHeadings] = useState([]);
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [clientName, setClientName] = useState("");
@@ -26,6 +36,8 @@ const MOMEditor = () => {
     const [deleteItem, setDeleteItem] = useState(false);
     const [deleteItemIndex, setDeleteItemIndex] = useState(null)
     const { showLoading, showSuccess, showError } = useAlert();
+    const [selectedDrafts, setSelectedDrafts] = useState("Select Draft");
+    const [FormMOMDetails, setFormMOMDetails] = useState([]);
 
     // Function to handle confirmation
     // const handleConfirm = () => {
@@ -45,8 +57,9 @@ const MOMEditor = () => {
         const fetchForm = async () => {
             try {
                 const response = await axios.get(`${ApiEndPoint}getFormMOMByCaseId/${caseId}`);
-                if (response.data && response.data.length > 0 && response.data[0].headings) {
-                    const formData = response.data[0];
+                console.log("MOM form drafts=", response.data)
+                if (response.data.form && response.data.form.length > 0 && response.data.form[0].headings) {
+                    const formData = response.data.form[0];
                     setHeadings(formData.headings);
                     setClientName(formData.clientName || "");
                     setLawyerName(formData.lawyerName || "");
@@ -58,6 +71,7 @@ const MOMEditor = () => {
                     }
                     setHasData(true);
                 } else {
+                    setFormMOMDetails(response.data?.formMOM)
                     setHasData(false);
                 }
             } catch (err) {
@@ -166,23 +180,40 @@ const MOMEditor = () => {
     };
 
     const handleSubmit = async () => {
-
-
-        const formData = {
-            caseId,
-            clientName,
-            lawyerName,
-            associateName,
-            date: selectedDate,
-            caseType,
-            headings,
-        };
+        let formData = {}
+        if (token?.Role === "paralegal") {
+            formData = {
+                caseId,
+                clientName,
+                lawyerName,
+                associateName,
+                date: selectedDate,
+                caseType,
+                headings,
+                isDraft: true,
+                isAccept: false
+            };
+        } else {
+            formData = {
+                caseId,
+                clientName,
+                lawyerName,
+                associateName,
+                date: selectedDate,
+                caseType,
+                headings,
+                isDraft: false,
+                isAccept: true
+            };
+        }
         showLoading()
         try {
             const res = await axios.post(editMode ? `${ApiEndPoint}UpdateFormMOM/${formId}` : `${ApiEndPoint}createFormMOM`, formData);
             showSuccess(`Form ${editMode ? "updated" : "add"} successfully!`);
             console.log("Submitted:", res.data);
-            setHasData(true);
+            if (token?.Role !== "paralegal") {
+                setHasData(true);
+            }
             setEditMode(false);
         } catch (err) {
             console.error("Error submitting form:", err);
@@ -659,6 +690,50 @@ const MOMEditor = () => {
 
                     <div className="card p-2 p-md-4 shadow-sm">
                         <div className="row g-2 g-md-3">
+                            {(token?.Role !== "paralegal") &&
+                                (
+                                    <Form.Group className="mb-3">
+                                        <Form.Label>
+                                            Drafts <span className="text-danger"></span>
+                                        </Form.Label>
+                                        <InputGroup>
+                                            <Dropdown className="w-100">
+                                                <Dropdown.Toggle
+                                                    variant="outline-secondary"
+                                                    id="dropdown-practice-area"
+                                                    disabled={hasData}
+                                                    className="w-100 text-start d-flex justify-content-between align-items-center"
+                                                >
+                                                    {selectedDrafts === "Select Draft" ? "Select Draft" : `Draft ${selectedDrafts + 1}`}
+                                                </Dropdown.Toggle>
+
+                                                <Dropdown.Menu className="w-100">
+                                                    {FormMOMDetails?.map((area, index) => (
+                                                        <Dropdown.Item key={index} onClick={() => {
+
+                                                            const formData = area
+                                                            setHeadings(formData.headings);
+                                                            setClientName(formData.clientName || "");
+                                                            setLawyerName(formData.lawyerName || "");
+                                                            setAssociateName(formData.associateName || "");
+                                                            setCaseType(formData.caseType || "");
+                                                            setFormId(formData?._id)
+                                                            if (formData.date) {
+                                                                setSelectedDate(new Date(formData.date));
+                                                            }
+                                                            setSelectedDrafts(index)
+                                                        }
+                                                        }>
+                                                            Draft {index + 1}
+                                                        </Dropdown.Item>
+                                                    ))}
+                                                </Dropdown.Menu>
+                                            </Dropdown>
+
+                                        </InputGroup>
+                                    </Form.Group>
+                                )
+                            }
                             <div className="col-12 col-md-6">
                                 <label className="form-label fw-bold">Client</label>
                                 {editMode || !hasData ? (
@@ -926,7 +1001,7 @@ const MOMEditor = () => {
                     {(editMode || !hasData) && (
                         <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 mb-md-5">
                             <button className="btn btn-sm btn-success" onClick={handleSubmit}>
-                                {hasData ? "Update Form" : "Submit Form"}
+                                {token?.Role !== "paralegal" ? (hasData ? "Update Form" : "Submit Form") : "Submit Draft"}
                             </button>
                             {editMode && (
                                 <button className="btn btn-sm btn-secondary" onClick={() => setEditMode(!editMode)}>

@@ -278,8 +278,9 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   };
   // Delete profile
   const handleDelete = async () => {
+    // let email=`${ApiEndPoint}/deleteUserByEmail/${user.Email}`
     await axios
-      .delete(`${ApiEndPoint}/deleteUserByEmail/${user.Email}`)
+      .delete(`${ApiEndPoint}/deleteUserAndClean/${user._id}`)
       .then((response) => {
         if (response.status === 200) {
           setAdminData(null);

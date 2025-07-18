@@ -8,6 +8,16 @@ import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
 import axios from "axios";
 import { ApiEndPoint } from "../utils/utlis";
 import { useAlert } from "../../../../Component/AlertContext";
+import {
+    Form,
+    Button,
+    Card,
+    Container,
+    Row,
+    Col,
+    Dropdown,
+    InputGroup,
+} from "react-bootstrap";
 
 
 const FormHandover = ({ token }) => {
@@ -20,6 +30,7 @@ const FormHandover = ({ token }) => {
     const [isFilled, setIsFilled] = useState(false);
     // const [loading, setLoading] = useState(true);
 
+    const [selectedDrafts, setSelectedDrafts] = useState("Select Draft");
     const [successMessage, setSuccessMessage] = useState("");
     const { showLoading, showSuccess, showError } = useAlert();
     const [formData, setFormData] = useState({
@@ -39,7 +50,9 @@ const FormHandover = ({ token }) => {
         providerSignature: token?.email,
         receiverName: "",
         receiverSignature: "",
-        isrecevied: false
+        isrecevied: false,
+        isAccept: true,
+        isDraft: false
 
     });
 
@@ -116,7 +129,10 @@ const FormHandover = ({ token }) => {
                     providerName: token?.UserName,
                     providerSignature: token?.email,
                     receiverSignature: "",
-                    isrecevied: false
+                    isrecevied: false,
+                    isAccept: true,
+                    isDraft: false
+
 
                 });
                 if (FormCselected) {
@@ -213,17 +229,106 @@ const FormHandover = ({ token }) => {
         }));
     };
 
-    const handleRemoveFile = (indexToRemove) => {
+    const handleRemoveFile = (indexToRemove,file) => {
+        let filepath=file.filePath
         setFormData((prev) => ({
             ...prev,
             relatedDocs: prev.relatedDocs.filter((_, idx) => idx !== indexToRemove),
         }));
+
+
     };
 
 
 
 
     const handleSubmit = async (e) => {
+        e.preventDefault();
+
+        // Validate required fields
+        const newErrors = {};
+        if (!formData.caseNumber) newErrors.caseNumber = "Case number is required.";
+        if (!formData.handoverDateTime) newErrors.handoverDateTime = "Handover date is required.";
+        if (!formData.legalOpinion?.trim()) newErrors.legalOpinion = "Written Legal Opinion is required.";
+        if (!formData.caseStrategy?.trim()) newErrors.caseStrategy = "Case Strategy is required.";
+        if (!formData.receiverSignature) newErrors.receiverSignature = "Receiving lawyer must be selected.";
+        // if (!formData.relatedDocs || formData.relatedDocs.length === 0) newErrors.relatedDocs = "Please upload at least one document.";
+
+        // If errors exist, set them and scroll to the first one
+        if (Object.keys(newErrors).length > 0) {
+            setErrors(newErrors);
+            const firstField = Object.keys(newErrors)[0];
+            const el = document.querySelector(`[name="${firstField}"]`);
+            if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            return;
+        }
+
+        setErrors({});
+        showLoading();
+
+        try {
+            const form = new FormData();
+            console.log("form data", formData);
+
+            // Append text fields
+            if (token.Role !== "paralegal") {
+
+                form.append("clientName", formData.clientName);
+                form.append("caseId", reduxCaseInfo?._id);
+                form.append("caseNumber", reduxCaseInfo?.CaseNumber);
+                form.append("handoverDateTime", formData.handoverDateTime);
+                form.append("providerName", formData.providerName);
+                form.append("receiverName", formData.receiverName);
+                form.append("legalOpinionText", formData.legalOpinion || '');
+                form.append("caseStrategyText", formData.caseStrategy || '');
+                form.append("checklist[cForm]", formData.checklist.cForm);
+                form.append("checklist[lForm]", formData.checklist.lForm);
+                form.append("checklist[lfa]", formData.checklist.lfa);
+                form.append("checklist[poa]", formData.checklist.poa);
+                form.append("isAccept", true);
+                form.append("isDraft", false);
+            } else {
+                form.append("clientName", formData.clientName);
+                form.append("caseId", reduxCaseInfo?._id);
+                form.append("caseNumber", reduxCaseInfo?.CaseNumber);
+                form.append("handoverDateTime", formData.handoverDateTime);
+                form.append("providerName", formData.providerName);
+                form.append("receiverName", formData.receiverName);
+                form.append("legalOpinionText", formData.legalOpinion || '');
+                form.append("caseStrategyText", formData.caseStrategy || '');
+                form.append("checklist[cForm]", formData.checklist.cForm);
+                form.append("checklist[lForm]", formData.checklist.lForm);
+                form.append("checklist[lfa]", formData.checklist.lfa);
+                form.append("checklist[poa]", formData.checklist.poa);
+                form.append("isAccept", false);
+                form.append("isDraft", true);
+            }
+
+            // Append related docs
+            (formData.relatedDocs || []).forEach(file => {
+                form.append("relatedDocsFiles", file);
+            });
+
+            form.append("providerSignature", formData.providerSignature);
+            form.append("receiverSignature", formData.receiverSignature);
+
+            const res = await axios.post(`${ApiEndPoint}createFormH`, form, {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            showSuccess("Form submitted successfully!");
+            getData()
+            console.log(res.data);
+        } catch (error) {
+            if (error.response) {
+                showError("Error submitting the form.", error.response);
+            } else {
+                showError("Network or server error:", error.message);
+            }
+        }
+    };
+    const handleSubmitDrafts = async (e) => {
         e.preventDefault();
 
         // Validate required fields
@@ -264,7 +369,8 @@ const FormHandover = ({ token }) => {
             form.append("checklist[lForm]", formData.checklist.lForm);
             form.append("checklist[lfa]", formData.checklist.lfa);
             form.append("checklist[poa]", formData.checklist.poa);
-
+            form.append("isAccept", false);
+            form.append("isDraft", true);
             // Append related docs
             (formData.relatedDocs || []).forEach(file => {
                 form.append("relatedDocsFiles", file);
@@ -347,6 +453,62 @@ const FormHandover = ({ token }) => {
                             </div>
 
                             <form onSubmit={handleSubmit}>
+
+                                <Form.Group className="mb-3">
+                                    <Form.Label>
+                                        Practice Area <span className="text-danger">*</span>
+                                    </Form.Label>
+                                    <InputGroup>
+                                        <Dropdown className="w-100">
+                                            <Dropdown.Toggle
+                                                variant="outline-secondary"
+                                                id="dropdown-practice-area"
+                                                className="w-100 text-start d-flex justify-content-between align-items-center"
+                                            >
+                                                {selectedDrafts === "Select Draft" ? "Select Draft" : `Draft ${selectedDrafts + 1}`}
+                                            </Dropdown.Toggle>
+
+
+                                            <Dropdown.Menu className="w-100">
+                                                {FormhOrFormCDetails?.formHDrafts?.map((area, index) => (
+                                                    <Dropdown.Item key={index} onClick={() => {
+
+                                                        const form = area;
+                                                        // setIsFilled(true);
+                                                        setFormData({
+                                                            clientName: form.clientName || "",
+                                                            caseNumber: form.caseNumber || reduxCaseInfo?.CaseNumber || "",
+                                                            handoverDateTime: form.handoverDateTime || "",
+                                                            checklist: {
+                                                                cForm: form.checklist?.cForm || FormCselected,
+                                                                lForm: form.checklist?.lForm || "",
+                                                                lfa: form.checklist?.lfa || "",
+                                                                poa: form.checklist?.poa || "",
+                                                            },
+                                                            legalOpinion: form.legalOpinionText || "",
+                                                            caseStrategy: form.caseStrategyText || "",
+                                                            relatedDocs: form.relatedDocsFiles || [],
+                                                            providerName: form.providerName || "",
+                                                            providerSignature: form.providerSignature || "",
+                                                            receiverName: form.receiverName || "",
+                                                            receiverSignature: form.receiverSignature || "",
+                                                            isrecevied: form.isReceived || false,
+                                                        });
+                                                        // if (FormCselected) {
+                                                        //     setFormData(FormCselected)
+                                                        // }
+
+                                                        setSelectedDrafts(index)
+                                                    }
+                                                    }>
+                                                        Draft {index + 1}
+                                                    </Dropdown.Item>
+                                                ))}
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+
+                                    </InputGroup>
+                                </Form.Group>
                                 <div className="mb-3">
                                     <label className="form-label">Client Name:</label>
                                     <input
@@ -564,12 +726,20 @@ const FormHandover = ({ token }) => {
                                                                                 className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                                                                             >
                                                                                 <span className="text-break w-100">
-                                                                                    {file.name}
+                                                                                    {file?.name ? file?.name : file?.fileName}
                                                                                 </span>
                                                                                 <button
                                                                                     type="button"
                                                                                     className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
-                                                                                    onClick={() => handleRemoveFile(index)}
+                                                                                    onClick={() => fetchSignedUrl(file.filePath)}
+                                                                                    disabled={file?.name ? true : false}
+                                                                                >
+                                                                                    download
+                                                                                </button>
+                                                                                <button
+                                                                                    type="button"
+                                                                                    className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
+                                                                                    onClick={() => handleRemoveFile(index,file)}
                                                                                 >
                                                                                     Remove
                                                                                 </button>
@@ -642,9 +812,13 @@ const FormHandover = ({ token }) => {
                                     )}
                                 </div>
 
-                                <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">
-                                    Submit
-                                </button>
+                                {token?.Role === "paralegal" ? (
+                                    <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Add Drafts</button>
+                                ) :
+                                    (
+                                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
+                                    )
+                                }
                             </form>
 
                         </div>
@@ -942,9 +1116,14 @@ const FormHandover = ({ token }) => {
                                             <h6 className="text-primary fw-bold">Received By {formData.receiverName}</h6>
                                         </div>
                                     }
-                                    {!isReadOnly && (
-                                        <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
-                                    )}
+
+                                    {token.Role === "paralegal" ? (
+                                        <button onClick={handleSubmit} className="btn btn-primary w-100 mt-3 mb-2">Submit Draft</button>
+                                    ) :
+                                        !isReadOnly && (
+                                            <button type="submit" className="btn btn-primary w-100 mt-3 mb-2">Submit</button>
+                                        )
+                                    }
                                 </form>
                             </div>
                         </div>

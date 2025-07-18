@@ -117,7 +117,7 @@ const Dashboard = () => {
   const [userData, setUserData] = useState(null);
   const storedEmail = sessionStorage.getItem("Email");
   const [loading, setLoading] = useState(true);
-  let caseDetailsScreenTitle = `Case Details ${reduxCaseInfo?.CaseNumber ? `(${reduxCaseInfo?.CaseNumber})` : ""}`
+  let caseDetailsScreenTitle = ` ${reduxCaseInfo?.CaseNumber ? `(${reduxCaseInfo?.CaseNumber})` : ""}`
   const hasFetched = useRef(false); // Ref to track if data has been fetched
   const [cookies, setCookie, removeCookie] = useCookies(["token"]);
   const [viewClient, setViewClient] = useState(false);
@@ -709,46 +709,46 @@ const Dashboard = () => {
             <h3 className="m-0">
               {screen === 0 && <ScreenHeader title="Master List" />}
               {screen === 1 && (
-                <ScreenHeader title={caseDetailsScreenTitle} onBack={handleGoBack} />
+                <ScreenHeader title={`Case Details${caseDetailsScreenTitle}`} onBack={handleGoBack} />
               )}
-              {screen === 2 && <ScreenHeader title="Appointment" />}
+              {screen === 2 && <ScreenHeader title={`Appointment${caseDetailsScreenTitle}`} />}
               {screen === 3 && <ScreenHeader title="Chat" />}
               {screen === 4 && <ScreenHeader title="Profile" />}
               {screen === 5 && <ScreenHeader title="Profile" />}
-              {screen === 7 && <ScreenHeader title="View Client" />}
+              {screen === 7 && <ScreenHeader title={`View Client${caseDetailsScreenTitle}`} />}
               {screen === 8 && <ScreenHeader title="Add User" />}
               {screen === 9 && <ScreenHeader title="View User" />}
-              {screen === 10 && <ScreenHeader title="View Client" />}
+              {screen === 10 && <ScreenHeader title={`View Client${caseDetailsScreenTitle}`} />}
               {screen === 11 && <ScreenHeader title="Add Case" />}
               {screen === 12 && (
-                <ScreenHeader title="View Folder" onBack={handleBack} />
+                <ScreenHeader title={`View Folder${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 20 && (
-                <ScreenHeader title="Case Update" onBack={handleBack} />
+                <ScreenHeader title={`Case Update${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {/* {screen === 13 && (
                 <ScreenHeader title="Task Management" onBack={handleBack} />
               )} */}
               {screen === 14 && (
-                <ScreenHeader title="View Task" onBack={handleBack} />
+                <ScreenHeader title={`View Task${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 15 && (
-                <ScreenHeader title="Add Task" onBack={handleBack} />
+                <ScreenHeader title={`Add Task${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 16 && (
-                <ScreenHeader title="Form C" onBack={handleBack} />
+                <ScreenHeader title={`Form C${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 18 && (
                 <ScreenHeader title="Form C List" onBack={handleBack} />
               )}
               {screen === 17 && (
-                <ScreenHeader title="Form H" onBack={handleBack} />
+                <ScreenHeader title={`Form H${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 22 && (
                 <ScreenHeader title="Form H List" onBack={handleBack} />
               )}
               {screen === 23 && (
-                <ScreenHeader title="View Form MOM" onBack={handleBack} />
+                <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
               {screen === 24 && (
                 <ScreenHeader title="Meeting Calendar" onBack={handleBack} />

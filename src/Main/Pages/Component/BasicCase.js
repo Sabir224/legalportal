@@ -332,7 +332,7 @@ const BasicCase = ({ token }) => {
       if (token.Role?.toLowerCase() === "client") {
         // Show only client's own cases
         filteredCases = allCases.filter(
-          (caseItem) => caseItem.ClientId === token._id
+          (caseItem) => (caseItem.ClientId === token._id && caseItem.Status !=="Closed")
         );
       } else if (token.Role?.toLowerCase() === "admin") {
         // Admin sees all cases
@@ -341,7 +341,7 @@ const BasicCase = ({ token }) => {
         // Legal users: show only assigned cases
         filteredCases = allCases.filter((caseItem) =>
           caseItem.AssignedUsers?.some(
-            (user) => user.UserId?.toString() === token._id?.toString()
+            (user) => (user.UserId?.toString() === token._id?.toString() &&  caseItem.Status !=="Closed")
           )
         );
       }
@@ -1288,7 +1288,7 @@ const BasicCase = ({ token }) => {
                                   handleUpdateStatus(item);
                                 }}
                               >
-                                {item.IsActive ? "Deactivate" : "Activate"}
+                                {item.IsActive ? "Closed Positive" : "Closed Negative"}
                               </Dropdown.Item>
                             </>
                           )}
@@ -1499,7 +1499,7 @@ const BasicCase = ({ token }) => {
                                 event.stopPropagation();
                                 handleUpdateStatus(item);
                               }}>
-                                {item.IsActive ? "Deactivate" : "Activate"}
+                                {item.IsActive ? "Closed Positive" : "Closed Negative"}
                               </Dropdown.Item>
 
                               <Dropdown.Item onClick={(event) => {

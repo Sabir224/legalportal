@@ -132,7 +132,7 @@ const AddUser = () => {
       style={{
         maxHeight: '86.6vh',
         overflowY: 'auto',
-        maxWidth: '1200px', // Added max-width for better control on larger screens
+        // maxWidth: '1200px', // Added max-width for better control on larger screens
         margin: '0 auto', // Center the container
       }}
     >
@@ -278,7 +278,7 @@ const AddUser = () => {
                 }}
                 onClick={toggleDropdown}
               >
-                {selectedRole || 'Select Role'} <FaChevronDown />
+                {selectedRole.toUpperCase() || 'Select Role'} <FaChevronDown />
               </div>
               {dropdownOpen && (
                 <ul
@@ -301,7 +301,7 @@ const AddUser = () => {
                       }}
                       onClick={() => handleRoleSelect(role)}
                     >
-                      {role}
+                      {role.toUpperCase()}
                     </li>
                   ))}
                 </ul>
