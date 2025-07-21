@@ -1723,11 +1723,11 @@ const ReceptionistCalendar = ({ token }) => {
                 )}
             </div>
 
-            <ViewBookLawyerSlot
+            {/* <ViewBookLawyerSlot
                 isOpen={IsCalenderView}
                 onClose={(value) => setCalenderView(value)}
                 slotbookuserid={slotbookuserid}
-            />
+            /> */}
         </div>
     );
 };
