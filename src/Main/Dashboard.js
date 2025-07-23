@@ -255,7 +255,12 @@ const Dashboard = () => {
         setCurrentScreen(<ViewUser token={decodedToken} />);
         break;
       case 8:
-        setCurrentScreen(<AddUser token={decodedToken} />);
+        setCurrentScreen(
+          <AlertProvider>
+            <AddUser token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 9:
         setCurrentScreen(

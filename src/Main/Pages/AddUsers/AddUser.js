@@ -26,6 +26,7 @@ import { ApiEndPoint } from '../Component/utils/utlis';
 import { useDispatch } from 'react-redux';
 import { screenChange } from '../../../REDUX/sliece';
 import { BsPerson } from 'react-icons/bs';
+import { useAlert } from '../../../Component/AlertContext';
 
 const AddUser = () => {
   const dispatch = useDispatch();
@@ -49,6 +50,7 @@ const AddUser = () => {
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
   const dropdownRef = useRef(null);
+  const { showLoading, showSuccess, showError } = useAlert();
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
   const handleRoleSelect = (role) => {
@@ -66,6 +68,7 @@ const AddUser = () => {
 
   const handleAddUser = async () => {
     try {
+      showLoading();
       const formData = new FormData();
       formData.append('UserName', name);
       formData.append('Email', email);
@@ -88,7 +91,7 @@ const AddUser = () => {
         throw new Error('Failed to add user');
       }
       dispatch(screenChange(9));
-      alert('✅ User Added Successfully!');
+      showSuccess('✅ User Added Successfully!');
 
       setName('');
       setEmail('');
@@ -102,7 +105,7 @@ const AddUser = () => {
       setSelectedFile(null);
       setPreview(null);
     } catch (error) {
-      alert('❌ Failed to Add User! Check Console.');
+      showError('❌ Failed to Add User! Check Console.');
       console.error('Error adding user:', error);
     }
   };
@@ -128,9 +131,10 @@ const AddUser = () => {
 
   return (
     <div
-      className="container card shadow m-0 p-3 p-md-5"
+      className="card shadow container-fluid m-0 p-3 p-md-5 justify-content-center"
       style={{
-        maxHeight: '86.6vh',
+        maxHeight: '86vh',
+
         overflowY: 'auto',
         // maxWidth: '1200px', // Added max-width for better control on larger screens
         margin: '0 auto', // Center the container
