@@ -28,7 +28,7 @@ const PublicAppointment = ({ token }) => {
   const [lawyerDetails, setLawyersDetails] = useState([]);
   const [ClientDetails, setClientDetails] = useState([]);
   const [user, setUser] = useState();
-  const [selectedService, setSelectedService] = useState('Select Service');
+  const [selectedService, setSelectedService] = useState('All Services');
   const [isServiceDropdownOpen, setIsServiceDropdownOpen] = useState(false);
   const [isLawyerDropdownOpen, setIsLawyerDropdownOpen] = useState(false);
 
@@ -1331,24 +1331,30 @@ const PublicAppointment = ({ token }) => {
             minHeight: '300px',
           }}
         >
+          {/* Dropdowns container - side by side */}
           <div className="d-flex justify-content-center gap-3 mb-3" style={{ zIndex: 2 }}>
             {/* Legal Services Dropdown */}
             <div style={{ flex: 1, maxWidth: '300px' }}>
               <Dropdown
                 options={[
-                  { value: 'all', label: 'All Services' },
-                  { value: 'family', label: 'Family Law' },
-                  { value: 'criminal', label: 'Criminal Law' },
-                  { value: 'corporate', label: 'Corporate Law' },
-                  { value: 'immigration', label: 'Immigration' },
-                  { value: 'real-estate', label: 'Real Estate' },
-                  { value: 'ip', label: 'Intellectual Property' },
-                  { value: 'bankruptcy', label: 'Bankruptcy' },
-                  { value: 'injury', label: 'Personal Injury' },
+                  'All Services',
+                  'Family Law',
+                  'Criminal Law',
+                  'Corporate Law',
+                  'Immigration',
+                  'Real Estate',
+                  'Intellectual Property',
+                  'Bankruptcy',
+                  'Personal Injury',
                 ]}
-                onSelect={(selected) => setSelectedService(selected?.value)}
-                placeholder="Select Legal Service Type"
+                onSelect={(service) => setSelectedService(service)}
+                onToggle={(isOpen) => {
+                  if (isOpen) setIsLawyerDropdownOpen(false);
+                }}
+                isOpen={isServiceDropdownOpen}
+                onMenuToggle={(isOpen) => setIsServiceDropdownOpen(isOpen)}
                 style={{ width: '100%' }}
+                placeholder="Select Legal Service Type"
               />
             </div>
 
@@ -1357,8 +1363,13 @@ const PublicAppointment = ({ token }) => {
               <Dropdown
                 options={[alluser, ...AllLawyer]}
                 onSelect={handleSelect}
-                placeholder="Select a Lawyer"
+                onToggle={(isOpen) => {
+                  if (isOpen) setIsServiceDropdownOpen(false);
+                }}
+                isOpen={isLawyerDropdownOpen}
+                onMenuToggle={(isOpen) => setIsLawyerDropdownOpen(isOpen)}
                 style={{ width: '100%' }}
+                placeholder="Select a Lawyer"
               />
             </div>
           </div>
@@ -1510,6 +1521,55 @@ const PublicAppointment = ({ token }) => {
           {/* Calendar Below */}
         </Col>
       </Row>
+
+      {/* Popup Modals */}
+      {/* {isPopupVisible && (
+                <div className="popup-overlay">
+                    <div className={popupcolor}>
+                        {!isLoading && !isEmailSent && (
+                            <>
+                                <h3
+                                    style={{
+                                        fontSize: "18px",
+                                        fontWeight: "bold",
+                                        marginBottom: "5px",
+                                        color: 'white'
+                                    }}
+                                >
+                                    {popupmessage}
+                                </h3>
+
+                                {isPopupVisiblecancel && (
+                                    <div className="popup-actions d-flex justify-content-center gap-3 mt-3">
+                                        <button className="confirm-btn" onClick={handleConfirm}>
+                                            Yes
+                                        </button>
+                                        <button className="cancel-btn" onClick={handleClosePopup}>
+                                            No
+                                        </button>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        {isLoading && (
+                            <div className="loading-indicator">
+                                <p>Deleting...</p>
+                                <div className="spinner"></div>
+                            </div>
+                        )}
+                        {isEmailSent && (
+                            <div className="confirmation">
+                                <FontAwesomeIcon
+                                    icon={faCheck}
+                                    size="3x"
+                                    color="white"
+                                    className="m-2"
+                                />
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )} */}
 
       <div>
         {isPopupVisible && (

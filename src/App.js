@@ -28,6 +28,7 @@ import ClientConsultationForm from './Main/Pages/Component/Case_Forms/FormC';
 import { AlertProvider } from './Component/AlertContext';
 import GlobalAlert from './Component/GlobalAlert';
 import PublicAppointment from './Main/Pages/AppointMents/Appointment';
+import HorizontalLinearStepper from './Main/Pages/AppointMents/SteperMultiStep';
 
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
@@ -141,7 +142,7 @@ function App() {
         {/* <Route path="/" element={<CaseSummary />} />*/}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
-        <Route path="/clientAppointMent" element={<PublicAppointment />} />
+        <Route path="/clientAppointMent" element={<HorizontalLinearStepper />} />
 
         {/* Protected routes */}
         <Route
