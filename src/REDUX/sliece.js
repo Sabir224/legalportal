@@ -9,6 +9,7 @@ const screenSlice = createSlice({
     FormCDetails: null,
     FormHDetails: null,
     LitigationFormH: null,
+    CloseType: "",
     history: [], // screen history stack
   },
   reducers: {
@@ -41,6 +42,9 @@ const screenSlice = createSlice({
     setCaseOpen: (state, action) => {
       state.isCaseOpen = !!action.payload;
     },
+    CloseType: (state, action) => {
+      state.CloseType = action.payload;
+    },
   },
 });
 
@@ -53,5 +57,6 @@ export const {
   FormHDetails,
   LitigationFormH,
   Caseinfo,
+  CloseType
 } = screenSlice.actions;
 export default screenSlice.reducer;

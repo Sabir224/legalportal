@@ -40,7 +40,11 @@ const BasicCase = ({ token }) => {
   const [selectedCaseStage, setSelectedCaseStage] = useState("");
   const [availableCases, setAvailableCases] = useState([]); // populate this list as needed
 
-  const { showLoading, showSuccess, showError } = useAlert();
+console.log("Token change =",token?.Role)
+  const reduxCaseCloseType = useSelector((state) => state.screen.CloseType);
+
+
+  const { showLoading, showDataLoading,showSuccess, showError } = useAlert();
 
   const casesPerPage = 50; // Show 50 cases per page
   const [filters, setFilters] = useState({
@@ -323,6 +327,7 @@ const BasicCase = ({ token }) => {
   // };
 
   const fetchCases = async () => {
+    showDataLoading(true)
     try {
       const response = await axios.get(`${ApiEndPoint}getcase`, {
         withCredentials: true,
@@ -330,26 +335,28 @@ const BasicCase = ({ token }) => {
 
       const allCases = response.data.data;
       let filteredCases = [];
-
+      console.log("reduxCaseCloseType=", reduxCaseCloseType)
       if (token.Role?.toLowerCase() === "client") {
         // Show only client's own cases
         filteredCases = allCases.filter(
-          (caseItem) => (caseItem.ClientId === token._id && caseItem.Status !== "Closed")
+          (caseItem) => (caseItem.ClientId === token._id && caseItem.Status !== "Closed" && caseItem.CloseType === reduxCaseCloseType)
         );
       } else if (token.Role?.toLowerCase() === "admin") {
         // Admin sees all cases
-        filteredCases = allCases;
+        filteredCases = allCases.filter(
+          (caseItem) => (caseItem.CloseType === reduxCaseCloseType)
+        );
       } else {
         // Legal users: show only assigned cases
         filteredCases = allCases.filter((caseItem) =>
           caseItem.AssignedUsers?.some(
-            (user) => (user.UserId?.toString() === token._id?.toString() && caseItem.Status !== "Closed")
+            (user) => (user.UserId?.toString() === token._id?.toString() && caseItem.Status !== "Closed" && caseItem.CloseType === reduxCaseCloseType)
           )
         );
       }
 
       await setData(filteredCases);
-      setLoading(false);
+      showDataLoading(false);
     } catch (err) {
       setError(err.message);
       setLoading(false);
@@ -421,7 +428,7 @@ const BasicCase = ({ token }) => {
     if (token && token._id && token.Role) {
       fetchCases();
     }
-  }, [token]);
+  }, [token,reduxCaseCloseType]);
 
   // Handle page navigation
   const goToPage = (pageNumber) => {
@@ -789,209 +796,204 @@ const BasicCase = ({ token }) => {
             />
           </div>
         </div>
-        <div className="card shadow" style={{ overflowX: "auto",scrollbarWidth: 'thin', scrollbarColor: "#c0a262 #f1f1f1", maxWidth: "100%", width: "100%", minWidth: "400px" }}>
+        <div className="card shadow" style={{ overflowX: "auto", scrollbarWidth: 'thin', scrollbarColor: "#c0a262 #f1f1f1", maxWidth: "100%", width: "100%", minWidth: "400px" }}>
 
           <div style={{ minWidth: "max-content" }}>
 
- 
-                      <div
-                        className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3 border-bottom"
-                        style={{
-                          backgroundColor: "#18273e",
-                          color: "white",
-                          position: "sticky",
-                          top: 0,
-                          zIndex: 10,
 
-                        }}
-                      >
-                        {/* STATUS Filter */}
-                        <span
+            <div
+              className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3 border-bottom"
+              style={{
+                backgroundColor: "#18273e",
+                color: "white",
+                position: "sticky",
+                top: 0,
+                zIndex: 10,
 
-                          style={{
-                            maxWidth: "120px",
-                            minWidth: "120px",
-                            position: "sticky",
-                            left: 0,
-                            zIndex: 2,
-                            paddingLeft: "1rem",
-                            background: "#18273e",
-                          }}
-                        >
-                          <span className="d-flex gap-2 m-0 p-0 text-start" style={{ paddingLeft: "12px" }}>
-                            Status
+              }}
+            >
+              {/* STATUS Filter */}
+              <span
 
-                            <Dropdown show={showStatusFilter} onToggle={() => setStatusFilter(!showStatusFilter)}>
-                              <Dropdown.Toggle
-                                variant=""
-                                size="sm"
-                                className="custom-dropdown-toggle"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setStatusFilter(!showStatusFilter);
-                                }}
-                              >
-                                <FontAwesomeIcon icon={faFilter} />
-                              </Dropdown.Toggle>
-                              <Dropdown.Menu>
-                                <Dropdown.Item onClick={(e) => {
-                                  e.stopPropagation();
-                                  setFilters((prev) => ({ ...prev, status: [] }));
-                                }}>Clear All</Dropdown.Item>
-                                {["Open", "Closed", "Pending"].map((status) => (
-                                  <Dropdown.Item key={status} onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleFilterChange("status", status);
-                                  }}>
-                                    <Form.Check
-                                      type="checkbox"
-                                      label={status}
-                                      checked={filters.status.includes(status)}
-                                      onChange={() => { }}
-                                    />
-                                  </Dropdown.Item>
-                                ))}
-                              </Dropdown.Menu>
-                            </Dropdown>
-                          </span>
-                        </span>
+                style={{
+                  maxWidth: "120px",
+                  minWidth: "120px",
+                  position: "sticky",
+                  left: 0,
+                  zIndex: 2,
+                  paddingLeft: "1rem",
+                  background: "#18273e",
+                }}
+              >
+                <span className="d-flex gap-2 m-0 p-0 text-start" style={{ paddingLeft: "12px" }}>
+                  Status
 
-                        {/* CASE NUMBER Filter */}
-                        <span className=" d-flex gap-2 text-start" style={{
-                          maxWidth: '150px',
-                          minWidth: '150px',
-                          position: "sticky",
-                          left: "120px", // ✅ exactly after Status column width
-                          zIndex: 2,
-                          background: "#18273e",
-
+                  <Dropdown show={showStatusFilter} onToggle={() => setStatusFilter(!showStatusFilter)}>
+                    <Dropdown.Toggle
+                      variant=""
+                      size="sm"
+                      className="custom-dropdown-toggle"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setStatusFilter(!showStatusFilter);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faFilter} />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((prev) => ({ ...prev, status: [] }));
+                      }}>Clear All</Dropdown.Item>
+                      {["Open", "Closed", "Pending"].map((status) => (
+                        <Dropdown.Item key={status} onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("status", status);
                         }}>
-                          Case Number
-                          <Dropdown show={showCaseFilter} onToggle={() => setCaseFilter(!showCaseFilter)}>
-                            <Dropdown.Toggle
-                              variant=""
-                              size="sm"
-                              className="custom-dropdown-toggle"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setCaseFilter(!showCaseFilter);
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faFilter} />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                              {["asc", "desc"].map((order) => (
-                                <Dropdown.Item key={order} onClick={(e) => {
-                                  e.stopPropagation();
-                                  setFilters((prev) => ({ ...prev, sortOrder: order }));
-                                  setCaseFilter(false);
-                                }}>
-                                  {order === "asc" ? "Ascending" : "Descending"}
-                                </Dropdown.Item>
-                              ))}
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </span>
+                          <Form.Check
+                            type="checkbox"
+                            label={status}
+                            checked={filters.status.includes(status)}
+                            onChange={() => { }}
+                          />
+                        </Dropdown.Item>
+                      ))}
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </span>
+              </span>
 
-                        {/* REQUEST NUMBER Headings */}
-                        <span className=" text-start" style={{
-                          maxWidth: '150px',
-                          minWidth: '150px',
-                          color: 'white'
-                        }}>Request Number</span>
-                        <span className=" text-start" style={{
-                          maxWidth: '150px',
-                          minWidth: '150px',
-                          color: 'white'
-                        }}>Close Type</span>
+              {/* CASE NUMBER Filter */}
+              <span className=" d-flex gap-2 text-start" style={{
+                maxWidth: '150px',
+                minWidth: '150px',
+                position: "sticky",
+                left: "120px", // ✅ exactly after Status column width
+                zIndex: 2,
+                background: "#18273e",
 
-                        {/* CASE SUB TYPE Filter */}
-                        <span className=" d-flex gap-2 text-start" style={{
-                          maxWidth: '200px',
-                          minWidth: '200px',
-                          color: 'white'
-                        }}>
-                          Case Sub Type
-                          <Dropdown show={showCaseSubTypeFilter} onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}>
-                            <Dropdown.Toggle
-                              variant=""
-                              size="sm"
-                              className="custom-dropdown-toggle"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setCaseSubTypeFilter(!showCaseSubTypeFilter);
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faFilter} />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                              <Dropdown.Item onClick={(e) => {
-                                e.stopPropagation();
-                                setFilters((prev) => ({ ...prev, CaseSubType: [] }));
-                              }}>Clear All</Dropdown.Item>
-                              {Subtypelist.map((type) => (
-                                <Dropdown.Item key={type} onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFilterChange("CaseSubType", type);
-                                }}>
-                                  <Form.Check type="checkbox" label={type} checked={filters.CaseSubType.includes(type)} onChange={() => { }} />
-                                </Dropdown.Item>
-                              ))}
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </span>
+              }}>
+                Case Number
+                <Dropdown show={showCaseFilter} onToggle={() => setCaseFilter(!showCaseFilter)}>
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseFilter(!showCaseFilter);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faFilter} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    {["asc", "desc"].map((order) => (
+                      <Dropdown.Item key={order} onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((prev) => ({ ...prev, sortOrder: order }));
+                        setCaseFilter(false);
+                      }}>
+                        {order === "asc" ? "Ascending" : "Descending"}
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
 
-                        {/* CASE TYPE Filter */}
-                        <span className=" d-flex gap-2 text-start" style={{
-                          maxWidth: '200px',
-                          minWidth: '200px',
-                          color: 'white'
-                        }}>
-                          Case Type
-                          <Dropdown show={showCaseTypeFilter} onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}>
-                            <Dropdown.Toggle
-                              variant=""
-                              size="sm"
-                              className="custom-dropdown-toggle"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setCaseTypeFilter(!showCaseTypeFilter);
-                              }}
-                            >
-                              <FontAwesomeIcon icon={faFilter} />
-                            </Dropdown.Toggle>
-                            <Dropdown.Menu>
-                              <Dropdown.Item onClick={(e) => {
-                                e.stopPropagation();
-                                setFilters((prev) => ({ ...prev, CaseType: [] }));
-                              }}>Clear All</Dropdown.Item>
-                              {["Consultation", "Non-Litigation", "Litigation"].map((type) => (
-                                <Dropdown.Item key={type} onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleFilterChange("CaseType", type);
-                                }}>
-                                  <Form.Check type="checkbox" label={type} checked={filters.CaseType.includes(type)} onChange={() => { }} />
-                                </Dropdown.Item>
-                              ))}
-                            </Dropdown.Menu>
-                          </Dropdown>
-                        </span>
+              {/* REQUEST NUMBER Headings */}
+              <span className=" text-start" style={{
+                maxWidth: '150px',
+                minWidth: '150px',
+                color: 'white'
+              }}>Request Number</span>
+             
+              {/* CASE SUB TYPE Filter */}
+              <span className=" d-flex gap-2 text-start" style={{
+                maxWidth: '200px',
+                minWidth: '200px',
+                color: 'white'
+              }}>
+                Case Sub Type
+                <Dropdown show={showCaseSubTypeFilter} onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}>
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseSubTypeFilter(!showCaseSubTypeFilter);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faFilter} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters((prev) => ({ ...prev, CaseSubType: [] }));
+                    }}>Clear All</Dropdown.Item>
+                    {Subtypelist.map((type) => (
+                      <Dropdown.Item key={type} onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseSubType", type);
+                      }}>
+                        <Form.Check type="checkbox" label={type} checked={filters.CaseSubType.includes(type)} onChange={() => { }} />
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
 
-                        {/* PURPOSE Heading */}
-                        <span className=" text-start" style={{
-                          maxWidth: '250px',
-                          minWidth: '250px',
-                          color: 'white'
-                        }}>Purpose</span>
+              {/* CASE TYPE Filter */}
+              <span className=" d-flex gap-2 text-start" style={{
+                maxWidth: '200px',
+                minWidth: '200px',
+                color: 'white'
+              }}>
+                Case Type
+                <Dropdown show={showCaseTypeFilter} onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}>
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseTypeFilter(!showCaseTypeFilter);
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faFilter} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu>
+                    <Dropdown.Item onClick={(e) => {
+                      e.stopPropagation();
+                      setFilters((prev) => ({ ...prev, CaseType: [] }));
+                    }}>Clear All</Dropdown.Item>
+                    {["Consultation", "Non-Litigation", "Litigation"].map((type) => (
+                      <Dropdown.Item key={type} onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseType", type);
+                      }}>
+                        <Form.Check type="checkbox" label={type} checked={filters.CaseType.includes(type)} onChange={() => { }} />
+                      </Dropdown.Item>
+                    ))}
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
 
-                        {/* ACTION Heading */}
-                        <span className=" text-end" style={{
-                          maxWidth: '100px',
-                          minWidth: '100px',
-                          color: 'white'
-                        }}>Action</span>
-                      </div>
-                  
+              {/* PURPOSE Heading */}
+              <span className=" text-start" style={{
+                maxWidth: '250px',
+                minWidth: '250px',
+                color: 'white'
+              }}>Purpose</span>
+
+              {/* ACTION Heading */}
+              <span className=" text-end" style={{
+                maxWidth: '100px',
+                minWidth: '100px',
+                color: 'white'
+              }}>Action</span>
+            </div>
+
             {[
               // First row: filter header
               // <div
@@ -1395,7 +1397,7 @@ const BasicCase = ({ token }) => {
 
 
 
-                   
+
                     <div
                       className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3"
                       style={{ cursor: "pointer", background: 'white' }}
@@ -1452,10 +1454,7 @@ const BasicCase = ({ token }) => {
                         maxWidth: '150px',
                         minWidth: '150px',
                       }}>{item.SerialNumber}</span>
-                      <span className=" text-start" style={{
-                        maxWidth: '150px',
-                        minWidth: '150px',
-                      }}>{item.CloseType}</span>
+                      
 
 
                       {/* CASE SUB TYPE */}

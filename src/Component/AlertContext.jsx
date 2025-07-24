@@ -17,6 +17,13 @@ export const AlertProvider = ({ children }) => {
       message: "Loading...",
       loading: true,
     });
+  const showDataLoading = (value) =>
+    setState({
+      open: value,
+      severity: "info",
+      message: "Data Loading...",
+      loading: value,
+    });
 
   const showSuccess = (message) =>
     setState({ open: true, severity: "success", message, loading: false });
@@ -28,7 +35,7 @@ export const AlertProvider = ({ children }) => {
 
   return (
     <AlertContext.Provider
-      value={{ ...state, showLoading, showSuccess, showError, closeAlert }}
+      value={{ ...state, showLoading, showSuccess, showError, closeAlert,showDataLoading }}
     >
       {children}
     </AlertContext.Provider>

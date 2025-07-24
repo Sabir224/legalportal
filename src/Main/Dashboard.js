@@ -4,6 +4,11 @@ import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
   faAddressCard,
+  faArrowAltCircleDown,
+  faArrowCircleDown,
+  faArrowDown,
+  faArrowDownWideShort,
+  faBolt,
   faBook,
   faBookBible,
   faBookOpen,
@@ -11,6 +16,9 @@ import {
   faBriefcase,
   faCalendar,
   faCashRegister,
+  faChevronDown,
+  faChevronUp,
+  faDoorOpen,
   faForward,
   faHome,
   faList,
@@ -39,7 +47,7 @@ import { faCcMastercard, faFacebook, faWhatsapp, faWpforms } from '@fortawesome/
 import Case_details from '../Component/Case_details';
 import { useDispatch, useSelector } from 'react-redux';
 import BasicCase from './Pages/Component/BasicCase';
-import { Caseinfo, clientEmail, FormCDetails, FormHDetails, goBackScreen, screenChange } from '../REDUX/sliece';
+import { Caseinfo, clientEmail, CloseType, FormCDetails, FormHDetails, goBackScreen, screenChange } from '../REDUX/sliece';
 import LawyerProfile from './Pages/LawyerProfile';
 
 import { useNavigate } from 'react-router-dom';
@@ -82,6 +90,7 @@ import FormTemplateUploader from './Pages/Component/Case_Forms/FormTemplateUploa
 import MOMEditor from './Pages/Component/Case_Forms/MOMEditor';
 import ReceptionistCalendar from './Pages/ReceptionistCalendar';
 import PublicAppointment from './Pages/AppointMents/Appointment';
+import { alignContent, alignItems, justifyContent, justifyItems, padding } from '@mui/system';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -413,6 +422,10 @@ const Dashboard = () => {
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
+
+
+
+
   const ScreenHeader = ({ title }) => (
     <div className="d-flex align-items-center">
       {title !== 'Master List' && (
@@ -444,6 +457,27 @@ const Dashboard = () => {
     setViewClient(false);
     setViewLawyer(false);
   };
+
+
+
+  const reduxCaseCloseType = useSelector((state) => state.screen.CloseType);
+  const [selectedOption, setSelectedOption] = useState(reduxCaseCloseType);
+  const [showOptions, setShowOptions] = useState(false);
+
+  const handleSelect =async (option) => {
+   await setSelectedOption(option);
+    setShowOptions(false);
+
+    // Example actions if needed per selection:
+    dispatch(clientEmail(null));
+    dispatch(CloseType(option));
+    dispatch(Caseinfo(null));
+    dispatch(FormCDetails(null));
+    dispatch(FormHDetails(null));
+    handlescreen2(0);
+  };
+
+
   return (
     <div className="d-flex w-99 gap-3 m-1" style={{ height: '96vh', overflow: 'hidden' }}>
       {/* Sidebar */}
@@ -482,17 +516,59 @@ const Dashboard = () => {
         <div className="d-flex flex-column align-items-start px-2 mt-3">
           {[
             {
-              icon: faHome,
+              icon: showOptions ? faChevronUp : faChevronDown,
               label: 'Home',
-              action: () => {
-                dispatch(clientEmail(null));
-                dispatch(Caseinfo(null));
-                dispatch(FormCDetails(null));
-                dispatch(FormHDetails(null));
-
-                handlescreen2(0);
-              },
+              action: () => setShowOptions(!showOptions),
             },
+            showOptions
+              ? {
+                icon: faBolt,
+                label: 'Active',
+                style: {
+                  backgroundColor: selectedOption === "" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
+                action: () => { handleSelect("") }
+              }
+              : null,
+            showOptions
+              ? {
+                icon: faBolt,
+                label: 'Close Positive',
+                style: {
+                  backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
+                action: () => { handleSelect("Close Positive") }
+              }
+              : null,
+            showOptions
+              ? {
+                icon: faBolt,
+                label: 'Close Negative',
+                style: {
+                  backgroundColor: selectedOption === "'Close Negative" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                     // Horizontal center
+                },
+                action: () => { handleSelect("Close Negative") }
+              }
+              : null,
             {
               icon: faMessage,
               label: 'Messages',
@@ -507,46 +583,46 @@ const Dashboard = () => {
             },
             decodedToken?.Role === 'admin'
               ? {
-                  icon: faPersonCircleCheck,
-                  label: 'View Users',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faPersonCircleCheck,
+                label: 'View Users',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(9);
-                  },
-                }
+                  handlescreen2(9);
+                },
+              }
               : null,
             decodedToken?.Role === 'admin'
               ? {
-                  icon: faBookOpen,
+                icon: faBookOpen,
 
-                  label: 'Add Case',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                label: 'Add Case',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(11);
-                  },
-                }
+                  handlescreen2(11);
+                },
+              }
               : null,
             decodedToken?.Role !== 'client'
               ? {
-                  icon: faTasksAlt,
-                  label: 'View Task',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faTasksAlt,
+                label: 'View Task',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(14);
-                  },
-                }
+                  handlescreen2(14);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -559,45 +635,45 @@ const Dashboard = () => {
             // },
             decodedToken?.Role !== 'client'
               ? {
-                  icon: faList12,
-                  label: 'Form C List',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faList12,
+                label: 'Form C List',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(18);
-                  },
-                }
+                  handlescreen2(18);
+                },
+              }
               : null,
             decodedToken?.Role !== 'client'
               ? {
-                  icon: faList,
-                  label: 'Form H List',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faList,
+                label: 'Form H List',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(22);
-                  },
-                }
+                  handlescreen2(22);
+                },
+              }
               : null,
             decodedToken?.Role === 'receptionist'
               ? {
-                  icon: faCalendar,
-                  label: 'Meeting Calendar',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faCalendar,
+                label: 'Meeting Calendar',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(24);
-                  },
-                }
+                  handlescreen2(24);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -631,7 +707,7 @@ const Dashboard = () => {
                 key={index}
                 className="d-flex align-items-center my-2"
                 onClick={item.action}
-                style={{ gap: '10px', cursor: 'pointer' }}
+                style={!item.style ? { gap: '10px', cursor: 'pointer' } : item.style}
               >
                 <FontAwesomeIcon
                   icon={item.icon}
@@ -639,13 +715,13 @@ const Dashboard = () => {
                   style={{
                     fontSize: '20px',
                     color: 'white',
-                    marginLeft: '6px',
+                    marginLeft: isCollapsed ? '6px' :"",
                   }}
                 />
                 {!isCollapsed && (
                   <span
                     className="sidebar-label d-none d-lg-inline text-truncate"
-                    style={{ fontSize: '16px', maxWidth: '150px' }}
+                    style={{ fontSize: '16px', maxWidth: '150px', marginRight: '6px', }}
                   >
                     {item.label}
                   </span>
