@@ -8,6 +8,7 @@ import {
   faArrowCircleDown,
   faArrowDown,
   faArrowDownWideShort,
+  faBan,
   faBolt,
   faBook,
   faBookBible,
@@ -16,6 +17,7 @@ import {
   faBriefcase,
   faCalendar,
   faCashRegister,
+  faCheckCircle,
   faChevronDown,
   faChevronUp,
   faDoorOpen,
@@ -428,7 +430,7 @@ const Dashboard = () => {
 
   const ScreenHeader = ({ title }) => (
     <div className="d-flex align-items-center">
-      {title !== 'Master List' && (
+      {title !== 'Active' && title !== 'Close Negative' && title !== 'Close Positive' && (
         <button
           onClick={handleGoBack}
           style={{
@@ -464,8 +466,8 @@ const Dashboard = () => {
   const [selectedOption, setSelectedOption] = useState(reduxCaseCloseType);
   const [showOptions, setShowOptions] = useState(false);
 
-  const handleSelect =async (option) => {
-   await setSelectedOption(option);
+  const handleSelect = async (option) => {
+    await setSelectedOption(option);
     setShowOptions(false);
 
     // Example actions if needed per selection:
@@ -517,7 +519,7 @@ const Dashboard = () => {
           {[
             {
               icon: showOptions ? faChevronUp : faChevronDown,
-              label: 'Home',
+              label: 'Dashborad',
               action: () => setShowOptions(!showOptions),
             },
             showOptions
@@ -530,20 +532,23 @@ const Dashboard = () => {
                   padding: '5px',
                   gap: '10px',
                   cursor: 'pointer',
-                  display: 'flex',                 // Important for centering
+                  display: 'flex',
+                  marginLeft: 10,
+                  // Important for centering
                   alignItems: 'center',           // Vertical center
                   justifyContent: 'center',       // Horizontal center
                 },
                 action: () => { handleSelect("") }
               }
               : null,
-            showOptions
+            (showOptions && decodedToken?.Role === 'admin')
               ? {
-                icon: faBolt,
+                icon: faCheckCircle,
                 label: 'Close Positive',
                 style: {
                   backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
                   borderRadius: '6px',
+                  marginLeft: 10,
                   padding: '5px',
                   gap: '10px',
                   cursor: 'pointer',
@@ -554,17 +559,18 @@ const Dashboard = () => {
                 action: () => { handleSelect("Close Positive") }
               }
               : null,
-            showOptions
+            (showOptions && decodedToken?.Role === 'admin')
               ? {
-                icon: faBolt,
+                icon: faBan,
                 label: 'Close Negative',
                 style: {
-                  backgroundColor: selectedOption === "'Close Negative" ? '#c0a262' : "#18273e",      // Golden background
+                  marginLeft: 10,
+                  backgroundColor: selectedOption === "Close Negative" ? '#c0a262' : "#18273e",      // Golden background
                   borderRadius: '6px',
                   padding: '5px',
                   gap: '10px',
                   cursor: 'pointer',
-                     // Horizontal center
+                  // Horizontal center
                 },
                 action: () => { handleSelect("Close Negative") }
               }
@@ -715,7 +721,7 @@ const Dashboard = () => {
                   style={{
                     fontSize: '20px',
                     color: 'white',
-                    marginLeft: isCollapsed ? '6px' :"",
+                    marginLeft: isCollapsed ? '' : "",
                   }}
                 />
                 {!isCollapsed && (
@@ -753,7 +759,7 @@ const Dashboard = () => {
         >
           <div className="d-flex align-items-center gap-2 justify-content-between p-3 position-relative">
             <h3 className="m-0">
-              {screen === 0 && <ScreenHeader title="Master List" />}
+              {screen === 0 && <ScreenHeader title={!selectedOption ? "Active" : selectedOption} />}
               {screen === 1 && <ScreenHeader title={`Case Details${caseDetailsScreenTitle}`} onBack={handleGoBack} />}
               {screen === 2 && <ScreenHeader title={`Appointment${caseDetailsScreenTitle}`} />}
               {screen === 3 && <ScreenHeader title="Chat" />}
