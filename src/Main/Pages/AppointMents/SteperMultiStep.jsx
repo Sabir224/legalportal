@@ -25,6 +25,8 @@ import {
   TableCell,
   TableHead,
   TableRow,
+  TextField,
+  Grid,
 } from '@mui/material';
 import {
   PersonOutline,
@@ -39,11 +41,29 @@ import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import axios from 'axios';
 import { ApiEndPoint } from '../Component/utils/utlis';
-import { flex } from '@mui/system';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import {
+  faAddressCard,
+  faArrowLeft,
+  faArrowRight,
+  faCalendar,
+  faCheck,
+  faHome,
+  faMailBulk,
+  faMailReply,
+  faMessage,
+  faPhone,
+  faUserCircle,
+} from '@fortawesome/free-solid-svg-icons';
+import { isToday } from 'date-fns';
+import { CardElement, useElements, useStripe, Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
+import getStripe from '../Component/utils/stripeConfiguration';
+import { useState } from 'react';
 
-const steps = ['Consultation Method', 'Service Type', 'Select Lawyer', 'Choose Date & Time', 'Confirmation'];
+// Initialize Stripe
+
+const steps = ['Consultation Method', 'Service Type', 'Select Lawyer', 'Choose Date & Time', 'Payment', 'Confirmation'];
 
 const StyledStepIcon = styled('div')(({ theme, active }) => ({
   width: 24,
@@ -63,7 +83,7 @@ const StepIcon = ({ active, completed, icon }) => {
   );
 };
 
-export default function LegalConsultationStepper() {
+function LegalConsultationStepper() {
   const [activeStep, setActiveStep] = React.useState(0);
   const [method, setMethod] = React.useState('');
   const [service, setService] = React.useState('');
@@ -77,6 +97,27 @@ export default function LegalConsultationStepper() {
   const [clientMessage, setClientMessage] = React.useState('');
   const [meetingLink, setMeetingLink] = React.useState('');
   const [confirmationData, setConfirmationData] = React.useState(null);
+  const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const [currentDate, setCurrentDate] = React.useState(new Date());
+  const [appointmentDetails, setAppoinmentDetails] = React.useState(null);
+  const options = { weekday: 'long', month: 'long', day: 'numeric' };
+  const [selectedTime, setSelectedTime] = React.useState(null);
+  const [subject, setSubject] = React.useState('Meeting Confirmation');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Stripe hooks
+  const stripe = useStripe();
+  const elements = useElements();
+
+  const [paymentForm, setPaymentForm] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
+
+  const [cardComplete, setCardComplete] = React.useState(false);
+  const [paymentError, setPaymentError] = React.useState('');
+  const [paymentLoading, setPaymentLoading] = React.useState(false);
 
   // Popup states
   const [isPopupVisible, setIsPopupVisible] = React.useState(false);
@@ -100,9 +141,8 @@ export default function LegalConsultationStepper() {
       setLoading(true);
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
-        console.log('LAWyers:', response.data.lawyers);
-        if (response.data && response.data.lawyers) {
-          setLawyers(response.data.lawyers);
+        if (response.data && response?.data?.lawyers) {
+          setLawyers(response?.data?.lawyers);
         }
       } catch (err) {
         setError('Failed to fetch lawyers. Please try again.');
@@ -118,25 +158,24 @@ export default function LegalConsultationStepper() {
   }, [activeStep]);
 
   // Fetch appointments when lawyer or date changes
-  const fetchAppointments = async (lawyerId, date) => {
+  const fetchAppointments = async (lawyerId) => {
     if (!lawyerId) return;
 
     setLoading(true);
     try {
-      let response;
-      if (lawyerId === 'All') {
-        const formattedDate = date.toISOString().split('T')[0];
-        response = await axios.get(`${ApiEndPoint}GetAllFreeAppointments/${formattedDate}`);
-      } else {
-        const formattedDate = date.toISOString().split('T')[0];
-        response = await axios.get(`${ApiEndPoint}GetAllFreeAppointments/${formattedDate}?lawyerId=${lawyerId}`);
-
-        console.log('LawyersAppointments:', response.data);
+      const appointmentsRes = await axios.get(`${ApiEndPoint}appointments/${lawyerId}`);
+      if (!appointmentsRes.data || appointmentsRes.data.length === 0) {
+        throw new Error('No appointment data found');
       }
 
-      if (response.data) {
-        setAppointmentSlots(response.data);
-      }
+      let temp = { ...appointmentsRes.data[0] };
+
+      appointmentsRes.data.forEach((element) => {
+        if (element.availableSlots) {
+          temp.availableSlots = [...(temp.availableSlots || []), ...element.availableSlots];
+        }
+      });
+      setAppoinmentDetails(temp);
     } catch (err) {
       setError('Failed to fetch appointment slots. Please try again.');
       console.error('Error fetching appointments:', err);
@@ -150,13 +189,6 @@ export default function LegalConsultationStepper() {
       fetchAppointments(selectedLawyer._id, selectedDate);
     }
   }, [activeStep, selectedLawyer, selectedDate]);
-
-  const convertTo12HourFormat = (time) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    const period = hours >= 12 ? 'PM' : 'AM';
-    const adjustedHours = hours % 12 || 12;
-    return `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
-  };
 
   const convertTo24Hour = (timeStr) => {
     const [time, modifier] = timeStr.split(' ');
@@ -188,24 +220,81 @@ export default function LegalConsultationStepper() {
     setClientMessage('');
   };
 
+  // Navigation handlers
+  const prevMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const nextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const handleDateClick = (date) => {
+    if (date) {
+      setSelectedDate(date);
+      fetchAppointments(selectedLawyer._id);
+    }
+  };
+  const handlePaymentChange = (e) => {
+    const { name, value } = e.target;
+    setPaymentForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+  // Time slot click handler
+  const handleTimeClick = (time, slot) => {
+    setSelectedTime(time);
+    setSelectedSlot(slot);
+  };
+
+  // Convert to 12-hour format
+  const convertTo12HourFormat = (time) => {
+    const timeParts = time.split(':');
+    if (timeParts.length < 2) return time;
+
+    let hours = parseInt(timeParts[0]);
+    const minutes = timeParts[1].split(' ')[0];
+
+    if (time.includes('AM') || time.includes('PM')) {
+      return time;
+    }
+
+    const period = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+
+    return `${hours}:${minutes.padStart(2, '0')} ${period}`;
+  };
+
+  const generateCalendarDates = () => {
+    const dates = [];
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    for (let i = 0; i < firstDay; i++) {
+      dates.push(null);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      dates.push(new Date(year, month, day));
+    }
+
+    return dates;
+  };
+
+  const calendarDates = generateCalendarDates();
+
   const handleOpenPopup = (lawyer, slot) => {
     setSelectedLawyer(lawyer);
     setSelectedSlot(slot);
-    const formattedDate = selectedDate.toLocaleDateString('en-US', {
-      weekday: 'long', // e.g., Monday
-      year: 'numeric',
-      month: 'long', // e.g., July
-      day: 'numeric',
-    });
-
-    const formattedTime = new Date(`1970-01-01T${slot.startTime}`).toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true,
-    });
-
-    setPopupmessage(`Confirm appointment with ${lawyer.lawyerName} on ${formattedDate} at ${formattedTime}?`);
-
+    setPopupmessage(
+      `${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${convertTo12HourFormat(
+        selectedTime
+      )}?`
+    );
     setPopupcolor('popup');
     setIsPopupVisible(true);
     setIsPopupVisiblecancel(true);
@@ -215,7 +304,85 @@ export default function LegalConsultationStepper() {
     setIsPopupVisible(false);
     setClientMessage('');
   };
-  // Frontend request body construction
+
+  const handleConfirmPayment = async () => {
+    setIsProcessing(true);
+    setPaymentError(null);
+
+    if (!stripe || !elements) {
+      setPaymentError('Payment system not ready');
+      setIsProcessing(false);
+      return;
+    }
+
+    const cardElement = elements.getElement(CardElement);
+    if (!cardElement) {
+      setPaymentError('Card details not found');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
+      // Create payment method
+      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: cardElement,
+        billing_details: {
+          name: paymentForm.name,
+          email: paymentForm.email,
+          phone: paymentForm.phone,
+        },
+      });
+
+      if (pmError) {
+        setPaymentError(pmError.message);
+        setIsProcessing(false);
+        return;
+      }
+
+      // Create payment intent
+      const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, {
+        ...paymentForm,
+        amount: selectedLawyer?.price || 200,
+        serviceType: service,
+        lawyerId: selectedLawyer?._id,
+        stripePaymentId: paymentMethod.id,
+      });
+
+      const { clientSecret, paymentId } = data;
+
+      // Confirm payment
+      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: paymentMethod.id,
+      });
+
+      if (confirmError) {
+        setPaymentError(confirmError.message);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (paymentIntent.status === 'succeeded') {
+        // Update payment status
+        await axios.post(`${ApiEndPoint}payments/update-status`, {
+          paymentId,
+          status: 'paid',
+          paymentIntentId: paymentIntent.id,
+          paymentMethodId: paymentIntent.payment_method,
+        });
+
+        // Move to next step
+        setActiveStep((prev) => prev + 1);
+      } else {
+        setPaymentError(`Unexpected status: ${paymentIntent.status}`);
+      }
+    } catch (err) {
+      setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.');
+      console.error('Payment error:', err);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   const handleConfirm = async () => {
     if (!selectedLawyer || !selectedDate || !selectedSlot) {
@@ -265,7 +432,7 @@ export default function LegalConsultationStepper() {
       console.log('Meeting created successfully. URL:', meetingUrl);
 
       // Prepare slot update
-      const slotId = selectedSlot?._doc?._id;
+      const slotId = selectedSlot?._id;
       if (!slotId) {
         console.error('Missing slot ID in selectedSlot:', selectedSlot);
         throw new Error('Missing slot ID');
@@ -280,7 +447,7 @@ export default function LegalConsultationStepper() {
         }, // TODO: Replace with actual user ID
         meetingLink: meetingUrl,
       };
-
+      console.log('Update slot Data before sending....:', updatedSlot);
       // Prepare confirmation data
       const confirmation = {
         lawyer: selectedLawyer,
@@ -331,7 +498,7 @@ export default function LegalConsultationStepper() {
       };
 
       const requestBody = {
-        to: 'sabir@biit.edu.pk' || selectedLawyer?.LawyerDetails?.Email,
+        to: selectedLawyer?.Email,
         subject: `New Appointment Booking - ${service}`,
         client: {
           user: {
@@ -340,23 +507,10 @@ export default function LegalConsultationStepper() {
           },
         },
         mailmsg: emailData,
-        text: `
-New Appointment Notification
----------------------------
-
-Service: ${service}
-Client: Client Name
-Date: ${emailData.formattedDate}
-Time: ${selectedSlot.startTime}
-
-Meeting Link: ${meetingUrl}
-
-Client Phone: 997899090909
-${clientMessage ? `Message: ${clientMessage}` : ''}
-`,
+        text: ``,
         html: null,
       };
-
+      console.log('Email Data before sending:', requestBody);
       // Plain text email generator (optional)
 
       console.log('Sending email...');
@@ -412,17 +566,21 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
       console.log('Booking process completed (success or failure)');
     }
   };
-  // Return true if date is in available appointment list
-  const isDateWithAvailableSlots = (date) => {
-    const formattedDate = date.toISOString().split('T')[0];
-    return appointmentSlots.some(
-      (slotGroup) => slotGroup.date === formattedDate && slotGroup.slots.some((slot) => !slot.isBooked)
-    );
-  };
-  const availableDates = appointmentSlots
-    .filter((group) => group.slots.some((slot) => !slot.isBooked))
-    .map((group) => new Date(group.date));
 
+  const availableSlotsMap =
+    appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      acc[dateStr] = slot.slots;
+      return acc;
+    }, {}) || {};
+
+  const availableDatesInfo =
+    appointmentDetails?.availableSlots?.reduce((acc, slot) => {
+      const dateStr = new Date(slot.date).toDateString();
+      const hasBookedSlot = slot.slots.some((timeSlot) => timeSlot.isBooked);
+      acc[dateStr] = { isAvailable: true, hasBookedSlot };
+      return acc;
+    }, {}) || {};
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -607,9 +765,201 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
             </Box>
           </Box>
         );
-      case 3:
+      case 3: // Payment Step
         return (
-          <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
+          <Box sx={{ my: 3, color: 'white' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: '#d4af37' }}>
+              Payment Information
+            </Typography>
+
+            {/* Summary Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 2,
+                mb: 3,
+                backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                border: '1px solid #d4af37',
+                borderRadius: 2,
+              }}
+            >
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Lawyer
+                  </Typography>
+                  <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Avatar src={selectedLawyer?.ProfilePicture} sx={{ width: 24, height: 24 }} />
+                    {selectedLawyer?.UserName}
+                  </Typography>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Service
+                  </Typography>
+                  <Typography variant="body1">{service}</Typography>
+                </Grid>
+                <Grid item xs={12}>
+                  <Divider sx={{ borderColor: 'rgba(212, 175, 55, 0.3)', my: 1 }} />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Amount Due
+                  </Typography>
+                  <Typography variant="h5" sx={{ color: '#d4af37' }}>
+                    ${selectedLawyer?.price || 200}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Payment Form */}
+            <Box
+              component="form"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleConfirmPayment();
+              }}
+            >
+              <Typography variant="subtitle1" gutterBottom sx={{ color: '#d4af37' }}>
+                Your Details
+              </Typography>
+
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="name"
+                    value={paymentForm.name}
+                    onChange={handlePaymentChange}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: '#d4af37' },
+                        '&:hover fieldset': { borderColor: '#d4af37' },
+                      },
+                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                      '& .MuiInputBase-input': { color: 'white' },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    name="email"
+                    value={paymentForm.email}
+                    onChange={handlePaymentChange}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: '#d4af37' },
+                        '&:hover fieldset': { borderColor: '#d4af37' },
+                      },
+                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                      '& .MuiInputBase-input': { color: 'white' },
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    name="phone"
+                    value={paymentForm.phone}
+                    onChange={handlePaymentChange}
+                    required
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        '& fieldset': { borderColor: '#d4af37' },
+                        '&:hover fieldset': { borderColor: '#d4af37' },
+                      },
+                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
+                      '& .MuiInputBase-input': { color: 'white' },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+
+              <Typography variant="subtitle1" gutterBottom sx={{ mt: 3, color: '#d4af37' }}>
+                Card Details
+              </Typography>
+
+              <Paper
+                variant="outlined"
+                sx={{
+                  p: 2,
+                  mb: 2,
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  borderColor: '#d4af37',
+                  minHeight: 100,
+                }}
+              >
+                {stripe && (
+                  <CardElement
+                    options={{
+                      style: {
+                        base: {
+                          fontSize: '16px',
+                          color: '#ffffff',
+                          '::placeholder': {
+                            color: 'rgba(255, 255, 255, 0.5)',
+                          },
+                          iconColor: '#d4af37',
+                        },
+                        invalid: {
+                          color: '#ff5252',
+                          iconColor: '#ff5252',
+                        },
+                      },
+                    }}
+                    onChange={(e) => setCardComplete(e.complete)}
+                  />
+                )}
+              </Paper>
+
+              {paymentError && (
+                <Typography color="error" sx={{ mb: 2 }}>
+                  {paymentError}
+                </Typography>
+              )}
+
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                size="large"
+                disabled={
+                  isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone || !cardComplete
+                }
+                sx={{
+                  mt: 2,
+                  backgroundColor: '#d4af37',
+                  color: '#18273e',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: '#c19b2e',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: 'rgba(212, 175, 55, 0.3)',
+                    color: 'rgba(255, 255, 255, 0.5)',
+                  },
+                }}
+              >
+                {isProcessing ? (
+                  <CircularProgress size={24} sx={{ color: '#18273e' }} />
+                ) : (
+                  `Pay $${selectedLawyer?.price || 200}`
+                )}
+              </Button>
+            </Box>
+          </Box>
+        );
+      case 4:
+        return (
+          <Box sx={{ my: 3, color: 'white' }}>
             <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
               Select Date and Time
             </Typography>
@@ -624,37 +974,95 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
               </Typography>
             )}
 
-            {/* Calendar */}
-            <Box
-              sx={{
-                mb: 3,
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
-              <Box
-                sx={{
-                  border: '1px solid',
-                  borderColor: '#d4af37',
-                  borderRadius: 2,
-                  p: 2,
-                  backgroundColor: '#18273e',
-                }}
-              >
-                <DatePicker
-                  selected={selectedDate}
-                  onChange={(date) => {
-                    setSelectedDate(date);
-                    fetchAppointments(selectedLawyer._id, date);
-                  }}
-                  inline
-                  minDate={new Date()} // disables past dates
-                  highlightDates={availableDates} // visually highlight dates with free slots
-                  calendarClassName="custom-calendar"
-                  dayClassName={(date) => (date.getMonth() !== selectedDate.getMonth() ? 'outside-month' : undefined)}
-                />
-              </Box>
+            {/* Custom Calendar */}
+            <Box sx={{ mb: 3, border: '1px solid #d4af37', borderRadius: 2, p: 2, backgroundColor: '#18273e' }}>
+              {/* Header Navigation */}
+              <div className="d-flex justify-content-between align-items-center mt-5" style={{ gap: '10px' }}>
+                <button className="calender-button" onClick={prevMonth}>
+                  <FontAwesomeIcon icon={faArrowLeft} size="1x" color="white" />
+                </button>
+                <h3 className="text-white">
+                  {currentDate.toLocaleString('default', { month: 'long' })} {currentDate.getFullYear()}
+                </h3>
+                <button onClick={nextMonth} className="calender-button">
+                  <FontAwesomeIcon icon={faArrowRight} size="1x" color="white" />
+                </button>
+              </div>
+              {/* Days of the Week */}
+              <div className="d-flex justify-content-between font-weight-bold my-2" style={{ gap: '3px' }}>
+                {daysOfWeek.map((day) => (
+                  <div
+                    key={day}
+                    className="Calendarday"
+                    style={{
+                      border: '1px solid #d2a85a',
+                      width: 'calc(100% / 7)',
+                      textAlign: 'center',
+                      color: 'white',
+                      fontSize: 'clamp(0.6rem, 1.5vw, 0.8rem)',
+                    }}
+                  >
+                    {day.substring(0, window.innerWidth < 400 ? 1 : 3)}
+                  </div>
+                ))}
+              </div>
+              {/* Calendar Dates */}
+              <div className="d-flex flex-wrap">
+                {(() => {
+                  let firstAvailableSelected = false; // Local flag inside IIFE
+
+                  return calendarDates.map((date, index) => {
+                    if (!date) {
+                      return (
+                        <div
+                          key={index}
+                          className="calendarEmpty"
+                          style={{ width: 'calc(100% / 7)', height: '40px' }}
+                        ></div>
+                      );
+                    }
+
+                    const dateStr = date.toDateString();
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const cellDate = new Date(date);
+                    cellDate.setHours(0, 0, 0, 0);
+                    const isFutureOrToday = cellDate >= today;
+                    const dateInfo = availableDatesInfo[dateStr] || {};
+                    const isAvailableDate = isFutureOrToday && dateInfo.isAvailable;
+
+                    // ✅ Auto-select the first future/today available date if current date is NOT available
+                    if (isAvailableDate && !selectedDate && !firstAvailableSelected) {
+                      firstAvailableSelected = true;
+                      setTimeout(() => handleDateClick(date), 0); // Call after render
+                    }
+
+                    const isSelected = selectedDate?.toDateString() === dateStr;
+
+                    return (
+                      <div
+                        key={index}
+                        onClick={isAvailableDate ? () => handleDateClick(date) : null}
+                        className={`calendarDates ${isAvailableDate ? 'availableDate' : ''}`}
+                        style={{
+                          border: isSelected ? '2px solid white' : '2px solid rgb(2, 30, 58)',
+                          borderRadius: '5px',
+                          color: isAvailableDate ? 'white' : 'gray',
+                          cursor: isAvailableDate ? 'pointer' : 'not-allowed',
+                          background: isSelected ? '#d2a85a' : '',
+                          textAlign: 'center',
+                          lineHeight: '40px',
+                          height: '40px',
+                          fontSize: 'clamp(0.7rem, 2vw, 0.9rem)',
+                          width: 'calc(100% / 7)',
+                        }}
+                      >
+                        {date.getDate()}
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
             </Box>
 
             {/* Time Slots */}
@@ -671,76 +1079,61 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
               }}
             >
               <Typography variant="subtitle1" gutterBottom sx={{ color: '#d4af37' }}>
-                Available Slots on {selectedDate.toLocaleDateString()}
+                Available Slots on {selectedDate ? selectedDate.toLocaleDateString() : 'selected date'}
               </Typography>
-
-              {appointmentSlots.length > 0 ? (
-                appointmentSlots.map((lawyerData, i) => (
-                  <Box key={i} sx={{ mb: 3 }}>
-                    <Typography fontWeight="medium" sx={{ mb: 1, color: 'white' }}>
-                      {lawyerData.lawyerName}
-                    </Typography>
-
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell sx={{ color: '#d4af37' }}>Start Time</TableCell>
-                          <TableCell sx={{ color: '#d4af37' }}>End Time</TableCell>
-                          <TableCell align="center" sx={{ color: '#d4af37' }}>
-                            Action
-                          </TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {lawyerData.slots
-                          .filter((slot) => !slot.isBooked)
-                          .map((slot, idx) => (
-                            <TableRow
-                              key={idx}
-                              sx={{
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                },
-                                '& .MuiTableCell-root': {
-                                  color: 'white',
-                                  borderColor: 'rgba(212, 175, 55, 0.3)',
-                                },
-                              }}
-                            >
-                              <TableCell>{slot.startTime}</TableCell>
-                              <TableCell>{slot.endTime}</TableCell>
-                              <TableCell align="center">
-                                <Button
-                                  variant="contained"
-                                  size="small"
-                                  onClick={() => handleOpenPopup(lawyerData, slot)}
-                                  sx={{
-                                    backgroundColor: '#d4af37',
-                                    color: '#18273e',
-                                    fontWeight: 'bold',
-                                    '&:hover': {
-                                      backgroundColor: '#c19b2e',
-                                    },
-                                  }}
-                                >
-                                  Book
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                      </TableBody>
-                    </Table>
-                  </Box>
-                ))
-              ) : (
-                <Typography sx={{ color: '#d4af37' }}>No available slots for selected date.</Typography>
-              )}
+              <Box
+                className="gap-2"
+                sx={{
+                  marginLeft: '5px',
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                }}
+              >
+                {selectedDate ? (
+                  availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
+                    <button
+                      key={slot._id}
+                      onClick={() => {
+                        handleTimeClick(slot.startTime, slot);
+                        handleOpenPopup(selectedLawyer, slot);
+                      }}
+                      className="time-button"
+                      style={{
+                        padding: '5px 10px',
+                        borderRadius: '5px',
+                        border: '1px solid #d4af37',
+                        background: slot.isBooked ? 'green' : selectedTime === slot.startTime ? '#d2a85a' : '#16213e',
+                        color: 'white',
+                        cursor: slot.isBooked ? 'not-allowed' : 'pointer',
+                        fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
+                        width: '100%',
+                      }}
+                      disabled={slot.isBooked}
+                      onMouseEnter={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = '#d2a85a';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!slot.isBooked && selectedTime !== slot.startTime) {
+                          e.target.style.background = '#16213e';
+                        }
+                      }}
+                    >
+                      {convertTo12HourFormat(slot.startTime)} - {convertTo12HourFormat(slot.endTime)}
+                    </button>
+                  ))
+                ) : (
+                  <Typography sx={{ color: '#d4af37' }}>Select a date to view available times</Typography>
+                )}
+              </Box>
             </Box>
           </Box>
         );
-      case 4:
+
+      case 5: // Confirmation Step
         return (
-          <Box sx={{ my: 3 }}>
+          <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
             <Typography
               variant="h5"
               gutterBottom
@@ -779,13 +1172,13 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
               </Typography>
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <Avatar src={confirmationData?.lawyer?.image} sx={{ width: 64, height: 64 }} />
+                <Avatar src={selectedLawyer?.ProfilePicture} sx={{ width: 64, height: 64 }} />
                 <Box>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {confirmationData?.lawyer?.name}
+                    {selectedLawyer?.UserName}
                   </Typography>
                   <Typography variant="body2" sx={{ color: '#d4af37' }}>
-                    {confirmationData?.lawyer?.specialty}
+                    {selectedLawyer?.specialty}
                   </Typography>
                 </Box>
               </Box>
@@ -798,7 +1191,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                     Service
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {confirmationData?.service}
+                    {service}
                   </Typography>
                 </Box>
                 <Box>
@@ -806,7 +1199,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                     Consultation Type
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {confirmationData?.method === 'InPerson' ? 'In-Person' : 'Online'}
+                    {method === 'InPerson' ? 'In-Person' : 'Online'}
                   </Typography>
                 </Box>
                 <Box>
@@ -814,7 +1207,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                     Date & Time
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {confirmationData?.date?.toLocaleDateString()} • {confirmationData?.slot?.startTime}
+                    {selectedDate?.toLocaleDateString()} • {selectedSlot?.startTime}
                   </Typography>
                 </Box>
                 <Box>
@@ -822,12 +1215,12 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                     Fee
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    ${confirmationData?.lawyer?.price}
+                    ${selectedLawyer?.price || '$200'}
                   </Typography>
                 </Box>
               </Box>
 
-              {confirmationData?.method === 'Online' && (
+              {method === 'Online' && (
                 <>
                   <Divider sx={{ my: 2, backgroundColor: '#d4af37' }} />
                   <Box>
@@ -835,12 +1228,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                       Meeting Link
                     </Typography>
                     <Typography fontWeight="medium">
-                      <a
-                        href={confirmationData?.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ color: '#d4af37' }}
-                      >
+                      <a href={meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>
                         Join Meeting
                       </a>
                     </Typography>
@@ -848,7 +1236,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                 </>
               )}
 
-              {confirmationData?.clientMessage && (
+              {clientMessage && (
                 <>
                   <Divider sx={{ my: 2, backgroundColor: '#d4af37' }} />
                   <Box>
@@ -856,7 +1244,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                       Your Message
                     </Typography>
                     <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                      {confirmationData.clientMessage}
+                      {clientMessage}
                     </Typography>
                   </Box>
                 </>
@@ -877,137 +1265,6 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', my: 4, position: 'relative' }}>
-      <style>
-        {`
-          .custom-calendar {
-            background-color: #18273e;
-            color: white;
-            border: 1px solid #d4af37;
-            border-radius: 10px;
-            padding: 10px;
-          }
-          .react-datepicker__day,
-          .react-datepicker__day-name,
-          .react-datepicker__current-month {
-            color: white !important;
-          }
-          .react-datepicker__day--selected,
-          .react-datepicker__day--keyboard-selected {
-            background-color: #d4af37 !important;
-            color: #18273e !important;
-          }
-          .react-datepicker__header {
-            background-color: #18273e !important;
-            border-bottom: 1px solid #d4af37 !important;
-          }
-          .react-datepicker__navigation-icon::before {
-            border-color: white !important;
-          }
-          .react-datepicker__day:hover {
-            background-color: white !important;
-            color: black !important;
-          }
-          .popup-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-          }
-          .popup {
-            background-color: #18273e;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            color: white;
-            border: 1px solid #d4af37;
-          }
-          .popupconfirm {
-            background-color: #4CAF50;
-            padding: 20px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
-            color: white;
-            border: 1px solid #d4af37;
-          }
-          .popup-actions {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 15px;
-          }
-          .confirm-btn {
-            background-color: #d4af37;
-            color: #18273e;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            &:hover {
-              background-color: #c19b2e;
-            }
-          }
-          .cancel-btn {
-            background-color: #f44336;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-          }
-          .loading-indicator {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-          }
-          .spinner {
-            border: 4px solid rgba(212, 175, 55, 0.3);
-            border-radius: 50%;
-            border-top: 4px solid #d4af37;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-          }
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-          .confirmation {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-          }
-          
-.react-datepicker__day--disabled {
-  color: white;
-  background-color: #c2bfbf6f !important;
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.react-datepicker__day.outside-month {
-  color: #888 !important;
-  opacity: 0.3;
-  pointer-events: none;
-}
-
-        `}
-      </style>
-
       {/* Popup Component */}
       {isPopupVisible && (
         <div className="popup-overlay">
@@ -1032,17 +1289,15 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
                     width: '90%',
                     minHeight: '100px',
                     padding: '8px',
-                    border: '1px solid #d4af37',
+                    border: '1px solid #ddd',
                     borderRadius: '6px',
                     margin: '10px 0',
                     resize: 'vertical',
-                    backgroundColor: '#18273e',
-                    color: 'white',
                   }}
                 ></textarea>
 
                 {isPopupVisiblecancel && (
-                  <div className="popup-actions">
+                  <div className="popup-actions d-flex justify-content-center">
                     <button className="confirm-btn" onClick={handleConfirm}>
                       Yes
                     </button>
@@ -1054,7 +1309,7 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
               </>
             )}
             {isLoading && (
-              <div className="loading-indicator">
+              <div className="loading-indicator" style={{ color: 'white' }}>
                 <p>Sending...</p>
                 <div className="spinner"></div>
               </div>
@@ -1181,3 +1436,6 @@ ${clientMessage ? `Message: ${clientMessage}` : ''}
     </Box>
   );
 }
+
+// Wrap with Stripe Elements provider
+export default LegalConsultationStepper;
