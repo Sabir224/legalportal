@@ -1,9 +1,9 @@
 /* eslint-disable import/no-anonymous-default-export */
 // services/SocketService.js
 import { io } from "socket.io-client";
-const ApiBase = "https://portal.aws-legalgroup.com";
+// const ApiBase = "https://portal.aws-legalgroup.com";
 //const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
-//const ApiBase = "http://localhost:5001"; // Use this for local testing
+const ApiBase = "http://localhost:5001"; // Use this for local testing
 
 const socket = io(ApiBase, {
   transports: ["websocket"], // Force WebSocket connection
@@ -182,7 +182,22 @@ const onBookAppointment = (callback) => {
     callback(data);
   });
 };
+const onUserVerification = (callback) => {
+  socket.off("UserLogOut");
+  socket.on("UserLogOut", (data) => {
+    console.log("📨 Received UserLogOut event:", data);
+    callback(data);
+  });
+};
 
+const UserVerification = (update) => {
+  console.log("check UserVerifcation", update);
+  if (socket.connected) {
+    socket.emit("UserVerifcation", update);
+  } else {
+    console.log("Socket Not Connected_____________");
+  }
+}
 const TaskManagement = (update) => {
   console.log("Task Updated", update);
   if (socket.connected) {
@@ -221,4 +236,6 @@ export default {
   onBookAppointment,
   TaskManagement,
   onTaskManagement,
+  onUserVerification,
+  UserVerification,
 };

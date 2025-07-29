@@ -33,6 +33,8 @@ import {
 } from "@mui/material";
 import { Lock, Edit, ChevronDown } from "@mui/icons-material";
 import { Dropdown } from "react-bootstrap";
+import SocketService from "../../../../SocketService";
+import { Navigate } from "react-router-dom";
 
 const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
@@ -192,6 +194,24 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     setAdminData((prevData) => ({ ...prevData, phone: value }));
   };
 
+  
+  
+    // useEffect(() => {
+    //   if (!SocketService.socket || !SocketService.socket.connected) {
+    //     console.log('🔌 Connecting to socket...');
+    //     SocketService.socket.connect();
+    //   }
+  
+    //   const handleMessagesDelivered = (data) => {
+    //     console.log( " Logout ")
+    //     // return <Navigate to="/" replace />;
+    //   };
+  
+    //   SocketService.socket.off('UserLogOut', handleMessagesDelivered);
+    //  // SocketService.onUserVerification(handleMessagesDelivered);
+    //   SocketService.UserVerification(handleMessagesDelivered);
+    // }, []);
+  
   // Save changes
   const handleSave = async () => {
     console.log(adminData);
@@ -289,6 +309,8 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
         }
         setEditableFields(false);
         setPic(true);
+        SocketService.UserVerification(response?.data?.Users);
+
         // fetchClientDetails()
         // Mark as deleted to trigger cleanup
       })
@@ -1015,11 +1037,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                         <div className="d-flex flex-wrap justify-content-between align-items-center mb-3">
                           <div className="d-flex align-items-center gap-2">
                             <span
-                              className={`rounded-circle ${
-                                item.Status.toLowerCase() === "case filed"
+                              className={`rounded-circle ${item.Status.toLowerCase() === "case filed"
                                   ? "bg-success"
                                   : "bg-danger"
-                              }`}
+                                }`}
                               style={{
                                 width: "12px",
                                 height: "12px",
@@ -1152,11 +1173,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                       >
                         <span className="col d-flex align-items-center text-start">
                           <span
-                            className={`me-2 rounded-circle ${
-                              item.Status.toLowerCase() === "case filed"
+                            className={`me-2 rounded-circle ${item.Status.toLowerCase() === "case filed"
                                 ? "bg-success"
                                 : "bg-danger"
-                            }`}
+                              }`}
                             style={{
                               width: "10px",
                               height: "10px",

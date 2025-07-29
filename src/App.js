@@ -29,6 +29,7 @@ import { AlertProvider } from './Component/AlertContext';
 import GlobalAlert from './Component/GlobalAlert';
 import PublicAppointment from './Main/Pages/AppointMents/Appointment';
 import HorizontalLinearStepper from './Main/Pages/AppointMents/SteperMultiStep';
+import SocketService from './SocketService';
 
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
@@ -74,6 +75,9 @@ const AcknowledgeCaseHandoverRedirectHandler = () => {
 
   return null;
 };
+
+
+
 
 // Updated ProtectedRoute component
 const ProtectedRoute = ({ children }) => {
@@ -129,6 +133,23 @@ const GlobalTokenValidator = () => {
 };
 
 function App() {
+
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log('🔌 Connecting to socket...');
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      console.log(" Logout 1 ")
+      return <Navigate to="/" replace />;
+    };
+
+    SocketService.socket.off('UserLogOut', handleMessagesDelivered);
+    SocketService.onUserVerification(handleMessagesDelivered);
+   
+  }, []);
+
   return (
     <BrowserRouter>
       <GlobalTokenValidator />

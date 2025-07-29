@@ -130,6 +130,25 @@ const Dashboard = () => {
   }, [cookies.token]); // Decode token only when token changes
   const [isValidating, setIsValidating] = useState(false);
 
+
+
+  useEffect(() => {
+    if (!SocketService.socket || !SocketService.socket.connected) {
+      console.log('🔌 Connecting to socket...');
+      SocketService.socket.connect();
+    }
+
+    const handleMessagesDelivered = (data) => {
+      console.log(" Logout 1 ",jwtDecode(cookies.token))
+      if(data?.Email===jwtDecode(cookies.token)?.email){
+        navigate('/');
+      }
+    };
+
+    SocketService.socket.off('UserLogOut', handleMessagesDelivered);
+    SocketService.onUserVerification(handleMessagesDelivered);
+
+  }, []);
   const validateToken = (decodedToken) => {
     console.log('Validating token:', decodedToken);
 
@@ -519,7 +538,7 @@ const Dashboard = () => {
           {[
             {
               icon: showOptions ? faChevronUp : faChevronDown,
-              label: 'Dashborad',
+              label: 'Dashboard',
               action: () => setShowOptions(!showOptions),
             },
             showOptions
