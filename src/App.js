@@ -30,7 +30,13 @@ import GlobalAlert from './Component/GlobalAlert';
 import PublicAppointment from './Main/Pages/AppointMents/Appointment';
 import HorizontalLinearStepper from './Main/Pages/AppointMents/SteperMultiStep';
 import SocketService from './SocketService';
+import LegalConsultationStepper from './Main/Pages/AppointMents/SteperMultiStep';
+import { Elements } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
+const stripePromise = loadStripe(
+  'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
+); // Load your publishable key
 function CaseRedirectHandler() {
   const { caseId, userId } = useParams();
   const navigate = useNavigate();
@@ -163,7 +169,14 @@ function App() {
         {/* <Route path="/" element={<CaseSummary />} />*/}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
-        <Route path="/clientAppointMent" element={<HorizontalLinearStepper />} />
+        <Route
+          path="/clientAppointMent"
+          element={
+            <Elements stripe={stripePromise}>
+              <LegalConsultationStepper />
+            </Elements>
+          }
+        />
 
         {/* Protected routes */}
         <Route
