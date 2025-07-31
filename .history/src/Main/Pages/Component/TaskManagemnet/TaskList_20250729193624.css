@@ -380,34 +380,37 @@
   background-color: #f9f9f9;
 }
 
-/* .editable-cell {
+.editable-cell {
   padding: 6px 10px;
-  border: 1px solid #d4af37; 
+  border: 1px solid #d4af37; /* gold border */
   border-radius: 4px;
   background-color: #fff;
   color: #000;
   font-size: 0.875rem;
   cursor: pointer;
   transition: border-color 0.2s, box-shadow 0.2s;
-} */
+}
 
-/* .editable-cell:hover {
-  border-color: #e6c050;
+.editable-cell:hover {
+  border-color: #e6c050; /* lighter gold on hover */
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.2);
-} */
+}
 
-/* .editable-cell:focus,
+.editable-cell:focus,
 .editable-cell:focus-visible {
   outline: none;
   border-color: #e6c050;
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
-} */
+}
 
-/* 
+
 input {
   background-color: white !important;
-} */
+}
 
-/* .MuiInputBase-root {
-//  background-color: white !important;
-} */
+.MuiInputBase-root {
+  background-color: white !important;
+}
+
+
+
