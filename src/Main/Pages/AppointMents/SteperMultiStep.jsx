@@ -737,6 +737,22 @@ function LegalConsultationStepper() {
       acc[dateStr] = { isAvailable: true, hasBookedSlot };
       return acc;
     }, {}) || {};
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+      '&:hover fieldset': { borderColor: '#d4af37' },
+      '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+    },
+    '& .MuiInputLabel-root': {
+      color: 'rgba(255, 255, 255, 0.7)',
+      '&.Mui-focused': { color: '#d4af37' },
+    },
+    '& .MuiInputBase-input': {
+      color: 'white',
+      py: 1.5,
+    },
+  };
+
   const renderStepContent = (step) => {
     switch (step) {
       case 0:
@@ -817,36 +833,56 @@ function LegalConsultationStepper() {
               What legal service do you need?
             </Typography>
             <FormControl fullWidth>
-              <InputLabel sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>Select a service</InputLabel>
+              <InputLabel
+                sx={{
+                  color: 'rgba(255, 255, 255, 0.7)',
+                  '&.Mui-focused': { color: '#d4af37' },
+                  '&.MuiInputLabel-shrink': { color: '#d4af37' },
+                }}
+              >
+                Select a service
+              </InputLabel>
               <Select
                 value={service}
                 onChange={(e) => setService(e.target.value)}
+                displayEmpty
                 label="Select a service"
                 sx={{
-                  color: 'white',
+                  color: 'white !important',
+                  '& .MuiSelect-select': {
+                    color: 'white !important',
+                    backgroundColor: '#18273e !important',
+                  },
                   '& .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#d4af37',
+                    borderColor: '#d4af37 !important',
                   },
                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#d4af37',
+                    borderColor: '#d4af37 !important',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#d4af37 !important',
                   },
                   '& .MuiSvgIcon-root': {
-                    color: '#d4af37',
+                    color: '#d4af37 !important',
                   },
                 }}
                 MenuProps={{
                   PaperProps: {
                     sx: {
                       maxHeight: 300,
-                      backgroundColor: '#18273e',
-                      color: 'white',
-                      border: '1px solid #d4af37',
+                      backgroundColor: '#18273e !important',
+                      color: 'white !important',
+                      border: '1px solid #d4af37 !important',
                       '& .MuiMenuItem-root': {
                         '&:hover': {
-                          backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                          backgroundColor: 'rgba(212, 175, 55, 0.2) !important',
                         },
                         '&.Mui-selected': {
-                          backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                          backgroundColor: 'rgba(212, 175, 55, 0.3) !important',
+                          color: '#ffffff !important',
+                        },
+                        '& .MuiTypography-body2': {
+                          color: 'rgba(255, 255, 255, 0.7) !important',
                         },
                       },
                     },
@@ -856,10 +892,10 @@ function LegalConsultationStepper() {
                 {services.map((service) => (
                   <MenuItem key={service.name} value={service.name}>
                     <Box>
-                      <Typography fontWeight="medium" sx={{ color: 'white' }}>
+                      <Typography fontWeight="medium" sx={{ color: 'inherit !important' }}>
                         {service.name}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7) !important' }}>
                         {service.description}
                       </Typography>
                     </Box>
@@ -925,27 +961,28 @@ function LegalConsultationStepper() {
         return (
           <Box
             sx={{
-              my: 3,
+              my: 4,
               color: 'white',
               maxWidth: '800px',
               mx: 'auto',
               px: { xs: 2, sm: 3 },
             }}
           >
+            {/* Page Title */}
             <Typography
               variant="h5"
               gutterBottom
               sx={{
                 color: '#d4af37',
                 fontWeight: 'bold',
-                mb: 3,
+                mb: 4,
                 textAlign: 'center',
               }}
             >
               Complete Your Payment
             </Typography>
 
-            {/* Summary Card - Brighter Version */}
+            {/* Summary Card */}
             <Paper
               elevation={0}
               sx={{
@@ -972,25 +1009,19 @@ function LegalConsultationStepper() {
                 Order Summary
               </Typography>
 
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar
                       src={selectedLawyer?.ProfilePicture}
                       sx={{
-                        width: 42,
-                        height: 42,
+                        width: 44,
+                        height: 44,
                         border: '2px solid #d4af37',
                       }}
                     />
                     <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color: 'rgba(255, 255, 255, 0.8)',
-                          fontSize: '0.75rem',
-                        }}
-                      >
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
                         Lawyer
                       </Typography>
                       <Typography
@@ -998,7 +1029,6 @@ function LegalConsultationStepper() {
                         sx={{
                           fontWeight: 500,
                           color: 'white',
-                          fontSize: '1rem',
                         }}
                       >
                         {selectedLawyer?.UserName}
@@ -1006,29 +1036,16 @@ function LegalConsultationStepper() {
                     </Box>
                   </Box>
                 </Grid>
+
                 <Grid item xs={12} sm={6}>
-                  <Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'rgba(255, 255, 255, 0.8)',
-                        fontSize: '0.75rem',
-                      }}
-                    >
-                      Service
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 500,
-                        color: 'white',
-                        fontSize: '1rem',
-                      }}
-                    >
-                      {service}
-                    </Typography>
-                  </Box>
+                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Service
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 500, color: 'white' }}>
+                    {service}
+                  </Typography>
                 </Grid>
+
                 <Grid item xs={12}>
                   <Divider
                     sx={{
@@ -1038,6 +1055,7 @@ function LegalConsultationStepper() {
                     }}
                   />
                 </Grid>
+
                 <Grid item xs={12}>
                   <Box
                     sx={{
@@ -1057,8 +1075,6 @@ function LegalConsultationStepper() {
                       sx={{
                         color: '#d4af37',
                         fontWeight: 'bold',
-                        fontSize: '1.5rem',
-                        marginLeft: '10px',
                       }}
                     >
                       ${selectedLawyer?.price || 200}
@@ -1078,10 +1094,10 @@ function LegalConsultationStepper() {
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 3,
+                gap: 4,
               }}
             >
-              {/* Personal Information */}
+              {/* Personal Info Section */}
               <Paper
                 elevation={0}
                 sx={{
@@ -1102,11 +1118,12 @@ function LegalConsultationStepper() {
                     fontWeight: '600',
                   }}
                 >
-                  <PersonOutline fontSize="small" />
+                  <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
                   Personal Information
                 </Typography>
 
                 <Grid container spacing={2}>
+                  {/* Full Name */}
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -1115,30 +1132,33 @@ function LegalConsultationStepper() {
                       value={paymentForm.name}
                       onChange={handlePaymentChange}
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                          '&:hover fieldset': { borderColor: '#d4af37' },
-                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
-                        },
-                        '& .MuiInputLabel-root': {
+                      InputLabelProps={{
+                        style: {
                           color: 'rgba(255, 255, 255, 0.7)',
-                          '&.Mui-focused': { color: '#d4af37' },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                          py: 1.5,
                         },
                       }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Person fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
-                          </InputAdornment>
-                        ),
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          backgroundColor: '#18273e !important',
+                          '& fieldset': {
+                            borderColor: 'rgba(255, 255, 255, 0.23)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#d4af37',
+                        },
                       }}
                     />
                   </Grid>
+
+                  {/* Email */}
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -1148,30 +1168,39 @@ function LegalConsultationStepper() {
                       value={paymentForm.email}
                       onChange={handlePaymentChange}
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                          '&:hover fieldset': { borderColor: '#d4af37' },
-                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
-                        },
-                        '& .MuiInputLabel-root': {
+                      InputLabelProps={{
+                        style: {
                           color: 'rgba(255, 255, 255, 0.7)',
-                          '&.Mui-focused': { color: '#d4af37' },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                          py: 1.5,
                         },
                       }}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Email fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                            <Email fontSize="small" sx={{ color: '#d4af37' }} />
                           </InputAdornment>
                         ),
                       }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': {
+                            borderColor: 'rgba(255, 255, 255, 0.23)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#d4af37',
+                        },
+                      }}
                     />
                   </Grid>
+
+                  {/* Phone */}
                   <Grid item xs={12}>
                     <TextField
                       fullWidth
@@ -1180,34 +1209,41 @@ function LegalConsultationStepper() {
                       value={paymentForm.phone}
                       onChange={handlePaymentChange}
                       required
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
-                          '&:hover fieldset': { borderColor: '#d4af37' },
-                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
-                        },
-                        '& .MuiInputLabel-root': {
+                      InputLabelProps={{
+                        style: {
                           color: 'rgba(255, 255, 255, 0.7)',
-                          '&.Mui-focused': { color: '#d4af37' },
-                        },
-                        '& .MuiInputBase-input': {
-                          color: 'white',
-                          py: 1.5,
                         },
                       }}
                       InputProps={{
                         startAdornment: (
                           <InputAdornment position="start">
-                            <Phone fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                            <Phone fontSize="small" sx={{ color: '#d4af37' }} />
                           </InputAdornment>
                         ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': {
+                            borderColor: 'rgba(255, 255, 255, 0.23)',
+                          },
+                          '&:hover fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                          '&.Mui-focused fieldset': {
+                            borderColor: '#d4af37',
+                          },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': {
+                          color: '#d4af37',
+                        },
                       }}
                     />
                   </Grid>
                 </Grid>
               </Paper>
 
-              {/* Card Payment Section - Improved Visibility */}
+              {/* Card Payment Section */}
               <Paper
                 elevation={0}
                 sx={{
@@ -1228,16 +1264,14 @@ function LegalConsultationStepper() {
                     fontWeight: '600',
                   }}
                 >
-                  <CreditCard fontSize="small" />
+                  <CreditCard fontSize="small" sx={{ color: '#d4af37' }} />
                   Payment Details
                 </Typography>
 
-                {/* Enhanced Card Element Container */}
                 <Box
                   sx={{
                     p: 2.5,
                     mb: 2,
-                    backgroundColor: 'transparent',
                     border: '1px solid rgba(212, 175, 55, 0.4)',
                     borderRadius: '8px',
                     minHeight: '120px',
@@ -1256,9 +1290,7 @@ function LegalConsultationStepper() {
                           base: {
                             fontSize: '16px',
                             color: '#ffffff',
-                            '::placeholder': {
-                              color: 'rgba(255, 255, 255, 0.6)',
-                            },
+                            '::placeholder': { color: 'rgba(255, 255, 255, 0.6)' },
                             iconColor: '#d4af37',
                           },
                           invalid: {
@@ -1279,12 +1311,15 @@ function LegalConsultationStepper() {
                     sx={{
                       mb: 2,
                       backgroundColor: 'rgba(255, 72, 66, 0.15)',
+                      color: 'white',
+                      border: '1px solid rgba(255, 72, 66, 0.5)',
                     }}
                   >
                     {paymentError}
                   </Alert>
                 )}
 
+                {/* Submit Button */}
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
                   <Button
                     type="submit"
@@ -1295,21 +1330,17 @@ function LegalConsultationStepper() {
                     }
                     sx={{
                       px: 3,
-                      py: 1,
+                      py: 1.2,
                       backgroundColor: '#d4af37',
                       color: '#18273e',
                       fontWeight: 'bold',
                       fontSize: '1rem',
                       borderRadius: '8px',
                       boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
-                      minWidth: 'auto',
-                      width: 'auto',
-                      '&:hover': {
-                        backgroundColor: '#c19b2e',
-                      },
+                      '&:hover': { backgroundColor: '#c19b2e' },
                       '&.Mui-disabled': {
-                        backgroundColor: 'rgba(212, 175, 55, 0.5)',
-                        color: 'rgba(24, 39, 62, 0.5)',
+                        backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                        color: '#18273e99',
                       },
                     }}
                   >
@@ -1327,6 +1358,7 @@ function LegalConsultationStepper() {
             </Box>
           </Box>
         );
+
       case 4:
         return (
           <Box sx={{ my: 3, color: 'white' }}>
