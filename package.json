@@ -66,6 +66,7 @@
     "recharts": "^2.15.3",
     "smtp-client": "^0.4.0",
     "socket.io-client": "^4.8.1",
+    "uuid": "^11.1.0",
     "vmsg": "^0.4.0",
     "xlsx": "^0.18.5"
   },

@@ -33,6 +33,7 @@ import SocketService from './SocketService';
 import LegalConsultationStepper from './Main/Pages/AppointMents/SteperMultiStep';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { isPublicRoute } from './Main/Pages/Component/utils/utlis';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -110,13 +111,11 @@ const GlobalTokenValidator = () => {
       '/forget-password',
       '/reset-password',
       '/client-consultation',
-      '/clientAppointMent',
+      '/clientAppointMent/:phone/:name',
     ];
-
+    const pathname = location.pathname;
     // Don't validate on public routes
-    if (publicRoutes.includes(location.pathname)) {
-      return;
-    }
+    if (isPublicRoute(pathname)) return;
 
     const redirectPath = localStorage.getItem('redirectPath');
 
@@ -170,7 +169,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
         <Route
-          path="/clientAppointMent"
+          path="/clientAppointMent/:phone/:name"
           element={
             <Elements stripe={stripePromise}>
               <LegalConsultationStepper />

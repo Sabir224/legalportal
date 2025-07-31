@@ -27,6 +27,8 @@ import {
   TableRow,
   TextField,
   Grid,
+  InputAdornment,
+  Alert,
 } from '@mui/material';
 import {
   PersonOutline,
@@ -36,6 +38,11 @@ import {
   ArrowBack,
   ArrowForward,
   CalendarToday,
+  ReceiptLong,
+  Email,
+  Phone,
+  CreditCard,
+  Person,
 } from '@mui/icons-material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -60,10 +67,11 @@ import { CardElement, useElements, useStripe, Elements } from '@stripe/react-str
 import { loadStripe } from '@stripe/stripe-js';
 import getStripe from '../Component/utils/stripeConfiguration';
 import { useState } from 'react';
+import { useParams, useSearchParams } from 'react-router-dom';
 
 // Initialize Stripe
 
-const steps = ['Consultation Method', 'Service Type', 'Select Lawyer', 'Choose Date & Time', 'Payment', 'Confirmation'];
+const steps = ['Consultation Method', 'Service Type', 'Select Lawyer', 'Payment', 'Choose Date & Time', 'Confirmation'];
 
 const StyledStepIcon = styled('div')(({ theme, active }) => ({
   width: 24,
@@ -108,7 +116,7 @@ function LegalConsultationStepper() {
   // Stripe hooks
   const stripe = useStripe();
   const elements = useElements();
-
+  const { phone, name } = useParams();
   const [paymentForm, setPaymentForm] = React.useState({
     name: '',
     email: '',
@@ -118,7 +126,9 @@ function LegalConsultationStepper() {
   const [cardComplete, setCardComplete] = React.useState(false);
   const [paymentError, setPaymentError] = React.useState('');
   const [paymentLoading, setPaymentLoading] = React.useState(false);
-
+  const [searchParams] = useSearchParams();
+  const [data, setData] = useState(null);
+  const ref = searchParams.get('ref');
   // Popup states
   const [isPopupVisible, setIsPopupVisible] = React.useState(false);
   const [popupcolor, setPopupcolor] = React.useState('popup');
@@ -126,6 +136,8 @@ function LegalConsultationStepper() {
   const [isLoading, setIsLoading] = React.useState(false);
   const [isEmailSent, setIsEmailSent] = React.useState(false);
   const [isPopupVisiblecancel, setIsPopupVisiblecancel] = React.useState(true);
+  const [linkData, setLinkData] = React.useState(null);
+  const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
 
   const services = [
     { name: 'Divorce', description: 'Marriage dissolution and related matters' },
@@ -134,7 +146,104 @@ function LegalConsultationStepper() {
     { name: 'Immigration', description: 'Visa and citizenship processes' },
     { name: 'Corporate', description: 'Business formation and compliance' },
   ];
+  React.useEffect(() => {
+    console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
+    let isMounted = true;
 
+    const fetchData = async () => {
+      try {
+        const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
+
+        if (!isMounted) return;
+
+        if (responseData?.success && responseData.data) {
+          setData(responseData.data);
+          const { payment, lawyer } = responseData.data;
+
+          // Always set available data
+          if (payment) {
+            setMethod(payment.consultationType || '');
+            setService(payment.serviceType || '');
+          }
+
+          if (lawyer) setSelectedLawyer(lawyer);
+
+          // Determine step based on payment status and data
+          if (payment?.status === 'paid') {
+            if (payment.meetingDetails) {
+              // Complete booking - show confirmation
+              setConfirmationData({
+                lawyer: lawyer,
+                service: payment.serviceType,
+                method: payment.consultationType,
+                date: new Date(payment.meetingDetails.date),
+                slot: payment.meetingDetails.slot,
+                meetingLink: payment.meetingDetails.meetingUrl,
+              });
+              setActiveStep(5); // Confirmation
+            } else {
+              // Paid but no meeting - show scheduling
+              setActiveStep(4); // Choose Date & Time
+            }
+          } else {
+            // Not paid yet - determine where to resume
+            if (payment?.consultationType && payment?.serviceType) {
+              if (lawyer) {
+                setActiveStep(3); // Payment
+              } else {
+                setActiveStep(2); // Select Lawyer
+              }
+            } else {
+              // Start from beginning if critical data missing
+              setActiveStep(0); // Consultation Method
+            }
+          }
+        }
+      } catch (error) {
+        if (isMounted) console.log('Failed to load payment data:', error);
+      } finally {
+        if (isMounted) setInitialDataLoaded(true);
+      }
+    };
+
+    if (ref) fetchData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [ref]);
+
+  // Debug effect for state changes
+  React.useEffect(() => {
+    console.groupCollapsed('[State Debug] Current State');
+    console.log('Active Step:', activeStep);
+    console.log('Method:', method);
+    console.log('Service:', service);
+    console.log(
+      'Selected Lawyer:',
+      selectedLawyer
+        ? {
+            id: selectedLawyer._id,
+            name: selectedLawyer.UserName,
+            specialty: selectedLawyer.specialty,
+          }
+        : null
+    );
+    console.log('Confirmation Data:', confirmationData);
+    console.log('Meeting Link:', meetingLink);
+    console.log('Initial Data Loaded:', initialDataLoaded);
+    console.log(
+      'API Data:',
+      data
+        ? {
+            paymentStatus: data.payment?.status,
+            hasMeeting: !!data.payment?.meetingDetails,
+            lawyerName: data.lawyer?.UserName,
+          }
+        : null
+    );
+    console.groupEnd();
+  }, [activeStep, method, service, selectedLawyer, confirmationData, meetingLink, initialDataLoaded, data]);
   // Fetch lawyers from API
   React.useEffect(() => {
     const fetchLawyers = async () => {
@@ -164,9 +273,14 @@ function LegalConsultationStepper() {
     setLoading(true);
     try {
       const appointmentsRes = await axios.get(`${ApiEndPoint}appointments/${lawyerId}`);
+
       if (!appointmentsRes.data || appointmentsRes.data.length === 0) {
-        throw new Error('No appointment data found');
+        setError('No appointment data found.');
+        setAppoinmentDetails(null);
+        return;
       }
+
+      console.log('Appointments Data:', appointmentsRes.data);
 
       let temp = { ...appointmentsRes.data[0] };
 
@@ -175,10 +289,17 @@ function LegalConsultationStepper() {
           temp.availableSlots = [...(temp.availableSlots || []), ...element.availableSlots];
         }
       });
+
       setAppoinmentDetails(temp);
+      setError(null); // Clear any previous error
     } catch (err) {
-      setError('Failed to fetch appointment slots. Please try again.');
-      console.error('Error fetching appointments:', err);
+      if (err.response && err.response.status === 404) {
+        setError('No appointments found for the selected lawyer.');
+        setAppoinmentDetails(null);
+      } else {
+        setError('An error occurred while fetching appointments.');
+        console.error('Error fetching appointments:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -250,15 +371,18 @@ function LegalConsultationStepper() {
 
   // Convert to 12-hour format
   const convertTo12HourFormat = (time) => {
+    // Handle null, undefined, or empty string cases
+    if (!time) return '';
+
+    // Handle cases where time is already in 12-hour format
+    if (typeof time !== 'string') return String(time);
+    if (time.includes('AM') || time.includes('PM')) return time;
+
     const timeParts = time.split(':');
     if (timeParts.length < 2) return time;
 
-    let hours = parseInt(timeParts[0]);
-    const minutes = timeParts[1].split(' ')[0];
-
-    if (time.includes('AM') || time.includes('PM')) {
-      return time;
-    }
+    let hours = parseInt(timeParts[0], 10);
+    const minutes = timeParts[1].split(' ')[0]; // Handle cases with seconds or timezone
 
     const period = hours >= 12 ? 'PM' : 'AM';
     hours = hours % 12 || 12;
@@ -286,7 +410,6 @@ function LegalConsultationStepper() {
   };
 
   const calendarDates = generateCalendarDates();
-
   const handleOpenPopup = (lawyer, slot) => {
     setSelectedLawyer(lawyer);
     setSelectedSlot(slot);
@@ -330,7 +453,7 @@ function LegalConsultationStepper() {
         billing_details: {
           name: paymentForm.name,
           email: paymentForm.email,
-          phone: paymentForm.phone,
+          phone: phone,
         },
       });
 
@@ -340,13 +463,15 @@ function LegalConsultationStepper() {
         return;
       }
 
-      // Create payment intent
+      // Create payment intent with all necessary data
       const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, {
         ...paymentForm,
         amount: selectedLawyer?.price || 200,
         serviceType: service,
         lawyerId: selectedLawyer?._id,
-        stripePaymentId: paymentMethod.id,
+        consultationType: method,
+        uniqueLinkId: ref || '', // Use the ref from URL if available
+        appointmentLink: window.location.href, // Current URL as appointment link
       });
 
       const { clientSecret, paymentId } = data;
@@ -363,22 +488,39 @@ function LegalConsultationStepper() {
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Update payment status
-        await axios.post(`${ApiEndPoint}payments/update-status`, {
+        // Prepare all data to save
+        const paymentUpdateData = {
           paymentId,
           status: 'paid',
           paymentIntentId: paymentIntent.id,
           paymentMethodId: paymentIntent.payment_method,
+        };
+
+        // Update payment with all details
+        await axios.post(`${ApiEndPoint}payments/update-status`, paymentUpdateData);
+
+        // Store confirmation data for the UI
+        setConfirmationData({
+          lawyer: selectedLawyer,
+          service,
+          method,
+          ...(selectedDate && { date: selectedDate }),
+          ...(selectedSlot && { slot: selectedSlot }),
+          clientMessage,
         });
 
-        // Move to next step
+        // Move to next step (schedule meeting if not done, or confirmation)
         setActiveStep((prev) => prev + 1);
       } else {
         setPaymentError(`Unexpected status: ${paymentIntent.status}`);
       }
     } catch (err) {
       setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.');
-      console.error('Payment error:', err);
+      console.error('Payment error:', {
+        message: err.message,
+        response: err.response?.data,
+        stack: err.stack,
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -442,8 +584,8 @@ function LegalConsultationStepper() {
         slot: slotId,
         isBooked: true,
         publicBooking: {
-          name: 'Client Name',
-          phone: '6768900909',
+          name: paymentForm.name,
+          phone: phone,
         }, // TODO: Replace with actual user ID
         meetingLink: meetingUrl,
       };
@@ -462,10 +604,10 @@ function LegalConsultationStepper() {
 
       // 2. Send confirmation email
       console.log('Preparing email data...');
-      // Frontend request body construction
+
       console.log('Lawyer:', selectedLawyer);
       const emailData = {
-        to: selectedLawyer?.LawyerDetails?.Email,
+        to: selectedLawyer?.Email,
         subject: `New Appointment Booking - ${service}`,
         clientMessage: clientMessage || 'No additional message provided',
         meetingDetails: {
@@ -485,8 +627,8 @@ function LegalConsultationStepper() {
           UserName: selectedLawyer?.lawyerName,
         },
         clientDetails: {
-          UserName: 'Client Name', // Replace with dynamic value if available
-          Phone: '997899090909', // Replace with dynamic value if available
+          UserName: paymentForm.name, // Replace with dynamic value if available
+          Phone: phone, // Replace with dynamic value if available
         },
         selectedTime: selectedSlot.startTime,
         formattedDate: selectedDate.toLocaleDateString('en-US', {
@@ -502,8 +644,8 @@ function LegalConsultationStepper() {
         subject: `New Appointment Booking - ${service}`,
         client: {
           user: {
-            UserName: 'Client Name', // Same as above
-            Phone: '997899090909', // Same as above
+            UserName: paymentForm.name, // Same as above
+            Phone: phone, // Same as above
           },
         },
         mailmsg: emailData,
@@ -542,6 +684,20 @@ function LegalConsultationStepper() {
       setIsEmailSent(true);
       setPopupcolor('popupconfirm');
       setPopupmessage('Meeting scheduled successfully!');
+      const updateResponse = await axios.post(`${ApiEndPoint}payments/update-status`, {
+        paymentId: data?.payment?._id, // From your earlier API call
+        meetingDetails: {
+          meetingUrl: meetingUrl,
+          date: selectedDate,
+          slot: selectedSlot,
+        },
+      });
+
+      // 3. Update confirmation data
+      setConfirmationData((prev) => ({
+        ...prev,
+        meetingLink: meetingUrl,
+      }));
 
       setTimeout(() => {
         setIsPopupVisible(false);
@@ -767,48 +923,147 @@ function LegalConsultationStepper() {
         );
       case 3: // Payment Step
         return (
-          <Box sx={{ my: 3, color: 'white' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: '#d4af37' }}>
-              Payment Information
+          <Box
+            sx={{
+              my: 3,
+              color: 'white',
+              maxWidth: '800px',
+              mx: 'auto',
+              px: { xs: 2, sm: 3 },
+            }}
+          >
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{
+                color: '#d4af37',
+                fontWeight: 'bold',
+                mb: 3,
+                textAlign: 'center',
+              }}
+            >
+              Complete Your Payment
             </Typography>
 
-            {/* Summary Card */}
+            {/* Summary Card - Brighter Version */}
             <Paper
               elevation={0}
               sx={{
-                p: 2,
-                mb: 3,
-                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                border: '1px solid #d4af37',
-                borderRadius: 2,
+                p: 3,
+                mb: 4,
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(212, 175, 55, 0.5)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
               }}
             >
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: '#d4af37',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: '600',
+                }}
+              >
+                <ReceiptLong fontSize="small" />
+                Order Summary
+              </Typography>
+
               <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Lawyer
-                  </Typography>
-                  <Typography variant="body1" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Avatar src={selectedLawyer?.ProfilePicture} sx={{ width: 24, height: 24 }} />
-                    {selectedLawyer?.UserName}
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                    <Avatar
+                      src={selectedLawyer?.ProfilePicture}
+                      sx={{
+                        width: 42,
+                        height: 42,
+                        border: '2px solid #d4af37',
+                      }}
+                    />
+                    <Box>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: 'rgba(255, 255, 255, 0.8)',
+                          fontSize: '0.75rem',
+                        }}
+                      >
+                        Lawyer
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 500,
+                          color: 'white',
+                          fontSize: '1rem',
+                        }}
+                      >
+                        {selectedLawyer?.UserName}
+                      </Typography>
+                    </Box>
+                  </Box>
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Service
-                  </Typography>
-                  <Typography variant="body1">{service}</Typography>
+                  <Box>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'rgba(255, 255, 255, 0.8)',
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      Service
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 500,
+                        color: 'white',
+                        fontSize: '1rem',
+                      }}
+                    >
+                      {service}
+                    </Typography>
+                  </Box>
                 </Grid>
                 <Grid item xs={12}>
-                  <Divider sx={{ borderColor: 'rgba(212, 175, 55, 0.3)', my: 1 }} />
+                  <Divider
+                    sx={{
+                      borderColor: 'rgba(212, 175, 55, 0.3)',
+                      my: 1,
+                      borderBottomWidth: '1px',
+                    }}
+                  />
                 </Grid>
                 <Grid item xs={12}>
-                  <Typography variant="subtitle2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Amount Due
-                  </Typography>
-                  <Typography variant="h5" sx={{ color: '#d4af37' }}>
-                    ${selectedLawyer?.price || 200}
-                  </Typography>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      backgroundColor: 'transparent',
+                      p: 2,
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                      Total Amount
+                    </Typography>
+                    <Typography
+                      variant="h5"
+                      sx={{
+                        color: '#d4af37',
+                        fontWeight: 'bold',
+                        fontSize: '1.5rem',
+                        marginLeft: '10px',
+                      }}
+                    >
+                      ${selectedLawyer?.price || 200}
+                    </Typography>
+                  </Box>
                 </Grid>
               </Grid>
             </Paper>
@@ -820,140 +1075,255 @@ function LegalConsultationStepper() {
                 e.preventDefault();
                 handleConfirmPayment();
               }}
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 3,
+              }}
             >
-              <Typography variant="subtitle1" gutterBottom sx={{ color: '#d4af37' }}>
-                Your Details
-              </Typography>
-
-              <Grid container spacing={2}>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    name="name"
-                    value={paymentForm.name}
-                    onChange={handlePaymentChange}
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#d4af37' },
-                        '&:hover fieldset': { borderColor: '#d4af37' },
-                      },
-                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
-                      '& .MuiInputBase-input': { color: 'white' },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={paymentForm.email}
-                    onChange={handlePaymentChange}
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#d4af37' },
-                        '&:hover fieldset': { borderColor: '#d4af37' },
-                      },
-                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
-                      '& .MuiInputBase-input': { color: 'white' },
-                    }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    name="phone"
-                    value={paymentForm.phone}
-                    onChange={handlePaymentChange}
-                    required
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        '& fieldset': { borderColor: '#d4af37' },
-                        '&:hover fieldset': { borderColor: '#d4af37' },
-                      },
-                      '& .MuiInputLabel-root': { color: 'rgba(255, 255, 255, 0.7)' },
-                      '& .MuiInputBase-input': { color: 'white' },
-                    }}
-                  />
-                </Grid>
-              </Grid>
-
-              <Typography variant="subtitle1" gutterBottom sx={{ mt: 3, color: '#d4af37' }}>
-                Card Details
-              </Typography>
-
+              {/* Personal Information */}
               <Paper
-                variant="outlined"
+                elevation={0}
                 sx={{
-                  p: 2,
-                  mb: 2,
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  borderColor: '#d4af37',
-                  minHeight: 100,
+                  p: 3,
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '12px',
                 }}
               >
-                {stripe && (
-                  <CardElement
-                    options={{
-                      style: {
-                        base: {
-                          fontSize: '16px',
-                          color: '#ffffff',
-                          '::placeholder': {
-                            color: 'rgba(255, 255, 255, 0.5)',
-                          },
-                          iconColor: '#d4af37',
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: '#d4af37',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: '600',
+                  }}
+                >
+                  <PersonOutline fontSize="small" />
+                  Personal Information
+                </Typography>
+
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="name"
+                      value={paymentForm.name}
+                      onChange={handlePaymentChange}
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
                         },
-                        invalid: {
-                          color: '#ff5252',
-                          iconColor: '#ff5252',
+                        '& .MuiInputLabel-root': {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          '&.Mui-focused': { color: '#d4af37' },
                         },
-                      },
-                    }}
-                    onChange={(e) => setCardComplete(e.complete)}
-                  />
-                )}
+                        '& .MuiInputBase-input': {
+                          color: 'white',
+                          py: 1.5,
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Person fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      name="email"
+                      value={paymentForm.email}
+                      onChange={handlePaymentChange}
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                        },
+                        '& .MuiInputLabel-root': {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          '&.Mui-focused': { color: '#d4af37' },
+                        },
+                        '& .MuiInputBase-input': {
+                          color: 'white',
+                          py: 1.5,
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Email fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      name="phone"
+                      value={paymentForm.phone}
+                      onChange={handlePaymentChange}
+                      required
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.3)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                        },
+                        '& .MuiInputLabel-root': {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                          '&.Mui-focused': { color: '#d4af37' },
+                        },
+                        '& .MuiInputBase-input': {
+                          color: 'white',
+                          py: 1.5,
+                        },
+                      }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Phone fontSize="small" sx={{ color: 'rgba(255, 255, 255, 0.5)' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                  </Grid>
+                </Grid>
               </Paper>
 
-              {paymentError && (
-                <Typography color="error" sx={{ mb: 2 }}>
-                  {paymentError}
-                </Typography>
-              )}
-
-              <Button
-                type="submit"
-                variant="contained"
-                fullWidth
-                size="large"
-                disabled={
-                  isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone || !cardComplete
-                }
+              {/* Card Payment Section - Improved Visibility */}
+              <Paper
+                elevation={0}
                 sx={{
-                  mt: 2,
-                  backgroundColor: '#d4af37',
-                  color: '#18273e',
-                  fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: '#c19b2e',
-                  },
-                  '&.Mui-disabled': {
-                    backgroundColor: 'rgba(212, 175, 55, 0.3)',
-                    color: 'rgba(255, 255, 255, 0.5)',
-                  },
+                  p: 3,
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '12px',
                 }}
               >
-                {isProcessing ? (
-                  <CircularProgress size={24} sx={{ color: '#18273e' }} />
-                ) : (
-                  `Pay $${selectedLawyer?.price || 200}`
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: '#d4af37',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: '600',
+                  }}
+                >
+                  <CreditCard fontSize="small" />
+                  Payment Details
+                </Typography>
+
+                {/* Enhanced Card Element Container */}
+                <Box
+                  sx={{
+                    p: 2.5,
+                    mb: 2,
+                    backgroundColor: 'transparent',
+                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                    borderRadius: '8px',
+                    minHeight: '120px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '& .StripeElement': {
+                      width: '100%',
+                      padding: '10px 0',
+                    },
+                  }}
+                >
+                  {stripe && (
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: '16px',
+                            color: '#ffffff',
+                            '::placeholder': {
+                              color: 'rgba(255, 255, 255, 0.6)',
+                            },
+                            iconColor: '#d4af37',
+                          },
+                          invalid: {
+                            color: '#ff5252',
+                            iconColor: '#ff5252',
+                          },
+                        },
+                        hidePostalCode: true,
+                      }}
+                      onChange={(e) => setCardComplete(e.complete)}
+                    />
+                  )}
+                </Box>
+
+                {paymentError && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      mb: 2,
+                      backgroundColor: 'rgba(255, 72, 66, 0.15)',
+                    }}
+                  >
+                    {paymentError}
+                  </Alert>
                 )}
-              </Button>
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="small"
+                    disabled={
+                      isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone || !cardComplete
+                    }
+                    sx={{
+                      px: 3,
+                      py: 1,
+                      backgroundColor: '#d4af37',
+                      color: '#18273e',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
+                      minWidth: 'auto',
+                      width: 'auto',
+                      '&:hover': {
+                        backgroundColor: '#c19b2e',
+                      },
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(212, 175, 55, 0.5)',
+                        color: 'rgba(24, 39, 62, 0.5)',
+                      },
+                    }}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
+                        Processing...
+                      </>
+                    ) : (
+                      `Pay $${selectedLawyer?.price || 200} Now`
+                    )}
+                  </Button>
+                </Box>
+              </Paper>
             </Box>
           </Box>
         );
@@ -1079,7 +1449,7 @@ function LegalConsultationStepper() {
               }}
             >
               <Typography variant="subtitle1" gutterBottom sx={{ color: '#d4af37' }}>
-                Available Slots on {selectedDate ? selectedDate.toLocaleDateString() : 'selected date'}
+                Available Slots
               </Typography>
               <Box
                 className="gap-2"
@@ -1207,7 +1577,13 @@ function LegalConsultationStepper() {
                     Date & Time
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {selectedDate?.toLocaleDateString()} • {selectedSlot?.startTime}
+                    {selectedDate?.toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      month: 'long',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}{' '}
+                    • {convertTo12HourFormat(selectedSlot?.startTime)}
                   </Typography>
                 </Box>
                 <Box>
@@ -1215,7 +1591,7 @@ function LegalConsultationStepper() {
                     Fee
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    ${selectedLawyer?.price || '$200'}
+                    {selectedLawyer?.price || '$200'}
                   </Typography>
                 </Box>
               </Box>
@@ -1258,6 +1634,7 @@ function LegalConsultationStepper() {
             </Paper>
           </Box>
         );
+
       default:
         return 'Unknown step';
     }
@@ -1334,60 +1711,61 @@ function LegalConsultationStepper() {
         }}
       >
         <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 4 }}>
-          {steps.map((label, index) => (
-            <Step key={label}>
-              <StepLabel
-                StepIconComponent={({ active, completed, icon }) => (
-                  <Box
+          {steps.map((label, index) => {
+            const isLastStep = index === steps.length - 1;
+            const isStepActive = activeStep === index;
+            const isStepCompleted = activeStep > index || (isLastStep && activeStep === index);
+
+            return (
+              <Step key={label}>
+                <StepLabel
+                  StepIconComponent={({ icon }) => (
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '50%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: isStepCompleted
+                          ? '#d4af37'
+                          : isStepActive
+                          ? 'rgba(212, 175, 55, 0.2)'
+                          : 'rgba(255, 255, 255, 0.1)',
+                        color: isStepCompleted ? '#18273e' : isStepActive ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
+                        fontWeight: 'bold',
+                        border: isStepActive ? '1px solid #d4af37' : 'none',
+                      }}
+                    >
+                      {icon}
+                    </Box>
+                  )}
+                >
+                  <Typography
+                    variant="caption"
                     sx={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: '50%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: completed
-                        ? '#d4af37'
-                        : active
-                        ? 'rgba(212, 175, 55, 0.2)'
-                        : 'rgba(255, 255, 255, 0.1)',
-                      color: completed ? '#18273e' : active ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
-                      fontWeight: 'bold',
-                      border: active ? '1px solid #d4af37' : 'none',
+                      color: isStepActive || isStepCompleted ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
+                      fontWeight: isStepActive ? 'bold' : 'normal',
                     }}
                   >
-                    {icon}
-                  </Box>
-                )}
-                sx={{
-                  '& .MuiStepLabel-label': {
-                    color: activeStep >= index ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
-                    '&.Mui-completed': {
-                      color: '#d4af37',
-                    },
-                    '&.Mui-active': {
-                      color: '#d4af37',
-                    },
-                  },
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: activeStep >= index ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
-                    fontWeight: activeStep === index ? 'bold' : 'normal',
-                  }}
-                >
-                  {label}
-                </Typography>
-              </StepLabel>
-            </Step>
-          ))}
+                    {label}
+                  </Typography>
+                </StepLabel>
+              </Step>
+            );
+          })}
         </Stepper>
 
         <Box sx={{ minHeight: 300 }}>{renderStepContent(activeStep)}</Box>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', pt: 2 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            pt: 2,
+          }}
+        >
           {activeStep < steps.length - 1 ? (
             <Button
               endIcon={<ArrowForward />}
@@ -1416,20 +1794,7 @@ function LegalConsultationStepper() {
               {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
             </Button>
           ) : (
-            <Button
-              variant="contained"
-              onClick={handleReset}
-              sx={{
-                backgroundColor: '#d4af37',
-                color: '#18273e',
-                fontWeight: 'bold',
-                '&:hover': {
-                  backgroundColor: '#c19b2e',
-                },
-              }}
-            >
-              Book Another Appointment
-            </Button>
+            <></>
           )}
         </Box>
       </Paper>
