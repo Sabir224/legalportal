@@ -2445,7 +2445,7 @@ const ViewFolder = ({ token }) => {
 
                 {!folderList?.length && !files?.length && (
                   <Col xs={12}>
-                    <div className="text-center text-white py-5">
+                    <div className="text-center text-black py-5">
                       No folders or files available.
                     </div>
                   </Col>

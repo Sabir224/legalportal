@@ -261,7 +261,7 @@
 }
 
 .add-subtask-btn:hover {
-  background-color: #fff8e1;
+  /* background-color: #fff8e1; */
   border-color: var(--accent-gold);
   color: #c29d29;
 }
@@ -285,7 +285,7 @@
 
 .select-field .MuiSelect-select {
   padding: 8px 24px 8px 12px;
-  color: white;
+  /* color: white; */
   font-size: 0.95rem;
   border: 1px solid var(--border-light);
   border-radius: 4px;
@@ -347,19 +347,19 @@
 .sticky-cell {
   position: sticky;
   left: 0;
-  background: white;
+  /* background: white; */
   z-index: 2;
 }
 
 .subtask-header-row {
-  background-color: #f2f2f2;
+  /* background-color: #f2f2f2; */
   font-weight: 600;
   z-index: 5;
 }
 
 .subtask-header-cell {
-  background-color: #f2f2f2 !important;
-  border-bottom: 1px solid #ccc;
+  /* background-color: #f2f2f2 !important; */
+  /* border-bottom: 1px solid #ccc; */
 }
 
 .sticky-cell.case-id.subtask-header-cell {
@@ -373,18 +373,18 @@
   color: #333;
 }
 .subtask-row {
-  background-color: #fafafa;
+  /* background-color: #fafafa; */
 }
 .add-subtask-cell {
   text-align: center;
-  background-color: #f9f9f9;
+  /* background-color: #f9f9f9; */
 }
 
 /* .editable-cell {
   padding: 6px 10px;
   border: 1px solid #d4af37; 
   border-radius: 4px;
-  background-color: #fff;
+  /* background-color: #fff; */
   color: #000;
   font-size: 0.875rem;
   cursor: pointer;
@@ -405,9 +405,12 @@
 
 /* 
 input {
-  background-color: white !important;
-} */
+  /* background-color: white !important; */
+}
 
-/* .MuiInputBase-root {
-//  background-color: white !important;
-} */
+.MuiInputBase-root {
+  /* background-color: white !important; */
+}
+
+
+
