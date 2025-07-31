@@ -384,7 +384,7 @@
   padding: 6px 10px;
   border: 1px solid #d4af37; 
   border-radius: 4px;
-  background-color: #fff;
+  /* background-color: #fff; */
   color: #000;
   font-size: 0.875rem;
   cursor: pointer;
@@ -403,10 +403,14 @@
   box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.3);
 } */
 
-/* input {
-  background-color: white !important;
-} */
+/* 
+input {
+  /* background-color: white !important; */
+}
 
-/* .MuiInputBase-root {
-  background-color: white !important;
-} */
+.MuiInputBase-root {
+  /* background-color: white !important; */
+}
+
+
+
