@@ -172,6 +172,7 @@ setCaseStagedropdownOpen(false);
       IsDubiCourts: false,
       CaseStage:caseStage,
       ClientId: selectedclientdetails?._id,
+      IsActive: true,
     };
     if (!regexCaseNumber.test(casenumber)) {
       showError(

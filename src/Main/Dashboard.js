@@ -299,7 +299,13 @@ const Dashboard = () => {
         setCurrentScreen(<Task token={decodedToken} />);
         break;
       case 14:
-        setCurrentScreen(<TaskList token={decodedToken} />);
+
+        setCurrentScreen(
+          <AlertProvider>
+            <TaskList token={decodedToken}/>
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 15:
         setCurrentScreen(
@@ -640,6 +646,7 @@ const Dashboard = () => {
                 icon: faTasksAlt,
                 label: 'View Task',
                 action: () => {
+                  
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));

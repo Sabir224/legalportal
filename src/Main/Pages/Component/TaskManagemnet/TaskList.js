@@ -69,6 +69,7 @@ import {
   CalendarToday,
   Description,
 } from '@mui/icons-material';
+import { useAlert } from '../../../../Component/AlertContext';
 
 
 export default function TaskList({ token }) {
@@ -79,6 +80,7 @@ export default function TaskList({ token }) {
   const [openTasks, setOpenTasks] = useState([]);
   const [addingSubtaskFor, setAddingSubtaskFor] = useState(null);
   const [newSubtaskName, setNewSubtaskName] = useState('');
+  const caseInfo = useSelector((state) => state.screen.Caseinfo);
 
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
@@ -96,7 +98,7 @@ export default function TaskList({ token }) {
   const isclient = token?.Role === 'client';
   const [showTaskModal, setShowTaskModal] = useState(false);
   const [newTaskName, setNewTaskName] = useState('');
-  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState('');
+  const [newAssignedTaskCase, setNewAssignedTaskCase] = useState(caseInfo ? caseInfo?._id : '');
   const [assignedUsersForCase, setAssignedUsersForCase] = useState([]);
   const [editingAssignedUser, setEditingAssignedUser] = useState(null);
   const [hoveredTaskId, setHoveredTaskId] = useState(null);
@@ -112,6 +114,8 @@ export default function TaskList({ token }) {
   const [openSubtasksId, setOpenSubtasksId] = useState(null);
   const [editingField, setEditingField] = useState(null); // { taskId, subtaskId, key }
   const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const { showDataLoading } = useAlert();
 
   const toggleSubtasks = (id) => {
     setOpenSubtasksId(openSubtasksId === id ? null : id);
@@ -151,7 +155,9 @@ export default function TaskList({ token }) {
   }, []);
 
   useEffect(() => {
+    setNewAssignedTaskCase(caseInfo?._id)
     fetchtask();
+    fetchUsers(caseInfo?._id);
   }, []);
 
   useEffect(() => {
@@ -169,7 +175,6 @@ export default function TaskList({ token }) {
     setSelectedTodo(null);
   };
 
-  const caseInfo = useSelector((state) => state.screen.Caseinfo);
   const fetchUsers = async (taskdetails) => {
     let id = taskdetails?.caseId?.value?._id;
     try {
@@ -197,6 +202,7 @@ export default function TaskList({ token }) {
 
   const fetchtask = async () => {
     try {
+      // showDataLoading(true)
       const response = await fetch(
         caseInfo === null
           ? token?.Role === 'admin'
@@ -206,12 +212,15 @@ export default function TaskList({ token }) {
       );
 
       if (!response.ok) {
+        // showDataLoading(false)
+
         throw new Error('Error fetching folders');
       }
 
       const data = await response.json();
       setTodos(data.todos);
     } catch (err) {
+      // showDataLoading(false)
       setMessage(err.response?.data?.message || 'Error deleting task.');
       setShowError(true);
     }
@@ -248,6 +257,8 @@ export default function TaskList({ token }) {
       await fetchtask();
       await setOpenTaskId(previousOpenTaskId);
     } catch (error) {
+      setMessage('⚠️ Task not assign please select users or task ');
+      setShowError(true);
       console.error('Failed to add subtask:', error);
     }
   };
@@ -522,190 +533,192 @@ export default function TaskList({ token }) {
           New Task
         </Button>
       </div>
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            p: 1,
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <TableContainer component={Paper} className="table-container">
-            <Table stickyHeader size="small" aria-label="desktop table view" className="table-main">
-              <TableHead>
-                <TableRow className="table-header-row">
-                  <TableCell className="table-pad-header"></TableCell>
-                  <TableCell className="sticky-cell header-cell case-id">
-                    <Box className="header-box">
-                      <Box className="header-label">{formatHeaderLabel('caseId')}</Box>
-                    </Box>
-                  </TableCell>
-                  {keys
-                    ?.filter((key) => key !== 'caseId')
-                    .map((key, index) => (
-                      <TableCell key={key} className={`header-cell ${key}-col`}>
+      {todos.length > 0 ?
+        (
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            <Box
+              sx={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                p: 1,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
+              }}
+            >
+              <TableContainer component={Paper} className="table-container">
+                <Table stickyHeader size="small" aria-label="desktop table view" className="table-main">
+                  <TableHead>
+                    <TableRow className="table-header-row">
+                      <TableCell className="table-pad-header"></TableCell>
+                      <TableCell className="sticky-cell header-cell case-id">
                         <Box className="header-box">
-                          <Box className="header-label">{formatHeaderLabel(key)}</Box>
-                          {!isclient &&
-                            ![
-                              'caseId',
-                              'title',
-                              'description',
-                              'assignedUsers',
-                              'createdBy',
-                              'status',
-                              'dueDate',
-                              'clientEmail',
-                              'nationality',
-                              'nextHearing',
-                            ].includes(key) && (
-                              <Box className="icon-box">
-                                {token?.Role === 'admin' && (
-                                  <IconButton
-                                    size="small"
-                                    onClick={() => deleteColumn(key)}
-                                    title="Delete column"
-                                    className="delete-btn"
-                                  >
-                                    <DeleteIcon fontSize="small" />
-                                  </IconButton>
-                                )}
-                              </Box>
-                            )}
+                          <Box className="header-label">{formatHeaderLabel('caseId')}</Box>
                         </Box>
-                      </TableCell>
-                    ))}
-                  <TableCell className="add-column-cell">
-                    {token?.Role === 'admin' && (
-                      <IconButton size="small" onClick={() => setAddingColumn(true)} className="add-column-btn">
-                        <FaPlus style={{ color: 'var(--accent-gold)' }} />
-                      </IconButton>
-                    )}
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {todos?.map((todo, rowIndex) => (
-                  <React.Fragment key={todo?._id?.value || todo.id}>
-                    <TableRow className="main-row">
-                      <TableCell className="table-pad-header">
-                        <IconButton
-                          size="small"
-                          onClick={() => toggleTask(todo?._id?.value || todo.id)}
-                          className="expand-icon"
-                        >
-                          {openTaskId === (todo?._id?.value || todo.id) ? <FaChevronDown /> : <FaChevronRight />}
-                        </IconButton>
-                      </TableCell>
-                      <TableCell className="sticky-cell data-cell case-id">
-                        <Typography variant="inherit" noWrap>
-                          {todo.caseId?.value?.CaseNumber || ''}
-                        </Typography>
                       </TableCell>
                       {keys
                         ?.filter((key) => key !== 'caseId')
-                        .map((key) => {
-                          let field = todo[key] || { value: '', type: 'string', editable: true };
-                          const { value, type, enum: enumOptions, editable = true } = field;
-                          const normalizedType = type?.toLowerCase();
-                          const taskId = todo?._id?.value || todo.id;
-                          const subtaskId = null;
-                          const handleBlur = (e) => {
-                            const newValue = e.target.textContent;
-                            handleFieldBlur(taskId, key, newValue, false, subtaskId);
-                          };
-
-                          let content;
-
-                          const isExcluded = ['assignedUsers', 'dueDate', 'caseId'].includes(key);
-                          const isEditing =
-                            editingField?.taskId === taskId &&
-                            editingField?.subtaskId === subtaskId &&
-                            editingField?.key === key;
-
-                          if (!isExcluded && editable) {
-                            content = isEditing ? (
-                              <textarea
-                                autoFocus
-                                defaultValue={value}
-                                placeholder={`Enter ${formatHeaderLabel(key)}`}
-                                onBlur={(e) => {
-                                  const val = e.target.value;
-                                  handleFieldBlur(taskId, key, val, false, subtaskId);
-                                  setEditingField(null);
-                                }}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter' && !e.shiftKey) {
-                                    e.preventDefault();
-                                    e.target.blur();
-                                  }
-                                }}
-                                onMouseOver={(e) => {
-                                  if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.8)';
-                                }}
-                                onMouseOut={(e) => {
-                                  if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.5)';
-                                }}
-                                style={{
-                                  width: '100%',
-                                  minHeight: '70px',
-                                  maxHeight: '200px',
-                                  padding: '8px 12px',
-                                  fontSize: '0.875rem',
-                                  lineHeight: '20px',
-                                  backgroundColor: '#fff',
-                                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                                  borderRadius: '4px',
-                                  resize: 'none',
-                                  overflowY: 'auto',
-                                  outline: 'none',
-                                  boxShadow: isEditing ? '0 0 0 2px rgba(212, 175, 55, 0.3)' : 'none',
-                                }}
-                              />
-                            ) : (
-                              <div
-                                onClick={() => setEditingField({ taskId, subtaskId, key })}
-                                style={{
-                                  width: '100%',
-                                  height: '70px', // Fixed 3-line display
-                                  padding: '8px 0',
-                                  lineHeight: '20px',
-                                  fontSize: '0.875rem',
-                                  whiteSpace: 'pre-wrap',
-                                  wordBreak: 'break-word',
-                                  cursor: 'pointer',
-                                  overflowY: 'auto', // Show thin scrollbar on hover
-                                }}
-                              >
-                                {value || (
-                                  <span style={{ color: 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
-                                    Enter {formatHeaderLabel(key)}
-                                  </span>
+                        .map((key, index) => (
+                          <TableCell key={key} className={`header-cell ${key}-col`}>
+                            <Box className="header-box">
+                              <Box className="header-label">{formatHeaderLabel(key)}</Box>
+                              {!isclient &&
+                                ![
+                                  'caseId',
+                                  'title',
+                                  'description',
+                                  'assignedUsers',
+                                  'createdBy',
+                                  'status',
+                                  'dueDate',
+                                  'clientEmail',
+                                  'nationality',
+                                  'nextHearing',
+                                ].includes(key) && (
+                                  <Box className="icon-box">
+                                    {token?.Role === 'admin' && (
+                                      <IconButton
+                                        size="small"
+                                        onClick={() => deleteColumn(key)}
+                                        title="Delete column"
+                                        className="delete-btn"
+                                      >
+                                        <DeleteIcon fontSize="small" />
+                                      </IconButton>
+                                    )}
+                                  </Box>
                                 )}
-                              </div>
-                            );
-                          }
+                            </Box>
+                          </TableCell>
+                        ))}
+                      <TableCell className="add-column-cell">
+                        {token?.Role === 'admin' && (
+                          <IconButton size="small" onClick={() => setAddingColumn(true)} className="add-column-btn">
+                            <FaPlus style={{ color: 'var(--accent-gold)' }} />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
 
-                          if (key === 'createdBy') {
-                            content = (
-                              <Typography variant="inherit" noWrap>
-                                {todo.createdBy?.value?.UserName || ''}
-                              </Typography>
-                            );
-                          } else if (key === 'assignedUsers') {
-                            //copy
-                            const usersList = todo?.assignedUsers?.value || [];
-                            const defaultSelectedId = usersList[0]?.id || '';
-                            const currentSelectedId = assignedUserId || defaultSelectedId;
-                            if (editingAssignedUser === taskId) {
-                              content = (
-                                <FormControl fullWidth size="small">
-                                  {/* <Select
+                  <TableBody>
+                    {todos?.map((todo, rowIndex) => (
+                      <React.Fragment key={todo?._id?.value || todo.id}>
+                        <TableRow className="main-row">
+                          <TableCell className="table-pad-header">
+                            <IconButton
+                              size="small"
+                              onClick={() => toggleTask(todo?._id?.value || todo.id)}
+                              className="expand-icon"
+                            >
+                              {openTaskId === (todo?._id?.value || todo.id) ? <FaChevronDown /> : <FaChevronRight />}
+                            </IconButton>
+                          </TableCell>
+                          <TableCell className="sticky-cell data-cell case-id">
+                            <Typography variant="inherit" noWrap>
+                              {todo.caseId?.value?.CaseNumber || ''}
+                            </Typography>
+                          </TableCell>
+                          {keys
+                            ?.filter((key) => key !== 'caseId')
+                            .map((key) => {
+                              let field = todo[key] || { value: '', type: 'string', editable: true };
+                              const { value, type, enum: enumOptions, editable = true } = field;
+                              const normalizedType = type?.toLowerCase();
+                              const taskId = todo?._id?.value || todo.id;
+                              const subtaskId = null;
+                              const handleBlur = (e) => {
+                                const newValue = e.target.textContent;
+                                handleFieldBlur(taskId, key, newValue, false, subtaskId);
+                              };
+
+                              let content;
+
+                              const isExcluded = ['assignedUsers', 'dueDate', 'caseId'].includes(key);
+                              const isEditing =
+                                editingField?.taskId === taskId &&
+                                editingField?.subtaskId === subtaskId &&
+                                editingField?.key === key;
+
+                              if (!isExcluded && editable) {
+                                content = isEditing ? (
+                                  <textarea
+                                    autoFocus
+                                    defaultValue={value}
+                                    placeholder={`Enter ${formatHeaderLabel(key)}`}
+                                    onBlur={(e) => {
+                                      const val = e.target.value;
+                                      handleFieldBlur(taskId, key, val, false, subtaskId);
+                                      setEditingField(null);
+                                    }}
+                                    onKeyDown={(e) => {
+                                      if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        e.target.blur();
+                                      }
+                                    }}
+                                    onMouseOver={(e) => {
+                                      if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.8)';
+                                    }}
+                                    onMouseOut={(e) => {
+                                      if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                                    }}
+                                    style={{
+                                      width: '100%',
+                                      minHeight: '70px',
+                                      maxHeight: '200px',
+                                      padding: '8px 12px',
+                                      fontSize: '0.875rem',
+                                      lineHeight: '20px',
+                                      backgroundColor: '#fff',
+                                      border: '1px solid rgba(212, 175, 55, 0.5)',
+                                      borderRadius: '4px',
+                                      resize: 'none',
+                                      overflowY: 'auto',
+                                      outline: 'none',
+                                      boxShadow: isEditing ? '0 0 0 2px rgba(212, 175, 55, 0.3)' : 'none',
+                                    }}
+                                  />
+                                ) : (
+                                  <div
+                                    onClick={() => setEditingField({ taskId, subtaskId, key })}
+                                    style={{
+                                      width: '100%',
+                                      height: '70px', // Fixed 3-line display
+                                      padding: '8px 0',
+                                      lineHeight: '20px',
+                                      fontSize: '0.875rem',
+                                      whiteSpace: 'pre-wrap',
+                                      wordBreak: 'break-word',
+                                      cursor: 'pointer',
+                                      overflowY: 'auto', // Show thin scrollbar on hover
+                                    }}
+                                  >
+                                    {value || (
+                                      <span style={{ color: 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
+                                        Enter {formatHeaderLabel(key)}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              }
+
+                              if (key === 'createdBy') {
+                                content = (
+                                  <Typography variant="inherit" noWrap>
+                                    {todo.createdBy?.value?.UserName || ''}
+                                  </Typography>
+                                );
+                              } else if (key === 'assignedUsers') {
+                                //copy
+                                const usersList = todo?.assignedUsers?.value || [];
+                                const defaultSelectedId = usersList[0]?.id || '';
+                                const currentSelectedId = assignedUserId || defaultSelectedId;
+                                if (editingAssignedUser === taskId) {
+                                  content = (
+                                    <FormControl fullWidth size="small">
+                                      {/* <Select
     value={assignedUserId || todo?.assignedUsers?.value?.[0]?.id || ''}
     onOpen={() => fetchUsers(todo?.caseId?.value?._id)} // ✅ single click fetch
     onChange={(e) => {
@@ -768,312 +781,312 @@ export default function TaskList({ token }) {
     ))}
   </Select> */}
 
-                                  <Autocomplete
-                                    disableClearable
-                                    options={users || []}
-                                    value={
-                                      users.find(
-                                        (u) => u.id === (assignedUserId || todo?.assignedUsers?.value?.[0]?.id)
-                                      ) || null
-                                    }
-                                    onFocus={() => fetchUsers(todo?.caseId?.value?._id)} // ✅ single click fetch
-                                    onChange={(event, newValue) => {
-                                      if (newValue && newValue.id !== assignedUserId) {
-                                        setAssignedUserId(newValue.id);
-                                        handleFieldBlur(
-                                          todo._id?.value || todo.id,
-                                          'assignedUsers',
-                                          newValue.id,
-                                          false,
-                                          null
-                                        );
-                                      }
-                                      setEditingAssignedUser(null); // ✅ close
-                                    }}
-                                    onBlur={() => {
-                                      setEditingAssignedUser(null); // ✅ value stays if not changed
-                                    }}
-                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                    getOptionLabel={(option) =>
-                                      option?.UserName ? `${option.UserName} (${capitalizeFirst(option.Role)})` : ''
-                                    }
-                                    renderInput={(params) => (
-                                      <TextField
-                                        {...params}
-                                        placeholder="Assign User"
-                                        autoFocus
-                                        sx={{
-                                          '& .MuiInputBase-root': {
-                                            py: 1,
-                                            backgroundColor: '#fff',
-                                            border: '1px solid rgba(212, 175, 55, 0.5)',
-                                            borderRadius: '4px',
-                                            paddingRight: '32px !important',
-                                          },
-                                          '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                                          '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            border: 'none',
-                                            boxShadow: '0 0 0 2px rgba(212, 175, 55, 0.3)',
-                                          },
-                                          '& input': { padding: '8px 0 8px 8px' },
+                                      <Autocomplete
+                                        disableClearable
+                                        options={users || []}
+                                        value={
+                                          users.find(
+                                            (u) => u.id === (assignedUserId || todo?.assignedUsers?.value?.[0]?.id)
+                                          ) || null
+                                        }
+                                        onFocus={() => fetchUsers(todo?.caseId?.value?._id)} // ✅ single click fetch
+                                        onChange={(event, newValue) => {
+                                          if (newValue && newValue.id !== assignedUserId) {
+                                            setAssignedUserId(newValue.id);
+                                            handleFieldBlur(
+                                              todo._id?.value || todo.id,
+                                              'assignedUsers',
+                                              newValue.id,
+                                              false,
+                                              null
+                                            );
+                                          }
+                                          setEditingAssignedUser(null); // ✅ close
                                         }}
-                                        InputProps={{
-                                          ...params.InputProps,
-                                          endAdornment: (
-                                            <ExpandMore sx={{ color: '#D4AF37', position: 'absolute', right: 8 }} />
-                                          ),
+                                        onBlur={() => {
+                                          setEditingAssignedUser(null); // ✅ value stays if not changed
+                                        }}
+                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                        getOptionLabel={(option) =>
+                                          option?.UserName ? `${option.UserName} (${capitalizeFirst(option.Role)})` : ''
+                                        }
+                                        renderInput={(params) => (
+                                          <TextField
+                                            {...params}
+                                            placeholder="Assign User"
+                                            autoFocus
+                                            sx={{
+                                              '& .MuiInputBase-root': {
+                                                py: 1,
+                                                backgroundColor: '#fff',
+                                                border: '1px solid rgba(212, 175, 55, 0.5)',
+                                                borderRadius: '4px',
+                                                paddingRight: '32px !important',
+                                              },
+                                              '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                              '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                border: 'none',
+                                                boxShadow: '0 0 0 2px rgba(212, 175, 55, 0.3)',
+                                              },
+                                              '& input': { padding: '8px 0 8px 8px' },
+                                            }}
+                                            InputProps={{
+                                              ...params.InputProps,
+                                              endAdornment: (
+                                                <ExpandMore sx={{ color: '#D4AF37', position: 'absolute', right: 8 }} />
+                                              ),
+                                            }}
+                                          />
+                                        )}
+                                        popupIcon={null} // because we're injecting custom icon
+                                        componentsProps={{
+                                          paper: {
+                                            sx: {
+                                              backgroundColor: '#001f3f',
+                                              color: '#D4AF37',
+                                              border: '1px solid #D4AF37',
+                                              mt: 1,
+                                              '& .MuiAutocomplete-option': {
+                                                '&:hover': { backgroundColor: 'rgba(212, 175, 55, 0.1)' },
+                                                '&[aria-selected="true"]': {
+                                                  backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                                },
+                                              },
+                                            },
+                                          },
                                         }}
                                       />
-                                    )}
-                                    popupIcon={null} // because we're injecting custom icon
-                                    componentsProps={{
-                                      paper: {
-                                        sx: {
-                                          backgroundColor: '#001f3f',
+                                    </FormControl>
+                                  );
+                                } else {
+                                  const isHovered = hoveredTaskId === taskId;
+                                  content = (
+                                    <Box
+                                      sx={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        cursor: 'pointer',
+                                        width: '100%',
+                                        minHeight: '36px',
+                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                        borderRadius: '4px',
+                                        padding: '8px',
+                                        '&:hover': {
+                                          borderColor: '#D4AF37',
+                                        },
+                                      }}
+                                      onMouseEnter={() => setHoveredTaskId(taskId)}
+                                      onMouseLeave={() => setHoveredTaskId(null)}
+                                      onClick={() => !isclient && setEditingAssignedUser(taskId)}
+                                    >
+                                      <Typography variant="inherit" noWrap sx={{ flex: 1 }}>
+                                        {usersList.length > 0 ? usersList.map((u) => u.UserName).join(', ') : 'Assign User'}
+                                      </Typography>
+                                      <ExpandMore
+                                        sx={{
                                           color: '#D4AF37',
-                                          border: '1px solid #D4AF37',
-                                          mt: 1,
-                                          '& .MuiAutocomplete-option': {
-                                            '&:hover': { backgroundColor: 'rgba(212, 175, 55, 0.1)' },
-                                            '&[aria-selected="true"]': {
-                                              backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                            },
+                                          opacity: isHovered ? 1 : 0.5,
+                                          transition: 'opacity 0.2s ease',
+                                          fontSize: '20px',
+                                        }}
+                                      />
+                                    </Box>
+                                  );
+                                }
+                              } else if (key === 'dueDate' || key === 'nextHearing') {
+                                content = (
+                                  <DatePicker
+                                    value={value ? new Date(value) : null}
+                                    onChange={(date, e) => {
+
+                                      console.log("onBlur triggered");
+                                      // const newValue =
+                                      //   normalizedType === "boolean"
+                                      //     ? e.target.checked
+                                      //     : e.target.value;
+                                      handleFieldBlur(taskId, key, date, isSubtask, subtaskId);
+                                      handleFieldChange(taskId, key, date, isSubtask, subtaskId)
+                                    }
+                                    }
+                                    format="dd/MM/yyyy"
+                                    disabled={isclient}
+                                    slotProps={{
+                                      textField: {
+                                        size: "small",
+                                        fullWidth: true,
+                                        onBlur: (e) => {
+                                          console.log("onBlur triggered");
+                                          const newValue =
+                                            normalizedType === "boolean"
+                                              ? e.target.checked
+                                              : e.target.value;
+                                          handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                                        },
+                                        sx: {
+                                          mt: 0.5,
+                                          "& .MuiInputBase-input": {
+                                            color: "#333",
+                                          },
+                                          "& .MuiInputLabel-root": {
+                                            color: "rgba(0, 0, 0, 0.6)",
+                                          },
+                                          "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "rgba(0, 0, 0, 0.23)",
+                                          },
+                                          "&:hover .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#D4AF37",
+                                          },
+                                          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: "#D4AF37",
+                                            borderWidth: "2px",
                                           },
                                         },
                                       },
                                     }}
                                   />
-                                </FormControl>
+
+                                );
+                              }
+
+                              return (
+                                <TableCell key={key} className={`data-cell ${key}-col`}>
+                                  <Box className="cell-box">{content}</Box>
+                                </TableCell>
                               );
-                            } else {
-                              const isHovered = hoveredTaskId === taskId;
-                              content = (
-                                <Box
-                                  sx={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    cursor: 'pointer',
-                                    width: '100%',
-                                    minHeight: '36px',
-                                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                                    borderRadius: '4px',
-                                    padding: '8px',
-                                    '&:hover': {
-                                      borderColor: '#D4AF37',
-                                    },
-                                  }}
-                                  onMouseEnter={() => setHoveredTaskId(taskId)}
-                                  onMouseLeave={() => setHoveredTaskId(null)}
-                                  onClick={() => !isclient && setEditingAssignedUser(taskId)}
-                                >
-                                  <Typography variant="inherit" noWrap sx={{ flex: 1 }}>
-                                    {usersList.length > 0 ? usersList.map((u) => u.UserName).join(', ') : 'Assign User'}
-                                  </Typography>
-                                  <ExpandMore
-                                    sx={{
-                                      color: '#D4AF37',
-                                      opacity: isHovered ? 1 : 0.5,
-                                      transition: 'opacity 0.2s ease',
-                                      fontSize: '20px',
-                                    }}
-                                  />
-                                </Box>
-                              );
-                            }
-                          } else if (key === 'dueDate' || key === 'nextHearing') {
-                            content = (
-                              <DatePicker
-                                value={value ? new Date(value) : null}
-                                onChange={(date, e) => {
-
-                                  console.log("onBlur triggered");
-                                  // const newValue =
-                                  //   normalizedType === "boolean"
-                                  //     ? e.target.checked
-                                  //     : e.target.value;
-                                  handleFieldBlur(taskId, key, date, isSubtask, subtaskId);
-                                  handleFieldChange(taskId, key, date, isSubtask, subtaskId)
-                                }
-                                }
-                                format="dd/MM/yyyy"
-                                disabled={isclient}
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    fullWidth: true,
-                                    onBlur: (e) => {
-                                      console.log("onBlur triggered");
-                                      const newValue =
-                                        normalizedType === "boolean"
-                                          ? e.target.checked
-                                          : e.target.value;
-                                      handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                                    },
-                                    sx: {
-                                      mt: 0.5,
-                                      "& .MuiInputBase-input": {
-                                        color: "#333",
-                                      },
-                                      "& .MuiInputLabel-root": {
-                                        color: "rgba(0, 0, 0, 0.6)",
-                                      },
-                                      "& .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "rgba(0, 0, 0, 0.23)",
-                                      },
-                                      "&:hover .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "#D4AF37",
-                                      },
-                                      "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-                                        borderColor: "#D4AF37",
-                                        borderWidth: "2px",
-                                      },
-                                    },
-                                  },
-                                }}
-                              />
-
-                            );
-                          }
-
-                          return (
-                            <TableCell key={key} className={`data-cell ${key}-col`}>
-                              <Box className="cell-box">{content}</Box>
-                            </TableCell>
-                          );
-                        })}
-                      <TableCell className="action-cell">
-                        <IconButton
-                          size="small"
-                          onClick={() => handleDelete(todo?._id?.value || todo.id)}
-                          disabled={isclient}
-                          className="delete-btn"
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-
-                    {openTaskId === (todo?._id?.value || todo.id) && (
-                      <>
-                        {/* Subtask Header Row */}
-                        <TableRow className="subtask-header-row">
-                          <TableCell>
-                            <Typography></Typography>
-                          </TableCell>
-                          <TableCell className="sticky-cell case-id subtask-header-cell">
-                            <Typography variant="subtitle2" className="subtask-header-text">
-                              🔽 Subtasks
-                            </Typography>
+                            })}
+                          <TableCell className="action-cell">
+                            <IconButton
+                              size="small"
+                              onClick={() => handleDelete(todo?._id?.value || todo.id)}
+                              disabled={isclient}
+                              className="delete-btn"
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
                           </TableCell>
                         </TableRow>
 
-                        {/* Subtask Rows */}
-                        {todo?.subtasks?.map((subtask) => (
-                          <TableRow key={subtask?._id?.value} className="subtask-row">
-                            <TableCell className="table-pad-header"></TableCell>
-                            <TableCell className="sticky-cell data-cell case-id">
-                              <Typography variant="inherit" noWrap>
-                                {subtask.caseId?.value?.CaseNumber || ''}
-                              </Typography>
-                            </TableCell>
-                            {keys
-                              ?.filter((k) => k !== 'caseId')
-                              .map((key) => {
-                                let field = subtask[key] || { value: '', type: 'string', editable: true };
-                                const { value, type, enum: enumOptions, editable = true } = field;
-                                const taskId = todo?._id?.value || todo.id;
-                                const subtaskId = subtask?._id?.value;
+                        {openTaskId === (todo?._id?.value || todo.id) && (
+                          <>
+                            {/* Subtask Header Row */}
+                            <TableRow className="subtask-header-row">
+                              <TableCell>
+                                <Typography></Typography>
+                              </TableCell>
+                              <TableCell className="sticky-cell case-id subtask-header-cell">
+                                <Typography variant="subtitle2" className="subtask-header-text">
+                                  🔽 Subtasks
+                                </Typography>
+                              </TableCell>
+                            </TableRow>
 
-                                const isExcluded = ['assignedUsers', 'dueDate', 'caseId'].includes(key);
-                                const isEditing =
-                                  editingField?.taskId === taskId &&
-                                  editingField?.subtaskId === subtaskId &&
-                                  editingField?.key === key;
+                            {/* Subtask Rows */}
+                            {todo?.subtasks?.map((subtask) => (
+                              <TableRow key={subtask?._id?.value} className="subtask-row">
+                                <TableCell className="table-pad-header"></TableCell>
+                                <TableCell className="sticky-cell data-cell case-id">
+                                  <Typography variant="inherit" noWrap>
+                                    {subtask.caseId?.value?.CaseNumber || ''}
+                                  </Typography>
+                                </TableCell>
+                                {keys
+                                  ?.filter((k) => k !== 'caseId')
+                                  .map((key) => {
+                                    let field = subtask[key] || { value: '', type: 'string', editable: true };
+                                    const { value, type, enum: enumOptions, editable = true } = field;
+                                    const taskId = todo?._id?.value || todo.id;
+                                    const subtaskId = subtask?._id?.value;
 
-                                let content;
+                                    const isExcluded = ['assignedUsers', 'dueDate', 'caseId'].includes(key);
+                                    const isEditing =
+                                      editingField?.taskId === taskId &&
+                                      editingField?.subtaskId === subtaskId &&
+                                      editingField?.key === key;
 
-                                if (!isExcluded && editable) {
-                                  content = isEditing ? (
-                                    <textarea
-                                      autoFocus
-                                      defaultValue={value}
-                                      placeholder={`Enter ${formatHeaderLabel(key)}`}
-                                      onBlur={(e) => {
-                                        const val = e.target.value;
-                                        handleSubtaskFieldBlur(taskId, key, val, subtaskId);
-                                        setEditingField(null);
-                                      }}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && !e.shiftKey) {
-                                          e.preventDefault();
-                                          e.target.blur();
-                                        }
-                                      }}
-                                      onMouseOver={(e) => {
-                                        if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.8)';
-                                      }}
-                                      onMouseOut={(e) => {
-                                        if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.5)';
-                                      }}
-                                      style={{
-                                        width: '100%',
-                                        minHeight: '70px',
-                                        maxHeight: '200px',
-                                        padding: '8px 12px',
-                                        fontSize: '0.875rem',
-                                        lineHeight: '20px',
-                                        backgroundColor: '#fff',
-                                        border: '1px solid rgba(212, 175, 55, 0.5)',
-                                        borderRadius: '4px',
-                                        resize: 'none',
-                                        overflowY: 'auto',
-                                        outline: 'none',
-                                        boxShadow: isEditing ? '0 0 0 2px rgba(212, 175, 55, 0.3)' : 'none',
-                                      }}
-                                    ></textarea>
-                                  ) : (
-                                    <div
-                                      onClick={() => setEditingField({ taskId, subtaskId, key })}
-                                      style={{
-                                        width: '100%',
-                                        height: '70px', // Fixed 3-line display
-                                        // overflow: 'hidden', // Hide overflow initially
-                                        padding: '8px 0',
-                                        lineHeight: '20px',
-                                        fontSize: '0.875rem',
-                                        whiteSpace: 'pre-wrap',
-                                        wordBreak: 'break-word',
-                                        cursor: 'pointer',
-                                        border: '2px',
+                                    let content;
 
-                                        overflowY: 'auto', // Show thin scrollbar on hover
-                                      }}
-                                    >
-                                      {value || (
-                                        <span style={{ color: 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
-                                          Enter {formatHeaderLabel(key)}
-                                        </span>
-                                      )}
-                                    </div>
-                                  );
-                                }
+                                    if (!isExcluded && editable) {
+                                      content = isEditing ? (
+                                        <textarea
+                                          autoFocus
+                                          defaultValue={value}
+                                          placeholder={`Enter ${formatHeaderLabel(key)}`}
+                                          onBlur={(e) => {
+                                            const val = e.target.value;
+                                            handleSubtaskFieldBlur(taskId, key, val, subtaskId);
+                                            setEditingField(null);
+                                          }}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && !e.shiftKey) {
+                                              e.preventDefault();
+                                              e.target.blur();
+                                            }
+                                          }}
+                                          onMouseOver={(e) => {
+                                            if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.8)';
+                                          }}
+                                          onMouseOut={(e) => {
+                                            if (isEditing) e.target.style.borderColor = 'rgba(212, 175, 55, 0.5)';
+                                          }}
+                                          style={{
+                                            width: '100%',
+                                            minHeight: '70px',
+                                            maxHeight: '200px',
+                                            padding: '8px 12px',
+                                            fontSize: '0.875rem',
+                                            lineHeight: '20px',
+                                            backgroundColor: '#fff',
+                                            border: '1px solid rgba(212, 175, 55, 0.5)',
+                                            borderRadius: '4px',
+                                            resize: 'none',
+                                            overflowY: 'auto',
+                                            outline: 'none',
+                                            boxShadow: isEditing ? '0 0 0 2px rgba(212, 175, 55, 0.3)' : 'none',
+                                          }}
+                                        ></textarea>
+                                      ) : (
+                                        <div
+                                          onClick={() => setEditingField({ taskId, subtaskId, key })}
+                                          style={{
+                                            width: '100%',
+                                            height: '70px', // Fixed 3-line display
+                                            // overflow: 'hidden', // Hide overflow initially
+                                            padding: '8px 0',
+                                            lineHeight: '20px',
+                                            fontSize: '0.875rem',
+                                            whiteSpace: 'pre-wrap',
+                                            wordBreak: 'break-word',
+                                            cursor: 'pointer',
+                                            border: '2px',
 
-                                if (key === 'createdBy') {
-                                  content = (
-                                    <Typography variant="inherit" noWrap>
-                                      {subtask.createdBy?.value?.UserName || ''}
-                                    </Typography>
-                                  );
-                                } else if (key === 'assignedUsers') {
-                                  const usersList = subtask.assignedUsers?.value || [];
-                                  const defaultSelectedId = usersList[0]?.id || '';
-                                  const currentSelectedId = assignedUserId || defaultSelectedId;
-                                  //Copy
-                                  if (editingAssignedSubtaskId === subtaskId) {
-                                    content = (
-                                      <FormControl fullWidth size="small">
-                                        {/* <Select
+                                            overflowY: 'auto', // Show thin scrollbar on hover
+                                          }}
+                                        >
+                                          {value || (
+                                            <span style={{ color: 'rgba(0,0,0,0.4)', fontStyle: 'italic' }}>
+                                              Enter {formatHeaderLabel(key)}
+                                            </span>
+                                          )}
+                                        </div>
+                                      );
+                                    }
+
+                                    if (key === 'createdBy') {
+                                      content = (
+                                        <Typography variant="inherit" noWrap>
+                                          {subtask.createdBy?.value?.UserName || ''}
+                                        </Typography>
+                                      );
+                                    } else if (key === 'assignedUsers') {
+                                      const usersList = subtask.assignedUsers?.value || [];
+                                      const defaultSelectedId = usersList[0]?.id || '';
+                                      const currentSelectedId = assignedUserId || defaultSelectedId;
+                                      //Copy
+                                      if (editingAssignedSubtaskId === subtaskId) {
+                                        content = (
+                                          <FormControl fullWidth size="small">
+                                            {/* <Select
                                           value={currentSelectedId}
                                           disabled={isclient}
                                           autoFocus
@@ -1105,1111 +1118,638 @@ export default function TaskList({ token }) {
                                             </MenuItem>
                                           ))}
                                         </Select> */}
-                                        <Autocomplete
-                                          disableClearable
-                                          options={users || []}
-                                          getOptionLabel={(option) =>
-                                            `${option?.UserName} (${capitalizeFirst(option?.Role)})`
-                                          }
-                                          isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                          value={users?.find((user) => user?.id === currentSelectedId) || null}
-                                          onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
-                                          onChange={(event, newValue) => {
-                                            if (newValue && newValue.id !== currentSelectedId) {
-                                              setAssignedUserId(newValue.id);
-                                              handleSubtaskFieldBlur(taskId, key, [newValue.id], subtaskId);
-                                            }
-                                            setEditingAssignedSubtaskId(null);
-                                          }}
-                                          onBlur={() => setEditingAssignedSubtaskId(null)}
-                                          popupIcon={<ExpandMore sx={{ color: '#D4AF37' }} />} // Custom golden icon
-                                          renderInput={(params) => (
-                                            <TextField
-                                              {...params}
-                                              autoFocus
-                                              placeholder="Assign User"
-                                              className="select-field"
-                                              sx={{
-                                                '& .MuiInputBase-root': {
-                                                  py: 1,
-                                                  backgroundColor: '#fff',
-                                                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                                                  borderRadius: '4px',
-                                                  paddingRight: '32px !important',
-                                                },
-                                                '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                                                '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
-                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                  border: 'none',
-                                                  boxShadow: '0 0 0 2px rgba(212, 175, 55, 0.3)',
-                                                },
-                                                '& input': {
-                                                  padding: '8px 0 8px 8px',
-                                                },
-                                              }}
-                                            />
-                                          )}
-                                          componentsProps={{
-                                            paper: {
-                                              sx: {
-                                                backgroundColor: '#001f3f',
-                                                color: '#D4AF37',
-                                                border: '1px solid #D4AF37',
-                                                mt: 1,
-                                                '& .MuiAutocomplete-option': {
-                                                  '&:hover': { backgroundColor: 'rgba(212, 175, 55, 0.1)' },
-                                                  '&[aria-selected="true"]': {
-                                                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                                  },
-                                                },
-                                              },
-                                            },
-                                          }}
-                                        />
-                                      </FormControl>
-                                    );
-                                  } else {
-                                    content = (
-                                      <Box
-                                        className="select-box"
-                                        onClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
-                                      >
-                                        <Typography variant="inherit" noWrap>
-                                          {usersList.length > 0
-                                            ? usersList.map((u) => u.UserName).join(', ')
-                                            : 'Assign User'}
-                                        </Typography>
-                                        {!isclient && <ExpandMore className="dropdown-icon" />}
-                                      </Box>
-                                    );
-                                  }
-                                } else if (key === 'dueDate' || key === 'nextHearing') {
-                                  content = (
-                                    <DatePicker
-                                      //       label={label}
-                                      value={value ? new Date(value) : null}
-                                      format="dd/MM/yyyy"
-
-                                      onChange={(date) => {
-                                        if (date) {
-                                          handleSubtaskFieldChange(
-                                            taskId,
-                                            key,
-                                            date,
-                                            subtaskId
-                                          );
-                                          handleSubtaskFieldBlur(
-                                            taskId,
-                                            key,
-                                            date,
-                                            subtaskId
-                                          )
-                                        }
-                                      }}
-                                      onBlur={() => handleSubtaskFieldBlur(
-                                        taskId,
-                                        key,
-                                        value,
-                                        subtaskId
-                                      )}
-                                      // minDate={today}
-                                      disabled={isclient}
-                                      slotProps={{
-                                        textField: {
-                                          size: "small",
-                                          fullWidth: true,
-                                          sx: {
-                                            mt: 0.5,
-                                            "& .MuiInputBase-input": {
-                                              color: "#333",
-                                            },
-                                            "& .MuiInputLabel-root": {
-                                              color: "rgba(0, 0, 0, 0.6)",
-                                            },
-                                            "& .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor: "rgba(0, 0, 0, 0.23)",
-                                            },
-                                            "&:hover .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor: "#D4AF37",
-                                            },
-                                            "&.Mui-focused .MuiOutlinedInput-notchedOutline":
-                                            {
-                                              borderColor: "#D4AF37",
-                                              borderWidth: "2px",
-                                            },
-                                          },
-                                        },
-                                      }}
-
-                                    />
-                                  );
-                                }
-
-                                return (
-                                  <TableCell key={key} className={`data-cell ${key}-col`}>
-                                    <Box className="cell-box">{content}</Box>
-                                  </TableCell>
-                                );
-                              })}
-                            <TableCell className="action-cell">
-                              <IconButton
-                                size="small"
-                                onClick={() => handleDelete(subtask?._id?.value)}
-                                disabled={isclient}
-                                className="delete-btn"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-
-                        {/* Add Subtask Button Row */}
-                        {!isclient && (
-                          <TableRow className="subtask-header-row">
-                            <TableCell>
-                              <Typography />
-                            </TableCell>
-                            <TableCell className="sticky-cell case-id subtask-header-cell">
-                              <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleAddEmptySubtask(todo)}
-                                className="add-subtask-btn"
-                              >
-                                + Add Subtask
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </>
-                    )}
-                  </React.Fragment>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-
-        {/* Mobile View */}
-        <div
-          className="d-lg-none h-100"
-          style={{
-            overflow: 'hidden',
-            backgroundColor: '#f5f7fa', // Light gray background
-          }}
-        >
-          <Box
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              backgroundColor: '#f5f7fa', // Light gray background
-              color: '#333', // Dark text
-            }}
-          >
-            {/* Scrollable content for mobile */}
-            <Box
-              sx={{
-                flexGrow: 1,
-                overflow: 'auto',
-                p: 1,
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)', // Darker scrollbar
-                  borderRadius: '3px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light track
-                },
-              }}
-            >
-              <List sx={{ py: 0 }}>
-                {todos?.map((todo) => {
-                  const taskId = todo?._id?.value || todo.id;
-                  const title = todo.title?.value || 'Untitled Task';
-                  const caseNumber = todo.caseId?.value?.CaseNumber || 'N/A';
-                  const isExpanded = expandedUserId === taskId;
-                  const hasSubtasks = todo.subtasks?.length > 0;
-                  const showSubtasks = openSubtasksId === taskId;
-                  const status = todo.status?.value || 'No Status';
-
-                  return (
-                    <Paper
-                      key={taskId}
-                      elevation={isExpanded ? 4 : 2}
-                      sx={{
-                        mb: 2,
-                        overflow: 'hidden',
-                        borderRadius: 2,
-                        transition: 'all 0.2s ease',
-                        borderLeft: isExpanded ? '4px solid' : 'none',
-                        borderColor: '#D4AF37', // Blue border for selected
-                        backgroundColor: 'white', // White cards
-                        color: '#333',
-                        '&:hover': {
-                          boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)', // Soft blue glow
-                        },
-                      }}
-                    >
-                      <Accordion
-                        expanded={isExpanded}
-                        onChange={() => handleToggleExpand(taskId)}
-                        sx={{
-                          '&:before': { display: 'none' },
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <AccordionSummary
-                          expandIcon={
-                            <ExpandMoreIcon
-                              sx={{
-                                color: isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.54)',
-                              }}
-                            />
-                          }
-                          aria-controls={`${taskId}-content`}
-                          id={`${taskId}-header`}
-                          sx={{
-                            bgcolor: isExpanded ? 'rgba(212, 175, 55, 0.05)' : 'white',
-                            minHeight: '56px !important',
-                            '& .MuiAccordionSummary-content': {
-                              alignItems: 'center',
-                              my: 1, // Use consistent vertical padding instead of `my`
-                            },
-                            '&:hover': {
-                              bgcolor: isExpanded ? 'rgba(212, 175, 55, 0.08)' : 'rgba(0, 0, 0, 0.02)',
-                            },
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              flexGrow: 1,
-                              overflow: 'hidden',
-                              gap: 1.5,
-                            }}
-                          >
-                            <Avatar
-                              sx={{
-                                width: 32,
-                                height: 32,
-                                mr: 1.5,
-                                bgcolor: isExpanded ? '#D4AF37' : '#D4AF37', // Blue when expanded
-                                color: isExpanded ? 'white' : '#333',
-                                fontSize: '0.875rem',
-                                fontWeight: 'bold',
-                              }}
-                            >
-                              {title.charAt(0).toUpperCase()}
-                            </Avatar>
-
-                            <Box
-                              sx={{
-                                minWidth: 0,
-                                mr: 1,
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle1"
-                                sx={{
-                                  fontWeight: 'medium',
-                                  whiteSpace: 'nowrap',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  color: isExpanded ? '#D4AF37' : '#333',
-                                }}
-                              >
-                                {title.length > 5 ? `${title.substring(0, 5)}...` : title}
-                              </Typography>
-                              <Typography
-                                variant="caption"
-                                color={isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.6)'}
-                                sx={{ display: 'block' }}
-                              >
-                                {todo.createdAt?.value ? new Date(todo.createdAt.value).toLocaleDateString() : 'N/A'}
-                              </Typography>
-                            </Box>
-
-                            {caseNumber && (
-                              <Chip
-                                label={
-                                  <Box
-                                    component="span"
-                                    sx={{
-                                      overflow: 'hidden',
-                                      textOverflow: 'ellipsis',
-                                      whiteSpace: 'nowrap',
-                                      display: 'block',
-                                      width: '100%', // fill chip width
-                                    }}
-                                  >
-                                    {`Case #${caseNumber}`}
-                                  </Box>
-                                }
-                                size="small"
-                                sx={{
-                                  ml: 'auto',
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                  bgcolor: isExpanded ? '#D4AF37' : '#e0e0e0',
-                                  color: isExpanded ? 'white' : '#333',
-                                  width: 80, // ✅ fixed chip size (adjust as needed)
-                                  px: 1, // horizontal padding for inner text
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </AccordionSummary>
-
-                        <AccordionDetails
-                          sx={{
-                            pt: 0,
-                            pb: 2,
-                            px: 1.5,
-                            bgcolor: 'white',
-                          }}
-                        >
-                          <List sx={{ py: 0 }}>
-                            {keys?.map((key) => {
-                              const field = todo[key];
-                              if (!field || key === 'subtasks' || key === '_id' || key === 'title' || key === 'caseId')
-                                return null;
-
-                              const { value, type, enum: enumOptions, editable = true } = field;
-                              const label = formatHeaderLabel(key);
-                              const normalizedType = type?.toLowerCase();
-                              const taskId = todo?._id?.value || todo.id;
-                              const subtaskId = isSubtask ? taskId : null;
-
-                              const handleBlur = (e) => {
-                                const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
-                                handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                              };
-
-                              let content;
-
-                              if (key === 'createdBy') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
-                                    <Typography variant="body2">
-                                      {todo.createdBy?.value?.UserName || 'System'}
-                                    </Typography>
-                                  </Box>
-                                );
-                              } else if (key === 'assignedUsers') {
-                                const usersList = todo?.assignedUsers?.value || [];
-                                const defaultSelectedId = todo?.assignedUsers?.value[0]?._id || '';
-                                const currentSelectedId = !assignedUserId ? assignedUserId : defaultSelectedId;
-
-                                // if (editingAssignedUser === taskId) {
-                                content = (
-                                  <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-                                    <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
-                                      {label}
-                                    </InputLabel>
-                                    <Select
-                                      value={currentSelectedId}
-                                      disabled={isclient}
-                                      autoFocus
-                                      onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
-                                      onChange={(e) => {
-                                        const newValue = e.target.value;
-                                        if (newValue !== currentSelectedId) {
-                                          setAssignedUserId(newValue); // update only if value changed
-                                          handleFieldBlur(taskId, key, newValue, false, subtaskId);
-                                        }
-                                        setEditingAssignedUser(null);
-                                        setDropdownOpen(false); // close manually
-                                      }}
-                                      onBlur={() => {
-                                        setDropdownOpen(false); // ensure dropdown closes
-                                        setEditingAssignedUser(null); // revert to normal view
-                                      }}
-                                      // onChange={(e) => {
-                                      //   setAssignedUserId(e.target.value);
-                                      // }}
-                                      // onBlur={(e) => {
-                                      //   const newValue = e.target.value;
-                                      //   handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                                      //   setEditingAssignedUser(null);
-                                      // }}
-                                      sx={{
-                                        '& .MuiSelect-select': {
-                                          py: 1.25,
-                                          color: '#333',
-                                        },
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: 'rgba(0, 0, 0, 0.23)',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                          borderWidth: '2px',
-                                        },
-                                      }}
-                                      MenuProps={{
-                                        PaperProps: {
-                                          sx: {
-                                            bgcolor: 'white',
-                                            color: '#333',
-                                            '& .MuiMenuItem-root': {
-                                              '&:hover': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                              },
-                                              '&.Mui-selected': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                              },
-                                            },
-                                          },
-                                        },
-                                      }}
-                                    >
-                                      <MenuItem value="">Assign User</MenuItem>
-                                      {users?.map((user) => (
-                                        <MenuItem key={user.id} value={user.id}>
-                                          {user.UserName} ({capitalizeFirst(user.Role)})
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                );
-                                // } else {
-                                //   content = (
-                                //     <Box
-                                //       sx={{
-                                //         display: 'flex',
-                                //         alignItems: 'center',
-                                //         px: 1,
-                                //         py: 0.5,
-                                //         cursor: !isclient ? 'pointer' : 'default',
-                                //       }}
-                                //       onClick={() => !isclient && setEditingAssignedUser(taskId)}
-                                //     >
-                                //       <Group sx={{ mr: 1, color: '#D4AF37' }} />
-                                //       <Typography variant="body2">
-                                //         {usersList.length > 0
-                                //           ? usersList.map((u) => u.UserName).join(', ')
-                                //           : 'Assign User'}
-                                //       </Typography>
-                                //     </Box>
-                                //   );
-                                // }
-                              } else if (key === 'createdAt') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <CalendarToday
-                                      sx={{
-                                        mr: 1,
-                                        fontSize: '1rem',
-                                        color: '#D4AF37',
-                                      }}
-                                    />
-                                    <Typography variant="body2">
-                                      {value ? new Date(value).toLocaleDateString() : 'N/A'}
-                                    </Typography>
-                                  </Box>
-                                );
-                              } else if (!editable) {
-                                content = (
-                                  <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
-                                    {String(value || 'N/A')}
-                                  </Typography>
-                                );
-                              } else if (enumOptions) {
-                                content = (
-                                  <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-                                    <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
-                                      {label}
-                                    </InputLabel>
-                                    <Select
-                                      value={value}
-                                      onChange={(e) => {
-                                        handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                                      }}
-                                      onBlur={handleBlur}
-                                      disabled={isclient}
-                                      sx={{
-                                        '& .MuiSelect-select': {
-                                          py: 1.25,
-                                          color: '#333',
-                                        },
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: 'rgba(0, 0, 0, 0.23)',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                          borderWidth: '2px',
-                                        },
-                                      }}
-                                      MenuProps={{
-                                        PaperProps: {
-                                          sx: {
-                                            bgcolor: 'white',
-                                            color: '#333',
-                                            '& .MuiMenuItem-root': {
-                                              '&:hover': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                              },
-                                              '&.Mui-selected': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                              },
-                                            },
-                                          },
-                                        },
-                                      }}
-                                    >
-                                      {enumOptions?.map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                          {option}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                );
-                              } else if (normalizedType === 'boolean') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <Typography variant="body2">{label}</Typography>
-                                    <Switch
-                                      checked={Boolean(value)}
-                                      onChange={(e) =>
-                                        handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                      disabled={isclient}
-                                      size="small"
-                                      sx={{
-                                        '& .MuiSwitch-switchBase.Mui-checked': {
-                                          color: '#D4AF37',
-                                        },
-                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                          backgroundColor: '#D4AF37',
-                                        },
-                                      }}
-                                    />
-                                  </Box>
-                                );
-                              } else if (normalizedType === 'date') {
-                                content = (
-                                  <DatePicker
-                                    label={label}
-                                    value={value ? new Date(value) : null}
-                                    onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
-                                    format="dd/MM/yyyy"
-                                    disabled={isclient}
-                                    slotProps={{
-                                      textField: {
-                                        size: 'small',
-                                        fullWidth: true,
-                                        sx: {
-                                          mt: 0.5,
-                                          '& .MuiInputBase-input': {
-                                            color: '#333',
-                                          },
-                                          '& .MuiInputLabel-root': {
-                                            color: 'rgba(0, 0, 0, 0.6)',
-                                          },
-                                          '& .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: 'rgba(0, 0, 0, 0.23)',
-                                          },
-                                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: '#D4AF37',
-                                          },
-                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                            borderColor: '#D4AF37',
-                                            borderWidth: '2px',
-                                          },
-                                        },
-                                      },
-                                    }}
-                                  />
-                                );
-                              } else {
-                                content = (
-                                  <TextField
-                                    label={label}
-                                    type="text"
-                                    size="small"
-                                    fullWidth
-                                    value={value || ''}
-                                    onChange={(e) => {
-                                      handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
-                                    }}
-                                    onBlur={handleBlur}
-                                    disabled={isclient}
-                                    sx={{
-                                      mt: 0.5,
-                                      '& .MuiInputBase-input': {
-                                        color: '#333',
-                                      },
-                                      '& .MuiInputLabel-root': {
-                                        color: 'rgba(0, 0, 0, 0.6)',
-                                      },
-                                      '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(0, 0, 0, 0.23)',
-                                      },
-                                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D4AF37',
-                                      },
-                                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D4AF37',
-                                        borderWidth: '2px',
-                                      },
-                                    }}
-                                    InputLabelProps={{ shrink: true }}
-                                  />
-                                );
-                              }
-
-                              return (
-                                <React.Fragment key={key}>
-                                  <ListItem
-                                    sx={{
-                                      px: 0,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <ListItemText primary={content} sx={{ my: 0 }} />
-                                  </ListItem>
-                                  {key !== keys[keys.length - 1] && (
-                                    <Divider
-                                      sx={{
-                                        my: 0.5,
-                                        backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                                      }}
-                                    />
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </List>
-
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'flex-end',
-                              alignItems: 'center',
-                              mt: 2,
-                              gap: 1,
-                            }}
-                          >
-                            {!isclient && (
-                              <IconButton
-                                color="error"
-                                onClick={() => handleDelete(taskId)}
-                                sx={{
-                                  border: '1px solid',
-                                  borderColor: 'error.main',
-                                  flexShrink: 0,
-                                  color: 'error.main',
-                                  '&:hover': {
-                                    bgcolor: 'rgba(244, 67, 54, 0.1)',
-                                  },
-                                }}
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            )}
-
-                            {/* {!isclient && hasSubtasks && (*/}
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleAddEmptySubtask(todo)}
-                              sx={{
-                                textTransform: 'none',
-                                borderColor: '#D4AF37',
-                                color: '#D4AF37',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                  borderColor: '#D4AF37',
-                                },
-                              }}
-                              startIcon={<FaPlus fontSize="small" />}
-                            >
-                              Add Subtask
-                            </Button>
-                            {/* )}*/}
-
-                            {/* {hasSubtasks && (*/}
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => toggleSubtasks(taskId)}
-                              sx={{
-                                textTransform: 'none',
-                                borderColor: '#D4AF37',
-                                color: '#D4AF37',
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                  borderColor: '#D4AF37',
-                                },
-                              }}
-                              startIcon={
-                                showSubtasks ? <FaChevronUp fontSize="small" /> : <FaChevronDown fontSize="small" />
-                              }
-                            >
-                              {showSubtasks ? 'Hide' : `View (${todo.subtasks.length})`}
-                            </Button>
-                            {/*  )}*/}
-                          </Box>
-
-                          {showSubtasks && hasSubtasks && (
-                            <Box
-                              sx={{
-                                mt: 2,
-                                borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-                                pt: 2,
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle2"
-                                sx={{
-                                  color: '#D4AF37',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  mb: 1.5,
-                                }}
-                              >
-                                <FaTasks style={{ marginRight: 8 }} />
-                                Subtasks
-                              </Typography>
-
-                              {todo.subtasks.map((subtask) => (
-                                <Paper
-                                  key={subtask?._id?.value}
-                                  sx={{
-                                    mb: 2,
-                                    p: 2,
-                                    borderLeft: '2px solid #D4AF37',
-                                    position: 'relative',
-                                    borderRadius: 1,
-                                  }}
-                                >
-                                  <List sx={{ py: 0 }}>
-                                    {keys?.map((key) => {
-                                      const field = subtask[key];
-                                      if (!field || key === 'subtasks' || key === '_id') return null;
-
-                                      const { value, type, enum: enumOptions, editable = true } = field;
-                                      const label = formatHeaderLabel(key);
-                                      const normalizedType = type?.toLowerCase();
-                                      const taskId = todo?._id?.value || todo.id;
-                                      const subtaskId = subtask?._id?.value;
-
-                                      const handleBlur = (e) => {
-                                        const newValue =
-                                          normalizedType === 'boolean' ? e.target.checked : e.target.value;
-                                        handleSubtaskFieldBlur(taskId, key, newValue, subtaskId);
-                                      };
-
-                                      let content;
-
-                                      if (key === 'createdBy') {
-                                        content = (
-                                          <Box
-                                            sx={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              px: 1,
-                                              py: 0.5,
-                                            }}
-                                          >
-                                            <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
-                                            <Typography variant="body2">
-                                              {subtask.createdBy?.value?.UserName || 'System'}
-                                            </Typography>
-                                          </Box>
-                                        );
-                                      } else if (key === 'assignedUsers') {
-                                        const usersList = subtask.assignedUsers?.value || [];
-                                        const defaultSelectedId = usersList[0]?.id || '';
-                                        const currentSelectedId = assignedUserId || defaultSelectedId;
-
-                                        // if (editingAssignedSubtaskId === subtaskId) {
-                                        content = (
-                                          <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-                                            <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
-                                              {label}
-                                            </InputLabel>
-                                            <Select
-                                              value={currentSelectedId}
-                                              disabled={isclient}
-                                              autoFocus
+                                            <Autocomplete
+                                              disableClearable
+                                              options={users || []}
+                                              getOptionLabel={(option) =>
+                                                `${option?.UserName} (${capitalizeFirst(option?.Role)})`
+                                              }
+                                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                              value={users?.find((user) => user?.id === currentSelectedId) || null}
                                               onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
-                                              onChange={(e) => {
-                                                setAssignedUserId(e.target.value);
-                                              }}
-                                              onBlur={(e) => {
-                                                handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId);
+                                              onChange={(event, newValue) => {
+                                                if (newValue && newValue.id !== currentSelectedId) {
+                                                  setAssignedUserId(newValue.id);
+                                                  handleSubtaskFieldBlur(taskId, key, [newValue.id], subtaskId);
+                                                }
                                                 setEditingAssignedSubtaskId(null);
                                               }}
-                                              sx={{
-                                                '& .MuiSelect-select': {
-                                                  py: 1.25,
-                                                  color: '#333',
-                                                },
-                                                '& .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: 'rgba(0, 0, 0, 0.23)',
-                                                },
-                                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: '#D4AF37',
-                                                },
-                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: '#D4AF37',
-                                                  borderWidth: '2px',
-                                                },
-                                              }}
-                                              MenuProps={{
-                                                PaperProps: {
+                                              onBlur={() => setEditingAssignedSubtaskId(null)}
+                                              popupIcon={<ExpandMore sx={{ color: '#D4AF37' }} />} // Custom golden icon
+                                              renderInput={(params) => (
+                                                <TextField
+                                                  {...params}
+                                                  autoFocus
+                                                  placeholder="Assign User"
+                                                  className="select-field"
+                                                  sx={{
+                                                    '& .MuiInputBase-root': {
+                                                      py: 1,
+                                                      backgroundColor: '#fff',
+                                                      border: '1px solid rgba(212, 175, 55, 0.5)',
+                                                      borderRadius: '4px',
+                                                      paddingRight: '32px !important',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': { border: 'none' },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                      border: 'none',
+                                                      boxShadow: '0 0 0 2px rgba(212, 175, 55, 0.3)',
+                                                    },
+                                                    '& input': {
+                                                      padding: '8px 0 8px 8px',
+                                                    },
+                                                  }}
+                                                />
+                                              )}
+                                              componentsProps={{
+                                                paper: {
                                                   sx: {
-                                                    bgcolor: 'white',
-                                                    color: '#333',
-                                                    '& .MuiMenuItem-root': {
-                                                      '&:hover': {
-                                                        bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                                      },
-                                                      '&.Mui-selected': {
-                                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                    backgroundColor: '#001f3f',
+                                                    color: '#D4AF37',
+                                                    border: '1px solid #D4AF37',
+                                                    mt: 1,
+                                                    '& .MuiAutocomplete-option': {
+                                                      '&:hover': { backgroundColor: 'rgba(212, 175, 55, 0.1)' },
+                                                      '&[aria-selected="true"]': {
+                                                        backgroundColor: 'rgba(212, 175, 55, 0.2)',
                                                       },
                                                     },
                                                   },
                                                 },
                                               }}
-                                            >
-                                              <MenuItem value="">Assign User</MenuItem>
-                                              {users?.map((user) => (
-                                                <MenuItem key={user?.id} value={user?.id}>
-                                                  {user?.UserName} ({capitalizeFirst(user?.Role)})
-                                                </MenuItem>
-                                              ))}
-                                            </Select>
-                                          </FormControl>
-                                        );
-                                        // } else {
-                                        //   content = (
-                                        //     <Box
-                                        //       sx={{
-                                        //         display: 'flex',
-                                        //         alignItems: 'center',
-                                        //         px: 1,
-                                        //         py: 0.5,
-                                        //         cursor: !isclient ? 'pointer' : 'default',
-                                        //       }}
-                                        //       onDoubleClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
-                                        //     >
-                                        //       <Group sx={{ mr: 1, color: '#D4AF37' }} />
-                                        //       <Typography variant="body2">
-                                        //         {usersList.length > 0
-                                        //           ? usersList.map((u) => u.UserName).join(', ')
-                                        //           : 'Assign User'}
-                                        //       </Typography>
-                                        //     </Box>
-                                        //   );
-                                        // }
-                                      } else if (key === 'createdAt') {
-                                        content = (
-                                          <Box
-                                            sx={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              px: 1,
-                                              py: 0.5,
-                                            }}
-                                          >
-                                            <CalendarToday
-                                              sx={{
-                                                mr: 1,
-                                                fontSize: '1rem',
-                                                color: '#D4AF37',
-                                              }}
                                             />
-                                            <Typography variant="body2">
-                                              {(subtask.createdAt?.value || '').split('T')[0]}
-                                            </Typography>
-                                          </Box>
-                                        );
-                                      } else if (key === 'caseId') {
-                                        content = (
-                                          <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
-                                            {value?.CaseNumber || value?._id || 'N/A'}
-                                          </Typography>
-                                        );
-                                      } else if (enumOptions) {
-                                        content = (
-                                          <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-                                            <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
-                                              {label}
-                                            </InputLabel>
-                                            <Select
-                                              value={value}
-                                              disabled={isclient}
-                                              onChange={(e) =>
-                                                handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
-                                              }
-                                              onBlur={handleBlur}
-                                              sx={{
-                                                '& .MuiSelect-select': {
-                                                  py: 1.25,
-                                                  color: '#333',
-                                                },
-                                                '& .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: 'rgba(0, 0, 0, 0.23)',
-                                                },
-                                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: '#D4AF37',
-                                                },
-                                                '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                  borderColor: '#D4AF37',
-                                                  borderWidth: '2px',
-                                                },
-                                              }}
-                                              MenuProps={{
-                                                PaperProps: {
-                                                  sx: {
-                                                    bgcolor: 'white',
-                                                    color: '#333',
-                                                    '& .MuiMenuItem-root': {
-                                                      '&:hover': {
-                                                        bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                                      },
-                                                      '&.Mui-selected': {
-                                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                                      },
-                                                    },
-                                                  },
-                                                },
-                                              }}
-                                            >
-                                              {enumOptions?.map((option) => (
-                                                <MenuItem key={option} value={option}>
-                                                  {option}
-                                                </MenuItem>
-                                              ))}
-                                            </Select>
                                           </FormControl>
-                                        );
-                                      } else if (normalizedType === 'boolean') {
-                                        content = (
-                                          <Box
-                                            sx={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              justifyContent: 'space-between',
-                                              px: 1,
-                                              py: 0.5,
-                                            }}
-                                          >
-                                            <Typography variant="body2">{label}</Typography>
-                                            <Switch
-                                              checked={Boolean(value)}
-                                              disabled={isclient}
-                                              onChange={(e) =>
-                                                handleSubtaskFieldChange(taskId, key, e.target.checked, subtaskId)
-                                              }
-                                              onBlur={handleBlur}
-                                              size="small"
-                                              sx={{
-                                                '& .MuiSwitch-switchBase.Mui-checked': {
-                                                  color: '#D4AF37',
-                                                },
-                                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                                  backgroundColor: '#D4AF37',
-                                                },
-                                              }}
-                                            />
-                                          </Box>
-                                        );
-                                      } else if (normalizedType === 'date') {
-                                        const today = new Date();
-                                        content = (
-                                          <DatePicker
-                                            label={label}
-                                            value={value ? new Date(value) : null}
-                                            onChange={(date) => {
-                                              if (date) {
-                                                handleSubtaskFieldChange(taskId, key, date, subtaskId);
-                                              }
-                                            }}
-                                            onBlur={() => handleSubtaskFieldBlur(taskId, key, value, subtaskId)}
-                                            minDate={today}
-                                            disabled={isclient}
-                                            slotProps={{
-                                              textField: {
-                                                size: 'small',
-                                                fullWidth: true,
-                                                sx: {
-                                                  mt: 0.5,
-                                                  '& .MuiInputBase-input': {
-                                                    color: '#333',
-                                                  },
-                                                  '& .MuiInputLabel-root': {
-                                                    color: 'rgba(0, 0, 0, 0.6)',
-                                                  },
-                                                  '& .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: 'rgba(0, 0, 0, 0.23)',
-                                                  },
-                                                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: '#D4AF37',
-                                                  },
-                                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                                    borderColor: '#D4AF37',
-                                                    borderWidth: '2px',
-                                                  },
-                                                },
-                                              },
-                                            }}
-                                          />
                                         );
                                       } else {
                                         content = (
-                                          <TextField
-                                            label={label}
-                                            type="text"
-                                            size="small"
-                                            fullWidth
-                                            disabled={isclient}
-                                            value={value || ''}
-                                            onChange={(e) =>
-                                              handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
+                                          <Box
+                                            className="select-box"
+                                            onClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
+                                          >
+                                            <Typography variant="inherit" noWrap>
+                                              {usersList.length > 0
+                                                ? usersList.map((u) => u.UserName).join(', ')
+                                                : 'Assign User'}
+                                            </Typography>
+                                            {!isclient && <ExpandMore className="dropdown-icon" />}
+                                          </Box>
+                                        );
+                                      }
+                                    } else if (key === 'dueDate' || key === 'nextHearing') {
+                                      content = (
+                                        <DatePicker
+                                          //       label={label}
+                                          value={value ? new Date(value) : null}
+                                          format="dd/MM/yyyy"
+
+                                          onChange={(date) => {
+                                            if (date) {
+                                              handleSubtaskFieldChange(
+                                                taskId,
+                                                key,
+                                                date,
+                                                subtaskId
+                                              );
+                                              handleSubtaskFieldBlur(
+                                                taskId,
+                                                key,
+                                                date,
+                                                subtaskId
+                                              )
                                             }
-                                            onBlur={handleBlur}
-                                            sx={{
+                                          }}
+                                          onBlur={() => handleSubtaskFieldBlur(
+                                            taskId,
+                                            key,
+                                            value,
+                                            subtaskId
+                                          )}
+                                          // minDate={today}
+                                          disabled={isclient}
+                                          slotProps={{
+                                            textField: {
+                                              size: "small",
+                                              fullWidth: true,
+                                              sx: {
+                                                mt: 0.5,
+                                                "& .MuiInputBase-input": {
+                                                  color: "#333",
+                                                },
+                                                "& .MuiInputLabel-root": {
+                                                  color: "rgba(0, 0, 0, 0.6)",
+                                                },
+                                                "& .MuiOutlinedInput-notchedOutline":
+                                                {
+                                                  borderColor: "rgba(0, 0, 0, 0.23)",
+                                                },
+                                                "&:hover .MuiOutlinedInput-notchedOutline":
+                                                {
+                                                  borderColor: "#D4AF37",
+                                                },
+                                                "&.Mui-focused .MuiOutlinedInput-notchedOutline":
+                                                {
+                                                  borderColor: "#D4AF37",
+                                                  borderWidth: "2px",
+                                                },
+                                              },
+                                            },
+                                          }}
+
+                                        />
+                                      );
+                                    }
+
+                                    return (
+                                      <TableCell key={key} className={`data-cell ${key}-col`}>
+                                        <Box className="cell-box">{content}</Box>
+                                      </TableCell>
+                                    );
+                                  })}
+                                <TableCell className="action-cell">
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => handleDelete(subtask?._id?.value)}
+                                    disabled={isclient}
+                                    className="delete-btn"
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+
+                            {/* Add Subtask Button Row */}
+                            {!isclient && (
+                              <TableRow className="subtask-header-row">
+                                <TableCell>
+                                  <Typography />
+                                </TableCell>
+                                <TableCell className="sticky-cell case-id subtask-header-cell">
+                                  <Button
+                                    variant="outlined"
+                                    size="small"
+                                    onClick={() => handleAddEmptySubtask(todo)}
+                                    className="add-subtask-btn"
+                                  >
+                                    + Add Subtask
+                                  </Button>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+
+            {/* Mobile View */}
+            <div
+              className="d-lg-none h-100"
+              style={{
+                overflow: 'hidden',
+                backgroundColor: '#f5f7fa', // Light gray background
+              }}
+            >
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  backgroundColor: '#f5f7fa', // Light gray background
+                  color: '#333', // Dark text
+                }}
+              >
+                {/* Scrollable content for mobile */}
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    overflow: 'auto',
+                    p: 1,
+                    '&::-webkit-scrollbar': {
+                      width: '6px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.2)', // Darker scrollbar
+                      borderRadius: '3px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light track
+                    },
+                  }}
+                >
+                  <List sx={{ py: 0 }}>
+                    {todos?.map((todo) => {
+                      const taskId = todo?._id?.value || todo.id;
+                      const title = todo.title?.value || 'Untitled Task';
+                      const caseNumber = todo.caseId?.value?.CaseNumber || 'N/A';
+                      const isExpanded = expandedUserId === taskId;
+                      const hasSubtasks = todo.subtasks?.length > 0;
+                      const showSubtasks = openSubtasksId === taskId;
+                      const status = todo.status?.value || 'No Status';
+
+                      return (
+                        <Paper
+                          key={taskId}
+                          elevation={isExpanded ? 4 : 2}
+                          sx={{
+                            mb: 2,
+                            overflow: 'hidden',
+                            borderRadius: 2,
+                            transition: 'all 0.2s ease',
+                            borderLeft: isExpanded ? '4px solid' : 'none',
+                            borderColor: '#D4AF37', // Blue border for selected
+                            backgroundColor: 'white', // White cards
+                            color: '#333',
+                            '&:hover': {
+                              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)', // Soft blue glow
+                            },
+                          }}
+                        >
+                          <Accordion
+                            expanded={isExpanded}
+                            onChange={() => handleToggleExpand(taskId)}
+                            sx={{
+                              '&:before': { display: 'none' },
+                              backgroundColor: 'transparent',
+                            }}
+                          >
+                            <AccordionSummary
+                              expandIcon={
+                                <ExpandMoreIcon
+                                  sx={{
+                                    color: isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.54)',
+                                  }}
+                                />
+                              }
+                              aria-controls={`${taskId}-content`}
+                              id={`${taskId}-header`}
+                              sx={{
+                                bgcolor: isExpanded ? 'rgba(212, 175, 55, 0.05)' : 'white',
+                                minHeight: '56px !important',
+                                '& .MuiAccordionSummary-content': {
+                                  alignItems: 'center',
+                                  my: 1, // Use consistent vertical padding instead of `my`
+                                },
+                                '&:hover': {
+                                  bgcolor: isExpanded ? 'rgba(212, 175, 55, 0.08)' : 'rgba(0, 0, 0, 0.02)',
+                                },
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  flexGrow: 1,
+                                  overflow: 'hidden',
+                                  gap: 1.5,
+                                }}
+                              >
+                                <Avatar
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    mr: 1.5,
+                                    bgcolor: isExpanded ? '#D4AF37' : '#D4AF37', // Blue when expanded
+                                    color: isExpanded ? 'white' : '#333',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 'bold',
+                                  }}
+                                >
+                                  {title.charAt(0).toUpperCase()}
+                                </Avatar>
+
+                                <Box
+                                  sx={{
+                                    minWidth: 0,
+                                    mr: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="subtitle1"
+                                    sx={{
+                                      fontWeight: 'medium',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      color: isExpanded ? '#D4AF37' : '#333',
+                                    }}
+                                  >
+                                    {title.length > 5 ? `${title.substring(0, 5)}...` : title}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color={isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.6)'}
+                                    sx={{ display: 'block' }}
+                                  >
+                                    {todo.createdAt?.value ? new Date(todo.createdAt.value).toLocaleDateString() : 'N/A'}
+                                  </Typography>
+                                </Box>
+
+                                {caseNumber && (
+                                  <Chip
+                                    label={
+                                      <Box
+                                        component="span"
+                                        sx={{
+                                          overflow: 'hidden',
+                                          textOverflow: 'ellipsis',
+                                          whiteSpace: 'nowrap',
+                                          display: 'block',
+                                          width: '100%', // fill chip width
+                                        }}
+                                      >
+                                        {`Case #${caseNumber}`}
+                                      </Box>
+                                    }
+                                    size="small"
+                                    sx={{
+                                      ml: 'auto',
+                                      fontSize: '0.7rem',
+                                      height: 20,
+                                      bgcolor: isExpanded ? '#D4AF37' : '#e0e0e0',
+                                      color: isExpanded ? 'white' : '#333',
+                                      width: 80, // ✅ fixed chip size (adjust as needed)
+                                      px: 1, // horizontal padding for inner text
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            </AccordionSummary>
+
+                            <AccordionDetails
+                              sx={{
+                                pt: 0,
+                                pb: 2,
+                                px: 1.5,
+                                bgcolor: 'white',
+                              }}
+                            >
+                              <List sx={{ py: 0 }}>
+                                {keys?.map((key) => {
+                                  const field = todo[key];
+                                  if (!field || key === 'subtasks' || key === '_id' || key === 'title' || key === 'caseId')
+                                    return null;
+
+                                  const { value, type, enum: enumOptions, editable = true } = field;
+                                  const label = formatHeaderLabel(key);
+                                  const normalizedType = type?.toLowerCase();
+                                  const taskId = todo?._id?.value || todo.id;
+                                  const subtaskId = isSubtask ? taskId : null;
+
+                                  const handleBlur = (e) => {
+                                    const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
+                                    handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                                  };
+
+                                  let content;
+
+                                  if (key === 'createdBy') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
+                                        <Typography variant="body2">
+                                          {todo.createdBy?.value?.UserName || 'System'}
+                                        </Typography>
+                                      </Box>
+                                    );
+                                  } else if (key === 'assignedUsers') {
+                                    const usersList = todo?.assignedUsers?.value || [];
+                                    const defaultSelectedId = todo?.assignedUsers?.value[0]?._id || '';
+                                    const currentSelectedId = !assignedUserId ? assignedUserId : defaultSelectedId;
+
+                                    // if (editingAssignedUser === taskId) {
+                                    content = (
+                                      <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                        <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                                          {label}
+                                        </InputLabel>
+                                        <Select
+                                          value={currentSelectedId}
+                                          disabled={isclient}
+                                          autoFocus
+                                          onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                                          onChange={(e) => {
+                                            const newValue = e.target.value;
+                                            if (newValue !== currentSelectedId) {
+                                              setAssignedUserId(newValue); // update only if value changed
+                                              handleFieldBlur(taskId, key, newValue, false, subtaskId);
+                                            }
+                                            setEditingAssignedUser(null);
+                                            setDropdownOpen(false); // close manually
+                                          }}
+                                          onBlur={() => {
+                                            setDropdownOpen(false); // ensure dropdown closes
+                                            setEditingAssignedUser(null); // revert to normal view
+                                          }}
+                                          // onChange={(e) => {
+                                          //   setAssignedUserId(e.target.value);
+                                          // }}
+                                          // onBlur={(e) => {
+                                          //   const newValue = e.target.value;
+                                          //   handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                                          //   setEditingAssignedUser(null);
+                                          // }}
+                                          sx={{
+                                            '& .MuiSelect-select': {
+                                              py: 1.25,
+                                              color: '#333',
+                                            },
+                                            '& .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: 'rgba(0, 0, 0, 0.23)',
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                            },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                              borderWidth: '2px',
+                                            },
+                                          }}
+                                          MenuProps={{
+                                            PaperProps: {
+                                              sx: {
+                                                bgcolor: 'white',
+                                                color: '#333',
+                                                '& .MuiMenuItem-root': {
+                                                  '&:hover': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                  },
+                                                  '&.Mui-selected': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                  },
+                                                },
+                                              },
+                                            },
+                                          }}
+                                        >
+                                          <MenuItem value="">Assign User</MenuItem>
+                                          {users?.map((user) => (
+                                            <MenuItem key={user.id} value={user.id}>
+                                              {user.UserName} ({capitalizeFirst(user.Role)})
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    );
+                                    // } else {
+                                    //   content = (
+                                    //     <Box
+                                    //       sx={{
+                                    //         display: 'flex',
+                                    //         alignItems: 'center',
+                                    //         px: 1,
+                                    //         py: 0.5,
+                                    //         cursor: !isclient ? 'pointer' : 'default',
+                                    //       }}
+                                    //       onClick={() => !isclient && setEditingAssignedUser(taskId)}
+                                    //     >
+                                    //       <Group sx={{ mr: 1, color: '#D4AF37' }} />
+                                    //       <Typography variant="body2">
+                                    //         {usersList.length > 0
+                                    //           ? usersList.map((u) => u.UserName).join(', ')
+                                    //           : 'Assign User'}
+                                    //       </Typography>
+                                    //     </Box>
+                                    //   );
+                                    // }
+                                  } else if (key === 'createdAt') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <CalendarToday
+                                          sx={{
+                                            mr: 1,
+                                            fontSize: '1rem',
+                                            color: '#D4AF37',
+                                          }}
+                                        />
+                                        <Typography variant="body2">
+                                          {value ? new Date(value).toLocaleDateString() : 'N/A'}
+                                        </Typography>
+                                      </Box>
+                                    );
+                                  } else if (!editable) {
+                                    content = (
+                                      <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
+                                        {String(value || 'N/A')}
+                                      </Typography>
+                                    );
+                                  } else if (enumOptions) {
+                                    content = (
+                                      <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                        <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                                          {label}
+                                        </InputLabel>
+                                        <Select
+                                          value={value}
+                                          onChange={(e) => {
+                                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                                          }}
+                                          onBlur={handleBlur}
+                                          disabled={isclient}
+                                          sx={{
+                                            '& .MuiSelect-select': {
+                                              py: 1.25,
+                                              color: '#333',
+                                            },
+                                            '& .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: 'rgba(0, 0, 0, 0.23)',
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                            },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                              borderWidth: '2px',
+                                            },
+                                          }}
+                                          MenuProps={{
+                                            PaperProps: {
+                                              sx: {
+                                                bgcolor: 'white',
+                                                color: '#333',
+                                                '& .MuiMenuItem-root': {
+                                                  '&:hover': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                  },
+                                                  '&.Mui-selected': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                  },
+                                                },
+                                              },
+                                            },
+                                          }}
+                                        >
+                                          {enumOptions?.map((option) => (
+                                            <MenuItem key={option} value={option}>
+                                              {option}
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    );
+                                  } else if (normalizedType === 'boolean') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <Typography variant="body2">{label}</Typography>
+                                        <Switch
+                                          checked={Boolean(value)}
+                                          onChange={(e) =>
+                                            handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)
+                                          }
+                                          onBlur={handleBlur}
+                                          disabled={isclient}
+                                          size="small"
+                                          sx={{
+                                            '& .MuiSwitch-switchBase.Mui-checked': {
+                                              color: '#D4AF37',
+                                            },
+                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                              backgroundColor: '#D4AF37',
+                                            },
+                                          }}
+                                        />
+                                      </Box>
+                                    );
+                                  } else if (normalizedType === 'date') {
+                                    content = (
+                                      <DatePicker
+                                        label={label}
+                                        value={value ? new Date(value) : null}
+                                        onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
+                                        format="dd/MM/yyyy"
+                                        disabled={isclient}
+                                        slotProps={{
+                                          textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            sx: {
                                               mt: 0.5,
                                               '& .MuiInputBase-input': {
                                                 color: '#333',
@@ -2227,67 +1767,546 @@ export default function TaskList({ token }) {
                                                 borderColor: '#D4AF37',
                                                 borderWidth: '2px',
                                               },
-                                            }}
-                                            InputLabelProps={{ shrink: true }}
-                                          />
-                                        );
-                                      }
+                                            },
+                                          },
+                                        }}
+                                      />
+                                    );
+                                  } else {
+                                    content = (
+                                      <TextField
+                                        label={label}
+                                        type="text"
+                                        size="small"
+                                        fullWidth
+                                        value={value || ''}
+                                        onChange={(e) => {
+                                          handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId);
+                                        }}
+                                        onBlur={handleBlur}
+                                        disabled={isclient}
+                                        sx={{
+                                          mt: 0.5,
+                                          '& .MuiInputBase-input': {
+                                            color: '#333',
+                                          },
+                                          '& .MuiInputLabel-root': {
+                                            color: 'rgba(0, 0, 0, 0.6)',
+                                          },
+                                          '& .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: 'rgba(0, 0, 0, 0.23)',
+                                          },
+                                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#D4AF37',
+                                          },
+                                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                            borderColor: '#D4AF37',
+                                            borderWidth: '2px',
+                                          },
+                                        }}
+                                        InputLabelProps={{ shrink: true }}
+                                      />
+                                    );
+                                  }
 
-                                      return (
-                                        <React.Fragment key={key}>
-                                          <ListItem
-                                            sx={{
-                                              px: 0,
-                                              py: 0.5,
-                                            }}
-                                          >
-                                            <ListItemText primary={content} sx={{ my: 0 }} />
-                                          </ListItem>
-                                          {key !== keys[keys.length - 1] && (
-                                            <Divider
-                                              sx={{
-                                                my: 0.5,
-                                                backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                                              }}
-                                            />
-                                          )}
-                                        </React.Fragment>
-                                      );
-                                    })}
-                                  </List>
+                                  return (
+                                    <React.Fragment key={key}>
+                                      <ListItem
+                                        sx={{
+                                          px: 0,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <ListItemText primary={content} sx={{ my: 0 }} />
+                                      </ListItem>
+                                      {key !== keys[keys.length - 1] && (
+                                        <Divider
+                                          sx={{
+                                            my: 0.5,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                          }}
+                                        />
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </List>
 
-                                  {!isclient && (
-                                    <IconButton
-                                      size="small"
-                                      onClick={() => handleDelete(subtask?._id?.value)}
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'flex-end',
+                                  alignItems: 'center',
+                                  mt: 2,
+                                  gap: 1,
+                                }}
+                              >
+                                {!isclient && (
+                                  <IconButton
+                                    color="error"
+                                    onClick={() => handleDelete(taskId)}
+                                    sx={{
+                                      border: '1px solid',
+                                      borderColor: 'error.main',
+                                      flexShrink: 0,
+                                      color: 'error.main',
+                                      '&:hover': {
+                                        bgcolor: 'rgba(244, 67, 54, 0.1)',
+                                      },
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                  </IconButton>
+                                )}
+
+                                {/* {!isclient && hasSubtasks && (*/}
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => handleAddEmptySubtask(todo)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    borderColor: '#D4AF37',
+                                    color: '#D4AF37',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                      borderColor: '#D4AF37',
+                                    },
+                                  }}
+                                  startIcon={<FaPlus fontSize="small" />}
+                                >
+                                  Add Subtask
+                                </Button>
+                                {/* )}*/}
+
+                                {/* {hasSubtasks && (*/}
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  onClick={() => toggleSubtasks(taskId)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    borderColor: '#D4AF37',
+                                    color: '#D4AF37',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                      borderColor: '#D4AF37',
+                                    },
+                                  }}
+                                  startIcon={
+                                    showSubtasks ? <FaChevronUp fontSize="small" /> : <FaChevronDown fontSize="small" />
+                                  }
+                                >
+                                  {showSubtasks ? 'Hide' : `View (${todo.subtasks.length})`}
+                                </Button>
+                                {/*  )}*/}
+                              </Box>
+
+                              {showSubtasks && hasSubtasks && (
+                                <Box
+                                  sx={{
+                                    mt: 2,
+                                    borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+                                    pt: 2,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{
+                                      color: '#D4AF37',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      mb: 1.5,
+                                    }}
+                                  >
+                                    <FaTasks style={{ marginRight: 8 }} />
+                                    Subtasks
+                                  </Typography>
+
+                                  {todo.subtasks.map((subtask) => (
+                                    <Paper
+                                      key={subtask?._id?.value}
                                       sx={{
-                                        color: 'error.main',
-                                        position: 'absolute',
-                                        top: 8,
-                                        right: 8,
-                                        '&:hover': {
-                                          backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                                        },
+                                        mb: 2,
+                                        p: 2,
+                                        borderLeft: '2px solid #D4AF37',
+                                        position: 'relative',
+                                        borderRadius: 1,
                                       }}
                                     >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  )}
-                                </Paper>
-                              ))}
-                            </Box>
-                          )}
-                        </AccordionDetails>
-                      </Accordion>
-                    </Paper>
-                  );
-                })}
-              </List>
-            </Box>
-          </Box>
-        </div>
-      </LocalizationProvider>
+                                      <List sx={{ py: 0 }}>
+                                        {keys?.map((key) => {
+                                          const field = subtask[key];
+                                          if (!field || key === 'subtasks' || key === '_id') return null;
 
+                                          const { value, type, enum: enumOptions, editable = true } = field;
+                                          const label = formatHeaderLabel(key);
+                                          const normalizedType = type?.toLowerCase();
+                                          const taskId = todo?._id?.value || todo.id;
+                                          const subtaskId = subtask?._id?.value;
+
+                                          const handleBlur = (e) => {
+                                            const newValue =
+                                              normalizedType === 'boolean' ? e.target.checked : e.target.value;
+                                            handleSubtaskFieldBlur(taskId, key, newValue, subtaskId);
+                                          };
+
+                                          let content;
+
+                                          if (key === 'createdBy') {
+                                            content = (
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  px: 1,
+                                                  py: 0.5,
+                                                }}
+                                              >
+                                                <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
+                                                <Typography variant="body2">
+                                                  {subtask.createdBy?.value?.UserName || 'System'}
+                                                </Typography>
+                                              </Box>
+                                            );
+                                          } else if (key === 'assignedUsers') {
+                                            const usersList = subtask.assignedUsers?.value || [];
+                                            const defaultSelectedId = usersList[0]?.id || '';
+                                            const currentSelectedId = assignedUserId || defaultSelectedId;
+
+                                            // if (editingAssignedSubtaskId === subtaskId) {
+                                            content = (
+                                              <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                                <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                                                  {label}
+                                                </InputLabel>
+                                                <Select
+                                                  value={currentSelectedId}
+                                                  disabled={isclient}
+                                                  autoFocus
+                                                  onFocus={() => fetchUsers(todo?.caseId?.value?._id)}
+                                                  onChange={(e) => {
+                                                    setAssignedUserId(e.target.value);
+                                                  }}
+                                                  onBlur={(e) => {
+                                                    handleSubtaskFieldBlur(taskId, key, [e.target.value], subtaskId);
+                                                    setEditingAssignedSubtaskId(null);
+                                                  }}
+                                                  sx={{
+                                                    '& .MuiSelect-select': {
+                                                      py: 1.25,
+                                                      color: '#333',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                                                    },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: '#D4AF37',
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: '#D4AF37',
+                                                      borderWidth: '2px',
+                                                    },
+                                                  }}
+                                                  MenuProps={{
+                                                    PaperProps: {
+                                                      sx: {
+                                                        bgcolor: 'white',
+                                                        color: '#333',
+                                                        '& .MuiMenuItem-root': {
+                                                          '&:hover': {
+                                                            bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                          },
+                                                          '&.Mui-selected': {
+                                                            bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                          },
+                                                        },
+                                                      },
+                                                    },
+                                                  }}
+                                                >
+                                                  <MenuItem value="">Assign User</MenuItem>
+                                                  {users?.map((user) => (
+                                                    <MenuItem key={user?.id} value={user?.id}>
+                                                      {user?.UserName} ({capitalizeFirst(user?.Role)})
+                                                    </MenuItem>
+                                                  ))}
+                                                </Select>
+                                              </FormControl>
+                                            );
+                                            // } else {
+                                            //   content = (
+                                            //     <Box
+                                            //       sx={{
+                                            //         display: 'flex',
+                                            //         alignItems: 'center',
+                                            //         px: 1,
+                                            //         py: 0.5,
+                                            //         cursor: !isclient ? 'pointer' : 'default',
+                                            //       }}
+                                            //       onDoubleClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
+                                            //     >
+                                            //       <Group sx={{ mr: 1, color: '#D4AF37' }} />
+                                            //       <Typography variant="body2">
+                                            //         {usersList.length > 0
+                                            //           ? usersList.map((u) => u.UserName).join(', ')
+                                            //           : 'Assign User'}
+                                            //       </Typography>
+                                            //     </Box>
+                                            //   );
+                                            // }
+                                          } else if (key === 'createdAt') {
+                                            content = (
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  px: 1,
+                                                  py: 0.5,
+                                                }}
+                                              >
+                                                <CalendarToday
+                                                  sx={{
+                                                    mr: 1,
+                                                    fontSize: '1rem',
+                                                    color: '#D4AF37',
+                                                  }}
+                                                />
+                                                <Typography variant="body2">
+                                                  {(subtask.createdAt?.value || '').split('T')[0]}
+                                                </Typography>
+                                              </Box>
+                                            );
+                                          } else if (key === 'caseId') {
+                                            content = (
+                                              <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
+                                                {value?.CaseNumber || value?._id || 'N/A'}
+                                              </Typography>
+                                            );
+                                          } else if (enumOptions) {
+                                            content = (
+                                              <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                                <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                                                  {label}
+                                                </InputLabel>
+                                                <Select
+                                                  value={value}
+                                                  disabled={isclient}
+                                                  onChange={(e) =>
+                                                    handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
+                                                  }
+                                                  onBlur={handleBlur}
+                                                  sx={{
+                                                    '& .MuiSelect-select': {
+                                                      py: 1.25,
+                                                      color: '#333',
+                                                    },
+                                                    '& .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: 'rgba(0, 0, 0, 0.23)',
+                                                    },
+                                                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: '#D4AF37',
+                                                    },
+                                                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                      borderColor: '#D4AF37',
+                                                      borderWidth: '2px',
+                                                    },
+                                                  }}
+                                                  MenuProps={{
+                                                    PaperProps: {
+                                                      sx: {
+                                                        bgcolor: 'white',
+                                                        color: '#333',
+                                                        '& .MuiMenuItem-root': {
+                                                          '&:hover': {
+                                                            bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                          },
+                                                          '&.Mui-selected': {
+                                                            bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                          },
+                                                        },
+                                                      },
+                                                    },
+                                                  }}
+                                                >
+                                                  {enumOptions?.map((option) => (
+                                                    <MenuItem key={option} value={option}>
+                                                      {option}
+                                                    </MenuItem>
+                                                  ))}
+                                                </Select>
+                                              </FormControl>
+                                            );
+                                          } else if (normalizedType === 'boolean') {
+                                            content = (
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  justifyContent: 'space-between',
+                                                  px: 1,
+                                                  py: 0.5,
+                                                }}
+                                              >
+                                                <Typography variant="body2">{label}</Typography>
+                                                <Switch
+                                                  checked={Boolean(value)}
+                                                  disabled={isclient}
+                                                  onChange={(e) =>
+                                                    handleSubtaskFieldChange(taskId, key, e.target.checked, subtaskId)
+                                                  }
+                                                  onBlur={handleBlur}
+                                                  size="small"
+                                                  sx={{
+                                                    '& .MuiSwitch-switchBase.Mui-checked': {
+                                                      color: '#D4AF37',
+                                                    },
+                                                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                                      backgroundColor: '#D4AF37',
+                                                    },
+                                                  }}
+                                                />
+                                              </Box>
+                                            );
+                                          } else if (normalizedType === 'date') {
+                                            const today = new Date();
+                                            content = (
+                                              <DatePicker
+                                                label={label}
+                                                value={value ? new Date(value) : null}
+                                                onChange={(date) => {
+                                                  if (date) {
+                                                    handleSubtaskFieldChange(taskId, key, date, subtaskId);
+                                                  }
+                                                }}
+                                                onBlur={() => handleSubtaskFieldBlur(taskId, key, value, subtaskId)}
+                                                minDate={today}
+                                                disabled={isclient}
+                                                slotProps={{
+                                                  textField: {
+                                                    size: 'small',
+                                                    fullWidth: true,
+                                                    sx: {
+                                                      mt: 0.5,
+                                                      '& .MuiInputBase-input': {
+                                                        color: '#333',
+                                                      },
+                                                      '& .MuiInputLabel-root': {
+                                                        color: 'rgba(0, 0, 0, 0.6)',
+                                                      },
+                                                      '& .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: 'rgba(0, 0, 0, 0.23)',
+                                                      },
+                                                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#D4AF37',
+                                                      },
+                                                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                        borderColor: '#D4AF37',
+                                                        borderWidth: '2px',
+                                                      },
+                                                    },
+                                                  },
+                                                }}
+                                              />
+                                            );
+                                          } else {
+                                            content = (
+                                              <TextField
+                                                label={label}
+                                                type="text"
+                                                size="small"
+                                                fullWidth
+                                                disabled={isclient}
+                                                value={value || ''}
+                                                onChange={(e) =>
+                                                  handleSubtaskFieldChange(taskId, key, e.target.value, subtaskId)
+                                                }
+                                                onBlur={handleBlur}
+                                                sx={{
+                                                  mt: 0.5,
+                                                  '& .MuiInputBase-input': {
+                                                    color: '#333',
+                                                  },
+                                                  '& .MuiInputLabel-root': {
+                                                    color: 'rgba(0, 0, 0, 0.6)',
+                                                  },
+                                                  '& .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: 'rgba(0, 0, 0, 0.23)',
+                                                  },
+                                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#D4AF37',
+                                                  },
+                                                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                    borderColor: '#D4AF37',
+                                                    borderWidth: '2px',
+                                                  },
+                                                }}
+                                                InputLabelProps={{ shrink: true }}
+                                              />
+                                            );
+                                          }
+
+                                          return (
+                                            <React.Fragment key={key}>
+                                              <ListItem
+                                                sx={{
+                                                  px: 0,
+                                                  py: 0.5,
+                                                }}
+                                              >
+                                                <ListItemText primary={content} sx={{ my: 0 }} />
+                                              </ListItem>
+                                              {key !== keys[keys.length - 1] && (
+                                                <Divider
+                                                  sx={{
+                                                    my: 0.5,
+                                                    backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                                  }}
+                                                />
+                                              )}
+                                            </React.Fragment>
+                                          );
+                                        })}
+                                      </List>
+
+                                      {!isclient && (
+                                        <IconButton
+                                          size="small"
+                                          onClick={() => handleDelete(subtask?._id?.value)}
+                                          sx={{
+                                            color: 'error.main',
+                                            position: 'absolute',
+                                            top: 8,
+                                            right: 8,
+                                            '&:hover': {
+                                              backgroundColor: 'rgba(244, 67, 54, 0.1)',
+                                            },
+                                          }}
+                                        >
+                                          <DeleteIcon fontSize="small" />
+                                        </IconButton>
+                                      )}
+                                    </Paper>
+                                  ))}
+                                </Box>
+                              )}
+                            </AccordionDetails>
+                          </Accordion>
+                        </Paper>
+                      );
+                    })}
+                  </List>
+                </Box>
+              </Box>
+            </div>
+          </LocalizationProvider>
+        ) :
+        (
+          <div className="text-center text-black py-5">
+            No task available.
+          </div>
+        )
+      }
       {/* Column Add Modal */}
       <Modal show={addingColumn} onHide={() => setAddingColumn(false)} centered>
         <Box
@@ -2368,56 +2387,66 @@ export default function TaskList({ token }) {
           <FormControl fullWidth sx={{ mb: 2 }}>
             <InputLabel>Assign Case</InputLabel>
             <Select
-              value={newAssignedTaskCase}
+              value={caseInfo ? caseInfo?._id : newAssignedTaskCase}
               onChange={(e) => {
                 fetchUsers(e.target.value);
                 setNewAssignedTaskCase(e.target.value);
               }}
-              error={isCaseInvalid}
+              disabled={caseInfo}
+              // error={caseInfo?._id ? "" :isCaseInvalid }
               label="Assign Case"
             >
               <MenuItem value="">Select a Case</MenuItem>
-              {allCases?.map((user) => (
-                <MenuItem key={user?._id} value={user?._id}>
-                  {user?.CaseNumber}
+              {!caseInfo ? allCases
+                ?.filter((user) => user?.IsActive === true) 
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
+                .map((user) => (
+                  <MenuItem key={user?._id} value={user?._id}>
+                    {user?.CaseNumber}
+                  </MenuItem>
+                ))
+                :
+                <MenuItem key={caseInfo?._id} value={caseInfo?._id}>
+                  {caseInfo?.CaseNumber}
                 </MenuItem>
-              ))}
+              }
+
             </Select>
-            {isCaseInvalid && (
+            {/* {isCaseInvalid && (
               <Typography variant="caption" color="error">
                 Please select a case.
               </Typography>
-            )}
+            )} */}
           </FormControl>
 
-          {users?.length > 0 && (
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Assigned Users</InputLabel>
-              <Select
-                value={assignedUsersForCase || ''}
-                error={isUserInvalid}
-                onChange={(e) => {
-                  setAssignedUsersForCase(e.target.value);
-                  if (e.target.value) {
-                    setIsUserInvalid(false);
-                  }
-                }}
-                label="Assigned Users"
-              >
-                <MenuItem value="">Select Assigned User</MenuItem>
-                {users?.map((user) => (
-                  <MenuItem key={user?.id} value={user?.id}>
-                    {user?.UserName} ({user?.Role})
-                  </MenuItem>
-                ))}
-              </Select>
-              {isUserInvalid && (
-                <Typography variant="caption" color="error">
-                  Please select an assigned user.
-                </Typography>
-              )}
-            </FormControl>
-          )}
+          {/* {users?.length > 0 && ( */}
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Assigned Users</InputLabel>
+            <Select
+              value={assignedUsersForCase || ''}
+              // error={isUserInvalid}
+              onChange={(e) => {
+                setAssignedUsersForCase(e.target.value);
+                if (e.target.value) {
+                  setIsUserInvalid(false);
+                }
+              }}
+              label="Assigned Users"
+            >
+              <MenuItem value="">Select Assigned User</MenuItem>
+              {users?.map((user) => (
+                <MenuItem key={user?.id} value={user?.id}>
+                  {user?.UserName} ({user?.Role})
+                </MenuItem>
+              ))}
+            </Select>
+            {/* {isUserInvalid && (
+              <Typography variant="caption" color="error">
+                Please select an assigned user.
+              </Typography>
+            )} */}
+          </FormControl>
+          {/* )} */}
 
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
             <Button
@@ -2442,7 +2471,7 @@ export default function TaskList({ token }) {
                   valid = false;
                 }
 
-                if (!valid) return;
+                // if (!valid) return;
 
                 handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
                 setShowTaskModal(false);
