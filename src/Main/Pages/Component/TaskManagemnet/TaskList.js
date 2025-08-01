@@ -158,7 +158,7 @@ export default function TaskList({ token }) {
     setNewAssignedTaskCase(caseInfo?._id)
     fetchtask();
     fetchUsers(caseInfo?._id);
-  }, []);
+  }, [caseInfo]);
 
   useEffect(() => {
     fetchCases();
@@ -208,7 +208,7 @@ export default function TaskList({ token }) {
           ? token?.Role === 'admin'
             ? `${ApiEndPoint}getAllTasksWithDetails`
             : `${ApiEndPoint}getTasksByUser/${token?._id}`
-          : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
+          : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}/${token?._id}`
       );
 
       if (!response.ok) {
@@ -2398,8 +2398,8 @@ export default function TaskList({ token }) {
             >
               <MenuItem value="">Select a Case</MenuItem>
               {!caseInfo ? allCases
-                ?.filter((user) => user?.IsActive === true) 
-                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) 
+                ?.filter((user) => user?.IsActive === true)
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
                 .map((user) => (
                   <MenuItem key={user?._id} value={user?._id}>
                     {user?.CaseNumber}
@@ -2475,12 +2475,14 @@ export default function TaskList({ token }) {
 
                 handleAddNewTask(newTaskName, newAssignedTaskCase, assignedUsersForCase);
                 setShowTaskModal(false);
-                setNewTaskName('');
-                setNewAssignedTaskCase('');
-                setAssignedUsersForCase(null);
-                setUsers([]);
+                // setNewTaskName('');
+                // setNewAssignedTaskCase('');
+                // setAssignedUsersForCase(null);
+                // setUsers([]);
                 setIsCaseInvalid(false);
                 setIsUserInvalid(false);
+                fetchUsers(caseInfo?._id);
+
               }}
               sx={{ bgcolor: '#D4AF37', '&:hover': { bgcolor: '#E6C050' } }}
             >
