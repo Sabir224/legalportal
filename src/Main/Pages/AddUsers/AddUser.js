@@ -20,6 +20,9 @@ import {
   FaChair,
   FaRegEnvelope,
   FaFilter,
+  FaUserTag,
+  FaCalendarAlt,
+  FaDollarSign,
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ApiEndPoint } from '../Component/utils/utlis';
@@ -43,12 +46,14 @@ const AddUser = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [address, setAddress] = useState('');
-  const [bio, setBio] = useState('');
   const [language, setLanguage] = useState('');
   const [location, setLocation] = useState('');
   const [expertise, setExpertise] = useState('');
   const [department, setDepartment] = useState('');
   const [position, setPosition] = useState('');
+  const [bio, setBio] = useState('');
+  const [experience, setExperience] = useState('');
+  const [fee, setFee] = useState('');
   const dropdownRef = useRef(null);
   const { showLoading, showSuccess, showError } = useAlert();
 
@@ -66,7 +71,8 @@ const AddUser = () => {
     }
   };
 
-  const handleAddUser = async () => {
+  const handleAddUser = async (e) => {
+    e.preventDefault();
     try {
       showLoading();
       const formData = new FormData();
@@ -78,6 +84,8 @@ const AddUser = () => {
       formData.append('Bio', bio);
       formData.append('Address', address);
       formData.append('Position', position);
+      formData.append('YearOfExperience', experience);
+      formData.append('ConsultationFee', fee);
       if (selectedFile) {
         formData.append('file', selectedFile);
       }
@@ -104,6 +112,8 @@ const AddUser = () => {
       setPosition('');
       setSelectedFile(null);
       setPreview(null);
+      setExperience('');
+      setFee('');
     } catch (error) {
       showError('❌ Failed to Add User! Check Console.');
       console.error('Error adding user:', error);
@@ -130,221 +140,339 @@ const AddUser = () => {
   };
 
   return (
-    <div
-      className="card shadow container-fluid m-0 p-3 p-md-5 justify-content-center"
-      style={{
-        maxHeight: '86vh',
-
-        overflowY: 'auto',
-        // maxWidth: '1200px', // Added max-width for better control on larger screens
-        margin: '0 auto', // Center the container
-      }}
-    >
-      {/* Profile Picture Upload */}
-      <div className="mb-3 d-flex justify-content-center">
-        <label htmlFor="fileUpload" className="d-block">
-          {preview ? (
-            <img
-              src={preview}
-              alt="Preview"
-              className="rounded-circle"
-              style={{
-                width: '100px',
-                height: '100px',
-                objectFit: 'cover',
-              }}
-            />
-          ) : (
-            <div
-              className="border d-inline-flex align-items-center justify-content-center"
-              style={{
-                width: '100px',
-                height: '100px',
-                borderRadius: '50%',
-                border: '2px solid #18273e',
-                cursor: 'pointer',
-                backgroundColor: '#18273e',
-              }}
-            >
-              <FaUpload className="fs-4 text-white" />
-            </div>
-          )}
-        </label>
-        <input type="file" id="fileUpload" className="d-none" accept="image/*" onChange={handleFileChange} />
-      </div>
-
-      {/* Form Fields */}
-      <div className="row g-3">
-        {' '}
-        {/* Added g-3 for consistent gutter spacing */}
-        {[
-          { label: 'Name', icon: <FaUser />, state: name, setState: setName },
-          {
-            label: 'Email',
-            icon: <FaRegEnvelope />,
-            state: email,
-            setState: setEmail,
-            type: 'email',
-          },
-          {
-            label: 'Contact Number',
-            icon: <FaPhone />,
-            state: contactNumber,
-            setState: setContactNumber,
-          },
-          {
-            label: 'Password',
-            icon: <FaLock />,
-            state: password,
-            setState: setPassword,
-            type: 'password',
-          },
-          {
-            label: 'Confirm Password',
-            icon: <FaLock />,
-            state: confirmPassword,
-            setState: setConfirmPassword,
-            type: 'password',
-          },
-          {
-            label: 'Address',
-            icon: <FaMapMarkerAlt />,
-            state: address,
-            setState: setAddress,
-          },
-          {
-            label: 'Language',
-            icon: <FaGlobe />,
-            state: language,
-            setState: setLanguage,
-          },
-          selectedRole !== 'client' && {
-            label: 'Location',
-            icon: <FaMapMarkedAlt />,
-            state: location,
-            setState: setLocation,
-          },
-          selectedRole !== 'client' && {
-            label: 'Expertise',
-            icon: <FaBriefcase />,
-            state: expertise,
-            setState: setExpertise,
-          },
-          selectedRole !== 'client' && {
-            label: 'Department',
-            icon: <FaBuilding />,
-            state: department,
-            setState: setDepartment,
-          },
-          selectedRole !== 'client' && {
-            label: 'Position',
-            icon: <FaChair />,
-            state: position,
-            setState: setPosition,
-          },
-        ]
-          .filter(Boolean)
-          .map(({ label, icon, state, setState, type = 'text' }, index) => (
-            <div key={index} className="col-12 col-md-6 mb-3">
-              <label className="form-label" style={{ color: '#18273e' }}>
-                {label}
-              </label>
-              <div className="input-group">
-                <span className="input-group-text customIcon">{icon}</span>
-                <input
-                  type={type}
-                  className="form-control"
-                  placeholder={label}
-                  value={state}
-                  style={{
-                    border: '1px solid #18273e',
-                    minWidth: '0', // Changed from fixed width to flexible
-                  }}
-                  onChange={(e) => setState(e.target.value)}
-                />
-              </div>
-            </div>
-          ))}
-        {/* Role Dropdown */}
-        <div className="col-12 col-md-6 mb-3">
-          <label className="form-label" style={{ color: '#18273e' }}>
-            Role
-          </label>
-          <div className="input-group">
-            <div className="position-relative w-100" ref={dropdownRef}>
-              <div
-                className="form-control d-flex align-items-center justify-content-between"
+    <div className="container-fluid p-1 min-vh-100 d-flex align-items-center justify-content-center bg-light">
+      <div
+        className="card shadow m-3 p-3"
+        style={{
+          width: '100%',
+          maxWidth: '1200px',
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          backgroundColor: '#f8f9fa',
+          border: 'none',
+        }}
+      >
+        {/* Profile Picture Upload */}
+        <div className="mb-4 d-flex justify-content-center">
+          <label htmlFor="fileUpload" className="d-block cursor-pointer">
+            {preview ? (
+              <img
+                src={preview}
+                alt="Preview"
+                className="rounded-circle img-thumbnail"
                 style={{
-                  cursor: 'pointer',
-                  border: '1px solid #18273e',
-                  color: '#18273e',
-                  minWidth: '0', // Changed from fixed width to flexible
+                  width: '120px',
+                  height: '120px',
+                  objectFit: 'cover',
+                  borderColor: '#18273e',
                 }}
-                onClick={toggleDropdown}
+              />
+            ) : (
+              <div
+                className="d-flex flex-column align-items-center justify-content-center rounded-circle"
+                style={{
+                  width: '120px',
+                  height: '120px',
+                  backgroundColor: '#18273e',
+                  color: 'white',
+                  cursor: 'pointer',
+                }}
               >
-                {selectedRole.toUpperCase() || 'Select Role'} <FaChevronDown />
+                <FaUpload className="fs-3 mb-1" />
+                <small className="text-center">Upload Photo</small>
               </div>
-              {dropdownOpen && (
-                <ul
-                  className="list-group position-absolute w-100 mt-1"
-                  style={{
-                    zIndex: 1000,
-                    maxHeight: '200px',
-                    overflowY: 'auto',
-                  }}
-                >
-                  {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
-                    <li
-                      key={role}
-                      className="list-group-item list-group-item-action"
+            )}
+          </label>
+          <input type="file" id="fileUpload" className="d-none" accept="image/*" onChange={handleFileChange} />
+        </div>
+
+        <form onSubmit={handleAddUser}>
+          {/* Form Fields with labels on top */}
+          <div className="row g-3">
+            {[
+              { label: 'Name', icon: <FaUser />, state: name, setState: setName, required: true },
+              {
+                label: 'Email',
+                icon: <FaRegEnvelope />,
+                state: email,
+                setState: setEmail,
+                type: 'email',
+                required: true,
+              },
+              {
+                label: 'Contact Number',
+                icon: <FaPhone />,
+                state: contactNumber,
+                setState: setContactNumber,
+                type: 'tel',
+                required: true,
+              },
+              {
+                label: 'Password',
+                icon: <FaLock />,
+                state: password,
+                setState: setPassword,
+                type: 'password',
+                required: true,
+              },
+              {
+                label: 'Confirm Password',
+                icon: <FaLock />,
+                state: confirmPassword,
+                setState: setConfirmPassword,
+                type: 'password',
+                required: true,
+              },
+              {
+                label: 'Address',
+                icon: <FaMapMarkerAlt />,
+                state: address,
+                setState: setAddress,
+              },
+              {
+                label: 'Language',
+                icon: <FaGlobe />,
+                state: language,
+                setState: setLanguage,
+              },
+              selectedRole !== 'client' && {
+                label: 'Location',
+                icon: <FaMapMarkedAlt />,
+                state: location,
+                setState: setLocation,
+              },
+              selectedRole !== 'client' && {
+                label: 'Expertise',
+                icon: <FaBriefcase />,
+                state: expertise,
+                setState: setExpertise,
+              },
+              selectedRole !== 'client' && {
+                label: 'Department',
+                icon: <FaBuilding />,
+                state: department,
+                setState: setDepartment,
+              },
+              selectedRole !== 'client' && {
+                label: 'Position',
+                icon: <FaChair />,
+                state: position,
+                setState: setPosition,
+              },
+            ]
+              .filter(Boolean)
+              .map(({ label, icon, state, setState, type = 'text', required = false }, index) => (
+                <div key={index} className="col-12 col-sm-6 col-lg-4">
+                  <div className="mb-3">
+                    <label htmlFor={`input-${label}`} className="form-label fw-medium" style={{ color: '#18273e' }}>
+                      {label} {required && <span className="text-danger">*</span>}
+                    </label>
+                    <div className="input-group">
+                      <span
+                        className="input-group-text"
+                        style={{
+                          backgroundColor: '#18273e',
+                          color: '#d4af37',
+                          borderColor: '#18273e',
+                        }}
+                      >
+                        {icon}
+                      </span>
+                      <input
+                        type={type}
+                        className="form-control"
+                        id={`input-${label}`}
+                        value={state}
+                        style={{
+                          borderColor: '#18273e',
+                        }}
+                        onChange={(e) => setState(e.target.value)}
+                        required={required}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+            {/* Role Dropdown */}
+            <div className="col-12 col-sm-6 col-lg-4">
+              <div className="mb-3">
+                <label className="form-label fw-medium" style={{ color: '#18273e' }}>
+                  Role <span className="text-danger">*</span>
+                </label>
+                <div className="input-group" ref={dropdownRef}>
+                  <span
+                    className="input-group-text"
+                    style={{
+                      backgroundColor: '#18273e',
+                      color: '#d4af37',
+                      borderColor: '#18273e',
+                    }}
+                  >
+                    <FaUserTag />
+                  </span>
+                  <div
+                    className="form-control d-flex align-items-center justify-content-between"
+                    style={{
+                      cursor: 'pointer',
+                      borderColor: '#18273e',
+                      color: '#18273e',
+                    }}
+                    onClick={toggleDropdown}
+                    id="role-selector"
+                  >
+                    {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : 'Select Role'}
+                    <FaChevronDown className="ms-2" />
+                  </div>
+                  {dropdownOpen && (
+                    <div
+                      className="position-absolute w-100 mt-1 z-3"
                       style={{
-                        cursor: 'pointer',
-                        backgroundColor: '#18273e',
-                        color: 'white',
-                        borderColor: '#d3b386',
+                        top: '100%',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                        zIndex: 1000,
+                        marginLeft: '38px',
+                        width: 'calc(100% - 38px)',
+                        border: '1px solid #d3b386',
+                        borderRadius: '0 0 4px 4px',
                       }}
-                      onClick={() => handleRoleSelect(role)}
                     >
-                      {role.toUpperCase()}
-                    </li>
-                  ))}
-                </ul>
-              )}
+                      {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
+                        <button
+                          key={role}
+                          type="button"
+                          className="list-group-item list-group-item-action text-start w-100"
+                          style={{
+                            backgroundColor: selectedRole === role ? '#d3b386' : '#18273e',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: 0,
+                          }}
+                          onClick={() => handleRoleSelect(role)}
+                        >
+                          {role.charAt(0).toUpperCase() + role.slice(1)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Bio Section */}
-      {selectedRole !== 'client' && (
-        <div className="mb-3">
-          <label className="form-label" style={{ color: '#18273e' }}>
-            Bio
-          </label>
-          <textarea
-            className="form-control"
-            placeholder="Short bio"
-            rows="3"
-            value={bio}
-            style={{ border: '1px solid #18273e' }}
-            onChange={(e) => setBio(e.target.value)}
-          ></textarea>
-        </div>
-      )}
+          {/* Conditional Fields for Non-Client Roles */}
+          {selectedRole && selectedRole !== 'client' && (
+            <div className="row g-3 mt-2">
+              {/* Lawyer-specific fields */}
+              {selectedRole === 'lawyer' && (
+                <>
+                  <div className="col-12 col-md-6">
+                    <div className="mb-3">
+                      <label htmlFor="experience-input" className="form-label fw-medium" style={{ color: '#18273e' }}>
+                        Years of Experience
+                      </label>
+                      <div className="input-group">
+                        <span
+                          className="input-group-text d-flex align-items-center justify-content-center"
+                          style={{
+                            backgroundColor: '#18273e',
+                            color: '#d4af37',
+                            borderColor: '#18273e',
+                            width: '45px',
+                            padding: '0.375rem',
+                          }}
+                        >
+                          <FaCalendarAlt style={{ fontSize: '1rem' }} />
+                        </span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          id="experience-input"
+                          value={experience}
+                          style={{
+                            borderColor: '#18273e',
+                          }}
+                          onChange={(e) => setExperience(e.target.value)}
+                          min="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-12 col-md-6">
+                    <div className="mb-3">
+                      <label htmlFor="fee-input" className="form-label fw-medium" style={{ color: '#18273e' }}>
+                        Consultation Fee
+                      </label>
+                      <div className="input-group">
+                        <span
+                          className="input-group-text d-flex align-items-center justify-content-center"
+                          style={{
+                            backgroundColor: '#18273e',
+                            color: '#d4af37',
+                            borderColor: '#18273e',
+                            width: '45px',
+                            padding: '0.375rem',
+                            fontSize: '1rem',
+                          }}
+                        >
+                          <FaDollarSign />
+                        </span>
+                        <input
+                          type="number"
+                          className="form-control"
+                          id="fee-input"
+                          value={fee}
+                          style={{
+                            borderColor: '#18273e',
+                          }}
+                          onChange={(e) => setFee(e.target.value)}
+                          min="0"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
 
-      {/* Submit Button */}
-      <div className="text-center mt-3">
-        <button
-          className="btn btn-primary px-4 py-2" // Added padding for better touch targets
-          style={{
-            backgroundColor: '#d3b386',
-            border: 'none',
-            minWidth: '150px', // Ensures button has good size on mobile
-          }}
-          onClick={handleAddUser}
-        >
-          Add User
-        </button>
+              {/* Bio Field */}
+              <div className="col-12">
+                <div className="mb-3">
+                  <label htmlFor="bio-input" className="form-label fw-medium" style={{ color: '#18273e' }}>
+                    Bio
+                  </label>
+                  <textarea
+                    className="form-control"
+                    id="bio-input"
+                    style={{
+                      borderColor: '#18273e',
+                      height: '100px',
+                    }}
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <div className="d-grid gap-2 d-md-flex justify-content-md-center mt-4">
+            <button
+              className="btn px-4 py-2 fw-bold"
+              type="submit"
+              style={{
+                backgroundColor: '#d3b386',
+                color: '#18273e',
+                border: 'none',
+                minWidth: '200px',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+              }}
+            >
+              Add User
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

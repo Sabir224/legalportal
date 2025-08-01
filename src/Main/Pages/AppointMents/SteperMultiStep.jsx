@@ -29,6 +29,8 @@ import {
   Grid,
   InputAdornment,
   Alert,
+  Chip,
+  IconButton,
 } from '@mui/material';
 import {
   PersonOutline,
@@ -43,6 +45,12 @@ import {
   Phone,
   CreditCard,
   Person,
+  Star,
+  Language,
+  AccessTime,
+  Work,
+  AttachMoney,
+  StarBorder,
 } from '@mui/icons-material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -99,6 +107,7 @@ function LegalConsultationStepper() {
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [selectedSlot, setSelectedSlot] = React.useState(null);
   const [lawyers, setLawyers] = React.useState([]);
+  const [lawyersDetails, setLawyersDetails] = React.useState();
   const [appointmentSlots, setAppointmentSlots] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -251,6 +260,7 @@ function LegalConsultationStepper() {
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
         if (response.data && response?.data?.lawyers) {
+          console.log('Lawyers:', response.data?.lawyers);
           setLawyers(response?.data?.lawyers);
         }
       } catch (err) {
@@ -340,7 +350,28 @@ function LegalConsultationStepper() {
     setAppointmentSlots([]);
     setClientMessage('');
   };
+  const regenerateAndRedirect = async () => {
+    try {
+      // Call your API to generate new link
+      const res = await axios.post(`${ApiEndPoint}generateLink`, {
+        phone,
+        name,
+      });
 
+      if (res.data?.success && res.data?.link) {
+        // Redirect to new link in same window
+        window.location.href = res.data.link;
+      } else {
+        console.error('Failed to generate new link:', res.data);
+      }
+    } catch (err) {
+      console.error('Error generating link:', err);
+    }
+  };
+  const onResetClick = async () => {
+    await regenerateAndRedirect(); // This will reload the page to new URL
+    //The rest of handleReset() won't run because page reloads
+  };
   // Navigation handlers
   const prevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -466,12 +497,12 @@ function LegalConsultationStepper() {
       // Create payment intent with all necessary data
       const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, {
         ...paymentForm,
-        amount: selectedLawyer?.price || 200,
+        amount: Number(selectedLawyer?.price) || 200, // Ensures it's a number
         serviceType: service,
         lawyerId: selectedLawyer?._id,
         consultationType: method,
-        uniqueLinkId: ref || '', // Use the ref from URL if available
-        appointmentLink: window.location.href, // Current URL as appointment link
+        uniqueLinkId: ref || '',
+        appointmentLink: window.location.href,
       });
 
       const { clientSecret, paymentId } = data;
@@ -723,6 +754,29 @@ function LegalConsultationStepper() {
     }
   };
 
+  const DetailItem = ({ icon, label, value, highlight }) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, whiteSpace: 'nowrap' }}>
+      {icon}
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'rgba(255,255,255,0.6)',
+          mr: 0.5,
+        }}
+      >
+        {label}:
+      </Typography>
+      <Typography
+        variant="caption"
+        sx={{
+          color: highlight ? '#d4af37' : 'rgba(255,255,255,0.85)',
+          fontWeight: highlight ? 500 : 400,
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  );
   const availableSlotsMap =
     appointmentDetails?.availableSlots?.reduce((acc, slot) => {
       const dateStr = new Date(slot.date).toDateString();
@@ -919,36 +973,158 @@ function LegalConsultationStepper() {
               </Typography>
             )}
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.5,
+                height: '50vh',
+                overflowY: 'auto',
+                pr: 1,
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'rgba(0,0,0,0.1)',
+                  borderRadius: '10px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#d4af37',
+                  borderRadius: '10px',
+                },
+              }}
+            >
               {lawyers.map((lawyer) => (
                 <Card
                   key={lawyer._id}
                   variant="outlined"
                   sx={{
+                    minHeight: '100px',
                     cursor: 'pointer',
-                    borderColor: selectedLawyer?._id === lawyer._id ? '#d4af37' : 'divider',
-                    backgroundColor: selectedLawyer?._id === lawyer._id ? 'rgba(212, 175, 55, 0.1)' : '#18273e',
+                    borderColor: selectedLawyer?._id === lawyer._id ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                    backgroundColor:
+                      selectedLawyer?._id === lawyer._id ? 'rgba(212, 175, 55, 0.1)' : 'rgba(15, 26, 47, 0.7)',
                     '&:hover': {
-                      borderColor: '#d4af37',
+                      backgroundColor: 'rgba(212, 175, 55, 0.08)',
+                      borderColor: 'rgba(212, 175, 55, 0.3)',
                     },
+                    borderRadius: 2,
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   }}
                   onClick={() => setSelectedLawyer(lawyer)}
                 >
-                  <CardContent>
-                    <Box display="flex" alignItems="center" gap={2}>
-                      <Avatar src={lawyer.ProfilePicture} sx={{ width: 56, height: 56 }} />
-                      <Box flexGrow={1}>
-                        <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                          {lawyer.UserName}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                          {lawyer.specialty} • {lawyer.experience} experience
-                        </Typography>
-                        <Box display="flex" alignItems="center" mt={0.5}>
-                          <Typography sx={{ color: '#d4af37', fontWeight: 'medium' }}>
-                            ${lawyer.price || 200}/hr
-                          </Typography>
+                  <CardContent sx={{ p: 2 }}>
+                    <Box display="flex" alignItems="flex-start" gap={2}>
+                      <Avatar
+                        src={lawyer.ProfilePicture}
+                        sx={{
+                          width: 64,
+                          height: 64,
+                          border: '2px solid #2c3e50',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                          flexShrink: 0,
+                        }}
+                      />
+
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        {/* Top row: Name + Price */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: 1,
+                            mb: 1,
+                          }}
+                        >
+                          <Box sx={{ minWidth: 0 }}>
+                            <Typography
+                              variant="subtitle1"
+                              fontWeight={600}
+                              sx={{
+                                color: '#fff',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                            >
+                              {lawyer.UserName}
+                            </Typography>
+                            {lawyer.position && (
+                              <Typography variant="caption" sx={{ color: '#d4af37', fontWeight: 500 }}>
+                                {lawyer.position}
+                              </Typography>
+                            )}
+                          </Box>
+
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 0.5,
+                              backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                              borderRadius: 1,
+                              px: 1,
+                              py: 0.5,
+                              flexShrink: 0,
+                            }}
+                          >
+                            <AttachMoney sx={{ fontSize: 16, color: '#d4af37' }} />
+                            <Typography variant="body2" sx={{ color: '#d4af37', fontWeight: 600 }}>
+                              {lawyer.price || 200}/hr
+                            </Typography>
+                          </Box>
                         </Box>
+
+                        {/* Details row */}
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 1.2,
+                            mb: lawyer.bio ? 1 : 0,
+                          }}
+                        >
+                          <DetailItem
+                            icon={<Work sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Specialty"
+                            value={lawyer.specialty}
+                          />
+                          <DetailItem
+                            icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Experience"
+                            value={lawyer.experience}
+                          />
+                          <DetailItem
+                            icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Languages"
+                            value={lawyer.language || 'N/A'}
+                          />
+                          <DetailItem
+                            icon={<LocationOn sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Location"
+                            value={lawyer.address.split(',')[0]}
+                          />
+                        </Box>
+
+                        {/* Bio */}
+                        {lawyer.bio && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: 'rgba(255, 255, 255, 0.65)',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              lineHeight: 1.4,
+                            }}
+                          >
+                            {lawyer.bio}
+                          </Typography>
+                        )}
                       </Box>
                     </Box>
                   </CardContent>
@@ -1475,6 +1651,7 @@ function LegalConsultationStepper() {
                 borderRadius: 2,
                 p: 2,
                 maxHeight: 300,
+                width: '100%',
                 overflowY: 'auto',
                 backgroundColor: '#18273e',
                 color: 'white',
@@ -1488,7 +1665,7 @@ function LegalConsultationStepper() {
                 sx={{
                   marginLeft: '5px',
                   display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
                 }}
               >
                 {selectedDate ? (
@@ -1615,7 +1792,7 @@ function LegalConsultationStepper() {
                       day: 'numeric',
                       year: 'numeric',
                     })}{' '}
-                    • {convertTo12HourFormat(selectedSlot?.startTime)}
+                    • {convertTo12HourFormat(selectedSlot?.startTime || confirmationData.slot.startTime)}
                   </Typography>
                 </Box>
                 <Box>
@@ -1826,7 +2003,20 @@ function LegalConsultationStepper() {
               {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
             </Button>
           ) : (
-            <></>
+            <Button
+              variant="contained"
+              onClick={onResetClick}
+              sx={{
+                backgroundColor: '#d4af37',
+                color: '#18273e',
+                fontWeight: 'bold',
+                '&:hover': {
+                  backgroundColor: '#c19b2e',
+                },
+              }}
+            >
+              Book Another Appointment
+            </Button>
           )}
         </Box>
       </Paper>
