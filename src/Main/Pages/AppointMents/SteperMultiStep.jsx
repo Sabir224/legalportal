@@ -446,7 +446,7 @@ function LegalConsultationStepper() {
     setSelectedSlot(slot);
     setPopupmessage(
       `${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${convertTo12HourFormat(
-        selectedTime
+        selectedSlot?.startTime
       )}?`
     );
     setPopupcolor('popup');
@@ -559,7 +559,7 @@ function LegalConsultationStepper() {
 
   const handleConfirm = async () => {
     if (!selectedLawyer || !selectedDate || !selectedSlot) {
-      console.error('Missing required data for booking:', {
+      console.error('❌ Missing required data for booking:', {
         selectedLawyer,
         selectedDate,
         selectedSlot,
@@ -567,76 +567,61 @@ function LegalConsultationStepper() {
       return;
     }
 
+    if (selectedSlot?.isBooked) {
+      setPopupcolor('popupconfirm');
+      setPopupmessage('This slot has already been booked. Please choose another one.');
+      return;
+    }
+
     setIsLoading(true);
     setIsPopupVisiblecancel(false);
 
-    try {
-      console.log('Starting appointment booking process...');
+    let meetingCreated = false;
+    let slotUpdated = false;
+    let meetingUrl = '';
+    let emailSent = false;
 
-      // Prepare meeting date and time
+    try {
+      console.group('🔁 Booking Process Started');
+
       const meetingDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
         .toISOString()
         .split('T')[0];
+
       const startTime24 = convertTo24Hour(selectedSlot.startTime);
       const endTime24 = convertTo24Hour(selectedSlot.endTime);
 
-      console.log('Meeting details:', {
-        date: meetingDate,
-        startTime: startTime24,
-        endTime: endTime24,
-      });
+      let startDateTime = new Date(`${meetingDate}T${startTime24}:00Z`);
+      let endDateTime = new Date(`${meetingDate}T${endTime24}:00Z`);
+
+      if (endDateTime <= startDateTime) {
+        endDateTime.setDate(endDateTime.getDate() + 1);
+      }
 
       const meetingDetails = {
         summary: 'Legal Consultation',
-        startTime: new Date(`${meetingDate}T${startTime24}:00`).toISOString(),
-        endTime: new Date(`${meetingDate}T${endTime24}:00`).toISOString(),
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
         timeZone: 'Asia/Dubai',
       };
 
-      // 1. Create meeting
-      console.log('Creating meeting...');
-      const meetingResponse = await axios.post(`${ApiEndPoint}CreateTeamMeeting`, meetingDetails).catch((err) => {
-        console.error('Error creating meeting:', err.response?.data || err.message);
-        throw err;
-      });
-
-      const meetingUrl = meetingResponse.data.meetingLink;
-      setMeetingLink(meetingUrl);
-      console.log('Meeting created successfully. URL:', meetingUrl);
-
-      // Prepare slot update
-      const slotId = selectedSlot?._id;
-      if (!slotId) {
-        console.error('Missing slot ID in selectedSlot:', selectedSlot);
-        throw new Error('Missing slot ID');
+      // 🔹 Step 1: Create Teams Meeting
+      try {
+        console.group('📅 Creating Microsoft Teams Meeting');
+        const meetingResponse = await axios.post(`${ApiEndPoint}CreateTeamMeeting`, meetingDetails);
+        meetingCreated = true;
+        meetingUrl = meetingResponse.data.meetingLink;
+        setMeetingLink(meetingUrl);
+        console.log('✅ Meeting created:', meetingUrl);
+        console.groupEnd();
+      } catch (err) {
+        console.group('❌ Meeting Creation Failed');
+        console.error('Error:', err.response?.data || err.message);
+        console.groupEnd();
+        throw new Error('Failed to create meeting link.');
       }
 
-      let updatedSlot = {
-        slot: slotId,
-        isBooked: true,
-        publicBooking: {
-          name: paymentForm.name,
-          phone: phone,
-        }, // TODO: Replace with actual user ID
-        meetingLink: meetingUrl,
-      };
-      console.log('Update slot Data before sending....:', updatedSlot);
-      // Prepare confirmation data
-      const confirmation = {
-        lawyer: selectedLawyer,
-        service,
-        method,
-        date: selectedDate,
-        slot: selectedSlot,
-        meetingLink: meetingUrl,
-        clientMessage,
-      };
-      setConfirmationData(confirmation);
-
-      // 2. Send confirmation email
-      console.log('Preparing email data...');
-
-      console.log('Lawyer:', selectedLawyer);
+      // 🔹 Step 2: Send Email
       const emailData = {
         to: selectedLawyer?.Email,
         subject: `New Appointment Booking - ${service}`,
@@ -658,8 +643,8 @@ function LegalConsultationStepper() {
           UserName: selectedLawyer?.lawyerName,
         },
         clientDetails: {
-          UserName: paymentForm.name, // Replace with dynamic value if available
-          Phone: phone, // Replace with dynamic value if available
+          UserName: paymentForm.name,
+          Phone: phone,
         },
         selectedTime: selectedSlot.startTime,
         formattedDate: selectedDate.toLocaleDateString('en-US', {
@@ -675,82 +660,120 @@ function LegalConsultationStepper() {
         subject: `New Appointment Booking - ${service}`,
         client: {
           user: {
-            UserName: paymentForm.name, // Same as above
-            Phone: phone, // Same as above
+            UserName: paymentForm.name,
+            Phone: phone,
           },
         },
         mailmsg: emailData,
-        text: ``,
+        text: '',
         html: null,
       };
-      console.log('Email Data before sending:', requestBody);
-      // Plain text email generator (optional)
 
-      console.log('Sending email...');
-      const response = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody).catch((err) => {
-        console.error('Error sending email:', err.response?.data || err.message);
-        throw err;
-      });
-
-      if (response.status !== 200) {
-        console.error('Unexpected response status from email API:', response.status);
-        setPopupcolor('popupconfirm');
-        setPopupmessage(`Meeting Schedule mail not sent (${response.status})`);
-        setTimeout(() => {
-          setIsPopupVisible(false);
-        }, 3000);
-        throw new Error(`HTTP error! status: ${response.status}`);
+      try {
+        console.group('📧 Sending Email Notification');
+        const emailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody);
+        emailSent = true;
+        console.log('✅ Email sent:', emailResponse.data);
+        console.groupEnd();
+      } catch (emailErr) {
+        console.group('⚠️ Email Failed');
+        console.warn('Email error:', emailErr.response?.data || emailErr.message);
+        console.groupEnd();
       }
 
-      // 3. Update appointment slot
-      console.log('Updating appointment slot...');
-      const responseupdate = await axios
-        .patch(`${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`, updatedSlot)
-        .catch((err) => {
-          console.error('Error updating appointment slot:', err.response?.data || err.message);
-          throw err;
-        });
+      // 🔹 Step 3: Update Appointment Slot
+      const slotId = selectedSlot?._id;
+      if (!slotId) throw new Error('Missing slot ID');
 
-      console.log('Appointment booked successfully:', responseupdate.data);
+      try {
+        console.group('📌 Updating Slot Booking');
+        const updatedSlot = {
+          slot: slotId,
+          isBooked: true,
+          publicBooking: {
+            name: paymentForm.name,
+            phone: phone,
+          },
+          meetingLink: meetingUrl,
+        };
+
+        const responseupdate = await axios.patch(
+          `${ApiEndPoint}crmBookappointments/${selectedLawyer?._id}/${slotId}`,
+          updatedSlot
+        );
+        slotUpdated = true;
+        console.log('✅ Slot updated:', responseupdate.data);
+        console.groupEnd();
+      } catch (err) {
+        console.group('❌ Slot Update Failed');
+        console.error('Error:', err.response?.data || err.message);
+        console.groupEnd();
+        throw new Error('Failed to update slot');
+      }
+
+      // 🔹 Step 4: Store Confirmation
+      const confirmation = {
+        lawyer: selectedLawyer,
+        service,
+        method,
+        date: selectedDate,
+        slot: selectedSlot,
+        meetingLink: meetingUrl,
+        clientMessage,
+      };
+      setConfirmationData(confirmation);
+
+      // 🔹 Step 5: Payment Update
+      try {
+        console.group('💰 Updating Payment Status');
+        await axios.post(`${ApiEndPoint}payments/update-status`, {
+          paymentId: data?.payment?._id,
+          meetingDetails: {
+            meetingUrl: meetingUrl,
+            date: selectedDate,
+            slot: selectedSlot,
+          },
+        });
+        console.log('✅ Payment status updated');
+        console.groupEnd();
+      } catch (err) {
+        console.group('⚠️ Payment Update Failed');
+        console.error('Payment update error:', err.response?.data || err.message);
+        console.groupEnd();
+      }
+
+      // Final popup message
       setIsEmailSent(true);
       setPopupcolor('popupconfirm');
-      setPopupmessage('Meeting scheduled successfully!');
-      const updateResponse = await axios.post(`${ApiEndPoint}payments/update-status`, {
-        paymentId: data?.payment?._id, // From your earlier API call
-        meetingDetails: {
-          meetingUrl: meetingUrl,
-          date: selectedDate,
-          slot: selectedSlot,
-        },
-      });
-
-      // 3. Update confirmation data
-      setConfirmationData((prev) => ({
-        ...prev,
-        meetingLink: meetingUrl,
-      }));
+      setPopupmessage(emailSent ? 'Meeting scheduled successfully!' : 'Meeting scheduled, but email was not sent.');
 
       setTimeout(() => {
         setIsPopupVisible(false);
         handleNext();
       }, 2000);
+
+      console.groupEnd(); // End main booking group
     } catch (err) {
-      console.error('Error in handleConfirm:', {
-        error: err.message,
-        stack: err.stack,
-        response: err.response?.data,
-      });
+      console.group('❌ Booking Process Failed');
+      console.error('General Error:', err.message, err.stack);
+      console.groupEnd();
 
-      setError('Failed to book appointment. Please try again.');
+      let errorMsg = 'Failed to book appointment. Please try again.';
+      if (slotUpdated && !emailSent) {
+        errorMsg = 'Slot was booked, but confirmation email failed to send.';
+      } else if (meetingCreated && !slotUpdated) {
+        errorMsg = 'Meeting was created, but slot booking failed.';
+      }
+
+      setError(errorMsg);
       setPopupcolor('popupconfirm');
-      setPopupmessage('Failed to book appointment');
-
+      setPopupmessage(errorMsg);
       setTimeout(() => {
         setIsPopupVisible(false);
       }, 3000);
     } finally {
       setIsLoading(false);
-      console.log('Booking process completed (success or failure)');
+      console.log('📤 Booking process completed (success or error).');
     }
   };
 
@@ -1088,7 +1111,7 @@ function LegalConsultationStepper() {
                         >
                           <DetailItem
                             icon={<Work sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Specialty"
+                            label="Service"
                             value={lawyer.specialty}
                           />
                           <DetailItem
@@ -1865,7 +1888,8 @@ function LegalConsultationStepper() {
                     color: 'white',
                   }}
                 >
-                  {popupmessage}
+                  {subject} on {new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at{' '}
+                  {convertTo12HourFormat(selectedSlot?.startTime)}
                 </h3>
                 <textarea
                   placeholder="Text Message (Optional)"
