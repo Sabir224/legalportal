@@ -1247,16 +1247,26 @@ const BasicCase = ({ token }) => {
                       ))}
                       <Dropdown.Divider />
                       <div className="text-end px-2 pb-2">
-                        <Button
-                          size="sm"
-                          variant="primary"
+                        <div
+                          role="button"
+                          style={{
+                            padding: '4px 12px',
+                            border: '1px solid #18273e', // Bootstrap primary color or change as needed
+                            borderRadius: '4px',
+                            color: 'white',
+                            backgroundColor: '#18273e',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                          }}
                           onClick={() => {
                             handleApplyFilter("CaseSubType");
                             setCaseSubTypeFilter(false); // ✅ Close on OK
                           }}
                         >
                           OK
-                        </Button>
+
+                        </div>
                       </div>
                     </Dropdown.Menu>
                   </Dropdown>
@@ -1333,12 +1343,35 @@ const BasicCase = ({ token }) => {
                         </Dropdown.Item>
                       ))}
                       <Dropdown.Divider />
-                      <div className="text-end px-2 pb-2" variant="primary" onClick={() => {
-                        handleApplyFilter("CaseType");
-                        setCaseTypeFilter(false); // ✅ Close on OK
-                      }}>
-                        Done
+                      <div className="text-end px-2 pb-2">
+                        <div
+                          role="button"
+                          style={{
+                            padding: '4px 12px',
+                            border: '1px solid #18273e', // Bootstrap primary color or change as needed
+                            borderRadius: '4px',
+                            color: 'white',
+                            backgroundColor: '#18273e',
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            display: 'inline-block',
+                          }}
+                          // className="btn btn-sm btn-primary"
+                          onClick={() => {
+                            handleApplyFilter("CaseType");
+                            setCaseTypeFilter(false); // ✅ Close on Done
+                          }}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              handleApplyFilter("CaseType");
+                              setCaseTypeFilter(false);
+                            }
+                          }}
+                        >
+                          Done
+                        </div>
                       </div>
+
                     </Dropdown.Menu>
                   </Dropdown>
                 </span>
