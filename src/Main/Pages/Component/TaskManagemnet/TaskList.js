@@ -208,7 +208,7 @@ export default function TaskList({ token }) {
           ? token?.Role === 'admin'
             ? `${ApiEndPoint}getAllTasksWithDetails`
             : `${ApiEndPoint}getTasksByUser/${token?._id}`
-          : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}/${token?._id}`
+          : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}/${token?._id}/${token?.Role}`
       );
 
       if (!response.ok) {

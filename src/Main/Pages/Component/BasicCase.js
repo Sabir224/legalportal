@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./BasicCase.css";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,42 @@ const BasicCase = ({ token }) => {
   const reduxCaseCloseType = useSelector((state) => state.screen.CloseType);
 
 
+  const caseSubTypeRef = useRef(null);
+  const caseTypeRef = useRef(null);
+
+  const caseNumberRef = useRef(null);
+  // ✅ Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (
+        caseSubTypeRef.current &&
+        !caseSubTypeRef.current.contains(event.target)
+      ) {
+        handleApplyFilter("CaseSubType");
+        setCaseSubTypeFilter(false);
+      }
+
+
+      if (caseNumberRef.current && !caseNumberRef.current.contains(event.target)) {
+        setCaseFilter(false);
+      }
+
+      if (
+        caseTypeRef.current &&
+        !caseTypeRef.current.contains(event.target)
+      ) {
+        handleApplyFilter("CaseType");
+        setCaseTypeFilter(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showCaseSubTypeFilter, showCaseTypeFilter]);
+
+
   const { showLoading, showDataLoading, showSuccess, showError } = useAlert();
 
   const casesPerPage = 50; // Show 50 cases per page
@@ -52,9 +88,22 @@ const BasicCase = ({ token }) => {
     CaseType: [],     // Array of selected case types
     CaseSubType: [],     // Array of selected case types
     priority: [],     // Optional if you add it later
-    sortBy: "CaseNumber",
+    sortBy: "createdAt",
     sortOrder: "desc",
   });
+
+  const [Subtypelist, setSubtypelist] = useState([]);
+  const [CaseTypeList, setCaseTypeList] = useState([]);
+  const [casetypeslistFilteroption, setcasetypeslistFilteroption] = useState([]);
+
+  useEffect(() => {
+    // Add "" to include blank values as part of filter
+    setFilters((prev) => ({
+      ...prev,
+      CaseSubType: [...Subtypelist, ""],
+      CaseType: [...CaseTypeList, ""],
+    }));
+  }, []);
 
   // console.log("_________Token:0", token.Role);
 
@@ -71,7 +120,7 @@ const BasicCase = ({ token }) => {
     "Under Review"
   ];
 
-  const Subtypelist = [
+  const UpdateSubtypelist = [
     "Civil Case",
     "Commercial Law",
     "Criminal Case",
@@ -87,9 +136,12 @@ const BasicCase = ({ token }) => {
     "Consumer Case",
     "Environmental Case"
   ]
+
+
   const dispatch = useDispatch();
 
   const [responseData, setResponseData] = useState(null);
+
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [casedetails, setcasedetails] = useState(null);
   const [loaderOpen, setLoaderOpen] = useState(false);
@@ -225,13 +277,65 @@ const BasicCase = ({ token }) => {
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
-  const handleFilterChange = (filterType, value) => {
+  // const handleFilterChange = (filterType, value) => {
+  //   setFilters((prevFilters) => {
+  //     const currentValues = prevFilters[filterType] || [];
+
+  //     const updatedValues = currentValues.includes(value)
+  //       ? currentValues.filter((v) => v !== value) // Remove if already selected
+  //       : [...currentValues, value];               // Add if not selected
+
+  //     return {
+  //       ...prevFilters,
+  //       [filterType]: updatedValues,
+  //     };
+  //   });
+
+  //   setCurrentPage(1); // Reset to first page when filter changes
+  // };
+
+
+  const handleFilterChange = async (filterType, value) => {
+
+
+    // if (filterType === "CaseType") {
+    //   try {
+    //     const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/true`, {
+    //       caseTypes: filters?.CaseType,
+    //     });
+
+    //     // ✅ Update Subtypelist (used in UI)
+    //     console.log("response.data.subTypes = ", response.data.subTypes)
+    //     setSubtypelist(response.data.subTypes || []);
+    //   } catch (error) {
+    //     console.error("Failed to fetch subtypes:", error);
+    //     setSubtypelist([]);
+    //   }
+    // }
+
+
     setFilters((prevFilters) => {
       const currentValues = prevFilters[filterType] || [];
 
+      // Handle "Select All"
+      if (value === "__SELECT_ALL__") {
+        const fullList =
+          filterType === "CaseType"
+            ? [...CaseTypeList, ""] // include blank
+            : filterType === "CaseSubType"
+              ? [...Subtypelist, ""]
+              : [];
+
+        return {
+          ...prevFilters,
+          [filterType]: fullList,
+        };
+      }
+
+      // Toggle individual value (including blank "")
       const updatedValues = currentValues.includes(value)
-        ? currentValues.filter((v) => v !== value) // Remove if already selected
-        : [...currentValues, value];               // Add if not selected
+        ? currentValues.filter((v) => v !== value) // remove if selected
+        : [...currentValues, value];              // add if not selected
 
       return {
         ...prevFilters,
@@ -239,13 +343,206 @@ const BasicCase = ({ token }) => {
       };
     });
 
-    setCurrentPage(1); // Reset to first page when filter changes
+
+
+
+    setCurrentPage(1); // reset to page 1 when filter changes
   };
+
+
+
+  const handleApplyFilter = async (filterType) => {
+    console.log("Apply filter for:", filterType);
+    // You can add custom logic here like closing the dropdown or calling API
+    if (filterType === "CaseSubType") {
+
+      try {
+        const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/false`, {
+          caseTypes: filters?.CaseSubType,
+        });
+
+        // ✅ Update Subtypelist (used in UI)
+        console.log("response.data.subTypes = ", response.data.subTypes)
+        await setCaseTypeList(response.data.subTypes || []);
+
+
+
+
+      } catch (error) {
+
+        setCaseSubTypeFilter(false); // close dropdown
+      }
+
+    }
+    else if (filterType === "CaseType") {
+      try {
+        const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/true`, {
+          caseTypes: filters?.CaseType,
+        });
+
+        // ✅ Update Subtypelist (used in UI)
+        console.log("response.data.subTypes = ", response.data.subTypes)
+        await setSubtypelist(response.data.subTypes || []);
+      } catch (error) {
+
+        setCaseTypeFilter(false); // close dropdown
+      }
+    }
+  };
+
+
+  // const getFilteredCases = () => {
+  //   let filteredCases = data;
+
+  //   // Apply search filter across multiple fields
+  //   if (searchQuery) {
+  //     const query = searchQuery.toLowerCase();
+  //     filteredCases = filteredCases.filter((item) =>
+  //       Object.entries(item).some(([key, value]) => {
+  //         if (
+  //           typeof value !== "string" ||
+  //           ["_id", "createdAt", "updatedAt"].includes(key)
+  //         ) {
+  //           return false;
+  //         }
+  //         return value.toLowerCase().includes(query);
+  //       })
+  //     );
+  //   }
+
+  //   // Filter by multiple selected statuses
+  //   if (filters.status && filters.status.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.status.includes(item.Status)
+  //     );
+  //   }
+
+  //   // Filter by multiple selected CaseTypes
+  //   if (filters.CaseType && filters.CaseType.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.CaseType.includes(item.CaseType)
+  //     );
+  //   }
+  //   if (filters.CaseSubType && filters.CaseSubType.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.CaseSubType.includes(item.CaseSubType)
+  //     );
+  //   }
+
+  //   // Filter by multiple selected priorities (optional)
+  //   if (filters.priority && filters.priority.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.priority.includes(item.Priority)
+  //     );
+  //   }
+
+  //   // Apply sorting
+  //   if (filters.sortBy) {
+  //     filteredCases.sort((a, b) => {
+  //       const aVal = a[filters.sortBy];
+  //       const bVal = b[filters.sortBy];
+
+  //       if (aVal == null || bVal == null) return 0;
+
+  //       if (filters.sortOrder === "asc") {
+  //         return aVal > bVal ? 1 : -1;
+  //       } else {
+  //         return aVal < bVal ? 1 : -1;
+  //       }
+  //     });
+  //   }
+
+  //   return filteredCases;
+  // };
+
+
+  // const getFilteredCases = () => {
+  //   let filteredCases = data;
+
+  //   // 🔒 If any filter is empty, return [] (show nothing)
+  //   const hasEmptyFilter =
+  //     // (filters.status && filters.status.length === 0) ||
+  //     (filters.CaseType && filters.CaseType.length === 0) ||
+  //     (filters.CaseSubType && filters.CaseSubType.length === 0)
+  //     // (filters.priority && filters.priority.length === 0);
+
+  //   if (hasEmptyFilter) return [];
+
+  //   // Apply search filter across multiple fields
+  //   if (searchQuery) {
+  //     const query = searchQuery.toLowerCase();
+  //     filteredCases = filteredCases.filter((item) =>
+  //       Object.entries(item).some(([key, value]) => {
+  //         if (
+  //           typeof value !== "string" ||
+  //           ["_id", "createdAt", "updatedAt"].includes(key)
+  //         ) {
+  //           return false;
+  //         }
+  //         return value.toLowerCase().includes(query);
+  //       })
+  //     );
+  //   }
+
+  //   // Filter by multiple selected statuses
+  //   // if (filters.status && filters.status.length > 0) {
+  //   //   filteredCases = filteredCases.filter((item) =>
+  //   //     filters.status.includes(item.Status)
+  //   //   );
+  //   // }
+
+  //   // Filter by multiple selected CaseTypes
+  //   if (filters.CaseType && filters.CaseType.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.CaseType.includes(item.CaseType)
+  //     );
+  //   }
+
+  //   // Filter by CaseSubType
+  //   if (filters.CaseSubType && filters.CaseSubType.length > 0) {
+  //     filteredCases = filteredCases.filter((item) =>
+  //       filters.CaseSubType.includes(item.CaseSubType)
+  //     );
+  //   }
+
+  //   // // Filter by multiple selected priorities (optional)
+  //   // if (filters.priority && filters.priority.length > 0) {
+  //   //   filteredCases = filteredCases.filter((item) =>
+  //   //     filters.priority.includes(item.Priority)
+  //   //   );
+  //   // }
+
+  //   // Apply sorting
+  //   if (filters.sortBy) {
+  //     filteredCases.sort((a, b) => {
+  //       const aVal = a[filters.sortBy];
+  //       const bVal = b[filters.sortBy];
+
+  //       if (aVal == null || bVal == null) return 0;
+
+  //       if (filters.sortOrder === "asc") {
+  //         return aVal > bVal ? 1 : -1;
+  //       } else {
+  //         return aVal < bVal ? 1 : -1;
+  //       }
+  //     });
+  //   }
+
+  //   return filteredCases;
+  // };
+
 
   const getFilteredCases = () => {
     let filteredCases = data;
 
-    // Apply search filter across multiple fields
+    // 🔒 If CaseType or CaseSubType is empty (i.e., nothing selected), show nothing
+    const hasEmptyFilter =
+      (filters.CaseType && filters.CaseType.length === 0) ||
+      (filters.CaseSubType && filters.CaseSubType.length === 0);
+
+    if (hasEmptyFilter) return [];
+
+    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filteredCases = filteredCases.filter((item) =>
@@ -261,33 +558,21 @@ const BasicCase = ({ token }) => {
       );
     }
 
-    // Filter by multiple selected statuses
-    if (filters.status && filters.status.length > 0) {
-      filteredCases = filteredCases.filter((item) =>
-        filters.status.includes(item.Status)
-      );
-    }
-
-    // Filter by multiple selected CaseTypes
+    // Filter by CaseType
     if (filters.CaseType && filters.CaseType.length > 0) {
       filteredCases = filteredCases.filter((item) =>
-        filters.CaseType.includes(item.CaseType)
+        filters.CaseType.includes(item.CaseType || "")
       );
     }
+
+    // Filter by CaseSubType
     if (filters.CaseSubType && filters.CaseSubType.length > 0) {
       filteredCases = filteredCases.filter((item) =>
-        filters.CaseSubType.includes(item.CaseSubType)
+        filters.CaseSubType.includes(item.CaseSubType || "")
       );
     }
 
-    // Filter by multiple selected priorities (optional)
-    if (filters.priority && filters.priority.length > 0) {
-      filteredCases = filteredCases.filter((item) =>
-        filters.priority.includes(item.Priority)
-      );
-    }
-
-    // Apply sorting
+    // Sorting
     if (filters.sortBy) {
       filteredCases.sort((a, b) => {
         const aVal = a[filters.sortBy];
@@ -295,16 +580,15 @@ const BasicCase = ({ token }) => {
 
         if (aVal == null || bVal == null) return 0;
 
-        if (filters.sortOrder === "asc") {
-          return aVal > bVal ? 1 : -1;
-        } else {
-          return aVal < bVal ? 1 : -1;
-        }
+        return filters.sortOrder === "asc"
+          ? aVal > bVal ? 1 : -1
+          : aVal < bVal ? 1 : -1;
       });
     }
 
     return filteredCases;
   };
+
 
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -356,6 +640,35 @@ const BasicCase = ({ token }) => {
       }
 
       await setData(filteredCases);
+      showDataLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
+
+
+
+
+    // for filter
+    try {
+      const response = await axios.get(`${ApiEndPoint}getUniqueCaseSubTypes`, {
+        withCredentials: true,
+      });
+
+      const filtercasesubtype = response.data?.subTypes;
+      const filtercasetype = response.data?.CaseTypes;
+      const filtercasetypeslist = response.data?.casetypeslist;
+
+      await setSubtypelist(filtercasesubtype);
+      await setcasetypeslistFilteroption(filtercasetypeslist);
+      await setCaseTypeList(filtercasetype);
+
+
+      setFilters((prev) => ({
+        ...prev,
+        CaseSubType: [...filtercasesubtype, ""],
+        CaseType: [...filtercasetype, ""],
+      }));
       showDataLoading(false);
     } catch (err) {
       setError(err.message);
@@ -811,15 +1124,18 @@ const BasicCase = ({ token }) => {
               }}
             >
               {/* CASE NUMBER Filter */}
-              <span className=" d-flex gap-2 text-start" style={{
-                maxWidth: '150px',
-                minWidth: '150px',
-                position: "sticky",
-                left: 0, // ✅ exactly after Status column width
-                zIndex: 2,
-                background: "#18273e",
-
-              }}>
+              <span
+                ref={caseNumberRef}
+                className="d-flex gap-2 text-start"
+                style={{
+                  maxWidth: "150px",
+                  minWidth: "150px",
+                  position: "sticky",
+                  left: 0,
+                  zIndex: 2,
+                  background: "#18273e",
+                }}
+              >
                 Case Number
                 <Dropdown show={showCaseFilter} onToggle={() => setCaseFilter(!showCaseFilter)}>
                   <Dropdown.Toggle
@@ -833,19 +1149,23 @@ const BasicCase = ({ token }) => {
                   >
                     <FontAwesomeIcon icon={faFilter} />
                   </Dropdown.Toggle>
-                  <Dropdown.Menu>
+                  <Dropdown.Menu style={{ maxHeight: "200px", overflowY: "auto" }}>
                     {["asc", "desc"].map((order) => (
-                      <Dropdown.Item key={order} onClick={(e) => {
-                        e.stopPropagation();
-                        setFilters((prev) => ({ ...prev, sortOrder: order }));
-                        setCaseFilter(false);
-                      }}>
+                      <Dropdown.Item
+                        key={order}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilters((prev) => ({ ...prev, sortOrder: order }));
+                          setCaseFilter(false); // ✅ close on selection
+                        }}
+                      >
                         {order === "asc" ? "Ascending" : "Descending"}
                       </Dropdown.Item>
                     ))}
                   </Dropdown.Menu>
                 </Dropdown>
               </span>
+
 
               {/* REQUEST NUMBER Headings */}
               <span className=" text-start" style={{
@@ -854,77 +1174,177 @@ const BasicCase = ({ token }) => {
                 color: 'white'
               }}>Request Number</span>
 
-              {/* CASE SUB TYPE Filter */}
-              <span className=" d-flex gap-2 text-start" style={{
-                maxWidth: '200px',
-                minWidth: '200px',
-                color: 'white'
-              }}>
-                Case Sub Type
-                <Dropdown show={showCaseSubTypeFilter} onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}>
-                  <Dropdown.Toggle
-                    variant=""
-                    size="sm"
-                    className="custom-dropdown-toggle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCaseSubTypeFilter(!showCaseSubTypeFilter);
-                    }}
+              <>
+                {/* CASE SUB TYPE Filter */}
+                <span
+                  ref={caseSubTypeRef}
+                  className="d-flex gap-2 text-start"
+                  style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+                >
+                  Case Sub Type
+                  <Dropdown
+                    show={showCaseSubTypeFilter}
+                    onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
                   >
-                    <FontAwesomeIcon icon={faFilter} />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item onClick={(e) => {
-                      e.stopPropagation();
-                      setFilters((prev) => ({ ...prev, CaseSubType: [] }));
-                    }}>Clear All</Dropdown.Item>
-                    {Subtypelist.map((type) => (
-                      <Dropdown.Item key={type} onClick={(e) => {
+                    <Dropdown.Toggle
+                      variant=""
+                      size="sm"
+                      className="custom-dropdown-toggle"
+                      onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseSubType", type);
-                      }}>
-                        <Form.Check type="checkbox" label={type} checked={filters.CaseSubType.includes(type)} onChange={() => { }} />
+                        setCaseTypeFilter(false);
+                        setCaseFilter(false)
+                        setCaseSubTypeFilter(!showCaseSubTypeFilter);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faFilter} />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("CaseSubType", "__SELECT_ALL__");
+                        }}
+                      >
+                        Select All
                       </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </span>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilters((prev) => ({ ...prev, CaseSubType: [] }));
+                        }}
+                      >
+                        Clear All
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("CaseSubType", "");
+                        }}
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          label="(Blank)"
+                          checked={filters.CaseSubType.includes("")}
+                          onChange={() => { }}
+                        />
+                      </Dropdown.Item>
+                      {Subtypelist.map((type) => (
+                        <Dropdown.Item
+                          key={type}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFilterChange("CaseSubType", type);
+                          }}
+                        >
+                          <Form.Check
+                            type="checkbox"
+                            label={type}
+                            checked={filters.CaseSubType.includes(type)}
+                            onChange={() => { }}
+                          />
+                        </Dropdown.Item>
+                      ))}
+                      <Dropdown.Divider />
+                      <div className="text-end px-2 pb-2">
+                        <Button
+                          size="sm"
+                          variant="primary"
+                          onClick={() => {
+                            handleApplyFilter("CaseSubType");
+                            setCaseSubTypeFilter(false); // ✅ Close on OK
+                          }}
+                        >
+                          OK
+                        </Button>
+                      </div>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </span>
 
-              {/* CASE TYPE Filter */}
-              <span className=" d-flex gap-2 text-start" style={{
-                maxWidth: '200px',
-                minWidth: '200px',
-                color: 'white'
-              }}>
-                Case Type
-                <Dropdown show={showCaseTypeFilter} onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}>
-                  <Dropdown.Toggle
-                    variant=""
-                    size="sm"
-                    className="custom-dropdown-toggle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCaseTypeFilter(!showCaseTypeFilter);
-                    }}
+                {/* CASE TYPE Filter (same as above with caseTypeRef) */}
+                <span
+                  ref={caseTypeRef}
+                  className="d-flex gap-2 text-start"
+                  style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+                >
+                  Case Type
+                  <Dropdown
+                    show={showCaseTypeFilter}
+                    onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}
                   >
-                    <FontAwesomeIcon icon={faFilter} />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu>
-                    <Dropdown.Item onClick={(e) => {
-                      e.stopPropagation();
-                      setFilters((prev) => ({ ...prev, CaseType: [] }));
-                    }}>Clear All</Dropdown.Item>
-                    {["Consultation", "Non-Litigation", "Litigation"].map((type) => (
-                      <Dropdown.Item key={type} onClick={(e) => {
+                    <Dropdown.Toggle
+                      variant=""
+                      size="sm"
+                      className="custom-dropdown-toggle"
+                      onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseType", type);
-                      }}>
-                        <Form.Check type="checkbox" label={type} checked={filters.CaseType.includes(type)} onChange={() => { }} />
+                        setCaseFilter(false)
+                        setCaseSubTypeFilter(false);
+                        setCaseTypeFilter(!showCaseTypeFilter);
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faFilter} />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("CaseType", "__SELECT_ALL__");
+                        }}
+                      >
+                        Select All
                       </Dropdown.Item>
-                    ))}
-                  </Dropdown.Menu>
-                </Dropdown>
-              </span>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setFilters((prev) => ({ ...prev, CaseType: [] }));
+                        }}
+                      >
+                        Clear All
+                      </Dropdown.Item>
+                      <Dropdown.Item
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("CaseType", "");
+                        }}
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          label="(Blank)"
+                          checked={filters.CaseType.includes("")}
+                          onChange={() => { }}
+                        />
+                      </Dropdown.Item>
+                      {CaseTypeList.map((type) => (
+                        <Dropdown.Item
+                          key={type}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFilterChange("CaseType", type);
+                          }}
+                        >
+                          <Form.Check
+                            type="checkbox"
+                            label={type}
+                            checked={filters.CaseType.includes(type)}
+                            onChange={() => { }}
+                          />
+                        </Dropdown.Item>
+                      ))}
+                      <Dropdown.Divider />
+                      <div className="text-end px-2 pb-2" variant="primary" onClick={() => {
+                        handleApplyFilter("CaseType");
+                        setCaseTypeFilter(false); // ✅ Close on OK
+                      }}>
+                        Done
+                      </div>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </span>
+              </>
+
+
 
               {/* PURPOSE Heading */}
               <span className=" text-start" style={{
@@ -1129,7 +1549,7 @@ const BasicCase = ({ token }) => {
                     </div>
 
                     {/* Desktop View - Horizontal Layout */}
-                   <div
+                    <div
                       className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3"
                       style={{ cursor: "pointer", background: 'white' }}
                       onClick={(e) => {
@@ -1138,7 +1558,7 @@ const BasicCase = ({ token }) => {
                         }
                       }}
                     >
-                   
+
                       {/* CASE NUMBER */}
                       <span
                         className="text-start d-flex align-items-center"
@@ -1568,7 +1988,7 @@ const BasicCase = ({ token }) => {
                 onChange={(e) => setSelectedSubCaseType(e.target.value)}
               >
                 <option value="">Select the option</option>
-                {Subtypelist.map((caseItem) => (
+                {UpdateSubtypelist.map((caseItem) => (
                   <option key={caseItem} value={caseItem}>
                     {caseItem}
                   </option>

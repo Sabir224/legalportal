@@ -139,8 +139,8 @@ const Dashboard = () => {
     }
 
     const handleMessagesDelivered = (data) => {
-      console.log(" Logout 1 ",jwtDecode(cookies.token))
-      if(data?.Email===jwtDecode(cookies.token)?.email){
+      console.log(" Logout 1 ", jwtDecode(cookies.token))
+      if (data?.Email === jwtDecode(cookies.token)?.email) {
         navigate('/');
       }
     };
@@ -302,7 +302,7 @@ const Dashboard = () => {
 
         setCurrentScreen(
           <AlertProvider>
-            <TaskList token={decodedToken}/>
+            <TaskList token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
         );
@@ -349,7 +349,13 @@ const Dashboard = () => {
         setCurrentScreen(<FAQ token={decodedToken} />);
         break;
       case 22:
-        setCurrentScreen(<ViewFormH token={decodedToken} />);
+
+        setCurrentScreen(
+          <AlertProvider>
+            <ViewFormH token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
         break;
       case 23:
         setCurrentScreen(
@@ -646,7 +652,7 @@ const Dashboard = () => {
                 icon: faTasksAlt,
                 label: 'View Task',
                 action: () => {
-                  
+
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
