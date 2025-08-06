@@ -86,6 +86,11 @@ const AddUser = () => {
       formData.append('Position', position);
       formData.append('YearOfExperience', experience);
       formData.append('ConsultationFee', fee);
+      formData.append('Language', language);
+      formData.append('Expertise', expertise);
+      formData.append('Department', department);
+      formData.append('Location', location); // If needed in backend
+
       if (selectedFile) {
         formData.append('file', selectedFile);
       }
@@ -113,6 +118,9 @@ const AddUser = () => {
       setSelectedFile(null);
       setPreview(null);
       setExperience('');
+      setExpertise('');
+      setDepartment('');
+      setLocation('');
       setFee('');
     } catch (error) {
       showError('❌ Failed to Add User! Check Console.');
