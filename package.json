@@ -32,6 +32,7 @@
     "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.13",
     "font-awesome": "^4.7.0",
+    "html2canvas": "^1.4.1",
     "jspreadsheet-ce": "^5.0.1",
     "jsuites": "^5.9.2",
     "jwt-decode": "^4.0.0",

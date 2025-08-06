@@ -93,6 +93,7 @@ import MOMEditor from './Pages/Component/Case_Forms/MOMEditor';
 import ReceptionistCalendar from './Pages/ReceptionistCalendar';
 import PublicAppointment from './Pages/AppointMents/Appointment';
 import { alignContent, alignItems, justifyContent, justifyItems, padding } from '@mui/system';
+import CaseSummary from './Pages/cases/CaseSummary';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -373,6 +374,14 @@ const Dashboard = () => {
           <PublicAppointment />
         </AlertProvider>;
         break;
+      case 26:
+         setCurrentScreen(
+          <AlertProvider>
+            <CaseSummary token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
+        break;
       default:
         setCurrentScreen(<div>Invalid screen</div>);
     }
@@ -647,6 +656,21 @@ const Dashboard = () => {
                 },
               }
               : null,
+            decodedToken?.Role === 'admin'
+              ? {
+                icon: faBookOpen,
+
+                label: 'Case Summary',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+
+                  handlescreen2(26);
+                },
+              }
+              : null,
             decodedToken?.Role !== 'client'
               ? {
                 icon: faTasksAlt,
@@ -815,6 +839,7 @@ const Dashboard = () => {
               {screen === 22 && <ScreenHeader title="Form H List" onBack={handleBack} />}
               {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} onBack={handleBack} />}
               {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
+              {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
             </h3>
 
             {/* Admin Buttons */}
