@@ -77,7 +77,7 @@ const BasicCase = ({ token }) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showCaseSubTypeFilter, showCaseTypeFilter]);
+  }, [showCaseSubTypeFilter, showCaseTypeFilter, showCaseFilter]);
 
 
   const { showLoading, showDataLoading, showSuccess, showError } = useAlert();
