@@ -31,7 +31,14 @@ import {
   Alert,
   Chip,
   IconButton,
+  GlobalStyles,
+  Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
+
 import {
   PersonOutline,
   Schedule,
@@ -51,6 +58,9 @@ import {
   Work,
   AttachMoney,
   StarBorder,
+  HelpOutline,
+  ExpandMore,
+  WhatsApp,
 } from '@mui/icons-material';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
@@ -78,8 +88,6 @@ import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 
 // Initialize Stripe
-
-const steps = ['Consultation Method', 'Service Type', 'Select Lawyer', 'Payment', 'Choose Date & Time', 'Confirmation'];
 
 const StyledStepIcon = styled('div')(({ theme, active }) => ({
   width: 24,
@@ -121,7 +129,18 @@ function LegalConsultationStepper() {
   const [selectedTime, setSelectedTime] = React.useState(null);
   const [subject, setSubject] = React.useState('Meeting Confirmation');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('PayOnline');
 
+  const steps = [
+    'Service Type',
+    'Select Lawyer',
+    'Choose Date & Time',
+    'Consultation Method',
+    'Payment',
+    'Confirm Appointment',
+    'Success', // Add this
+  ];
   // Stripe hooks
   const stripe = useStripe();
   const elements = useElements();
@@ -171,41 +190,60 @@ function LegalConsultationStepper() {
 
           // Always set available data
           if (payment) {
-            setMethod(payment.consultationType || '');
             setService(payment.serviceType || '');
+            setMethod(payment.consultationType || '');
+            setPaymentMethod(payment.paymentMethod || 'Card');
           }
 
           if (lawyer) setSelectedLawyer(lawyer);
 
-          // Determine step based on payment status and data
-          if (payment?.status === 'paid') {
-            if (payment.meetingDetails) {
-              // Complete booking - show confirmation
-              setConfirmationData({
-                lawyer: lawyer,
-                service: payment.serviceType,
-                method: payment.consultationType,
-                date: new Date(payment.meetingDetails.date),
-                slot: payment.meetingDetails.slot,
-                meetingLink: payment.meetingDetails.meetingUrl,
-              });
-              setActiveStep(5); // Confirmation
-            } else {
-              // Paid but no meeting - show scheduling
-              setActiveStep(4); // Choose Date & Time
+          // Determine step based on payment method and status
+          if (payment) {
+            // Case 1: Pay at Office - skip to confirmation if meeting details exist
+            if (payment.paymentMethod === 'PayInOffice') {
+              if (payment.meetingDetails) {
+                setConfirmationData({
+                  lawyer: lawyer,
+                  service: payment.serviceType,
+                  method: payment.consultationType,
+                  paymentMethod: payment.paymentMethod,
+                  date: new Date(payment.meetingDetails.date),
+                  slot: payment.meetingDetails.slot,
+                  meetingLink: payment.meetingDetails.meetingUrl,
+                });
+                setActiveStep(6); // Confirmation
+              } else {
+                // No meeting details yet - proceed to scheduling
+                setActiveStep(2); // Date & Time selection
+              }
+            }
+            // Case 2: Online Payment - check payment status
+            else if (payment.paymentMethod === 'Card') {
+              if (payment.status === 'paid') {
+                if (payment.meetingDetails) {
+                  // Complete booking - show confirmation
+                  setConfirmationData({
+                    lawyer: lawyer,
+                    service: payment.serviceType,
+                    method: payment.consultationType,
+                    paymentMethod: payment.paymentMethod,
+                    date: new Date(payment.meetingDetails.date),
+                    slot: payment.meetingDetails.slot,
+                    meetingLink: payment.meetingDetails.meetingUrl,
+                  });
+                  setActiveStep(6); // Confirmation
+                } else {
+                  // Paid but no meeting - skip to date/time selection
+                  setActiveStep(2); // Date & Time
+                }
+              } else {
+                // Not paid yet - go to payment step
+                setActiveStep(4); // Payment
+              }
             }
           } else {
-            // Not paid yet - determine where to resume
-            if (payment?.consultationType && payment?.serviceType) {
-              if (lawyer) {
-                setActiveStep(3); // Payment
-              } else {
-                setActiveStep(2); // Select Lawyer
-              }
-            } else {
-              // Start from beginning if critical data missing
-              setActiveStep(0); // Consultation Method
-            }
+            // No payment record - start from beginning
+            setActiveStep(0); // Service selection
           }
         }
       } catch (error) {
@@ -260,8 +298,18 @@ function LegalConsultationStepper() {
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
         if (response.data && response?.data?.lawyers) {
-          console.log('Lawyers:', response.data?.lawyers);
-          setLawyers(response?.data?.lawyers);
+          // Filter lawyers based on selected service (expertise) and available slots
+          const filteredLawyers = response.data.lawyers.filter((lawyer) => {
+            // 1. Check if lawyer matches selected service expertise
+            const matchesExpertise = !service || lawyer.specialty.toLowerCase().includes(service.toLowerCase());
+
+            // 2. Check if lawyer has available slots
+            const hasSlots = lawyer.hasAvailableSlots;
+
+            return matchesExpertise && hasSlots;
+          });
+
+          setLawyers(filteredLawyers);
         }
       } catch (err) {
         setError('Failed to fetch lawyers. Please try again.');
@@ -271,13 +319,14 @@ function LegalConsultationStepper() {
       }
     };
 
-    if (activeStep >= 2 && lawyers.length === 0) {
+    // Changed from activeStep >= 2 to activeStep >= 1 since Select Lawyer is now Step 1
+    if (activeStep >= 1 && lawyers.length === 0 && service) {
       fetchLawyers();
     }
-  }, [activeStep]);
+  }, [activeStep, service, lawyers.length]); // Added lawyers.length to dependencies
 
-  // Fetch appointments when lawyer or date changes
-  const fetchAppointments = async (lawyerId) => {
+  // Fetch appointments when lawyer is selected (for Date/Time step)
+  const fetchAppointments = async (lawyerId, date) => {
     if (!lawyerId) return;
 
     setLoading(true);
@@ -290,36 +339,35 @@ function LegalConsultationStepper() {
         return;
       }
 
-      console.log('Appointments Data:', appointmentsRes.data);
-
-      let temp = { ...appointmentsRes.data[0] };
-
-      appointmentsRes.data.forEach((element) => {
+      // Combine all available slots from different appointment records
+      const combinedAppointmentData = appointmentsRes.data.reduce((acc, element) => {
         if (element.availableSlots) {
-          temp.availableSlots = [...(temp.availableSlots || []), ...element.availableSlots];
+          acc.availableSlots = [...(acc.availableSlots || []), ...element.availableSlots];
         }
-      });
+        return acc;
+      }, {});
 
-      setAppoinmentDetails(temp);
-      setError(null); // Clear any previous error
+      setAppoinmentDetails(combinedAppointmentData);
+      setError(null);
     } catch (err) {
-      if (err.response && err.response.status === 404) {
+      if (err.response?.status === 404) {
         setError('No appointments found for the selected lawyer.');
-        setAppoinmentDetails(null);
       } else {
         setError('An error occurred while fetching appointments.');
         console.error('Error fetching appointments:', err);
       }
+      setAppoinmentDetails(null);
     } finally {
       setLoading(false);
     }
   };
 
   React.useEffect(() => {
-    if (activeStep >= 3 && selectedLawyer && selectedDate) {
-      fetchAppointments(selectedLawyer._id, selectedDate);
+    // Changed from activeStep >= 3 to activeStep >= 2 since Date/Time is now Step 2
+    if (activeStep >= 2 && selectedLawyer) {
+      fetchAppointments(selectedLawyer._id);
     }
-  }, [activeStep, selectedLawyer, selectedDate]);
+  }, [activeStep, selectedLawyer]); // Removed selectedDate from dependencies
 
   const convertTo24Hour = (timeStr) => {
     const [time, modifier] = timeStr.split(' ');
@@ -337,7 +385,18 @@ function LegalConsultationStepper() {
     return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
   };
 
-  const handleNext = () => setActiveStep((prev) => prev + 1);
+  const handleNext = () => {
+    // For free appointments after method selection
+    if (activeStep === 3 && (selectedLawyer?.price === '0' || selectedLawyer?.price === '')) {
+      setActiveStep(5); // Skip to confirmation
+    }
+    // For paid appointments that just need to select time slot
+    else if (activeStep === 2 && data?.payment?.status === 'paid' && !data?.payment?.meetingDetails) {
+      setActiveStep(5); // Skip to confirmation after selecting time
+    } else {
+      setActiveStep(activeStep + 1); // Normal step progression
+    }
+  };
   const handleBack = () => setActiveStep((prev) => prev - 1);
 
   const handleReset = () => {
@@ -463,94 +522,112 @@ function LegalConsultationStepper() {
     setIsProcessing(true);
     setPaymentError(null);
 
-    if (!stripe || !elements) {
-      setPaymentError('Payment system not ready');
-      setIsProcessing(false);
-      return;
-    }
-
-    const cardElement = elements.getElement(CardElement);
-    if (!cardElement) {
-      setPaymentError('Card details not found');
-      setIsProcessing(false);
-      return;
-    }
-
     try {
+      // Common payment data
+      const paymentData = {
+        name: paymentForm.name,
+        phone: paymentForm.phone,
+        email: paymentForm.email,
+        amount: Number(selectedLawyer?.price) || 200,
+        serviceType: service,
+        lawyerId: selectedLawyer?._id,
+        consultationType: method,
+        paymentMethod: paymentMethod === 'PayInOffice' ? 'PayInOffice' : 'Card',
+        uniqueLinkId: ref || '',
+        appointmentLink: window.location.href,
+      };
+
+      if (method === 'InPerson' && paymentMethod === 'PayInOffice') {
+        // Handle Pay at Office flow
+        const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
+
+        // Proceed to confirmation
+        setConfirmationData({
+          lawyer: selectedLawyer,
+          service,
+          method,
+          paymentMethod: 'PayInOffice',
+          paymentRecord: data.paymentRecord,
+          ...(selectedDate && { date: selectedDate }),
+          ...(selectedSlot && { slot: selectedSlot }),
+          clientMessage,
+        });
+        await axios.post(`${ApiEndPoint}payments/update-status`, {
+          paymentId: data?.payment?._id,
+          meetingDetails: {
+            meetingUrl: '',
+            date: selectedDate,
+            slot: selectedSlot,
+          },
+        });
+        setActiveStep((prev) => prev + 1);
+        return;
+      }
+
+      // Handle Online Payment flow
+      if (!stripe || !elements) {
+        throw new Error('Payment system not ready');
+      }
+
+      const cardElement = elements.getElement(CardElement);
+      if (!cardElement) {
+        throw new Error('Card details not found');
+      }
+
       // Create payment method
-      const { error: pmError, paymentMethod } = await stripe.createPaymentMethod({
+      const { error: pmError, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
         billing_details: {
           name: paymentForm.name,
           email: paymentForm.email,
-          phone: phone,
+          phone: paymentForm.phone,
         },
       });
 
-      if (pmError) {
-        setPaymentError(pmError.message);
-        setIsProcessing(false);
-        return;
-      }
+      if (pmError) throw pmError;
 
-      // Create payment intent with all necessary data
-      const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, {
-        ...paymentForm,
-        amount: Number(selectedLawyer?.price) || 200, // Ensures it's a number
-        serviceType: service,
-        lawyerId: selectedLawyer?._id,
-        consultationType: method,
-        uniqueLinkId: ref || '',
-        appointmentLink: window.location.href,
-      });
-
+      // Create payment intent
+      const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
       const { clientSecret, paymentId } = data;
 
       // Confirm payment
       const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: paymentMethod.id,
+        payment_method: stripePaymentMethod.id,
       });
 
-      if (confirmError) {
-        setPaymentError(confirmError.message);
-        setIsProcessing(false);
-        return;
+      if (confirmError) throw confirmError;
+
+      if (paymentIntent.status !== 'succeeded') {
+        throw new Error(`Payment failed with status: ${paymentIntent.status}`);
       }
 
-      if (paymentIntent.status === 'succeeded') {
-        // Prepare all data to save
-        const paymentUpdateData = {
-          paymentId,
-          status: 'paid',
-          paymentIntentId: paymentIntent.id,
-          paymentMethodId: paymentIntent.payment_method,
-        };
+      // Update payment status
+      await axios.post(`${ApiEndPoint}payments/update-status`, {
+        paymentId,
+        status: 'paid',
+        paymentIntentId: paymentIntent.id,
+        paymentMethodId: paymentIntent.payment_method,
+      });
 
-        // Update payment with all details
-        await axios.post(`${ApiEndPoint}payments/update-status`, paymentUpdateData);
+      // Proceed to confirmation
+      setConfirmationData({
+        lawyer: selectedLawyer,
+        service,
+        method,
+        paymentMethod: 'Card',
+        paymentRecord: { _id: paymentId }, // Store payment ID
+        ...(selectedDate && { date: selectedDate }),
+        ...(selectedSlot && { slot: selectedSlot }),
+        clientMessage,
+      });
 
-        // Store confirmation data for the UI
-        setConfirmationData({
-          lawyer: selectedLawyer,
-          service,
-          method,
-          ...(selectedDate && { date: selectedDate }),
-          ...(selectedSlot && { slot: selectedSlot }),
-          clientMessage,
-        });
-
-        // Move to next step (schedule meeting if not done, or confirmation)
-        setActiveStep((prev) => prev + 1);
-      } else {
-        setPaymentError(`Unexpected status: ${paymentIntent.status}`);
-      }
+      setActiveStep((prev) => prev + 1);
     } catch (err) {
-      setPaymentError(err.response?.data?.message || 'Payment failed. Please try again.');
+      setPaymentError(err.message || 'Payment processing failed');
       console.error('Payment error:', {
-        message: err.message,
+        error: err,
         response: err.response?.data,
-        stack: err.stack,
       });
     } finally {
       setIsProcessing(false);
@@ -668,7 +745,6 @@ function LegalConsultationStepper() {
         text: '',
         html: null,
       };
-
       try {
         console.group('📧 Sending Email Notification');
         const emailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody);
@@ -749,7 +825,8 @@ function LegalConsultationStepper() {
 
       setTimeout(() => {
         setIsPopupVisible(false);
-        handleNext();
+        // Optionally move to a success step
+        setActiveStep(6); // If you have a success step
       }, 2000);
 
       console.groupEnd(); // End main booking group
@@ -829,81 +906,13 @@ function LegalConsultationStepper() {
       py: 1.5,
     },
   };
-
+  const handleFreeTimeSelection = (slot) => {
+    setSelectedSlot(slot);
+    setSelectedTime(slot.startTime);
+  };
   const renderStepContent = (step) => {
     switch (step) {
-      case 0:
-        return (
-          <Box sx={{ my: 3 }}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
-              How would you like to consult?
-            </Typography>
-            <RadioGroup value={method} onChange={(e) => setMethod(e.target.value)}>
-              <Card
-                variant="outlined"
-                sx={{
-                  mb: 2,
-                  borderColor: method === 'InPerson' ? '#d4af37' : 'divider',
-                  backgroundColor: method === 'InPerson' ? 'rgba(212, 175, 55, 0.1)' : '#18273e',
-                  '&:hover': {
-                    borderColor: '#d4af37',
-                  },
-                }}
-                onClick={() => setMethod('InPerson')}
-              >
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <LocationOn
-                      sx={{
-                        mr: 2,
-                        color: method === 'InPerson' ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
-                      }}
-                    />
-                    <Box>
-                      <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                        In-Person Meeting
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                        Meet at our office or your preferred location
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-              <Card
-                variant="outlined"
-                sx={{
-                  borderColor: method === 'Online' ? '#d4af37' : 'divider',
-                  backgroundColor: method === 'Online' ? 'rgba(212, 175, 55, 0.1)' : '#18273e',
-                  '&:hover': {
-                    borderColor: '#d4af37',
-                  },
-                }}
-                onClick={() => setMethod('Online')}
-              >
-                <CardContent>
-                  <Box display="flex" alignItems="center">
-                    <Schedule
-                      sx={{
-                        mr: 2,
-                        color: method === 'Online' ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
-                      }}
-                    />
-                    <Box>
-                      <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                        Online Consultation
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                        Video call from the comfort of your home
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </RadioGroup>
-          </Box>
-        );
-      case 1:
+      case 0: // Service Type
         return (
           <Box sx={{ my: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
@@ -911,6 +920,7 @@ function LegalConsultationStepper() {
             </Typography>
             <FormControl fullWidth>
               <InputLabel
+                shrink={true}
                 sx={{
                   color: 'rgba(255, 255, 255, 0.7)',
                   '&.Mui-focused': { color: '#d4af37' },
@@ -982,7 +992,8 @@ function LegalConsultationStepper() {
             </FormControl>
           </Box>
         );
-      case 2:
+
+      case 1: // Select Lawyer
         return (
           <Box sx={{ my: 3 }}>
             <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
@@ -1051,7 +1062,6 @@ function LegalConsultationStepper() {
                       />
 
                       <Box sx={{ flex: 1, minWidth: 0 }}>
-                        {/* Top row: Name + Price */}
                         <Box
                           sx={{
                             display: 'flex',
@@ -1093,14 +1103,15 @@ function LegalConsultationStepper() {
                               flexShrink: 0,
                             }}
                           >
-                            <AttachMoney sx={{ fontSize: 16, color: '#d4af37' }} />
                             <Typography variant="body2" sx={{ color: '#d4af37', fontWeight: 600 }}>
+                              <Box component="span" sx={{ mr: 0.5 }}>
+                                AED
+                              </Box>
                               {lawyer.price || 200}/hr
                             </Typography>
                           </Box>
                         </Box>
 
-                        {/* Details row */}
                         <Box
                           sx={{
                             display: 'flex',
@@ -1131,7 +1142,6 @@ function LegalConsultationStepper() {
                           />
                         </Box>
 
-                        {/* Bio */}
                         {lawyer.bio && (
                           <Typography
                             variant="caption"
@@ -1156,151 +1166,31 @@ function LegalConsultationStepper() {
             </Box>
           </Box>
         );
-      case 3: // Payment Step
+
+      case 2: // Choose Date & Time
         return (
-          <Box
-            sx={{
-              my: 4,
-              color: 'white',
-              maxWidth: '800px',
-              mx: 'auto',
-              px: { xs: 2, sm: 3 },
-            }}
-          >
-            {/* Page Title */}
-            <Typography
-              variant="h5"
-              gutterBottom
-              sx={{
-                color: '#d4af37',
-                fontWeight: 'bold',
-                mb: 4,
-                textAlign: 'center',
-              }}
-            >
-              Complete Your Payment
+          <Box sx={{ my: 3, color: 'white' }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
+              Select Date and Time
+            </Typography>
+            <Typography variant="body2" gutterBottom sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+              Available times with {selectedLawyer?.UserName}
             </Typography>
 
-            {/* Summary Card */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                mb: 4,
-                backgroundColor: 'transparent',
-                border: '1px solid rgba(212, 175, 55, 0.5)',
-                borderRadius: '12px',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-              }}
-            >
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  color: '#d4af37',
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  fontWeight: '600',
-                }}
-              >
-                <ReceiptLong fontSize="small" />
-                Order Summary
+            {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4, color: '#d4af37' }} />}
+            {error && (
+              <Typography color="error" sx={{ mb: 2 }}>
+                {error}
               </Typography>
+            )}
 
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar
-                      src={selectedLawyer?.ProfilePicture}
-                      sx={{
-                        width: 44,
-                        height: 44,
-                        border: '2px solid #d4af37',
-                      }}
-                    />
-                    <Box>
-                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                        Lawyer
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 500,
-                          color: 'white',
-                        }}
-                      >
-                        {selectedLawyer?.UserName}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Grid>
-
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-                    Service
-                  </Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 500, color: 'white' }}>
-                    {service}
-                  </Typography>
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Divider
-                    sx={{
-                      borderColor: 'rgba(212, 175, 55, 0.3)',
-                      my: 1,
-                      borderBottomWidth: '1px',
-                    }}
-                  />
-                </Grid>
-
-                <Grid item xs={12}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      backgroundColor: 'transparent',
-                      p: 2,
-                      borderRadius: '8px',
-                    }}
-                  >
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
-                      Total Amount
-                    </Typography>
-                    <Typography
-                      variant="h5"
-                      sx={{
-                        color: '#d4af37',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      ${selectedLawyer?.price || 200}
-                    </Typography>
-                  </Box>
-                </Grid>
-              </Grid>
-            </Paper>
-
-            {/* Payment Form */}
-            <Box
-              component="form"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleConfirmPayment();
-              }}
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 4,
-              }}
-            >
-              {/* Personal Info Section */}
+            {/* Personal Info Form for Free Appointments */}
+            {selectedLawyer?.price === 0 && (
               <Paper
                 elevation={0}
                 sx={{
                   p: 3,
+                  mb: 3,
                   backgroundColor: 'transparent',
                   border: '1px solid rgba(212, 175, 55, 0.5)',
                   borderRadius: '12px',
@@ -1318,9 +1208,8 @@ function LegalConsultationStepper() {
                   }}
                 >
                   <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
-                  Personal Information
+                  Your Information
                 </Typography>
-
                 <Grid container spacing={2}>
                   {/* Full Name */}
                   <Grid item xs={12} md={6}>
@@ -1372,13 +1261,6 @@ function LegalConsultationStepper() {
                           color: 'rgba(255, 255, 255, 0.7)',
                         },
                       }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Email fontSize="small" sx={{ color: '#d4af37' }} />
-                          </InputAdornment>
-                        ),
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           color: 'white',
@@ -1413,13 +1295,6 @@ function LegalConsultationStepper() {
                           color: 'rgba(255, 255, 255, 0.7)',
                         },
                       }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <Phone fontSize="small" sx={{ color: '#d4af37' }} />
-                          </InputAdornment>
-                        ),
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           color: 'white',
@@ -1441,138 +1316,6 @@ function LegalConsultationStepper() {
                   </Grid>
                 </Grid>
               </Paper>
-
-              {/* Card Payment Section */}
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  backgroundColor: 'transparent',
-                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                  borderRadius: '12px',
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={{
-                    color: '#d4af37',
-                    mb: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    fontWeight: '600',
-                  }}
-                >
-                  <CreditCard fontSize="small" sx={{ color: '#d4af37' }} />
-                  Payment Details
-                </Typography>
-
-                <Box
-                  sx={{
-                    p: 2.5,
-                    mb: 2,
-                    border: '1px solid rgba(212, 175, 55, 0.4)',
-                    borderRadius: '8px',
-                    minHeight: '120px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    '& .StripeElement': {
-                      width: '100%',
-                      padding: '10px 0',
-                    },
-                  }}
-                >
-                  {stripe && (
-                    <CardElement
-                      options={{
-                        style: {
-                          base: {
-                            fontSize: '16px',
-                            color: '#ffffff',
-                            '::placeholder': { color: 'rgba(255, 255, 255, 0.6)' },
-                            iconColor: '#d4af37',
-                          },
-                          invalid: {
-                            color: '#ff5252',
-                            iconColor: '#ff5252',
-                          },
-                        },
-                        hidePostalCode: true,
-                      }}
-                      onChange={(e) => setCardComplete(e.complete)}
-                    />
-                  )}
-                </Box>
-
-                {paymentError && (
-                  <Alert
-                    severity="error"
-                    sx={{
-                      mb: 2,
-                      backgroundColor: 'rgba(255, 72, 66, 0.15)',
-                      color: 'white',
-                      border: '1px solid rgba(255, 72, 66, 0.5)',
-                    }}
-                  >
-                    {paymentError}
-                  </Alert>
-                )}
-
-                {/* Submit Button */}
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="small"
-                    disabled={
-                      isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone || !cardComplete
-                    }
-                    sx={{
-                      px: 3,
-                      py: 1.2,
-                      backgroundColor: '#d4af37',
-                      color: '#18273e',
-                      fontWeight: 'bold',
-                      fontSize: '1rem',
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
-                      '&:hover': { backgroundColor: '#c19b2e' },
-                      '&.Mui-disabled': {
-                        backgroundColor: 'rgba(212, 175, 55, 0.4)',
-                        color: '#18273e99',
-                      },
-                    }}
-                  >
-                    {isProcessing ? (
-                      <>
-                        <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
-                        Processing...
-                      </>
-                    ) : (
-                      `Pay $${selectedLawyer?.price || 200} Now`
-                    )}
-                  </Button>
-                </Box>
-              </Paper>
-            </Box>
-          </Box>
-        );
-
-      case 4:
-        return (
-          <Box sx={{ my: 3, color: 'white' }}>
-            <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
-              Select Date and Time
-            </Typography>
-            <Typography variant="body2" gutterBottom sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
-              Available times with {selectedLawyer?.UserName}
-            </Typography>
-
-            {loading && <CircularProgress sx={{ display: 'block', mx: 'auto', my: 4, color: '#d4af37' }} />}
-            {error && (
-              <Typography color="error" sx={{ mb: 2 }}>
-                {error}
-              </Typography>
             )}
 
             {/* Custom Calendar */}
@@ -1696,8 +1439,11 @@ function LegalConsultationStepper() {
                     <button
                       key={slot._id}
                       onClick={() => {
-                        handleTimeClick(slot.startTime, slot);
-                        handleOpenPopup(selectedLawyer, slot);
+                        if (selectedLawyer?.price === 0 || selectedLawyer?.price === '') {
+                          handleFreeTimeSelection(slot);
+                        } else {
+                          handleTimeClick(slot.startTime, slot);
+                        }
                       }}
                       className="time-button"
                       style={{
@@ -1730,9 +1476,626 @@ function LegalConsultationStepper() {
                 )}
               </Box>
             </Box>
+
+            {/* Confirmation Button for Free Appointments */}
+            {selectedLawyer?.price === '0' ||
+              (selectedLawyer?.price === '' && selectedSlot && (
+                <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    onClick={handleConfirm}
+                    disabled={
+                      !paymentForm.name || !paymentForm.email || !paymentForm.phone || !selectedSlot || isProcessing
+                    }
+                    sx={{
+                      px: 3,
+                      py: 1.2,
+                      backgroundColor: '#d4af37',
+                      color: '#18273e',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
+                      '&:hover': { backgroundColor: '#c19b2e' },
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                        color: '#18273e99',
+                      },
+                    }}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
+                        Confirming...
+                      </>
+                    ) : (
+                      `Confirm Free Appointment`
+                    )}
+                  </Button>
+                </Box>
+              ))}
           </Box>
         );
 
+      case 3: // Consultation Method (Location)
+        return (
+          <Box sx={{ my: 3 }}>
+            <Typography variant="h6" gutterBottom sx={{ color: 'white' }}>
+              How would you like to consult?
+            </Typography>
+            <RadioGroup value={method} onChange={(e) => setMethod(e.target.value)}>
+              {/* In-Person Option */}
+              <Card
+                variant="outlined"
+                sx={{
+                  mb: 2,
+                  borderColor: method === 'InPerson' ? '#d4af37' : 'divider',
+                  backgroundColor: method === 'InPerson' ? 'rgba(212, 175, 55, 0.1)' : '#18273e',
+                  '&:hover': {
+                    borderColor: '#d4af37',
+                  },
+                }}
+                onClick={() => setMethod('InPerson')}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center">
+                    <LocationOn
+                      sx={{
+                        mr: 2,
+                        color: method === 'InPerson' ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
+                      }}
+                    />
+                    <Box sx={{ width: '100%' }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center">
+                        <Typography fontWeight="medium" sx={{ color: 'white' }}>
+                          In-Person Meeting
+                        </Typography>
+                        {method === 'InPerson' && (
+                          <IconButton size="small" onClick={(e) => e.stopPropagation()}>
+                            <ExpandMore />
+                          </IconButton>
+                        )}
+                      </Box>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Meet at our office or your preferred location
+                      </Typography>
+
+                      {method === 'InPerson' && (
+                        <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid rgba(255, 255, 255, 0.1)' }}>
+                          <Typography variant="subtitle2" sx={{ color: 'white', mb: 1 }}>
+                            Payment Method:
+                          </Typography>
+                          <RadioGroup
+                            value={paymentMethod}
+                            onChange={(e) => {
+                              setPaymentMethod(e.target.value);
+                              // Clear card details if switching to PayInOffice
+                              if (e.target.value === 'PayInOffice') {
+                                try {
+                                  const cardElement = elements.getElement(CardElement);
+                                  if (cardElement) {
+                                    cardElement.clear();
+                                  }
+                                } catch (error) {
+                                  console.warn('Failed to clear card element:', error);
+                                  // This is non-critical, so we don't need to show an error to the user
+                                }
+                              }
+                            }}
+                          >
+                            <FormControlLabel
+                              value="PayInOffice"
+                              control={<Radio />}
+                              label={<Typography sx={{ color: 'white' }}>Pay at Office</Typography>}
+                              sx={{ mb: 1 }}
+                            />
+                            <FormControlLabel
+                              value="PayOnline"
+                              control={<Radio />}
+                              label={<Typography sx={{ color: 'white' }}>Pay Online Now</Typography>}
+                            />
+                          </RadioGroup>
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Online Option */}
+              <Card
+                variant="outlined"
+                sx={{
+                  borderColor: method === 'Online' ? '#d4af37' : 'divider',
+                  backgroundColor: method === 'Online' ? 'rgba(212, 175, 55, 0.1)' : '#18273e',
+                  '&:hover': {
+                    borderColor: '#d4af37',
+                  },
+                }}
+                onClick={() => {
+                  setMethod('Online');
+                  setPaymentMethod('PayOnline'); // Force PayOnline for online consultations
+                }}
+              >
+                <CardContent>
+                  <Box display="flex" alignItems="center">
+                    <Schedule
+                      sx={{
+                        mr: 2,
+                        color: method === 'Online' ? '#d4af37' : 'rgba(255, 255, 255, 0.7)',
+                      }}
+                    />
+                    <Box>
+                      <Typography fontWeight="medium" sx={{ color: 'white' }}>
+                        Online Consultation
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Video call from the comfort of your home
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#d4af37', mt: 1 }}>
+                        Payment will be processed online
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            </RadioGroup>
+          </Box>
+        );
+      case 4:
+        return (
+          <Box
+            sx={{
+              my: 4,
+              color: 'white',
+              maxWidth: '800px',
+              mx: 'auto',
+              px: { xs: 2, sm: 3 },
+            }}
+          >
+            {/* Page Title */}
+            <Typography
+              variant="h5"
+              gutterBottom
+              sx={{
+                color: '#d4af37',
+                fontWeight: 'bold',
+                mb: 4,
+                textAlign: 'center',
+              }}
+            >
+              {method === 'InPerson' && paymentMethod === 'PayInOffice'
+                ? 'Complete Your Booking'
+                : 'Complete Your Payment'}
+            </Typography>
+
+            {/* Summary Card */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                mb: 4,
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(212, 175, 55, 0.5)',
+                borderRadius: '12px',
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: '#d4af37',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: '600',
+                }}
+              >
+                <ReceiptLong fontSize="small" />
+                Order Summary
+              </Typography>
+
+              <Grid container spacing={3}>
+                <Grid item xs={12} sm={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Avatar
+                      src={selectedLawyer?.ProfilePicture}
+                      sx={{
+                        width: 44,
+                        height: 44,
+                        border: '2px solid #d4af37',
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Lawyer
+                      </Typography>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 500,
+                          color: 'white',
+                        }}
+                      >
+                        {selectedLawyer?.UserName}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Grid>
+
+                <Grid item xs={12} sm={6}>
+                  <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                    Service
+                  </Typography>
+                  <Typography variant="body1" sx={{ fontWeight: 500, color: 'white' }}>
+                    {service}
+                  </Typography>
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Divider
+                    sx={{
+                      borderColor: 'rgba(212, 175, 55, 0.3)',
+                      my: 1,
+                      borderBottomWidth: '1px',
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      backgroundColor: 'transparent',
+                      p: 2,
+                      borderRadius: '8px',
+                    }}
+                  >
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                      Total Amount:
+                    </Typography>
+                    <Typography
+                      variant="h6"
+                      sx={{
+                        color: '#d4af37',
+                        fontWeight: 'bold',
+                        marginLeft: '10px',
+                      }}
+                    >
+                      {'  '}AED {selectedLawyer?.price || 200}
+                    </Typography>
+                  </Box>
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Personal Info Section */}
+            <Paper
+              elevation={0}
+              sx={{
+                p: 3,
+                backgroundColor: 'transparent',
+                border: '1px solid rgba(212, 175, 55, 0.5)',
+                borderRadius: '12px',
+                mb: 4,
+              }}
+            >
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: '#d4af37',
+                  mb: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  fontWeight: '600',
+                }}
+              >
+                <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
+                Personal Information
+              </Typography>
+              <GlobalStyles
+                styles={{
+                  '.personal-info-scope input:-webkit-autofill': {
+                    WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                    WebkitTextFillColor: 'white',
+                    caretColor: 'white',
+                    transition: 'background-color 5000s ease-in-out 0s',
+                  },
+                  '.personal-info-scope input:-webkit-autofill:focus': {
+                    WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                    WebkitTextFillColor: 'white',
+                  },
+                }}
+              />
+              <Grid className="personal-info-scope" container spacing={2}>
+                {/* Full Name */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Full Name"
+                    name="name"
+                    value={paymentForm.name}
+                    onChange={handlePaymentChange}
+                    required
+                    InputLabelProps={{
+                      style: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        color: 'white',
+                        backgroundColor: '#18273e !important',
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#d4af37',
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* Email */}
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Email"
+                    type="email"
+                    name="email"
+                    value={paymentForm.email}
+                    onChange={handlePaymentChange}
+                    required
+                    InputLabelProps={{
+                      style: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Email fontSize="small" sx={{ color: '#d4af37' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        color: 'white',
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#d4af37',
+                      },
+                    }}
+                  />
+                </Grid>
+
+                {/* Phone */}
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    label="Phone Number"
+                    name="phone"
+                    value={paymentForm.phone}
+                    onChange={handlePaymentChange}
+                    required
+                    InputLabelProps={{
+                      style: {
+                        color: 'rgba(255, 255, 255, 0.7)',
+                      },
+                    }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <Phone fontSize="small" sx={{ color: '#d4af37' }} />
+                        </InputAdornment>
+                      ),
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        color: 'white',
+                        '& fieldset': {
+                          borderColor: 'rgba(255, 255, 255, 0.23)',
+                        },
+                        '&:hover fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                        '&.Mui-focused fieldset': {
+                          borderColor: '#d4af37',
+                        },
+                      },
+                      '& .MuiInputLabel-root.Mui-focused': {
+                        color: '#d4af37',
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+            </Paper>
+
+            {/* Payment Section */}
+            {method === 'InPerson' && paymentMethod === 'PayInOffice' ? (
+              <Box sx={{ textAlign: 'center' }}>
+                <Typography variant="body1" sx={{ mb: 3 }}>
+                  You'll pay AED {selectedLawyer?.price || 200} at the office on your appointment date
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={handleConfirmPayment}
+                  disabled={isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone}
+                  sx={{
+                    px: 3,
+                    py: 1.2,
+                    backgroundColor: '#d4af37',
+                    color: '#18273e',
+                    fontWeight: 'bold',
+                    fontSize: '1rem',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
+                    '&:hover': { backgroundColor: '#c19b2e' },
+                    '&.Mui-disabled': {
+                      backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                      color: '#18273e99',
+                    },
+                  }}
+                >
+                  {isProcessing ? (
+                    <>
+                      <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
+                      Processing...
+                    </>
+                  ) : (
+                    'Confirm Booking'
+                  )}
+                </Button>
+              </Box>
+            ) : (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '12px',
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: '#d4af37',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: '600',
+                  }}
+                >
+                  <CreditCard fontSize="small" sx={{ color: '#d4af37' }} />
+                  Payment Details
+                </Typography>
+
+                <Box
+                  sx={{
+                    p: 2.5,
+                    mb: 2,
+                    border: '1px solid rgba(212, 175, 55, 0.4)',
+                    borderRadius: '8px',
+                    minHeight: '120px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    '& .StripeElement': {
+                      width: '100%',
+                      padding: '10px 0',
+                    },
+                  }}
+                >
+                  {elements ? (
+                    <CardElement
+                      options={{
+                        style: {
+                          base: {
+                            fontSize: '16px',
+                            color: '#ffffff',
+                            '::placeholder': { color: 'rgba(255, 255, 255, 0.6)' },
+                            iconColor: '#d4af37',
+                          },
+                          invalid: {
+                            color: '#ff5252',
+                            iconColor: '#ff5252',
+                          },
+                        },
+                        hidePostalCode: true,
+                      }}
+                      onChange={(e) => setCardComplete(e.complete)}
+                    />
+                  ) : (
+                    <CircularProgress size={24} />
+                  )}
+                </Box>
+
+                {paymentError && (
+                  <Alert
+                    severity="error"
+                    sx={{
+                      mb: 2,
+                      backgroundColor: 'rgba(255, 72, 66, 0.15)',
+                      color: 'white',
+                      border: '1px solid rgba(255, 72, 66, 0.5)',
+                    }}
+                  >
+                    {paymentError}
+                  </Alert>
+                )}
+
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleConfirmPayment}
+                    disabled={
+                      isProcessing ||
+                      !paymentForm.name ||
+                      !paymentForm.email ||
+                      !paymentForm.phone ||
+                      !cardComplete ||
+                      !elements
+                    }
+                    sx={{
+                      px: 3,
+                      py: 1.2,
+                      backgroundColor: '#d4af37',
+                      color: '#18273e',
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      borderRadius: '8px',
+                      boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
+                      '&:hover': { backgroundColor: '#c19b2e' },
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                        color: '#18273e99',
+                      },
+                    }}
+                  >
+                    {isProcessing ? (
+                      <>
+                        <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
+                        Processing...
+                      </>
+                    ) : (
+                      `Pay ${selectedLawyer?.price || 200} AED Now`
+                    )}
+                  </Button>
+                </Box>
+              </Paper>
+            )}
+          </Box>
+        );
       case 5: // Confirmation Step
         return (
           <Box sx={{ my: 3, display: 'flex', justifyContent: 'center', flexDirection: 'column' }}>
@@ -1746,15 +2109,7 @@ function LegalConsultationStepper() {
               }}
             >
               <CheckCircle sx={{ mr: 1, color: '#4CAF50' }} />
-              Appointment Confirmed
-            </Typography>
-            <Typography
-              gutterBottom
-              sx={{
-                color: 'rgba(255, 255, 255, 0.7)',
-              }}
-            >
-              Your consultation has been successfully scheduled
+              Confirm Your Appointment
             </Typography>
 
             <Paper
@@ -1815,7 +2170,7 @@ function LegalConsultationStepper() {
                       day: 'numeric',
                       year: 'numeric',
                     })}{' '}
-                    • {convertTo12HourFormat(selectedSlot?.startTime || confirmationData.slot.startTime)}
+                    • {convertTo12HourFormat(selectedSlot?.startTime)}
                   </Typography>
                 </Box>
                 <Box>
@@ -1823,47 +2178,51 @@ function LegalConsultationStepper() {
                     Fee
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    {selectedLawyer?.price || '$200'}
+                    AED {selectedLawyer?.price || 'AED 200'}
                   </Typography>
                 </Box>
               </Box>
 
-              {method === 'Online' && (
-                <>
-                  <Divider sx={{ my: 2, backgroundColor: '#d4af37' }} />
-                  <Box>
-                    <Typography variant="body2" sx={{ color: '#d4af37' }}>
-                      Meeting Link
-                    </Typography>
-                    <Typography fontWeight="medium">
-                      <a href={meetingLink} target="_blank" rel="noopener noreferrer" style={{ color: '#d4af37' }}>
-                        Join Meeting
-                      </a>
-                    </Typography>
-                  </Box>
-                </>
-              )}
-
-              {clientMessage && (
-                <>
-                  <Divider sx={{ my: 2, backgroundColor: '#d4af37' }} />
-                  <Box>
-                    <Typography variant="body2" sx={{ color: '#d4af37' }}>
-                      Your Message
-                    </Typography>
-                    <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                      {clientMessage}
-                    </Typography>
-                  </Box>
-                </>
-              )}
-
-              <Divider sx={{ my: 2, backgroundColor: '#d4af37' }} />
-
-              <Typography variant="body2" sx={{ mb: 1, color: '#d4af37' }}>
-                A confirmation has been sent to your email.
-              </Typography>
+              <Box sx={{ mt: 3 }}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  size="large"
+                  onClick={() => {
+                    setPopupmessage(
+                      `Confirm ${service} consultation with ${selectedLawyer?.UserName} on ${new Intl.DateTimeFormat(
+                        'en-US',
+                        options
+                      ).format(selectedDate)} at ${convertTo12HourFormat(selectedSlot?.startTime)}?`
+                    );
+                    setPopupcolor('popup');
+                    setIsPopupVisible(true);
+                    setIsPopupVisiblecancel(true);
+                  }}
+                  sx={{
+                    backgroundColor: '#d4af37',
+                    color: '#18273e',
+                    fontWeight: 'bold',
+                    py: 1.5,
+                    '&:hover': {
+                      backgroundColor: '#c19b2e',
+                    },
+                  }}
+                >
+                  Confirm Appointment
+                </Button>
+              </Box>
             </Paper>
+          </Box>
+        );
+      case 6: // Success Step
+        return (
+          <Box sx={{ textAlign: 'center', my: 3 }}>
+            <CheckCircle sx={{ fontSize: 80, color: '#4CAF50', mb: 2 }} />
+            <Typography variant="h4" sx={{ color: 'white', mb: 2 }}>
+              Appointment Confirmed!
+            </Typography>
+            {/* Add any additional success message or details */}
           </Box>
         );
 
@@ -1874,6 +2233,123 @@ function LegalConsultationStepper() {
 
   return (
     <Box sx={{ maxWidth: 800, mx: 'auto', my: 4, position: 'relative' }}>
+      <Box
+        sx={{
+          position: 'fixed',
+          bottom: 20,
+          right: 20,
+          zIndex: 1000,
+        }}
+      >
+        <Tooltip title="Need help? Contact us" arrow disableInteractive disablePortal>
+          <IconButton
+            onClick={() => setHelpOpen(true)}
+            sx={{
+              backgroundColor: '#d4af37',
+              color: '#18273e',
+              '&:hover': {
+                backgroundColor: '#c19b2e',
+              },
+            }}
+          >
+            <HelpOutline />
+          </IconButton>
+        </Tooltip>
+      </Box>
+      {/* Help Dialog */}
+      <Dialog
+        open={helpOpen}
+        onClose={() => setHelpOpen(false)}
+        PaperProps={{
+          sx: {
+            backgroundColor: '#18273e', // dark navy background
+            color: '#fff', // white text
+            borderRadius: 3,
+            border: '2px solid #d4af37',
+            boxShadow: 10,
+            p: 2,
+            minWidth: 400,
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: '#d4af37', fontWeight: 'bold' }}>Need Help?</DialogTitle>
+
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            Contact our support team for assistance:
+          </Typography>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <Button
+              variant="outlined"
+              startIcon={<Phone />}
+              href="tel:+1234567890"
+              sx={{
+                justifyContent: 'flex-start',
+                color: '#d4af37',
+                borderColor: '#d4af37',
+                '&:hover': {
+                  backgroundColor: '#d4af37',
+                  color: '#18273e',
+                },
+              }}
+            >
+              Call us: +1 (234) 567-890
+            </Button>
+
+            <Button
+              variant="outlined"
+              startIcon={<Email />}
+              href="mailto:support@example.com"
+              sx={{
+                justifyContent: 'flex-start',
+                color: '#d4af37',
+                borderColor: '#d4af37',
+                '&:hover': {
+                  backgroundColor: '#d4af37',
+                  color: '#18273e',
+                },
+              }}
+            >
+              Email us: support@aws-legalgroup.com
+            </Button>
+
+            <Button
+              variant="outlined"
+              startIcon={<WhatsApp />} // Make sure to import WhatsApp icon from @mui/icons-material
+              href="https://wa.me/1234567890" // Replace with your WhatsApp number
+              target="_blank"
+              sx={{
+                justifyContent: 'flex-start',
+                color: '#d4af37',
+                borderColor: '#d4af37',
+                '&:hover': {
+                  backgroundColor: '#d4af37',
+                  color: '#18273e',
+                },
+              }}
+            >
+              WhatsApp: +1 (234) 567-890
+            </Button>
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button
+            onClick={() => setHelpOpen(false)}
+            sx={{
+              color: '#d4af37',
+              '&:hover': {
+                backgroundColor: '#d4af37',
+                color: '#18273e',
+              },
+            }}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Popup Component */}
       {isPopupVisible && (
         <div className="popup-overlay">
@@ -2006,10 +2482,10 @@ function LegalConsultationStepper() {
               onClick={handleNext}
               disabled={
                 loading ||
-                (activeStep === 0 && !method) ||
-                (activeStep === 1 && !service) ||
-                (activeStep === 2 && !selectedLawyer) ||
-                (activeStep === 3 && (!selectedDate || !selectedSlot))
+                (activeStep === 0 && !service) || // Service selection required
+                (activeStep === 1 && !selectedLawyer) || // Lawyer selection required
+                (activeStep === 2 && (!selectedDate || !selectedSlot)) || // Date/time selection required
+                (activeStep === 3 && !method) // Consultation method required
               }
               sx={{
                 backgroundColor: '#d4af37',

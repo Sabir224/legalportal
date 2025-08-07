@@ -30,6 +30,7 @@ import { useDispatch } from 'react-redux';
 import { screenChange } from '../../../REDUX/sliece';
 import { BsPerson } from 'react-icons/bs';
 import { useAlert } from '../../../Component/AlertContext';
+import PhoneInput from 'react-phone-input-2';
 
 const AddUser = () => {
   const dispatch = useDispatch();
@@ -37,6 +38,8 @@ const AddUser = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
+  const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
 
   // Form fields
 
@@ -56,13 +59,38 @@ const AddUser = () => {
   const [fee, setFee] = useState('');
   const dropdownRef = useRef(null);
   const { showLoading, showSuccess, showError } = useAlert();
-
+  const services = [
+    { name: 'Divorce', description: 'Marriage dissolution and related matters' },
+    { name: 'Property', description: 'Real estate transactions and disputes' },
+    { name: 'Criminal', description: 'Defense and legal representation' },
+    { name: 'Immigration', description: 'Visa and citizenship processes' },
+    { name: 'Corporate', description: 'Business formation and compliance' },
+  ];
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-  const handleRoleSelect = (role) => {
-    setSelectedRole(role);
-    setDropdownOpen(false);
+
+  const toggleRoleDropdown = (e) => {
+    e.preventDefault(); // Prevent form submission
+    setRoleDropdownOpen(!roleDropdownOpen);
+    setServicesDropdownOpen(false); // Close other dropdown when opening this one
+  };
+  const handleServiceSelect = (serviceName) => {
+    setExpertise(serviceName);
+    setServicesDropdownOpen(false); // Close the dropdown after selection
   };
 
+  const toggleServicesDropdown = (e) => {
+    e.preventDefault(); // Prevent form submission
+    setServicesDropdownOpen(!servicesDropdownOpen);
+    setRoleDropdownOpen(false); // Close other dropdown when opening this one
+  };
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setRoleDropdownOpen(false);
+    if (role === 'client') {
+      setExpertise('');
+    }
+  };
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -208,14 +236,6 @@ const AddUser = () => {
                 required: true,
               },
               {
-                label: 'Contact Number',
-                icon: <FaPhone />,
-                state: contactNumber,
-                setState: setContactNumber,
-                type: 'tel',
-                required: true,
-              },
-              {
                 label: 'Password',
                 icon: <FaLock />,
                 state: password,
@@ -248,12 +268,6 @@ const AddUser = () => {
                 icon: <FaMapMarkedAlt />,
                 state: location,
                 setState: setLocation,
-              },
-              selectedRole !== 'client' && {
-                label: 'Expertise',
-                icon: <FaBriefcase />,
-                state: expertise,
-                setState: setExpertise,
               },
               selectedRole !== 'client' && {
                 label: 'Department',
@@ -301,14 +315,12 @@ const AddUser = () => {
                   </div>
                 </div>
               ))}
-
-            {/* Role Dropdown */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label className="form-label fw-medium" style={{ color: '#18273e' }}>
-                  Role <span className="text-danger">*</span>
+                  Contact Number <span className="text-danger">*</span>
                 </label>
-                <div className="input-group" ref={dropdownRef}>
+                <div className="input-group">
                   <span
                     className="input-group-text"
                     style={{
@@ -317,56 +329,214 @@ const AddUser = () => {
                       borderColor: '#18273e',
                     }}
                   >
-                    <FaUserTag />
+                    <FaPhone />
                   </span>
                   <div
-                    className="form-control d-flex align-items-center justify-content-between"
                     style={{
-                      cursor: 'pointer',
-                      borderColor: '#18273e',
-                      color: '#18273e',
+                      flex: 1,
+                      position: 'relative',
+                      border: '1px solid #18273e',
+                      borderRadius: '0 4px 4px 0',
+                      backgroundColor: 'white',
                     }}
-                    onClick={toggleDropdown}
-                    id="role-selector"
                   >
-                    {selectedRole ? selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) : 'Select Role'}
-                    <FaChevronDown className="ms-2" />
-                  </div>
-                  {dropdownOpen && (
-                    <div
-                      className="position-absolute w-100 mt-1 z-3"
-                      style={{
-                        top: '100%',
-                        maxHeight: '200px',
-                        overflowY: 'auto',
-                        zIndex: 1000,
-                        marginLeft: '38px',
-                        width: 'calc(100% - 38px)',
-                        border: '1px solid #d3b386',
-                        borderRadius: '0 0 4px 4px',
+                    <PhoneInput
+                      international
+                      Country={'AE'}
+                      value={contactNumber}
+                      onChange={setContactNumber}
+                      inputStyle={{
+                        width: '100%',
+                        border: '1px solid #18273e',
+                        boxShadow: 'none',
+                        height: '38px',
+                        fontSize: '0.9rem',
                       }}
-                    >
-                      {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
-                        <button
-                          key={role}
-                          type="button"
-                          className="list-group-item list-group-item-action text-start w-100"
-                          style={{
-                            backgroundColor: selectedRole === role ? '#d3b386' : '#18273e',
-                            color: 'white',
-                            border: 'none',
-                            borderRadius: 0,
-                          }}
-                          onClick={() => handleRoleSelect(role)}
-                        >
-                          {role.charAt(0).toUpperCase() + role.slice(1)}
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                      inputProps={{
+                        name: 'phone',
+                        required: true,
+                        title: 'Please enter a valid phone number',
+                      }}
+                      containerStyle={{
+                        width: '100%',
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#d3b386';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#18273e';
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
+            {/* Role Dropdown */}
+            {/* Role Dropdown */}
+            <div className="col-12 col-sm-6 col-lg-4">
+              <div className="mb-3">
+                <label
+                  className="form-label fw-semibold mb-2 d-block"
+                  style={{
+                    color: '#18273e',
+                    fontSize: '0.95rem',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  Role <span className="text-danger">*</span>
+                </label>
+                <div className="input-group">
+                  <div className="position-relative w-100">
+                    <button
+                      type="button"
+                      className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                      style={{
+                        cursor: 'pointer',
+                        border: '1px solid #d3b386',
+                        borderRadius: '6px',
+                        backgroundColor: 'white',
+                        boxShadow: 'none',
+                        height: 'auto',
+                        minHeight: '42px',
+                        fontSize: '0.95rem',
+                        transition: 'all 0.2s ease',
+                      }}
+                      onClick={toggleRoleDropdown}
+                      aria-expanded={roleDropdownOpen}
+                      aria-haspopup="listbox"
+                    >
+                      <span>{selectedRole || 'Select Role'}</span>
+                      <FaChevronDown
+                        className={`transition-all fs-6 ${roleDropdownOpen ? 'rotate-180' : ''}`}
+                        style={{ color: '#18273e' }}
+                      />
+                    </button>
+                    {roleDropdownOpen && (
+                      <ul
+                        className="list-group position-absolute w-100 mt-1 shadow-sm"
+                        style={{
+                          zIndex: 1000,
+                          border: '1px solid #d3b386',
+                          borderRadius: '6px',
+                          overflow: 'hidden',
+                          maxHeight: '200px',
+                          overflowY: 'auto',
+                        }}
+                        role="listbox"
+                      >
+                        {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
+                          <li
+                            key={role}
+                            className="list-group-item list-group-item-action px-3 py-2"
+                            style={{
+                              cursor: 'pointer',
+                              backgroundColor: role === selectedRole ? '#F8D4A1' : 'white',
+                              border: 'none',
+                              borderBottom: '1px solid #f0f0f0',
+                              transition: 'all 0.2s ease',
+                              fontSize: '0.95rem',
+                            }}
+                            onClick={() => handleRoleSelect(role)}
+                            role="option"
+                            aria-selected={role === selectedRole}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5e9d9')}
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.backgroundColor = role === selectedRole ? '#F8D4A1' : 'white')
+                            }
+                          >
+                            {role.charAt(0).toUpperCase() + role.slice(1)}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {selectedRole !== 'client' && (
+              <div className="col-12 col-sm-6 col-lg-4">
+                <div className="mb-3">
+                  <label
+                    className="form-label fw-semibold mb-2 d-block"
+                    style={{
+                      color: '#18273e',
+                      fontSize: '0.95rem',
+                      letterSpacing: '0.3px',
+                    }}
+                  >
+                    Services
+                  </label>
+                  <div className="input-group">
+                    <div className="position-relative w-100">
+                      <button
+                        type="button"
+                        className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                        style={{
+                          cursor: 'pointer',
+                          border: '1px solid #d3b386',
+                          borderRadius: '6px',
+                          backgroundColor: 'white',
+                          boxShadow: 'none',
+                          height: 'auto',
+                          minHeight: '42px',
+                          fontSize: '0.95rem',
+                          transition: 'all 0.2s ease',
+                        }}
+                        onClick={toggleServicesDropdown}
+                        aria-expanded={servicesDropdownOpen}
+                        aria-haspopup="listbox"
+                      >
+                        <span>{expertise || 'Select a service'}</span>
+                        <FaChevronDown
+                          className={`transition-all fs-6 ${servicesDropdownOpen ? 'rotate-180' : ''}`}
+                          style={{ color: '#18273e' }}
+                        />
+                      </button>
+                      {servicesDropdownOpen && (
+                        <ul
+                          className="list-group position-absolute w-100 mt-1 shadow-sm"
+                          style={{
+                            zIndex: 1000,
+                            border: '1px solid #d3b386',
+                            borderRadius: '6px',
+                            overflow: 'hidden',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                          }}
+                          role="listbox"
+                        >
+                          {services.map((service) => (
+                            <li
+                              key={service.name}
+                              className="list-group-item list-group-item-action px-3 py-2"
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor: service.name === expertise ? '#F8D4A1' : 'white',
+                                border: 'none',
+                                borderBottom: '1px solid #f0f0f0',
+                                transition: 'all 0.2s ease',
+                                fontSize: '0.95rem',
+                              }}
+                              onClick={() => handleServiceSelect(service.name)} // Use the new handler
+                              role="option"
+                              aria-selected={service.name === expertise}
+                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5e9d9')}
+                              onMouseLeave={(e) =>
+                                (e.currentTarget.style.backgroundColor =
+                                  service.name === expertise ? '#F8D4A1' : 'white')
+                              }
+                            >
+                              {service.name}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Conditional Fields for Non-Client Roles */}

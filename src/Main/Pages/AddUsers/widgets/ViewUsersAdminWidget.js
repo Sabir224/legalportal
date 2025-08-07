@@ -115,7 +115,12 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
         name: user?.UserName,
         email: user?.Email,
         password: user?.Password,
-        phone: response.data?.Contact,
+        phone:
+          user?.Role === 'lawyer'
+            ? response.data.lawyerDetails?.Contact
+            : response.data?.Contact
+            ? response.data?.Contact
+            : '',
         profilePicture: user?.ProfilePicture,
         experience: user?.Role === 'lawyer' ? response.data.lawyerDetails?.YearOfExperience : '',
         fee: user?.Role === 'lawyer' ? response.data.lawyerDetails?.ConsultationFee : '',
@@ -808,6 +813,11 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                         boxShadow: 'none',
                         height: '38px',
                         fontSize: '0.9rem',
+                      }}
+                      inputProps={{
+                        name: 'phone',
+                        required: true,
+                        title: 'Please enter a valid phone number',
                       }}
                       containerStyle={{
                         width: '100%',

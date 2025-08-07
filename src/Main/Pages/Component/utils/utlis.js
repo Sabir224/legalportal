@@ -93,7 +93,7 @@ export const theme = createTheme({
   },
 });
 
-// export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
+//export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
 export const ApiEndPoint = 'http://localhost:5001/api/';
 
