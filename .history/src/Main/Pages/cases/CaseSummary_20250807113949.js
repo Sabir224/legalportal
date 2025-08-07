@@ -261,7 +261,7 @@ const CaseSummary = () => {
   const handleRefresh = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${ApiEndPoint}casesummary`);
+      const response = await axios.get('http://localhost:5001/api/casesummary');
       setCasesData(response.data);
       setLastUpdated(new Date().toLocaleString());
     } catch (err) {
