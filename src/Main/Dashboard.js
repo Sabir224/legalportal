@@ -21,6 +21,7 @@ import {
   faChevronDown,
   faChevronUp,
   faDoorOpen,
+  faFolder,
   faForward,
   faHistory,
   faHome,
@@ -95,6 +96,7 @@ import ReceptionistCalendar from './Pages/ReceptionistCalendar';
 import PublicAppointment from './Pages/AppointMents/Appointment';
 import { alignContent, alignItems, justifyContent, justifyItems, padding } from '@mui/system';
 import CaseSummary from './Pages/cases/CaseSummary';
+import LEA_Form from './Pages/Component/Case_Forms/LFA_form';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -115,6 +117,11 @@ const Dashboard = () => {
   const [cookies, setCookie, removeCookie] = useCookies(['token']);
   const [viewClient, setViewClient] = useState(false);
   const [viewLawyer, setViewLawyer] = useState(false);
+  // At the top of your component
+  const [showCaseOptions, setShowCaseOptions] = useState(false);
+  // Add state at top of component
+  const [showFormOptions, setShowFormOptions] = useState(false);
+
 
   // console.log("________", cookies.token);
   // Get the decoded token
@@ -376,9 +383,17 @@ const Dashboard = () => {
         </AlertProvider>;
         break;
       case 26:
-         setCurrentScreen(
+        setCurrentScreen(
           <AlertProvider>
             <CaseSummary token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
+        break;
+      case 27:
+        setCurrentScreen(
+          <AlertProvider>
+            <LEA_Form token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
         );
@@ -642,36 +657,96 @@ const Dashboard = () => {
                 },
               }
               : null,
+            // decodedToken?.Role === 'admin'
+            //   ? {
+            //     icon: faBookOpen,
+
+            //     label: 'Add Case',
+            //     action: () => {
+            //       dispatch(clientEmail(null));
+            //       dispatch(Caseinfo(null));
+            //       dispatch(FormCDetails(null));
+            //       dispatch(FormHDetails(null));
+
+            //       handlescreen2(11);
+            //     },
+            //   }
+            //   : null,
+            // decodedToken?.Role === 'admin'
+            //   ? {
+            //     icon: faBookReader,
+
+            //     label: 'Case Summary',
+            //     action: () => {
+            //       dispatch(clientEmail(null));
+            //       dispatch(Caseinfo(null));
+            //       dispatch(FormCDetails(null));
+            //       dispatch(FormHDetails(null));
+
+            //       handlescreen2(26);
+            //     },
+            //   }
+            //   : null,
+
+            // Inside your items array or menu render
             decodedToken?.Role === 'admin'
               ? {
-                icon: faBookOpen,
+                icon: faFolder,
+                label: 'Case',
+                action: () => setShowCaseOptions(!showCaseOptions), // Toggle options on click
+              }
+              : null,
 
+            showCaseOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faBookOpen,
                 label: 'Add Case',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
                 action: () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
                   dispatch(FormHDetails(null));
-
                   handlescreen2(11);
                 },
               }
               : null,
-            decodedToken?.Role === 'admin'
+
+            showCaseOptions && decodedToken?.Role === 'admin'
               ? {
                 icon: faBookReader,
-
-                label: 'Case Summary',
+                label: 'Summary',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
                 action: () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
                   dispatch(FormHDetails(null));
-
                   handlescreen2(26);
                 },
               }
               : null,
+
             decodedToken?.Role !== 'client'
               ? {
                 icon: faTasksAlt,
@@ -696,34 +771,99 @@ const Dashboard = () => {
             //     handlescreen2(16);
             //   },
             // },
+
+
+            // decodedToken?.Role !== 'client'
+            //   ? {
+            //     icon: faList12,
+            //     label: 'Form C List',
+            //     action: () => {
+            //       dispatch(clientEmail(null));
+            //       dispatch(Caseinfo(null));
+            //       dispatch(FormCDetails(null));
+            //       dispatch(FormHDetails(null));
+
+            //       handlescreen2(18);
+            //     },
+            //   }
+            //   : null,
+            // decodedToken?.Role !== 'client'
+            //   ? {
+            //     icon: faList,
+            //     label: 'Form H List',
+            //     action: () => {
+            //       dispatch(clientEmail(null));
+            //       dispatch(Caseinfo(null));
+            //       dispatch(FormCDetails(null));
+            //       dispatch(FormHDetails(null));
+
+            //       handlescreen2(22);
+            //     },
+            //   }
+            //   : null,
+
+
+            // Inside your array of menu items — same pattern used
             decodedToken?.Role !== 'client'
+              ? {
+                icon: faWpforms, // Or any icon for "Form"
+                label: 'Form',
+                action: () => setShowFormOptions(!showFormOptions), // Toggle sub-options
+              }
+              : null,
+
+            showFormOptions && decodedToken?.Role !== 'client'
               ? {
                 icon: faList12,
                 label: 'Form C List',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
                 action: () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
                   dispatch(FormHDetails(null));
-
                   handlescreen2(18);
                 },
               }
               : null,
-            decodedToken?.Role !== 'client'
+
+            showFormOptions && decodedToken?.Role !== 'client'
               ? {
                 icon: faList,
                 label: 'Form H List',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',                 // Important for centering
+                  alignItems: 'center',           // Vertical center
+                  justifyContent: 'center',       // Horizontal center
+                },
                 action: () => {
                   dispatch(clientEmail(null));
                   dispatch(Caseinfo(null));
                   dispatch(FormCDetails(null));
                   dispatch(FormHDetails(null));
-
                   handlescreen2(22);
                 },
               }
               : null,
+
+
+
             decodedToken?.Role === 'receptionist'
               ? {
                 icon: faCalendar,
@@ -841,6 +981,7 @@ const Dashboard = () => {
               {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} onBack={handleBack} />}
               {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
               {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
+              {screen === 27 && <ScreenHeader title={`View LEA${caseDetailsScreenTitle}`} onBack={handleBack} />}
             </h3>
 
             {/* Admin Buttons */}

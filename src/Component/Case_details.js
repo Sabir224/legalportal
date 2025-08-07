@@ -487,6 +487,12 @@ const Case_details = ({ token }) => {
     // console.log(global.User);
     dispatch(screenChange(23));
   };
+  const handleFormLFA = async () => {
+    // global.lawyerDetails = lawyerDetails[0];
+    // global.User = user;
+    // console.log(global.User);
+    dispatch(screenChange(27));
+  };
   const handleViewTask = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -580,6 +586,7 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client"
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
+          ...[{ label: "Form LFA", onClick: handleFormLFA }],
         ].map(({ label, onClick }, index) => (
           <div key={index} className="d-flex justify-content-center mb-2">
             <button

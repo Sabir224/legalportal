@@ -172,7 +172,9 @@ export default function ViewFormC({ token }) {
     }
   };
 
+  const { showDataLoading } = useAlert();
   const fetchtask = async () => {
+    showDataLoading(true)
     console.log('caseInfo=', caseInfo);
     try {
       const response = await fetch(
@@ -181,13 +183,16 @@ export default function ViewFormC({ token }) {
       );
 
       if (!response.ok) {
+        showDataLoading(false)
         throw new Error('Error fetching folders');
       }
 
       const data = await response.json();
+      showDataLoading(false)
       console.log('fetch Task', data.consultations[0]);
       setTodos(data.consultations);
     } catch (err) {
+      showDataLoading(false)
       // setMessage(err.response?.data?.message || "Error deleting task.");
       //  setShowError(true);
     }
@@ -434,8 +439,8 @@ export default function ViewFormC({ token }) {
   const keys =
     todos?.length > 0
       ? Object.keys(todos[0]).filter(
-          (key) => key !== '_id' && key !== '__v' && key !== 'subtasks' && key !== 'parentId'
-        )
+        (key) => key !== '_id' && key !== '__v' && key !== 'subtasks' && key !== 'parentId'
+      )
       : [];
 
   const handleFieldBlur = async (taskId, key, value, isSubtask, subtaskId) => {
@@ -991,95 +996,77 @@ export default function ViewFormC({ token }) {
       </div>
 
       {/* Desktop Table View (lg and up) */}
-      <LocalizationProvider dateAdapter={AdapterDateFns}>
-        {/* Desktop View - shows on lg and up */}
+      {todos.length > 0 ?
+        (
+          <LocalizationProvider dateAdapter={AdapterDateFns}>
+            {/* Desktop View - shows on lg and up */}
 
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            p: 1,
-            width: '100%',
-            height: '100%',
-            overflow: 'hidden',
-          }}
-        >
-          <TableContainer
-            component={Paper}
-            sx={{
-              flex: 1,
-              display: 'flex',
-              flexDirection: 'column',
-              overflowY: 'auto',
-              overflowX: 'auto',
-              maxHeight: '100%',
-              borderRadius: '12px',
-              boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
-              '&::-webkit-scrollbar': {
-                width: '8px',
-                height: '8px',
-              },
-              '&::-webkit-scrollbar-track': {
-                background: 'rgba(0, 31, 63, 0.5)',
-              },
-              '&::-webkit-scrollbar-thumb': {
-                background: '#D4AF37',
-                borderRadius: '4px',
-              },
-              '&::-webkit-scrollbar-thumb:hover': {
-                background: '#E6C050',
-              },
-            }}
-          >
-            <Table
-              stickyHeader
-              size="small"
-              aria-label="desktop table view"
+            <Box
               sx={{
-                minWidth: 'max-content',
-                tableLayout: 'fixed',
-                width: 'fit-content',
-                backgroundColor: '#001f3f',
-                borderCollapse: 'collapse',
-                '& .MuiTableCell-root': {
-                  border: 'none !important',
-                },
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                p: 1,
+                width: '100%',
+                height: '100%',
+                overflow: 'hidden',
               }}
             >
-              <TableHead>
-                <TableRow
+              <TableContainer
+                component={Paper}
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflowY: 'auto',
+                  overflowX: 'auto',
+                  maxHeight: '100%',
+                  borderRadius: '12px',
+                  boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.2)',
+                  '&::-webkit-scrollbar': {
+                    width: '8px',
+                    height: '8px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'rgba(0, 31, 63, 0.5)',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#D4AF37',
+                    borderRadius: '4px',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    background: '#E6C050',
+                  },
+                }}
+              >
+                <Table
+                  stickyHeader
+                  size="small"
+                  aria-label="desktop table view"
                   sx={{
-                    borderBottom: '2px solid #D4AF37',
+                    minWidth: 'max-content',
+                    tableLayout: 'fixed',
+                    width: 'fit-content',
+                    backgroundColor: '#001f3f',
+                    borderCollapse: 'collapse',
                     '& .MuiTableCell-root': {
-                      backgroundColor: '#001f3f !important',
-                      color: '#D4AF37 !important',
-                      borderBottom: '2px solid #D4AF37',
+                      border: 'none !important',
                     },
                   }}
                 >
-                  {/* Client Name Column - First */}
-                  <TableCell
-                    sx={{
-                      minWidth: 120,
-                      whiteSpace: 'nowrap',
-                      fontWeight: 'bold',
-                      backgroundColor: '#001f3f',
-                      color: '#D4AF37',
-                      position: 'sticky',
-                      top: 0,
-                      left: 0,
-                      zIndex: 3,
-                    }}
-                  >
-                    Client Name
-                  </TableCell>
-
-                  {/* Other Columns */}
-                  {keys?.map((key) =>
-                    key !== 'clientName' && key !== 'caseId' && key !== 'userId' && key !== 'userName' ? (
+                  <TableHead>
+                    <TableRow
+                      sx={{
+                        borderBottom: '2px solid #D4AF37',
+                        '& .MuiTableCell-root': {
+                          backgroundColor: '#001f3f !important',
+                          color: '#D4AF37 !important',
+                          borderBottom: '2px solid #D4AF37',
+                        },
+                      }}
+                    >
+                      {/* Client Name Column - First */}
                       <TableCell
-                        key={key}
                         sx={{
                           minWidth: 120,
                           whiteSpace: 'nowrap',
@@ -1088,382 +1075,439 @@ export default function ViewFormC({ token }) {
                           color: '#D4AF37',
                           position: 'sticky',
                           top: 0,
-                          zIndex: 1,
+                          left: 0,
+                          zIndex: 3,
                         }}
                       >
-                        {formatHeaderLabel(key)}
+                        Client Name
                       </TableCell>
-                    ) : null
-                  )}
 
-                  {/* Actions Column */}
-                  <TableCell
-                    sx={{
-                      width: '120px',
-                      backgroundColor: '#001f3f',
-                      color: '#D4AF37',
-                      position: 'sticky',
-                      top: 0,
-                      zIndex: 1,
-                      fontWeight: 'bold',
-                      borderBottom: '2px solid #D4AF37',
-                    }}
-                  >
-                    Actions
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {todos?.map((todo) => (
-                  <TableRow
-                    key={todo._id?.value || todo.id}
-                    sx={{
-                      '& .MuiTableCell-root': {
-                        borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
-                      },
-                      '&:not(:last-child)': {
-                        borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
-                      },
-                    }}
-                  >
-                    {/* Client Name Cell - First */}
-                    <TableCell
-                      sx={{
-                        overflow: 'auto',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'normal',
-                        position: 'sticky',
-                        left: 0,
-                        backgroundColor: '#0a2d56',
-                        zIndex: 2,
-                        color: '#676a6e',
-                        height: '120px',
-                        minWidth: '180px',
-                        borderRight: '1px solid rgba(212, 175, 55, 0.3)',
-                        borderTop: '1px solid rgba(212, 175, 55, 0.3)',
-                        borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
-                        borderLeft: 'none',
-                        '&::after': {
-                          content: '""',
-                          position: 'absolute',
-                          right: 0,
-                          top: 0,
-                          bottom: 0,
-                          width: '1px',
-                          backgroundColor: 'rgba(212, 175, 55, 0.3)',
-                        },
-                      }}
-                    >
-                      {todo.clientName?.value || 'Client'}
-                    </TableCell>
-
-                    {/* Other Cells */}
-                    {keys?.map((key) => {
-                      if (key === 'clientName' || key === 'caseId' || key === 'userId' || key === 'userName')
-                        return null;
-
-                      const field = todo[key];
-                      if (!field) return <TableCell key={key}></TableCell>;
-
-                      const { value, type, enum: enumOptions, editable = true } = field;
-                      const taskId = todo._id?.value || todo.id;
-                      const subtaskId = isSubtask ? taskId : null;
-                      const normalizedType = type?.toLowerCase();
-
-                      const handleBlur = (e) => {
-                        const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
-                        handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                      };
-
-                      let content;
-
-                      // Checklist handling
-                      if (key === 'checklist') {
-                        const checklistKeys = Object.keys(value || {});
-                        content = (
-                          <FormControl
-                            fullWidth
-                            size="medium"
+                      {/* Other Columns */}
+                      {keys?.map((key) =>
+                        key !== 'clientName' && key !== 'caseId' && key !== 'userId' && key !== 'userName' ? (
+                          <TableCell
+                            key={key}
                             sx={{
-                              minWidth: 140,
-                              border: 'none',
-
-                              '& .MuiSelect-select': {
-                                maxHeight: '120px',
-                                overflowY: 'auto',
-                              },
+                              minWidth: 120,
+                              whiteSpace: 'nowrap',
+                              fontWeight: 'bold',
+                              backgroundColor: '#001f3f',
+                              color: '#D4AF37',
+                              position: 'sticky',
+                              top: 0,
+                              zIndex: 1,
                             }}
                           >
-                            <Select
-                              multiple
-                              value={checklistKeys.filter((k) => value[k])}
-                              displayEmpty
-                              renderValue={(selected) =>
-                                selected.length > 0
-                                  ? selected.map((item) => item.toUpperCase()).join(', ')
-                                  : 'Checklist Options'
-                              }
-                              onChange={(e) =>
-                                handleFieldChange(
-                                  taskId,
-                                  key,
-                                  Object.fromEntries(checklistKeys.map((k) => [k, e.target.value.includes(k)])),
-                                  isSubtask,
-                                  subtaskId
-                                )
-                              }
-                              onBlur={handleBlur}
-                              disabled={isclient}
-                              sx={{
-                                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                borderRadius: '4px',
-                                height: '100%',
-                                '& .MuiSelect-select': {
-                                  py: 1.5,
-                                  color: '#676a6e',
-                                  maxHeight: '100px',
-                                  overflowY: 'auto',
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                  border: 'none !important',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                },
-                                '& .MuiSvgIcon-root': {
-                                  color: 'rgba(212, 175, 55, 0.7)',
-                                },
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    bgcolor: '#0a2d56',
-                                    color: 'white',
-                                    maxHeight: '200px',
-                                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                                    '& .MuiMenuItem-root': {
-                                      minHeight: '48px',
-                                      '&:hover': {
-                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
+                            {formatHeaderLabel(key)}
+                          </TableCell>
+                        ) : null
+                      )}
+
+                      {/* Actions Column */}
+                      <TableCell
+                        sx={{
+                          width: '120px',
+                          backgroundColor: '#001f3f',
+                          color: '#D4AF37',
+                          position: 'sticky',
+                          top: 0,
+                          zIndex: 1,
+                          fontWeight: 'bold',
+                          borderBottom: '2px solid #D4AF37',
+                        }}
+                      >
+                        Actions
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+
+                  <TableBody>
+                    {todos?.map((todo) => (
+                      <TableRow
+                        key={todo._id?.value || todo.id}
+                        sx={{
+                          '& .MuiTableCell-root': {
+                            borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+                          },
+                          '&:not(:last-child)': {
+                            borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
+                          },
+                        }}
+                      >
+                        {/* Client Name Cell - First */}
+                        <TableCell
+                          sx={{
+                            overflow: 'auto',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'normal',
+                            position: 'sticky',
+                            left: 0,
+                            backgroundColor: '#0a2d56',
+                            zIndex: 2,
+                            color: '#676a6e',
+                            height: '120px',
+                            minWidth: '180px',
+                            borderRight: '1px solid rgba(212, 175, 55, 0.3)',
+                            borderTop: '1px solid rgba(212, 175, 55, 0.3)',
+                            borderBottom: '1px solid rgba(212, 175, 55, 0.3)',
+                            borderLeft: 'none',
+                            '&::after': {
+                              content: '""',
+                              position: 'absolute',
+                              right: 0,
+                              top: 0,
+                              bottom: 0,
+                              width: '1px',
+                              backgroundColor: 'rgba(212, 175, 55, 0.3)',
+                            },
+                          }}
+                        >
+                          {todo.clientName?.value || 'Client'}
+                        </TableCell>
+
+                        {/* Other Cells */}
+                        {keys?.map((key) => {
+                          if (key === 'clientName' || key === 'caseId' || key === 'userId' || key === 'userName')
+                            return null;
+
+                          const field = todo[key];
+                          if (!field) return <TableCell key={key}></TableCell>;
+
+                          const { value, type, enum: enumOptions, editable = true } = field;
+                          const taskId = todo._id?.value || todo.id;
+                          const subtaskId = isSubtask ? taskId : null;
+                          const normalizedType = type?.toLowerCase();
+
+                          const handleBlur = (e) => {
+                            const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
+                            handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                          };
+
+                          let content;
+
+                          // Checklist handling
+                          if (key === 'checklist') {
+                            const checklistKeys = Object.keys(value || {});
+                            content = (
+                              <FormControl
+                                fullWidth
+                                size="medium"
+                                sx={{
+                                  minWidth: 140,
+                                  border: 'none',
+
+                                  '& .MuiSelect-select': {
+                                    maxHeight: '120px',
+                                    overflowY: 'auto',
+                                  },
+                                }}
+                              >
+                                <Select
+                                  multiple
+                                  value={checklistKeys.filter((k) => value[k])}
+                                  displayEmpty
+                                  renderValue={(selected) =>
+                                    selected.length > 0
+                                      ? selected.map((item) => item.toUpperCase()).join(', ')
+                                      : 'Checklist Options'
+                                  }
+                                  onChange={(e) =>
+                                    handleFieldChange(
+                                      taskId,
+                                      key,
+                                      Object.fromEntries(checklistKeys.map((k) => [k, e.target.value.includes(k)])),
+                                      isSubtask,
+                                      subtaskId
+                                    )
+                                  }
+                                  onBlur={handleBlur}
+                                  disabled={isclient}
+                                  sx={{
+                                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                    borderRadius: '4px',
+                                    height: '100%',
+                                    '& .MuiSelect-select': {
+                                      py: 1.5,
+                                      color: '#676a6e',
+                                      maxHeight: '100px',
+                                      overflowY: 'auto',
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      border: 'none !important',
+                                    },
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                                    },
+                                    '&.Mui-focused': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                      color: 'rgba(212, 175, 55, 0.7)',
+                                    },
+                                  }}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      sx: {
+                                        bgcolor: '#0a2d56',
+                                        color: 'white',
+                                        maxHeight: '200px',
+                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                        '& .MuiMenuItem-root': {
+                                          minHeight: '48px',
+                                          '&:hover': {
+                                            bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                          },
+                                        },
                                       },
                                     },
+                                  }}
+                                >
+                                  {checklistKeys.map((optionKey) => (
+                                    <MenuItem key={optionKey} value={optionKey}>
+                                      <Checkbox
+                                        checked={!!value[optionKey]}
+                                        sx={{
+                                          p: 1,
+                                          color: '#D4AF37',
+                                          backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                          borderRadius: '4px',
+                                          '&.Mui-checked': {
+                                            color: '#D4AF37',
+                                            backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                          },
+                                        }}
+                                      />
+                                      <ListItemText primary={optionKey.toUpperCase()} />
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            );
+                          } else if (key === 'documents') {
+                            const userId = todo.userId?.value;
+                            const userName = todo.userName?.value;
+                            const email = todo?._id?.value;
+                            content =
+                              userId && userName ? (
+                                <Button
+                                  sx={{
+                                    textTransform: 'none',
+                                    textDecoration: 'underline',
+                                    p: 0,
+                                    minWidth: 'auto',
+                                    color: '#D4AF37',
+                                    '&:hover': {
+                                      color: '#E6C050',
+                                      backgroundColor: 'transparent',
+                                    },
+                                  }}
+                                  onClick={() => handleUserClick(userId, userName)}
+                                >
+                                  {userName}
+                                </Button>
+                              ) : (
+                                <Button
+                                  sx={{
+                                    textTransform: 'none',
+                                    textDecoration: 'underline',
+                                    p: 0,
+                                    minWidth: 'auto',
+                                    color: '#D4AF37',
+                                    '&:hover': {
+                                      color: '#E6C050',
+                                      backgroundColor: 'transparent',
+                                    },
+                                  }}
+                                  onClick={() => handleClientClick(email)}
+                                >
+                                  {todo.clientName?.value || 'Client'}
+                                </Button>
+                              );
+                          } else if (key === 'createdBy') {
+                            content = (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: '#676a6e',
+                                  maxHeight: 120,
+                                  overflowY: 'auto',
+                                  whiteSpace: 'normal',
+                                  border: 'none',
+                                }}
+                              >
+                                {value?.UserName || ''}
+                              </Typography>
+                            );
+                          } else if (key === 'createdAt') {
+                            content = (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: '#676a6e',
+                                  maxHeight: 120,
+                                  overflowY: 'auto',
+                                  whiteSpace: 'normal',
+                                  border: 'none',
+                                }}
+                              >
+                                {(value || '').split('T')[0]}
+                              </Typography>
+                            );
+                          } else if (!editable) {
+                            content = (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: '#676a6e',
+                                  maxHeight: 120,
+                                  overflowY: 'auto',
+                                  whiteSpace: 'normal',
+                                  border: 'none',
+                                }}
+                              >
+                                {String(value)}
+                              </Typography>
+                            );
+                          } else if (enumOptions) {
+                            content = (
+                              <FormControl
+                                fullWidth
+                                size="medium"
+                                sx={{
+                                  minWidth: 140,
+                                  border: 'none',
+                                  maxHeight: 120,
+                                }}
+                              >
+                                <Select
+                                  value={value}
+                                  onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
+                                  onBlur={handleBlur}
+                                  disabled={isclient}
+                                  sx={{
+                                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                    borderRadius: '4px',
+
+                                    '& .MuiSelect-select': {
+                                      py: 1.5,
+                                      color: '#676a6e',
+                                      maxHeight: '120px',
+                                      overflowY: 'auto',
+                                    },
+                                    '& .MuiOutlinedInput-notchedOutline': {
+                                      border: 'none !important',
+                                    },
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                                    },
+                                    '&.Mui-focused': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                    },
+                                    '& .MuiSvgIcon-root': {
+                                      color: 'rgba(212, 175, 55, 0.7)',
+                                    },
+                                  }}
+                                  MenuProps={{
+                                    PaperProps: {
+                                      sx: {
+                                        bgcolor: '#0a2d56',
+                                        color: 'white',
+                                        maxHeight: '120px',
+                                        border: '1px solid rgba(212, 175, 55, 0.3)',
+                                        '& .MuiMenuItem-root': {
+                                          minHeight: '48px',
+                                          '&:hover': {
+                                            bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                          },
+                                        },
+                                      },
+                                    },
+                                  }}
+                                >
+                                  {enumOptions.map((option) => (
+                                    <MenuItem key={option} value={option}>
+                                      {option}
+                                    </MenuItem>
+                                  ))}
+                                </Select>
+                              </FormControl>
+                            );
+                          } else if (normalizedType === 'boolean') {
+                            content = (
+                              <Checkbox
+                                checked={Boolean(value)}
+                                onChange={(e) => handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)}
+                                onBlur={handleBlur}
+                                disabled={isclient}
+                                sx={{
+                                  p: 1,
+                                  color: '#D4AF37',
+                                  backgroundColor: 'rgba(212, 175, 55, 0.1)',
+                                  borderRadius: '4px',
+                                  '&.Mui-checked': {
+                                    color: '#D4AF37',
+                                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
                                   },
-                                },
-                              }}
-                            >
-                              {checklistKeys.map((optionKey) => (
-                                <MenuItem key={optionKey} value={optionKey}>
-                                  <Checkbox
-                                    checked={!!value[optionKey]}
+                                }}
+                              />
+                            );
+                          } else if (normalizedType === 'date') {
+                            content = (
+                              <DatePicker
+                                PopperProps={{
+                                  sx: {
+                                    '& .MuiPaper-root': {
+                                      boxShadow: 'none',
+                                      border: '1px solid rgba(212, 175, 55, 0.3)',
+                                    },
+                                  },
+                                }}
+                                value={value ? new Date(value) : null}
+                                onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
+                                disabled={isclient}
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    size="medium"
+                                    fullWidth
+                                    onBlur={() => handleFieldBlur(taskId, key, value, isSubtask, subtaskId)}
                                     sx={{
-                                      p: 1,
-                                      color: '#D4AF37',
-                                      backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                      borderRadius: '4px',
-                                      '&.Mui-checked': {
-                                        color: '#D4AF37',
-                                        backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                      minWidth: 160,
+                                      border: 'none',
+
+                                      '& .MuiInputBase-input': {
+                                        py: 1.5,
+                                        color: '#676a6e',
+                                        maxHeight: '120px',
+                                        overflowY: 'auto',
+                                        border: 'none',
+                                      },
+                                      '& .MuiOutlinedInput-notchedOutline': {
+                                        border: 'none !important',
+                                      },
+                                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                                        border: 'none !important',
+                                      },
+                                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                        border: 'none !important',
                                       },
                                     }}
                                   />
-                                  <ListItemText primary={optionKey.toUpperCase()} />
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        );
-                      } else if (key === 'documents') {
-                        const userId = todo.userId?.value;
-                        const userName = todo.userName?.value;
-                        const email = todo?._id?.value;
-                        content =
-                          userId && userName ? (
-                            <Button
-                              sx={{
-                                textTransform: 'none',
-                                textDecoration: 'underline',
-                                p: 0,
-                                minWidth: 'auto',
-                                color: '#D4AF37',
-                                '&:hover': {
-                                  color: '#E6C050',
-                                  backgroundColor: 'transparent',
-                                },
-                              }}
-                              onClick={() => handleUserClick(userId, userName)}
-                            >
-                              {userName}
-                            </Button>
-                          ) : (
-                            <Button
-                              sx={{
-                                textTransform: 'none',
-                                textDecoration: 'underline',
-                                p: 0,
-                                minWidth: 'auto',
-                                color: '#D4AF37',
-                                '&:hover': {
-                                  color: '#E6C050',
-                                  backgroundColor: 'transparent',
-                                },
-                              }}
-                              onClick={() => handleClientClick(email)}
-                            >
-                              {todo.clientName?.value || 'Client'}
-                            </Button>
-                          );
-                      } else if (key === 'createdBy') {
-                        content = (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: '#676a6e',
-                              maxHeight: 120,
-                              overflowY: 'auto',
-                              whiteSpace: 'normal',
-                              border: 'none',
-                            }}
-                          >
-                            {value?.UserName || ''}
-                          </Typography>
-                        );
-                      } else if (key === 'createdAt') {
-                        content = (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: '#676a6e',
-                              maxHeight: 120,
-                              overflowY: 'auto',
-                              whiteSpace: 'normal',
-                              border: 'none',
-                            }}
-                          >
-                            {(value || '').split('T')[0]}
-                          </Typography>
-                        );
-                      } else if (!editable) {
-                        content = (
-                          <Typography
-                            variant="body2"
-                            sx={{
-                              color: '#676a6e',
-                              maxHeight: 120,
-                              overflowY: 'auto',
-                              whiteSpace: 'normal',
-                              border: 'none',
-                            }}
-                          >
-                            {String(value)}
-                          </Typography>
-                        );
-                      } else if (enumOptions) {
-                        content = (
-                          <FormControl
-                            fullWidth
-                            size="medium"
-                            sx={{
-                              minWidth: 140,
-                              border: 'none',
-                              maxHeight: 120,
-                            }}
-                          >
-                            <Select
-                              value={value}
-                              onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
-                              onBlur={handleBlur}
-                              disabled={isclient}
-                              sx={{
-                                backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                                borderRadius: '4px',
-
-                                '& .MuiSelect-select': {
-                                  py: 1.5,
-                                  color: '#676a6e',
-                                  maxHeight: '120px',
-                                  overflowY: 'auto',
-                                },
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                  border: 'none !important',
-                                },
-                                '&:hover': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                                },
-                                '&.Mui-focused': {
-                                  backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                                },
-                                '& .MuiSvgIcon-root': {
-                                  color: 'rgba(212, 175, 55, 0.7)',
-                                },
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  sx: {
-                                    bgcolor: '#0a2d56',
-                                    color: 'white',
-                                    maxHeight: '120px',
-                                    border: '1px solid rgba(212, 175, 55, 0.3)',
-                                    '& .MuiMenuItem-root': {
-                                      minHeight: '48px',
-                                      '&:hover': {
-                                        bgcolor: 'rgba(212, 175, 55, 0.2)',
-                                      },
-                                    },
-                                  },
-                                },
-                              }}
-                            >
-                              {enumOptions.map((option) => (
-                                <MenuItem key={option} value={option}>
-                                  {option}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        );
-                      } else if (normalizedType === 'boolean') {
-                        content = (
-                          <Checkbox
-                            checked={Boolean(value)}
-                            onChange={(e) => handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)}
-                            onBlur={handleBlur}
-                            disabled={isclient}
-                            sx={{
-                              p: 1,
-                              color: '#D4AF37',
-                              backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                              borderRadius: '4px',
-                              '&.Mui-checked': {
-                                color: '#D4AF37',
-                                backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                              },
-                            }}
-                          />
-                        );
-                      } else if (normalizedType === 'date') {
-                        content = (
-                          <DatePicker
-                            PopperProps={{
-                              sx: {
-                                '& .MuiPaper-root': {
-                                  boxShadow: 'none',
-                                  border: '1px solid rgba(212, 175, 55, 0.3)',
-                                },
-                              },
-                            }}
-                            value={value ? new Date(value) : null}
-                            onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
-                            disabled={isclient}
-                            renderInput={(params) => (
+                                )}
+                              />
+                            );
+                          } else {
+                            content = (
                               <TextField
-                                {...params}
+                                type="text"
                                 size="medium"
                                 fullWidth
-                                onBlur={() => handleFieldBlur(taskId, key, value, isSubtask, subtaskId)}
+                                value={value || ''}
+                                onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
+                                onBlur={handleBlur}
+                                disabled={key === 'email' || key === 'phone'}
+                                multiline
+                                maxRows={3}
                                 sx={{
                                   minWidth: 160,
                                   border: 'none',
@@ -1486,632 +1530,630 @@ export default function ViewFormC({ token }) {
                                   },
                                 }}
                               />
-                            )}
-                          />
-                        );
-                      } else {
-                        content = (
-                          <TextField
-                            type="text"
-                            size="medium"
-                            fullWidth
-                            value={value || ''}
-                            onChange={(e) => handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)}
-                            onBlur={handleBlur}
-                            disabled={key === 'email' || key === 'phone'}
-                            multiline
-                            maxRows={3}
-                            sx={{
-                              minWidth: 160,
-                              border: 'none',
+                            );
+                          }
 
-                              '& .MuiInputBase-input': {
-                                py: 1.5,
+                          return (
+                            <TableCell
+                              key={key}
+                              sx={{
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'normal',
                                 color: '#676a6e',
-                                maxHeight: '120px',
-                                overflowY: 'auto',
-                                border: 'none',
-                              },
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                border: 'none !important',
-                              },
-                            }}
-                          />
-                        );
-                      }
 
-                      return (
-                        <TableCell
-                          key={key}
-                          sx={{
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'normal',
-                            color: '#676a6e',
+                                minWidth: '180px',
+                                '& .MuiInputBase-root, & .MuiFormControl-root': {
+                                  maxHeight: '120px',
+                                },
+                              }}
+                            >
+                              {content}
+                            </TableCell>
+                          );
+                        })}
 
-                            minWidth: '180px',
-                            '& .MuiInputBase-root, & .MuiFormControl-root': {
-                              maxHeight: '120px',
-                            },
-                          }}
-                        >
-                          {content}
-                        </TableCell>
-                      );
-                    })}
-
-                    {/* Actions Cell */}
-                    <TableCell sx={{ color: '' }}>
-                      <Box sx={{ position: 'relative' }}>
-                        <IconButton
-                          size="medium"
-                          onClick={(e) => handleMenuOpen(e, todo)}
-                          disabled={isclient && !todo.userName?.value}
-                          sx={{
-                            '&:hover': {
-                              backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                            },
-                            color: '#D4AF37',
-                          }}
-                        >
-                          <MoreVert />
-                        </IconButton>
-                        <Menu
-                          anchorEl={anchorEl}
-                          open={Boolean(anchorEl)}
-                          onClose={handleMenuClose}
-                          anchorOrigin={{
-                            vertical: 'bottom',
-                            horizontal: 'right',
-                          }}
-                          transformOrigin={{
-                            vertical: 'top',
-                            horizontal: 'right',
-                          }}
-                          PaperProps={{
-                            elevation: 2,
-                            sx: {
-                              borderRadius: '8px',
-                              minWidth: '200px',
-                              bgcolor: '#0a2d56',
-                              color: 'white',
-                              boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
-                              '& .MuiMenuItem-root': {
-                                fontSize: '0.9rem',
-                                padding: '10px 16px',
-                                minHeight: '48px',
+                        {/* Actions Cell */}
+                        <TableCell sx={{ color: '' }}>
+                          <Box sx={{ position: 'relative' }}>
+                            <IconButton
+                              size="medium"
+                              onClick={(e) => handleMenuOpen(e, todo)}
+                              disabled={isclient && !todo.userName?.value}
+                              sx={{
                                 '&:hover': {
                                   backgroundColor: 'rgba(212, 175, 55, 0.2)',
                                 },
-                              },
-                            },
-                          }}
-                          MenuListProps={{
-                            sx: {
-                              padding: '6px 0',
-                            },
-                          }}
-                        >
-                          <MenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (selectedTodo) {
-                                handleSignup(selectedTodo);
-                              }
-                              handleMenuClose();
-                            }}
-                            disabled={selectedTodo?.userName?.value}
-                          >
-                            <ListItemIcon>
-                              <PersonAdd fontSize="medium" sx={{ color: '#D4AF37' }} />
-                            </ListItemIcon>
-                            <ListItemText primary="Create Account" />
-                          </MenuItem>
+                                color: '#D4AF37',
+                              }}
+                            >
+                              <MoreVert />
+                            </IconButton>
+                            <Menu
+                              anchorEl={anchorEl}
+                              open={Boolean(anchorEl)}
+                              onClose={handleMenuClose}
+                              anchorOrigin={{
+                                vertical: 'bottom',
+                                horizontal: 'right',
+                              }}
+                              transformOrigin={{
+                                vertical: 'top',
+                                horizontal: 'right',
+                              }}
+                              PaperProps={{
+                                elevation: 2,
+                                sx: {
+                                  borderRadius: '8px',
+                                  minWidth: '200px',
+                                  bgcolor: '#0a2d56',
+                                  color: 'white',
+                                  boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.3)',
+                                  '& .MuiMenuItem-root': {
+                                    fontSize: '0.9rem',
+                                    padding: '10px 16px',
+                                    minHeight: '48px',
+                                    '&:hover': {
+                                      backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                                    },
+                                  },
+                                },
+                              }}
+                              MenuListProps={{
+                                sx: {
+                                  padding: '6px 0',
+                                },
+                              }}
+                            >
+                              <MenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedTodo) {
+                                    handleSignup(selectedTodo);
+                                  }
+                                  handleMenuClose();
+                                }}
+                                disabled={selectedTodo?.userName?.value}
+                              >
+                                <ListItemIcon>
+                                  <PersonAdd fontSize="medium" sx={{ color: '#D4AF37' }} />
+                                </ListItemIcon>
+                                <ListItemText primary="Create Account" />
+                              </MenuItem>
 
-                          <MenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (selectedTodo) {
-                                handleDelete(selectedTodo._id?.value || selectedTodo.id);
-                              }
-                              handleMenuClose();
-                            }}
-                            disabled={isclient}
-                            sx={{ color: 'error.main' }}
-                          >
-                            <ListItemIcon>
-                              <DeleteIcon fontSize="medium" color="error" />
-                            </ListItemIcon>
-                            <ListItemText primary="Delete" />
-                          </MenuItem>
-                        </Menu>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Box>
-        {/* Mobile View - shows on md and down */}
-        <div
-          className="d-lg-none h-100"
-          style={{
-            overflow: 'hidden',
-            backgroundColor: '#f5f7fa', // Light gray background
-          }}
-        >
-          <Box
-            sx={{
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'hidden',
-              backgroundColor: '#f5f7fa', // Light gray background
-              color: '#333', // Dark text
-            }}
-          >
-            {/* Scrollable content for mobile */}
-            <Box
-              sx={{
-                flexGrow: 1,
-                overflow: 'auto',
-                p: 1,
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)', // Darker scrollbar
-                  borderRadius: '3px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light track
-                },
+                              <MenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (selectedTodo) {
+                                    handleDelete(selectedTodo._id?.value || selectedTodo.id);
+                                  }
+                                  handleMenuClose();
+                                }}
+                                disabled={isclient}
+                                sx={{ color: 'error.main' }}
+                              >
+                                <ListItemIcon>
+                                  <DeleteIcon fontSize="medium" color="error" />
+                                </ListItemIcon>
+                                <ListItemText primary="Delete" />
+                              </MenuItem>
+                            </Menu>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+            {/* Mobile View - shows on md and down */}
+            <div
+              className="d-lg-none h-100"
+              style={{
+                overflow: 'hidden',
+                backgroundColor: '#f5f7fa', // Light gray background
               }}
             >
-              <List sx={{ py: 0 }}>
-                {todos?.map((todo) => {
-                  const userId = todo._id?.value || todo.id;
-                  const userName = todo.userName?.value || todo.createdBy?.value?.UserName || todo?.clientName?.value;
-                  const isExpanded = expandedUserId === userId;
+              <Box
+                sx={{
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                  backgroundColor: '#f5f7fa', // Light gray background
+                  color: '#333', // Dark text
+                }}
+              >
+                {/* Scrollable content for mobile */}
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    overflow: 'auto',
+                    p: 1,
+                    '&::-webkit-scrollbar': {
+                      width: '6px',
+                    },
+                    '&::-webkit-scrollbar-thumb': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.2)', // Darker scrollbar
+                      borderRadius: '3px',
+                    },
+                    '&::-webkit-scrollbar-track': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.05)', // Light track
+                    },
+                  }}
+                >
+                  <List sx={{ py: 0 }}>
+                    {todos?.map((todo) => {
+                      const userId = todo._id?.value || todo.id;
+                      const userName = todo.userName?.value || todo.createdBy?.value?.UserName || todo?.clientName?.value;
+                      const isExpanded = expandedUserId === userId;
 
-                  return (
-                    <Paper
-                      key={userId}
-                      elevation={isExpanded ? 4 : 2}
-                      sx={{
-                        mb: 2,
-                        overflow: 'hidden',
-                        borderRadius: 2,
-                        transition: 'all 0.2s ease',
-                        borderLeft: isExpanded ? '4px solid' : 'none',
-                        borderColor: '#D4AF37', // Blue border for selected
-                        backgroundColor: 'white', // White cards
-                        color: '#333',
-                        '&:hover': {
-                          boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)', // Soft blue glow
-                        },
-                      }}
-                    >
-                      <Accordion
-                        expanded={isExpanded}
-                        onChange={() => handleToggleExpand(userId)}
-                        sx={{
-                          '&:before': {
-                            display: 'none',
-                          },
-                          backgroundColor: 'transparent',
-                        }}
-                      >
-                        <AccordionSummary
-                          expandIcon={
-                            <ExpandMoreIcon
-                              sx={{
-                                color: isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.54)',
-                              }}
-                            />
-                          }
-                          aria-controls={`${userId}-content`}
-                          id={`${userId}-header`}
+                      return (
+                        <Paper
+                          key={userId}
+                          elevation={isExpanded ? 4 : 2}
                           sx={{
-                            bgcolor: isExpanded
-                              ? 'rgba(25, 118, 210, 0.05)' // Light blue tint when expanded
-                              : 'white',
-                            minHeight: '56px !important',
-                            '& .MuiAccordionSummary-content': {
-                              alignItems: 'center',
-                              my: 1,
-                            },
+                            mb: 2,
+                            overflow: 'hidden',
+                            borderRadius: 2,
+                            transition: 'all 0.2s ease',
+                            borderLeft: isExpanded ? '4px solid' : 'none',
+                            borderColor: '#D4AF37', // Blue border for selected
+                            backgroundColor: 'white', // White cards
+                            color: '#333',
                             '&:hover': {
-                              bgcolor: isExpanded ? 'rgba(25, 118, 210, 0.08)' : 'rgba(0, 0, 0, 0.02)',
+                              boxShadow: '0 4px 12px rgba(25, 118, 210, 0.1)', // Soft blue glow
                             },
                           }}
                         >
-                          <Box
+                          <Accordion
+                            expanded={isExpanded}
+                            onChange={() => handleToggleExpand(userId)}
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              flexGrow: 1,
-                              overflow: 'hidden',
+                              '&:before': {
+                                display: 'none',
+                              },
+                              backgroundColor: 'transparent',
                             }}
                           >
-                            <Avatar
+                            <AccordionSummary
+                              expandIcon={
+                                <ExpandMoreIcon
+                                  sx={{
+                                    color: isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.54)',
+                                  }}
+                                />
+                              }
+                              aria-controls={`${userId}-content`}
+                              id={`${userId}-header`}
                               sx={{
-                                width: 32,
-                                height: 32,
-                                mr: 1.5,
-                                bgcolor: isExpanded ? '#D4AF37' : '#D4AF37', // Blue when expanded
-                                color: isExpanded ? 'white' : '#333',
-                                fontSize: '0.875rem',
-                                fontWeight: 'bold',
+                                bgcolor: isExpanded
+                                  ? 'rgba(25, 118, 210, 0.05)' // Light blue tint when expanded
+                                  : 'white',
+                                minHeight: '56px !important',
+                                '& .MuiAccordionSummary-content': {
+                                  alignItems: 'center',
+                                  my: 1,
+                                },
+                                '&:hover': {
+                                  bgcolor: isExpanded ? 'rgba(25, 118, 210, 0.08)' : 'rgba(0, 0, 0, 0.02)',
+                                },
                               }}
                             >
-                              {userName.charAt(0).toUpperCase()}
-                            </Avatar>
-
-                            <Box
-                              sx={{
-                                minWidth: 0,
-                                mr: 1,
-                              }}
-                            >
-                              <Typography
-                                variant="subtitle1"
+                              <Box
                                 sx={{
-                                  fontWeight: 'medium',
-                                  whiteSpace: 'nowrap',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  flexGrow: 1,
                                   overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  color: isExpanded ? '#1976d2' : '#333',
                                 }}
                               >
-                                {userName}
-                              </Typography>
-                              {todo.createdAt?.value && (
-                                <Typography
-                                  variant="caption"
-                                  color={isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.6)'}
-                                  sx={{ display: 'block' }}
+                                <Avatar
+                                  sx={{
+                                    width: 32,
+                                    height: 32,
+                                    mr: 1.5,
+                                    bgcolor: isExpanded ? '#D4AF37' : '#D4AF37', // Blue when expanded
+                                    color: isExpanded ? 'white' : '#333',
+                                    fontSize: '0.875rem',
+                                    fontWeight: 'bold',
+                                  }}
                                 >
-                                  {new Date(todo.createdAt.value).toLocaleDateString()}
-                                </Typography>
-                              )}
-                            </Box>
+                                  {userName.charAt(0).toUpperCase()}
+                                </Avatar>
 
-                            {todo.caseId?.value?.CaseNumber && (
-                              <Chip
-                                label={`Case #${todo.caseId.value.CaseNumber}`}
-                                size="small"
-                                color="primary"
-                                sx={{
-                                  ml: 'auto',
-                                  fontSize: '0.7rem',
-                                  height: 20,
-                                  bgcolor: isExpanded ? '#D4AF37' : '#e0e0e0',
-                                  color: isExpanded ? 'white' : '#333',
-                                }}
-                              />
-                            )}
-                          </Box>
-                        </AccordionSummary>
-
-                        <AccordionDetails
-                          sx={{
-                            pt: 0,
-                            pb: 2,
-                            px: 1.5,
-                            bgcolor: 'white',
-                          }}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              mb: 2,
-                              gap: 1,
-                            }}
-                          >
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              size="small"
-                              onClick={() => handleSignup(todo)}
-                              sx={{
-                                textTransform: 'none',
-                                flex: 1,
-                                fontSize: '0.75rem',
-                                py: 0.5,
-                                marginTop: '10px',
-                                bgcolor: '#D4AF37',
-                                color: 'white',
-                                '&:hover': {
-                                  bgcolor: '#D4AF37',
-                                },
-                                '&:disabled': {
-                                  bgcolor: 'rgba(25, 118, 210, 0.3)',
-                                  color: 'rgba(255, 255, 255, 0.5)',
-                                },
-                              }}
-                              disabled={!todo.userName?.value ? false : true}
-                              startIcon={<PersonAdd fontSize="small" />}
-                            >
-                              Create Account
-                            </Button>
-                            <IconButton
-                              color="error"
-                              onClick={() => handleDelete(userId)}
-                              disabled={isclient}
-                              sx={{
-                                border: '1px solid',
-                                borderColor: 'error.main',
-                                flexShrink: 0,
-                                marginTop: '10px',
-                                color: 'error.main',
-                                '&:hover': {
-                                  bgcolor: 'rgba(244, 67, 54, 0.1)',
-                                },
-                                '&:disabled': {
-                                  borderColor: 'rgba(244, 67, 54, 0.3)',
-                                  color: 'rgba(244, 67, 54, 0.3)',
-                                },
-                              }}
-                            >
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Box>
-
-                          <List sx={{ py: 0 }}>
-                            {keys.map((key) => {
-                              if (key === 'userId' || key === 'userName' || key === 'id') return null;
-
-                              const field = todo[key];
-                              if (!field) return null;
-
-                              const { value, type, enum: enumOptions, editable = true } = field;
-                              const taskId = userId;
-                              const subtaskId = isSubtask ? taskId : null;
-                              const normalizedType = type?.toLowerCase();
-                              const label = key
-                                .split(/(?=[A-Z])/)
-                                .join(' ')
-                                .replace(/^./, (str) => str.toUpperCase());
-
-                              const handleBlur = (e) => {
-                                const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
-                                handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
-                              };
-
-                              let content;
-
-                              if (key === 'documents') {
-                                const userId = todo.userId?.value;
-                                const userName = todo.userName?.value;
-                                const clientName = todo.clientName?.value || 'Client';
-                                const email = todo?._id?.value;
-
-                                content =
-                                  userId && userName ? (
-                                    <Button
-                                      startIcon={<PersonIcon sx={{ color: '#D4AF37' }} />}
-                                      onClick={() => handleUserClick(userId, userName)}
-                                      sx={{
-                                        textTransform: 'none',
-                                        px: 1,
-                                        py: 0.5,
-                                        color: '#D4AF37',
-                                        '&:hover': {
-                                          bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                        },
-                                      }}
-                                    >
-                                      <Box
-                                        sx={{
-                                          textAlign: 'left',
-                                          maxWidth: 200,
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                        }}
-                                      >
-                                        <Typography variant="body2">{userName}</Typography>
-                                        <Typography variant="caption" color="#D4AF37">
-                                          View Docs
-                                        </Typography>
-                                      </Box>
-                                    </Button>
-                                  ) : (
-                                    <Button
-                                      startIcon={<BusinessIcon sx={{ color: '#D4AF37' }} />}
-                                      onClick={() => handleClientClick(email)}
-                                      sx={{
-                                        textTransform: 'none',
-                                        px: 1,
-                                        py: 0.5,
-                                        color: '#D4AF37',
-                                        '&:hover': {
-                                          bgcolor: 'rgba(212, 175, 55, 0.1)',
-                                        },
-                                      }}
-                                    >
-                                      <Box
-                                        sx={{
-                                          textAlign: 'left',
-                                          maxWidth: 200,
-                                          overflow: 'hidden',
-                                          textOverflow: 'ellipsis',
-                                        }}
-                                      >
-                                        <Typography variant="body2">{clientName}</Typography>
-                                        <Typography variant="caption" color="#D4AF37">
-                                          View Docs
-                                        </Typography>
-                                      </Box>
-                                    </Button>
-                                  );
-                              } else if (key === 'caseId') {
-                                content = (
-                                  <Box
+                                <Box
+                                  sx={{
+                                    minWidth: 0,
+                                    mr: 1,
+                                  }}
+                                >
+                                  <Typography
+                                    variant="subtitle1"
                                     sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      px: 1,
-                                      py: 0.5,
+                                      fontWeight: 'medium',
+                                      whiteSpace: 'nowrap',
+                                      overflow: 'hidden',
+                                      textOverflow: 'ellipsis',
+                                      color: isExpanded ? '#1976d2' : '#333',
                                     }}
                                   >
-                                    <Description sx={{ mr: 1, color: '#D4AF37' }} />
-                                    <Typography variant="body2">Case #{value?.CaseNumber || 'N/A'}</Typography>
-                                  </Box>
-                                );
-                              } else if (key === 'createdBy') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
-                                    <Typography variant="body2">{value?.UserName || 'System'}</Typography>
-                                  </Box>
-                                );
-                              } else if (key === 'createdAt') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <CalendarToday
-                                      sx={{
-                                        mr: 1,
-                                        fontSize: '1rem',
-                                        color: '#D4AF37',
-                                      }}
-                                    />
-                                    <Typography variant="body2">
-                                      {value ? new Date(value).toLocaleDateString() : 'N/A'}
-                                    </Typography>
-                                  </Box>
-                                );
-                              } else if (!editable) {
-                                content = (
-                                  <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
-                                    {String(value || 'N/A')}
+                                    {userName}
                                   </Typography>
-                                );
-                              } else if (enumOptions) {
-                                content = (
-                                  <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
-                                    <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
-                                      {label}
-                                    </InputLabel>
-                                    <Select
-                                      value={value || ''}
-                                      label={label}
-                                      onChange={(e) =>
-                                        handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                      disabled={isclient}
-                                      variant="outlined"
-                                      sx={{
-                                        '& .MuiSelect-select': {
-                                          py: 1.25,
-                                          color: '#333',
-                                        },
-                                        '& .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: 'rgba(0, 0, 0, 0.23)',
-                                        },
-                                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                        },
-                                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                          borderColor: '#D4AF37',
-                                          borderWidth: '2px',
-                                        },
-                                        '& .MuiSvgIcon-root': {
-                                          color: 'rgba(0, 0, 0, 0.54)',
-                                        },
-                                      }}
-                                      MenuProps={{
-                                        PaperProps: {
-                                          sx: {
-                                            bgcolor: 'white',
-                                            color: '#333',
-                                            '& .MuiMenuItem-root': {
-                                              '&:hover': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                  {todo.createdAt?.value && (
+                                    <Typography
+                                      variant="caption"
+                                      color={isExpanded ? '#D4AF37' : 'rgba(0, 0, 0, 0.6)'}
+                                      sx={{ display: 'block' }}
+                                    >
+                                      {new Date(todo.createdAt.value).toLocaleDateString()}
+                                    </Typography>
+                                  )}
+                                </Box>
+
+                                {todo.caseId?.value?.CaseNumber && (
+                                  <Chip
+                                    label={`Case #${todo.caseId.value.CaseNumber}`}
+                                    size="small"
+                                    color="primary"
+                                    sx={{
+                                      ml: 'auto',
+                                      fontSize: '0.7rem',
+                                      height: 20,
+                                      bgcolor: isExpanded ? '#D4AF37' : '#e0e0e0',
+                                      color: isExpanded ? 'white' : '#333',
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                            </AccordionSummary>
+
+                            <AccordionDetails
+                              sx={{
+                                pt: 0,
+                                pb: 2,
+                                px: 1.5,
+                                bgcolor: 'white',
+                              }}
+                            >
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  mb: 2,
+                                  gap: 1,
+                                }}
+                              >
+                                <Button
+                                  variant="contained"
+                                  color="primary"
+                                  size="small"
+                                  onClick={() => handleSignup(todo)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    flex: 1,
+                                    fontSize: '0.75rem',
+                                    py: 0.5,
+                                    marginTop: '10px',
+                                    bgcolor: '#D4AF37',
+                                    color: 'white',
+                                    '&:hover': {
+                                      bgcolor: '#D4AF37',
+                                    },
+                                    '&:disabled': {
+                                      bgcolor: 'rgba(25, 118, 210, 0.3)',
+                                      color: 'rgba(255, 255, 255, 0.5)',
+                                    },
+                                  }}
+                                  disabled={!todo.userName?.value ? false : true}
+                                  startIcon={<PersonAdd fontSize="small" />}
+                                >
+                                  Create Account
+                                </Button>
+                                <IconButton
+                                  color="error"
+                                  onClick={() => handleDelete(userId)}
+                                  disabled={isclient}
+                                  sx={{
+                                    border: '1px solid',
+                                    borderColor: 'error.main',
+                                    flexShrink: 0,
+                                    marginTop: '10px',
+                                    color: 'error.main',
+                                    '&:hover': {
+                                      bgcolor: 'rgba(244, 67, 54, 0.1)',
+                                    },
+                                    '&:disabled': {
+                                      borderColor: 'rgba(244, 67, 54, 0.3)',
+                                      color: 'rgba(244, 67, 54, 0.3)',
+                                    },
+                                  }}
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              </Box>
+
+                              <List sx={{ py: 0 }}>
+                                {keys.map((key) => {
+                                  if (key === 'userId' || key === 'userName' || key === 'id') return null;
+
+                                  const field = todo[key];
+                                  if (!field) return null;
+
+                                  const { value, type, enum: enumOptions, editable = true } = field;
+                                  const taskId = userId;
+                                  const subtaskId = isSubtask ? taskId : null;
+                                  const normalizedType = type?.toLowerCase();
+                                  const label = key
+                                    .split(/(?=[A-Z])/)
+                                    .join(' ')
+                                    .replace(/^./, (str) => str.toUpperCase());
+
+                                  const handleBlur = (e) => {
+                                    const newValue = normalizedType === 'boolean' ? e.target.checked : e.target.value;
+                                    handleFieldBlur(taskId, key, newValue, isSubtask, subtaskId);
+                                  };
+
+                                  let content;
+
+                                  if (key === 'documents') {
+                                    const userId = todo.userId?.value;
+                                    const userName = todo.userName?.value;
+                                    const clientName = todo.clientName?.value || 'Client';
+                                    const email = todo?._id?.value;
+
+                                    content =
+                                      userId && userName ? (
+                                        <Button
+                                          startIcon={<PersonIcon sx={{ color: '#D4AF37' }} />}
+                                          onClick={() => handleUserClick(userId, userName)}
+                                          sx={{
+                                            textTransform: 'none',
+                                            px: 1,
+                                            py: 0.5,
+                                            color: '#D4AF37',
+                                            '&:hover': {
+                                              bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                            },
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              textAlign: 'left',
+                                              maxWidth: 200,
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                            }}
+                                          >
+                                            <Typography variant="body2">{userName}</Typography>
+                                            <Typography variant="caption" color="#D4AF37">
+                                              View Docs
+                                            </Typography>
+                                          </Box>
+                                        </Button>
+                                      ) : (
+                                        <Button
+                                          startIcon={<BusinessIcon sx={{ color: '#D4AF37' }} />}
+                                          onClick={() => handleClientClick(email)}
+                                          sx={{
+                                            textTransform: 'none',
+                                            px: 1,
+                                            py: 0.5,
+                                            color: '#D4AF37',
+                                            '&:hover': {
+                                              bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                            },
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              textAlign: 'left',
+                                              maxWidth: 200,
+                                              overflow: 'hidden',
+                                              textOverflow: 'ellipsis',
+                                            }}
+                                          >
+                                            <Typography variant="body2">{clientName}</Typography>
+                                            <Typography variant="caption" color="#D4AF37">
+                                              View Docs
+                                            </Typography>
+                                          </Box>
+                                        </Button>
+                                      );
+                                  } else if (key === 'caseId') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <Description sx={{ mr: 1, color: '#D4AF37' }} />
+                                        <Typography variant="body2">Case #{value?.CaseNumber || 'N/A'}</Typography>
+                                      </Box>
+                                    );
+                                  } else if (key === 'createdBy') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <PersonOutline sx={{ mr: 1, color: '#D4AF37' }} />
+                                        <Typography variant="body2">{value?.UserName || 'System'}</Typography>
+                                      </Box>
+                                    );
+                                  } else if (key === 'createdAt') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <CalendarToday
+                                          sx={{
+                                            mr: 1,
+                                            fontSize: '1rem',
+                                            color: '#D4AF37',
+                                          }}
+                                        />
+                                        <Typography variant="body2">
+                                          {value ? new Date(value).toLocaleDateString() : 'N/A'}
+                                        </Typography>
+                                      </Box>
+                                    );
+                                  } else if (!editable) {
+                                    content = (
+                                      <Typography variant="body2" sx={{ px: 1, py: 0.5 }}>
+                                        {String(value || 'N/A')}
+                                      </Typography>
+                                    );
+                                  } else if (enumOptions) {
+                                    content = (
+                                      <FormControl fullWidth size="small" sx={{ mt: 0.5 }}>
+                                        <InputLabel shrink sx={{ color: 'rgba(0, 0, 0, 0.6)' }}>
+                                          {label}
+                                        </InputLabel>
+                                        <Select
+                                          value={value || ''}
+                                          label={label}
+                                          onChange={(e) =>
+                                            handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)
+                                          }
+                                          onBlur={handleBlur}
+                                          disabled={isclient}
+                                          variant="outlined"
+                                          sx={{
+                                            '& .MuiSelect-select': {
+                                              py: 1.25,
+                                              color: '#333',
+                                            },
+                                            '& .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: 'rgba(0, 0, 0, 0.23)',
+                                            },
+                                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                            },
+                                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                              borderColor: '#D4AF37',
+                                              borderWidth: '2px',
+                                            },
+                                            '& .MuiSvgIcon-root': {
+                                              color: 'rgba(0, 0, 0, 0.54)',
+                                            },
+                                          }}
+                                          MenuProps={{
+                                            PaperProps: {
+                                              sx: {
+                                                bgcolor: 'white',
+                                                color: '#333',
+                                                '& .MuiMenuItem-root': {
+                                                  '&:hover': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.1)',
+                                                  },
+                                                  '&.Mui-selected': {
+                                                    bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                                  },
+                                                },
                                               },
-                                              '&.Mui-selected': {
-                                                bgcolor: 'rgba(212, 175, 55, 0.2)',
+                                            },
+                                          }}
+                                        >
+                                          {enumOptions.map((option) => (
+                                            <MenuItem key={option} value={option}>
+                                              {option}
+                                            </MenuItem>
+                                          ))}
+                                        </Select>
+                                      </FormControl>
+                                    );
+                                  } else if (normalizedType === 'boolean') {
+                                    content = (
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'space-between',
+                                          px: 1,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <Typography variant="body2">{label}</Typography>
+                                        <Switch
+                                          checked={Boolean(value)}
+                                          onChange={(e) =>
+                                            handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)
+                                          }
+                                          onBlur={handleBlur}
+                                          disabled={isclient}
+                                          size="small"
+                                          color="primary"
+                                          sx={{
+                                            '& .MuiSwitch-switchBase.Mui-checked': {
+                                              color: '#D4AF37',
+                                            },
+                                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                              backgroundColor: '#D4AF37',
+                                            },
+                                          }}
+                                        />
+                                      </Box>
+                                    );
+                                  } else if (normalizedType === 'date') {
+                                    content = (
+                                      <DatePicker
+                                        label={label}
+                                        value={value ? new Date(value) : null}
+                                        onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
+                                        disabled={isclient}
+                                        slotProps={{
+                                          textField: {
+                                            size: 'small',
+                                            fullWidth: true,
+                                            sx: {
+                                              mt: 0.5,
+                                              '& .MuiInputBase-input': {
+                                                color: '#333',
+                                              },
+                                              '& .MuiInputLabel-root': {
+                                                color: 'rgba(0, 0, 0, 0.6)',
+                                              },
+                                              '& .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: 'rgba(0, 0, 0, 0.23)',
+                                              },
+                                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: '#D4AF37',
+                                              },
+                                              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                                                borderColor: '#D4AF37',
+                                                borderWidth: '2px',
                                               },
                                             },
                                           },
-                                        },
-                                      }}
-                                    >
-                                      {enumOptions.map((option) => (
-                                        <MenuItem key={option} value={option}>
-                                          {option}
-                                        </MenuItem>
-                                      ))}
-                                    </Select>
-                                  </FormControl>
-                                );
-                              } else if (normalizedType === 'boolean') {
-                                content = (
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      justifyContent: 'space-between',
-                                      px: 1,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <Typography variant="body2">{label}</Typography>
-                                    <Switch
-                                      checked={Boolean(value)}
-                                      onChange={(e) =>
-                                        handleFieldChange(taskId, key, e.target.checked, isSubtask, subtaskId)
-                                      }
-                                      onBlur={handleBlur}
-                                      disabled={isclient}
-                                      size="small"
-                                      color="primary"
-                                      sx={{
-                                        '& .MuiSwitch-switchBase.Mui-checked': {
-                                          color: '#D4AF37',
-                                        },
-                                        '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                                          backgroundColor: '#D4AF37',
-                                        },
-                                      }}
-                                    />
-                                  </Box>
-                                );
-                              } else if (normalizedType === 'date') {
-                                content = (
-                                  <DatePicker
-                                    label={label}
-                                    value={value ? new Date(value) : null}
-                                    onChange={(date) => handleFieldChange(taskId, key, date, isSubtask, subtaskId)}
-                                    disabled={isclient}
-                                    slotProps={{
-                                      textField: {
-                                        size: 'small',
-                                        fullWidth: true,
-                                        sx: {
+                                        }}
+                                      />
+                                    );
+                                  } else {
+                                    content = (
+                                      <TextField
+                                        label={label}
+                                        value={value || ''}
+                                        onChange={(e) =>
+                                          handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)
+                                        }
+                                        onBlur={handleBlur}
+                                        disabled={isclient || key === 'email' || key === 'phone'}
+                                        size="small"
+                                        fullWidth
+                                        sx={{
                                           mt: 0.5,
                                           '& .MuiInputBase-input': {
                                             color: '#333',
@@ -2129,80 +2171,52 @@ export default function ViewFormC({ token }) {
                                             borderColor: '#D4AF37',
                                             borderWidth: '2px',
                                           },
-                                        },
-                                      },
-                                    }}
-                                  />
-                                );
-                              } else {
-                                content = (
-                                  <TextField
-                                    label={label}
-                                    value={value || ''}
-                                    onChange={(e) =>
-                                      handleFieldChange(taskId, key, e.target.value, isSubtask, subtaskId)
-                                    }
-                                    onBlur={handleBlur}
-                                    disabled={isclient || key === 'email' || key === 'phone'}
-                                    size="small"
-                                    fullWidth
-                                    sx={{
-                                      mt: 0.5,
-                                      '& .MuiInputBase-input': {
-                                        color: '#333',
-                                      },
-                                      '& .MuiInputLabel-root': {
-                                        color: 'rgba(0, 0, 0, 0.6)',
-                                      },
-                                      '& .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: 'rgba(0, 0, 0, 0.23)',
-                                      },
-                                      '&:hover .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D4AF37',
-                                      },
-                                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                                        borderColor: '#D4AF37',
-                                        borderWidth: '2px',
-                                      },
-                                    }}
-                                    InputLabelProps={{ shrink: true }}
-                                  />
-                                );
-                              }
+                                        }}
+                                        InputLabelProps={{ shrink: true }}
+                                      />
+                                    );
+                                  }
 
-                              return (
-                                <React.Fragment key={key}>
-                                  <ListItem
-                                    sx={{
-                                      px: 0,
-                                      py: 0.5,
-                                    }}
-                                  >
-                                    <ListItemText primary={content} sx={{ my: 0 }} />
-                                  </ListItem>
-                                  {key !== keys[keys.length - 1] && (
-                                    <Divider
-                                      sx={{
-                                        my: 0.5,
-                                        backgroundColor: 'rgba(0, 0, 0, 0.08)',
-                                      }}
-                                    />
-                                  )}
-                                </React.Fragment>
-                              );
-                            })}
-                          </List>
-                        </AccordionDetails>
-                      </Accordion>
-                    </Paper>
-                  );
-                })}
-              </List>
-            </Box>
-          </Box>
-        </div>
-      </LocalizationProvider>
-
+                                  return (
+                                    <React.Fragment key={key}>
+                                      <ListItem
+                                        sx={{
+                                          px: 0,
+                                          py: 0.5,
+                                        }}
+                                      >
+                                        <ListItemText primary={content} sx={{ my: 0 }} />
+                                      </ListItem>
+                                      {key !== keys[keys.length - 1] && (
+                                        <Divider
+                                          sx={{
+                                            my: 0.5,
+                                            backgroundColor: 'rgba(0, 0, 0, 0.08)',
+                                          }}
+                                        />
+                                      )}
+                                    </React.Fragment>
+                                  );
+                                })}
+                              </List>
+                            </AccordionDetails>
+                          </Accordion>
+                        </Paper>
+                      );
+                    })}
+                  </List>
+                </Box>
+              </Box>
+            </div>
+          </LocalizationProvider>
+        )
+        :
+        (
+          <div className="text-center text-black py-5">
+            No Form C available.
+          </div>
+        )
+      }
       <Modal show={showTaskModal} onHide={() => setShowTaskModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Add Task</Modal.Title>
