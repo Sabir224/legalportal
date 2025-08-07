@@ -370,8 +370,8 @@ const CaseSummary = () => {
   // Calculate case status counts from filtered cases
   const caseStatusData = {
     open: filteredCases.filter((c) => c.Status === 'Open').length,
-    closedPositive: filteredCases.filter((c) => c.Status === 'Closed Positive').length,
-    closedNegative: filteredCases.filter((c) => c.Status === 'Closed Negative').length,
+    closedPositive: filteredCases.filter((c) => c.Status === 'Close Positive').length,
+    closedNegative: filteredCases.filter((c) => c.Status === 'Close Negative').length,
   };
 
   // Calculate filtered counts
@@ -578,8 +578,8 @@ const CaseSummary = () => {
         name: user.name,
         role: user.role,
         open: userCases.filter((c) => c.Status === 'Open').length,
-        closedPositive: userCases.filter((c) => c.Status === 'Closed Positive').length,
-        closedNegative: userCases.filter((c) => c.Status === 'Closed Negative').length,
+        closedPositive: userCases.filter((c) => c.Status === 'Close Positive').length,
+        closedNegative: userCases.filter((c) => c.Status === 'Close Negative').length,
         total: userCases.length,
       };
     });
@@ -603,7 +603,7 @@ const CaseSummary = () => {
           borderRadius: 6,
         },
         {
-          label: 'Closed Positive',
+          label: 'Close Positive',
           data: lawyersData.map((l) => l.closedPositive),
           backgroundColor: COLORS.success,
           borderColor: COLORS.success,
@@ -611,7 +611,7 @@ const CaseSummary = () => {
           borderRadius: 6,
         },
         {
-          label: 'Closed Negative',
+          label: 'Close Negative',
           data: lawyersData.map((l) => l.closedNegative),
           backgroundColor: COLORS.danger,
           borderColor: COLORS.danger,
@@ -642,7 +642,7 @@ const CaseSummary = () => {
           pointHoverBorderColor: COLORS.primary,
         },
         {
-          label: 'Closed Positive',
+          label: 'Close Positive',
           data: lawyersData.map((l) => l.closedPositive),
           borderColor: COLORS.success,
           backgroundColor: 'rgba(16, 185, 129, 0.2)',
@@ -654,7 +654,7 @@ const CaseSummary = () => {
           pointHoverBorderColor: COLORS.success,
         },
         {
-          label: 'Closed Negative',
+          label: 'Close Negative',
           data: lawyersData.map((l) => l.closedNegative),
           borderColor: COLORS.danger,
           backgroundColor: 'rgba(239, 68, 68, 0.2)',
@@ -684,14 +684,14 @@ const CaseSummary = () => {
     );
 
     return {
-      labels: ['Open', 'Closed Positive', 'Closed Negative'],
+      labels: ['Open', 'Close Positive', 'Close Negative'],
       datasets: [
         {
           label: 'Cases',
           data: [
             userCases.filter((c) => c.Status === 'Open').length,
-            userCases.filter((c) => c.Status === 'Closed Positive').length,
-            userCases.filter((c) => c.Status === 'Closed Negative').length,
+            userCases.filter((c) => c.Status === 'Close Positive').length,
+            userCases.filter((c) => c.Status === 'Close Negative').length,
           ],
           borderColor: COLORS.primary,
           backgroundColor: 'rgba(59, 130, 246, 0.2)',
@@ -721,14 +721,14 @@ const CaseSummary = () => {
     );
 
     return {
-      labels: ['Open', 'Closed Positive', 'Closed Negative'],
+      labels: ['Open', 'Close Positive', 'Close Negative'],
       datasets: [
         {
           label: 'Cases',
           data: [
             userCases.filter((c) => c.Status === 'Open').length,
-            userCases.filter((c) => c.Status === 'Closed Positive').length,
-            userCases.filter((c) => c.Status === 'Closed Negative').length,
+            userCases.filter((c) => c.Status === 'Close Positive').length,
+            userCases.filter((c) => c.Status === 'Close Negative').length,
           ],
           backgroundColor: [COLORS.primary, COLORS.success, COLORS.danger],
           borderColor: [COLORS.primary, COLORS.success, COLORS.danger],
@@ -1510,13 +1510,13 @@ const CaseSummary = () => {
                             <div className="text-center">
                               <div className="text-white small">Closed +ve</div>
                               <div className="text-white fw-bold">
-                                {filteredCases.filter((c) => c.Status === 'Closed Positive').length}
+                                {filteredCases.filter((c) => c.Status === 'Close Positive').length}
                               </div>
                             </div>
                             <div className="text-center">
                               <div className="text-white small">Closed -ve</div>
                               <div className="text-white fw-bold">
-                                {filteredCases.filter((c) => c.Status === 'Closed Negative').length}
+                                {filteredCases.filter((c) => c.Status === 'Close Negative').length}
                               </div>
                             </div>
                           </div>
@@ -2008,13 +2008,13 @@ const CaseSummary = () => {
                               <div className="text-center">
                                 <div className="text-white small">Closed +ve</div>
                                 <div className="text-white fw-bold">
-                                  {filteredCases.filter((c) => c.Status === 'Closed Positive').length}
+                                  {filteredCases.filter((c) => c.Status === 'Close Positive').length}
                                 </div>
                               </div>
                               <div className="text-center">
                                 <div className="text-white small">Closed -ve</div>
                                 <div className="text-white fw-bold">
-                                  {filteredCases.filter((c) => c.Status === 'Closed Negative').length}
+                                  {filteredCases.filter((c) => c.Status === 'Close Negative').length}
                                 </div>
                               </div>
                             </div>

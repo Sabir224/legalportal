@@ -22,6 +22,7 @@ import {
   faChevronUp,
   faDoorOpen,
   faForward,
+  faHistory,
   faHome,
   faList,
   faList12,
@@ -658,7 +659,7 @@ const Dashboard = () => {
               : null,
             decodedToken?.Role === 'admin'
               ? {
-                icon: faBookOpen,
+                icon: faBookReader,
 
                 label: 'Case Summary',
                 action: () => {
