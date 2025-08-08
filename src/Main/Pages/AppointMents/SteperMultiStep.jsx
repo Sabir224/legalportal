@@ -521,6 +521,17 @@ function LegalConsultationStepper() {
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
     setPaymentError(null);
+    console.group('🔵 handleConfirmPayment - Start');
+    console.log('Initial state:', {
+      paymentForm,
+      selectedLawyer,
+      selectedSlot,
+      selectedDate,
+      method,
+      paymentMethod,
+      service,
+      clientMessage,
+    });
 
     try {
       // Common payment data
@@ -537,101 +548,285 @@ function LegalConsultationStepper() {
         appointmentLink: window.location.href,
       };
 
+      console.log('📦 Payment Data Prepared:', paymentData);
+
+      // Handle Pay at Office flow (only for InPerson consultation)
+      // In the main handleConfirmPayment function, replace the error throwing with:
       if (method === 'InPerson' && paymentMethod === 'PayInOffice') {
-        // Handle Pay at Office flow
-        const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
+        console.log('⚙️ Processing InPerson PayInOffice flow');
+        await handlePayInOfficeFlow(paymentData);
+      } else if (paymentMethod === 'PayOnline') {
+        console.log('⚙️ Processing Card Payment flow');
+        await handleCardPaymentFlow(paymentData);
+      } else {
+        const errorMsg = `Unsupported combination: Consultation type ${method} with payment method ${paymentMethod}`;
+        console.error('❌', errorMsg);
+        setPaymentError('This payment method is not available for the selected consultation type');
+        throw new Error(errorMsg);
+      }
 
-        // Proceed to confirmation
-        setConfirmationData({
-          lawyer: selectedLawyer,
-          service,
-          method,
-          paymentMethod: 'PayInOffice',
-          paymentRecord: data.paymentRecord,
-          ...(selectedDate && { date: selectedDate }),
-          ...(selectedSlot && { slot: selectedSlot }),
-          clientMessage,
+      throw new Error('Invalid payment method or consultation type combination');
+    } catch (err) {
+      console.error('❌ Main Error Handler:', {
+        error: err,
+        message: err.message,
+        stack: err.stack,
+        response: err.response?.data,
+      });
+      setPaymentError(err.message || 'Payment processing failed');
+
+      if (err.response) {
+        console.error('🔍 Response Details:', {
+          status: err.response.status,
+          headers: err.response.headers,
+          data: err.response.data,
         });
-        await axios.post(`${ApiEndPoint}payments/update-status`, {
-          paymentId: data?.payment?._id,
-          meetingDetails: {
-            meetingUrl: '',
-            date: selectedDate,
-            slot: selectedSlot,
-          },
-        });
-        setActiveStep((prev) => prev + 1);
-        return;
       }
+    } finally {
+      console.log('🏁 Final Cleanup - Setting isProcessing to false');
+      setIsProcessing(false);
+      console.groupEnd();
+    }
+  };
 
-      // Handle Online Payment flow
-      if (!stripe || !elements) {
-        throw new Error('Payment system not ready');
-      }
+  // Helper function to handle Pay at Office flow
+  const handlePayInOfficeFlow = async (paymentData) => {
+    console.log('🔄 Calling create-payment-intent API');
+    let paymentResponse;
+    try {
+      const response = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
+      console.log('✅ create-payment-intent Response:', response.data);
+      paymentResponse = response.data;
 
-      const cardElement = elements.getElement(CardElement);
-      if (!cardElement) {
-        throw new Error('Card details not found');
-      }
-
-      // Create payment method
-      const { error: pmError, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
-        type: 'card',
-        card: cardElement,
-        billing_details: {
-          name: paymentForm.name,
-          email: paymentForm.email,
-          phone: paymentForm.phone,
+      await axios.post(`${ApiEndPoint}payments/update-status`, {
+        paymentId: paymentResponse?.paymentId,
+        meetingDetails: {
+          meetingUrl: 'meetingbooked',
+          date: selectedDate,
+          slot: selectedSlot,
         },
       });
 
-      if (pmError) throw pmError;
-
-      // Create payment intent
-      const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
-      const { clientSecret, paymentId } = data;
-
-      // Confirm payment
-      const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: stripePaymentMethod.id,
-      });
-
-      if (confirmError) throw confirmError;
-
-      if (paymentIntent.status !== 'succeeded') {
-        throw new Error(`Payment failed with status: ${paymentIntent.status}`);
+      if (paymentResponse.isDuplicate) {
+        console.log('🔄 Duplicate payment detected, using existing payment:', paymentResponse.paymentId);
       }
-
-      // Update payment status
-      await axios.post(`${ApiEndPoint}payments/update-status`, {
-        paymentId,
-        status: 'paid',
-        paymentIntentId: paymentIntent.id,
-        paymentMethodId: paymentIntent.payment_method,
-      });
-
-      // Proceed to confirmation
-      setConfirmationData({
-        lawyer: selectedLawyer,
-        service,
-        method,
-        paymentMethod: 'Card',
-        paymentRecord: { _id: paymentId }, // Store payment ID
-        ...(selectedDate && { date: selectedDate }),
-        ...(selectedSlot && { slot: selectedSlot }),
-        clientMessage,
-      });
-
-      setActiveStep((prev) => prev + 1);
     } catch (err) {
-      setPaymentError(err.message || 'Payment processing failed');
-      console.error('Payment error:', {
-        error: err,
-        response: err.response?.data,
-      });
-    } finally {
-      setIsProcessing(false);
+      console.error('❌ create-payment-intent Error:', err.response?.data || err.message);
+      throw err;
     }
+
+    // Update slot booking
+    console.group('📌 Updating Slot Booking for In-Person');
+    const updatedSlot = {
+      slot: selectedSlot?._id,
+      isBooked: true,
+      publicBooking: {
+        name: paymentForm.name,
+        phone: paymentForm.phone,
+      },
+    };
+
+    console.log('🔄 Calling crmBookappointments PATCH with:', updatedSlot);
+    try {
+      const slotUpdateResponse = await axios.patch(
+        `${ApiEndPoint}crmBookappointments/${selectedLawyer?._id}/${selectedSlot?._id}`,
+        updatedSlot
+      );
+      console.log('✅ Slot Update Success:', slotUpdateResponse.data);
+    } catch (slotErr) {
+      console.error('❌ Slot Update Failed:', {
+        error: slotErr.message,
+        response: slotErr.response?.data,
+        config: {
+          url: slotErr.config?.url,
+          data: slotErr.config?.data,
+        },
+      });
+      throw slotErr;
+    }
+    console.groupEnd();
+
+    // Send confirmation emails
+    await sendConfirmationEmails(paymentResponse.paymentId);
+
+    // Proceed to confirmation
+    const confirmationPayload = {
+      lawyer: selectedLawyer,
+      service,
+      method,
+      paymentMethod: 'PayInOffice',
+      paymentRecord: { _id: paymentResponse.paymentId },
+      ...(selectedDate && { date: selectedDate }),
+      ...(selectedSlot && { slot: selectedSlot }),
+      clientMessage,
+    };
+    console.log('📝 Setting Confirmation Data:', confirmationPayload);
+    setConfirmationData(confirmationPayload);
+
+    console.log('➡️ Moving to Step 5');
+    setActiveStep(5);
+  };
+
+  // Helper function to handle card payments (both Online and InPerson consultations)
+  const handleCardPaymentFlow = async (paymentData) => {
+    // Create payment method
+    const cardElement = elements.getElement(CardElement);
+
+    const { error: pmError, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
+      type: 'card',
+      card: cardElement,
+      billing_details: {
+        name: paymentForm.name,
+        email: paymentForm.email,
+        phone: paymentForm.phone,
+      },
+    });
+
+    if (pmError) {
+      setPaymentError(pmError.message);
+      throw new Error(pmError.message);
+    }
+
+    // Create payment intent
+    const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
+    const { clientSecret, paymentId } = data;
+
+    // Confirm payment
+    const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: stripePaymentMethod?.id,
+    });
+
+    if (confirmError) {
+      setPaymentError(confirmError.message);
+      throw new Error(confirmError.message);
+    }
+
+    if (paymentIntent.status !== 'succeeded') {
+      const errorMsg = `Unexpected status: ${paymentIntent.status}`;
+      setPaymentError(errorMsg);
+      throw new Error(errorMsg);
+    }
+
+    // Prepare all data to save
+    const paymentUpdateData = {
+      paymentId,
+      status: 'paid',
+      paymentIntentId: paymentIntent.id,
+      paymentMethodId: paymentIntent.payment_method,
+      ...(method !== 'Online' && {
+        meetingDetails: {
+          ...(selectedDate && { date: selectedDate }),
+          ...(selectedSlot && { slot: selectedSlot }),
+        },
+      }),
+    };
+
+    // Update payment with all details
+    await axios.post(`${ApiEndPoint}payments/update-status`, paymentUpdateData);
+
+    // For InPerson with Card payment, update the slot
+    if (method === 'InPerson') {
+      const updatedSlot = {
+        slot: selectedSlot?._id,
+        isBooked: true,
+        publicBooking: {
+          name: paymentForm.name,
+          phone: paymentForm.phone,
+        },
+      };
+
+      await axios.patch(`${ApiEndPoint}crmBookappointments/${selectedLawyer?._id}/${selectedSlot?._id}`, updatedSlot);
+    }
+
+    // Send confirmation emails
+    await sendConfirmationEmails(paymentId);
+
+    // Store confirmation data for the UI
+    setConfirmationData({
+      lawyer: selectedLawyer,
+      service,
+      method,
+      paymentMethod: 'Card',
+      ...(selectedDate && { date: selectedDate }),
+      ...(selectedSlot && { slot: selectedSlot }),
+      clientMessage,
+      paymentRecord: { _id: paymentId },
+    });
+
+    // Move to confirmation step
+    setActiveStep(5);
+  };
+
+  // Helper function to send confirmation emails
+  const sendConfirmationEmails = async (paymentId) => {
+    console.group('📧 Sending Confirmation Emails');
+    try {
+      // Send lawyer email
+      console.log('🔄 Sending Lawyer Email');
+      const lawyerEmailPayload = {
+        to: selectedLawyer?.email,
+        subject: `New ${method === 'Online' ? 'Online' : 'In-Person'} Appointment with ${paymentForm.name}`,
+        text: 'Appointment details',
+        mailmsg: {
+          lawyerDetails: selectedLawyer,
+          clientDetails: {
+            UserName: paymentForm.name,
+            Phone: paymentForm.phone,
+            Email: paymentForm.email,
+          },
+          selectedTime: selectedSlot?.time,
+          formattedDate: selectedDate,
+          clientMessage,
+          isInPerson: method === 'InPerson',
+          officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
+          ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
+        },
+        isClientEmail: false,
+      };
+
+      const lawyerEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, lawyerEmailPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      console.log('✅ Lawyer Email Response:', lawyerEmailResponse.data);
+
+      // Send client email if email provided
+      if (paymentForm.email) {
+        console.log('🔄 Sending Client Email');
+        const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
+          to: paymentForm.email,
+          subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
+          text: 'Appointment details',
+          mailmsg: {
+            lawyerDetails: selectedLawyer,
+            clientDetails: {
+              UserName: paymentForm.name,
+              Phone: paymentForm.phone,
+              Email: paymentForm.email,
+            },
+            selectedTime: selectedSlot?.time,
+            formattedDate: selectedDate,
+            clientMessage,
+            isInPerson: method === 'InPerson',
+            officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
+            rescheduleLink: `${window.location.origin}/reschedule?appointmentId=${paymentId}`,
+            ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
+          },
+          isClientEmail: true,
+        });
+        console.log('✅ Client Email Sent:', clientEmailResponse.data);
+      } else {
+        console.log('ℹ️ No client email provided - skipping client email');
+      }
+    } catch (emailErr) {
+      console.error('❌ Email Sending Failed:', {
+        error: emailErr.message,
+        response: emailErr.response?.data,
+      });
+      // Continue even if email fails
+    }
+    console.groupEnd();
   };
 
   const handleConfirm = async () => {
@@ -749,8 +944,33 @@ function LegalConsultationStepper() {
         console.group('📧 Sending Email Notification');
         const emailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody);
         emailSent = true;
-        console.log('✅ Email sent:', emailResponse.data);
-        console.groupEnd();
+        console.log('✅ Lawyer  Email sent:', emailResponse.data);
+        if (paymentForm.email) {
+          console.log('🔄 Sending Client Email');
+          const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
+            to: paymentForm?.email,
+            subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
+            text: 'Appointment details',
+            mailmsg: {
+              lawyerDetails: selectedLawyer,
+              clientDetails: {
+                UserName: paymentForm?.name,
+                Phone: paymentForm?.phone,
+                Email: paymentForm?.email,
+              },
+              selectedTime: selectedSlot?.time,
+              formattedDate: selectedDate,
+              clientMessage,
+              isInPerson: method === 'InPerson',
+              officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
+              rescheduleLink: `${window.location.origin}/reschedule?appointmentId=${ref}`,
+              ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
+            },
+            isClientEmail: true,
+          });
+          console.log('✅ Client Email Sent:', clientEmailResponse.data);
+          console.groupEnd();
+        }
       } catch (emailErr) {
         console.group('⚠️ Email Failed');
         console.warn('Email error:', emailErr.response?.data || emailErr.message);
@@ -2182,39 +2402,41 @@ function LegalConsultationStepper() {
                   </Typography>
                 </Box>
               </Box>
-
-              <Box sx={{ mt: 3 }}>
-                <Button
-                  variant="contained"
-                  fullWidth
-                  size="large"
-                  onClick={() => {
-                    setPopupmessage(
-                      `Confirm ${service} consultation with ${selectedLawyer?.UserName} on ${new Intl.DateTimeFormat(
-                        'en-US',
-                        options
-                      ).format(selectedDate)} at ${convertTo12HourFormat(selectedSlot?.startTime)}?`
-                    );
-                    setPopupcolor('popup');
-                    setIsPopupVisible(true);
-                    setIsPopupVisiblecancel(true);
-                  }}
-                  sx={{
-                    backgroundColor: '#d4af37',
-                    color: '#18273e',
-                    fontWeight: 'bold',
-                    py: 1.5,
-                    '&:hover': {
-                      backgroundColor: '#c19b2e',
-                    },
-                  }}
-                >
-                  Confirm Appointment
-                </Button>
-              </Box>
+              {method !== 'InPerson' && (
+                <Box sx={{ mt: 3 }}>
+                  <Button
+                    variant="contained"
+                    fullWidth
+                    size="large"
+                    onClick={() => {
+                      setPopupmessage(
+                        `Confirm ${service} consultation with ${selectedLawyer?.UserName} on ${new Intl.DateTimeFormat(
+                          'en-US',
+                          options
+                        ).format(selectedDate)} at ${convertTo12HourFormat(selectedSlot?.startTime)}?`
+                      );
+                      setPopupcolor('popup');
+                      setIsPopupVisible(true);
+                      setIsPopupVisiblecancel(true);
+                    }}
+                    sx={{
+                      backgroundColor: '#d4af37',
+                      color: '#18273e',
+                      fontWeight: 'bold',
+                      py: 1.5,
+                      '&:hover': {
+                        backgroundColor: '#c19b2e',
+                      },
+                    }}
+                  >
+                    Confirm Appointment
+                  </Button>
+                </Box>
+              )}
             </Paper>
           </Box>
         );
+
       case 6: // Success Step
         return (
           <Box sx={{ textAlign: 'center', my: 3 }}>
@@ -2283,7 +2505,7 @@ function LegalConsultationStepper() {
             <Button
               variant="outlined"
               startIcon={<Phone />}
-              href="tel:+1234567890"
+              href="tel:+9714332205928"
               sx={{
                 justifyContent: 'flex-start',
                 color: '#d4af37',
@@ -2294,13 +2516,13 @@ function LegalConsultationStepper() {
                 },
               }}
             >
-              Call us: +1 (234) 567-890
+              Call us: +9714332205928
             </Button>
 
             <Button
               variant="outlined"
               startIcon={<Email />}
-              href="mailto:support@example.com"
+              href="mailto:support@aws-legalgroup.com"
               sx={{
                 justifyContent: 'flex-start',
                 color: '#d4af37',
@@ -2317,7 +2539,7 @@ function LegalConsultationStepper() {
             <Button
               variant="outlined"
               startIcon={<WhatsApp />} // Make sure to import WhatsApp icon from @mui/icons-material
-              href="https://wa.me/1234567890" // Replace with your WhatsApp number
+              href="https://wa.me/9714332%205928" // Replace with your WhatsApp number
               target="_blank"
               sx={{
                 justifyContent: 'flex-start',
@@ -2329,7 +2551,7 @@ function LegalConsultationStepper() {
                 },
               }}
             >
-              WhatsApp: +1 (234) 567-890
+              WhatsApp: +9714332%205928
             </Button>
           </Box>
         </DialogContent>
@@ -2476,32 +2698,34 @@ function LegalConsultationStepper() {
           }}
         >
           {activeStep < steps.length - 1 ? (
-            <Button
-              endIcon={<ArrowForward />}
-              variant="contained"
-              onClick={handleNext}
-              disabled={
-                loading ||
-                (activeStep === 0 && !service) || // Service selection required
-                (activeStep === 1 && !selectedLawyer) || // Lawyer selection required
-                (activeStep === 2 && (!selectedDate || !selectedSlot)) || // Date/time selection required
-                (activeStep === 3 && !method) // Consultation method required
-              }
-              sx={{
-                backgroundColor: '#d4af37',
-                color: '#18273e',
-                fontWeight: 'bold',
-                '&:hover': {
-                  backgroundColor: '#c19b2e',
-                },
-                '&.Mui-disabled': {
-                  backgroundColor: 'rgba(212, 175, 55, 0.5)',
-                  color: 'rgba(24, 39, 62, 0.5)',
-                },
-              }}
-            >
-              {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
-            </Button>
+            method !== 'Online' && (
+              <Button
+                endIcon={<ArrowForward />}
+                variant="contained"
+                onClick={handleNext}
+                disabled={
+                  loading ||
+                  (activeStep === 0 && !service) || // Service selection required
+                  (activeStep === 1 && !selectedLawyer) || // Lawyer selection required
+                  (activeStep === 2 && (!selectedDate || !selectedSlot)) || // Date/time selection required
+                  (activeStep === 3 && !method) // Consultation method required
+                }
+                sx={{
+                  backgroundColor: '#d4af37',
+                  color: '#18273e',
+                  fontWeight: 'bold',
+                  '&:hover': {
+                    backgroundColor: '#c19b2e',
+                  },
+                  '&.Mui-disabled': {
+                    backgroundColor: 'rgba(212, 175, 55, 0.5)',
+                    color: 'rgba(24, 39, 62, 0.5)',
+                  },
+                }}
+              >
+                {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
+              </Button>
+            )
           ) : (
             <Button
               variant="contained"
