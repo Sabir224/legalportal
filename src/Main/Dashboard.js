@@ -981,7 +981,7 @@ const Dashboard = () => {
               {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} onBack={handleBack} />}
               {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
               {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
-              {screen === 27 && <ScreenHeader title={`View LEA${caseDetailsScreenTitle}`} onBack={handleBack} />}
+              {screen === 27 && <ScreenHeader title={`View LFA${caseDetailsScreenTitle}`} onBack={handleBack} />}
             </h3>
 
             {/* Admin Buttons */}
