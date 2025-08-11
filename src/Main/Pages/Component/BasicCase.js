@@ -1173,209 +1173,224 @@ const BasicCase = ({ token }) => {
                 minWidth: '150px',
                 color: 'white'
               }}>Request Number</span>
-
-              <>
-                {/* CASE SUB TYPE Filter */}
-                <span
-                  ref={caseSubTypeRef}
-                  className="d-flex gap-2 text-start"
-                  style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+              {/* CASE SUB TYPE Filter */}
+              <span
+                ref={caseSubTypeRef}
+                className="d-flex gap-2 text-start"
+                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+              >
+                Case Sub Type
+                <Dropdown
+                  show={showCaseSubTypeFilter}
+                  onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
                 >
-                  Case Sub Type
-                  <Dropdown
-                    show={showCaseSubTypeFilter}
-                    onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseTypeFilter(false);
+                      setCaseFilter(false);
+                      setCaseSubTypeFilter(!showCaseSubTypeFilter);
+                    }}
                   >
-                    <Dropdown.Toggle
-                      variant=""
-                      size="sm"
-                      className="custom-dropdown-toggle"
+                    <FontAwesomeIcon icon={faFilter} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                    <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCaseTypeFilter(false);
-                        setCaseFilter(false)
-                        setCaseSubTypeFilter(!showCaseSubTypeFilter);
+                        handleFilterChange("CaseSubType", "__SELECT_ALL__");
                       }}
                     >
-                      <FontAwesomeIcon icon={faFilter} />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                      Select All
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((prev) => ({ ...prev, CaseSubType: [] }));
+                      }}
+                    >
+                      Clear All
+                    </Dropdown.Item>
+
+                    {/* Blank Option */}
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseSubType", "");
+                      }}
+                      style={{
+                        backgroundColor: filters.CaseSubType.includes("") ? "" : "red",
+                        color: "white"
+                      }}
+                    >
+                      <Form.Check
+                        type="checkbox"
+                        label="(Blank)"
+                        checked={filters.CaseSubType.includes("")}
+                        onChange={() => { }}
+                      />
+                    </Dropdown.Item>
+
+                    {/* Dynamic Options */}
+                    {Subtypelist.map((type) => (
                       <Dropdown.Item
+                        key={type}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFilterChange("CaseSubType", "__SELECT_ALL__");
+                          handleFilterChange("CaseSubType", type);
                         }}
-                      >
-                        Select All
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFilters((prev) => ({ ...prev, CaseSubType: [] }));
-                        }}
-                      >
-                        Clear All
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFilterChange("CaseSubType", "");
+                        style={{
+                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "red",
+                          color: "white"
                         }}
                       >
                         <Form.Check
                           type="checkbox"
-                          label="(Blank)"
-                          checked={filters.CaseSubType.includes("")}
+                          label={type}
+                          checked={filters.CaseSubType.includes(type)}
                           onChange={() => { }}
                         />
                       </Dropdown.Item>
-                      {Subtypelist.map((type) => (
-                        <Dropdown.Item
-                          key={type}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFilterChange("CaseSubType", type);
-                          }}
-                        >
-                          <Form.Check
-                            type="checkbox"
-                            label={type}
-                            checked={filters.CaseSubType.includes(type)}
-                            onChange={() => { }}
-                          />
-                        </Dropdown.Item>
-                      ))}
-                      <Dropdown.Divider />
-                      <div className="text-end px-2 pb-2">
-                        <div
-                          role="button"
-                          style={{
-                            padding: '4px 12px',
-                            border: '1px solid #18273e', // Bootstrap primary color or change as needed
-                            borderRadius: '4px',
-                            color: 'white',
-                            backgroundColor: '#18273e',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                          }}
-                          onClick={() => {
-                            handleApplyFilter("CaseSubType");
-                            setCaseSubTypeFilter(false); // ✅ Close on OK
-                          }}
-                        >
-                          OK
+                    ))}
 
-                        </div>
+                    <Dropdown.Divider />
+                    <div className="text-end px-2 pb-2">
+                      <div
+                        role="button"
+                        style={{
+                          padding: "4px 12px",
+                          border: "1px solid #18273e",
+                          borderRadius: "4px",
+                          color: "white",
+                          backgroundColor: "#18273e",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          display: "inline-block"
+                        }}
+                        onClick={() => {
+                          handleApplyFilter("CaseSubType");
+                          setCaseSubTypeFilter(false);
+                        }}
+                      >
+                        OK
                       </div>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </span>
+                    </div>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
 
-                {/* CASE TYPE Filter (same as above with caseTypeRef) */}
-                <span
-                  ref={caseTypeRef}
-                  className="d-flex gap-2 text-start"
-                  style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+              {/* CASE TYPE Filter */}
+              <span
+                ref={caseTypeRef}
+                className="d-flex gap-2 text-start"
+                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+              >
+                Case Type
+                <Dropdown
+                  show={showCaseTypeFilter}
+                  onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}
                 >
-                  Case Type
-                  <Dropdown
-                    show={showCaseTypeFilter}
-                    onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseFilter(false);
+                      setCaseSubTypeFilter(false);
+                      setCaseTypeFilter(!showCaseTypeFilter);
+                    }}
                   >
-                    <Dropdown.Toggle
-                      variant=""
-                      size="sm"
-                      className="custom-dropdown-toggle"
+                    <FontAwesomeIcon icon={faFilter} />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                    <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        setCaseFilter(false)
-                        setCaseSubTypeFilter(false);
-                        setCaseTypeFilter(!showCaseTypeFilter);
+                        handleFilterChange("CaseType", "__SELECT_ALL__");
                       }}
                     >
-                      <FontAwesomeIcon icon={faFilter} />
-                    </Dropdown.Toggle>
-                    <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                      Select All
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((prev) => ({ ...prev, CaseType: [] }));
+                      }}
+                    >
+                      Clear All
+                    </Dropdown.Item>
+
+                    {/* Blank Option */}
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseType", "");
+                      }}
+                      style={{
+                        backgroundColor: filters.CaseType.includes("") ? "" : "red",
+                        color: "white"
+                      }}
+                    >
+                      <Form.Check
+                        type="checkbox"
+                        label="(Blank)"
+                        checked={filters.CaseType.includes("")}
+                        onChange={() => { }}
+                      />
+                    </Dropdown.Item>
+
+                    {/* Dynamic Options */}
+                    {CaseTypeList.map((type) => (
                       <Dropdown.Item
+                        key={type}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFilterChange("CaseType", "__SELECT_ALL__");
+                          handleFilterChange("CaseType", type);
                         }}
-                      >
-                        Select All
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFilters((prev) => ({ ...prev, CaseType: [] }));
-                        }}
-                      >
-                        Clear All
-                      </Dropdown.Item>
-                      <Dropdown.Item
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFilterChange("CaseType", "");
+                        style={{
+                          backgroundColor: filters.CaseType.includes(type) ? "" : "red",
+                          color: "white"
                         }}
                       >
                         <Form.Check
                           type="checkbox"
-                          label="(Blank)"
-                          checked={filters.CaseType.includes("")}
+                          label={type}
+                          checked={filters.CaseType.includes(type)}
                           onChange={() => { }}
                         />
                       </Dropdown.Item>
-                      {CaseTypeList.map((type) => (
-                        <Dropdown.Item
-                          key={type}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleFilterChange("CaseType", type);
-                          }}
-                        >
-                          <Form.Check
-                            type="checkbox"
-                            label={type}
-                            checked={filters.CaseType.includes(type)}
-                            onChange={() => { }}
-                          />
-                        </Dropdown.Item>
-                      ))}
-                      <Dropdown.Divider />
-                      <div className="text-end px-2 pb-2">
-                        <div
-                          role="button"
-                          style={{
-                            padding: '4px 12px',
-                            border: '1px solid #18273e', // Bootstrap primary color or change as needed
-                            borderRadius: '4px',
-                            color: 'white',
-                            backgroundColor: '#18273e',
-                            fontSize: '14px',
-                            cursor: 'pointer',
-                            display: 'inline-block',
-                          }}
-                          // className="btn btn-sm btn-primary"
-                          onClick={() => {
-                            handleApplyFilter("CaseType");
-                            setCaseTypeFilter(false); // ✅ Close on Done
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === " ") {
-                              handleApplyFilter("CaseType");
-                              setCaseTypeFilter(false);
-                            }
-                          }}
-                        >
-                          Done
-                        </div>
-                      </div>
+                    ))}
 
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </span>
-              </>
+                    <Dropdown.Divider />
+                    <div className="text-end px-2 pb-2">
+                      <div
+                        role="button"
+                        style={{
+                          padding: "4px 12px",
+                          border: "1px solid #18273e",
+                          borderRadius: "4px",
+                          color: "white",
+                          backgroundColor: "#18273e",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          display: "inline-block"
+                        }}
+                        onClick={() => {
+                          handleApplyFilter("CaseType");
+                          setCaseTypeFilter(false);
+                        }}
+                      >
+                        Done
+                      </div>
+                    </div>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
+
 
 
 

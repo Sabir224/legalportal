@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 
-const Form_SignaturePad = ({ height = 280, onSave }) => {
+const Form_SignaturePad = ({ height = 280, onSave, disable }) => {
     const canvasRef = useRef(null);
     const [strokes, setStrokes] = useState([]);
     const [currentStroke, setCurrentStroke] = useState(null);
@@ -113,6 +113,7 @@ const Form_SignaturePad = ({ height = 280, onSave }) => {
             <div style={{ border: '2px dashed #ddd', padding: 10, borderRadius: 8 }}>
                 <canvas
                     ref={canvasRef}
+                    disable={disable}
                     style={{ width: '100%', height, background: '#fff', borderRadius: 6 }}
                     onPointerDown={handlePointerDown}
                     onPointerMove={handlePointerMove}
