@@ -34,6 +34,7 @@ import LegalConsultationStepper from './Main/Pages/AppointMents/SteperMultiStep'
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { isPublicRoute } from './Main/Pages/Component/utils/utlis';
+import RescheduleConfirm from './Main/Pages/AppointMents/AppointmentReschedule';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -83,9 +84,6 @@ const AcknowledgeCaseHandoverRedirectHandler = () => {
   return null;
 };
 
-
-
-
 // Updated ProtectedRoute component
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuth();
@@ -112,6 +110,7 @@ const GlobalTokenValidator = () => {
       '/reset-password',
       '/client-consultation',
       '/clientAppointMent/:phone/:name',
+      '/reschedule',
     ];
     const pathname = location.pathname;
     // Don't validate on public routes
@@ -138,7 +137,6 @@ const GlobalTokenValidator = () => {
 };
 
 function App() {
-
   useEffect(() => {
     if (!SocketService.socket || !SocketService.socket.connected) {
       console.log('🔌 Connecting to socket...');
@@ -146,13 +144,12 @@ function App() {
     }
 
     const handleMessagesDelivered = (data) => {
-      console.log(" Logout 1 ")
+      console.log(' Logout 1 ');
       return <Navigate to="/" replace />;
     };
 
     SocketService.socket.off('UserLogOut', handleMessagesDelivered);
     SocketService.onUserVerification(handleMessagesDelivered);
-   
   }, []);
 
   return (
@@ -176,6 +173,7 @@ function App() {
             </Elements>
           }
         />
+        <Route path="/reschedule/:phone/:name" element={<RescheduleConfirm />} />
 
         {/* Protected routes */}
         <Route

@@ -131,6 +131,12 @@ function LegalConsultationStepper() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('PayOnline');
+  const dateOptions = {
+    timeZone: 'Asia/Dubai',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  };
 
   const steps = [
     'Service Type',
@@ -504,7 +510,7 @@ function LegalConsultationStepper() {
     setSelectedLawyer(lawyer);
     setSelectedSlot(slot);
     setPopupmessage(
-      `${subject} on ${new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at ${convertTo12HourFormat(
+      `${subject} on ${new Intl.DateTimeFormat('en-US', dateOptions).format(selectedDate)} at ${convertTo12HourFormat(
         selectedSlot?.startTime
       )}?`
     );
@@ -736,10 +742,9 @@ function LegalConsultationStepper() {
       };
 
       await axios.patch(`${ApiEndPoint}crmBookappointments/${selectedLawyer?._id}/${selectedSlot?._id}`, updatedSlot);
+      // Send confirmation emails
+      await sendConfirmationEmails(paymentId);
     }
-
-    // Send confirmation emails
-    await sendConfirmationEmails(paymentId);
 
     // Store confirmation data for the UI
     setConfirmationData({
@@ -760,11 +765,12 @@ function LegalConsultationStepper() {
   // Helper function to send confirmation emails
   const sendConfirmationEmails = async (paymentId) => {
     console.group('📧 Sending Confirmation Emails');
+    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(selectedDate);
     try {
       // Send lawyer email
       console.log('🔄 Sending Lawyer Email');
       const lawyerEmailPayload = {
-        to: selectedLawyer?.email,
+        to: selectedLawyer?.Email,
         subject: `New ${method === 'Online' ? 'Online' : 'In-Person'} Appointment with ${paymentForm.name}`,
         text: 'Appointment details',
         mailmsg: {
@@ -774,8 +780,8 @@ function LegalConsultationStepper() {
             Phone: paymentForm.phone,
             Email: paymentForm.email,
           },
-          selectedTime: selectedSlot?.time,
-          formattedDate: selectedDate,
+          selectedTime: selectedTime,
+          formattedDate: formattedDate,
           clientMessage,
           isInPerson: method === 'InPerson',
           officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
@@ -798,6 +804,7 @@ function LegalConsultationStepper() {
           to: paymentForm.email,
           subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
           text: 'Appointment details',
+          clientWhatsApp: phone,
           mailmsg: {
             lawyerDetails: selectedLawyer,
             clientDetails: {
@@ -805,12 +812,14 @@ function LegalConsultationStepper() {
               Phone: paymentForm.phone,
               Email: paymentForm.email,
             },
-            selectedTime: selectedSlot?.time,
-            formattedDate: selectedDate,
+            selectedTime: selectedTime,
+            formattedDate: formattedDate,
             clientMessage,
             isInPerson: method === 'InPerson',
             officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-            rescheduleLink: `${window.location.origin}/reschedule?appointmentId=${paymentId}`,
+            rescheduleLink: `${window.location.origin}/reschedule/${encodeURIComponent(phone)}/${encodeURIComponent(
+              name.replace(/\s+/g, '-')
+            )}?ref=${encodeURIComponent(paymentId)}`,
             ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
           },
           isClientEmail: true,
@@ -862,6 +871,7 @@ function LegalConsultationStepper() {
 
       const startTime24 = convertTo24Hour(selectedSlot.startTime);
       const endTime24 = convertTo24Hour(selectedSlot.endTime);
+      const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(selectedDate);
 
       let startDateTime = new Date(`${meetingDate}T${startTime24}:00Z`);
       let endDateTime = new Date(`${meetingDate}T${endTime24}:00Z`);
@@ -916,15 +926,10 @@ function LegalConsultationStepper() {
         },
         clientDetails: {
           UserName: paymentForm.name,
-          Phone: phone,
+          Phone: paymentForm.phone,
         },
         selectedTime: selectedSlot.startTime,
-        formattedDate: selectedDate.toLocaleDateString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-        }),
+        formattedDate: formattedDate,
       };
 
       const requestBody = {
@@ -933,7 +938,7 @@ function LegalConsultationStepper() {
         client: {
           user: {
             UserName: paymentForm.name,
-            Phone: phone,
+            Phone: paymentForm,
           },
         },
         mailmsg: emailData,
@@ -950,6 +955,7 @@ function LegalConsultationStepper() {
           const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
             to: paymentForm?.email,
             subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
+            clientWhatsApp: phone,
             text: 'Appointment details',
             mailmsg: {
               lawyerDetails: selectedLawyer,
@@ -958,8 +964,9 @@ function LegalConsultationStepper() {
                 Phone: paymentForm?.phone,
                 Email: paymentForm?.email,
               },
-              selectedTime: selectedSlot?.time,
-              formattedDate: selectedDate,
+              meetingLink: meetingUrl,
+              selectedTime: selectedSlot.startTime,
+              formattedDate: formattedDate,
               clientMessage,
               isInPerson: method === 'InPerson',
               officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
@@ -1655,42 +1662,43 @@ function LegalConsultationStepper() {
                 }}
               >
                 {selectedDate ? (
-                  availableSlotsMap[selectedDate.toDateString()]?.map((slot) => (
-                    <button
-                      key={slot._id}
-                      onClick={() => {
-                        if (selectedLawyer?.price === 0 || selectedLawyer?.price === '') {
-                          handleFreeTimeSelection(slot);
-                        } else {
-                          handleTimeClick(slot.startTime, slot);
-                        }
-                      }}
-                      className="time-button"
-                      style={{
-                        padding: '5px 10px',
-                        borderRadius: '5px',
-                        border: '1px solid #d4af37',
-                        background: slot.isBooked ? 'green' : selectedTime === slot.startTime ? '#d2a85a' : '#16213e',
-                        color: 'white',
-                        cursor: slot.isBooked ? 'not-allowed' : 'pointer',
-                        fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
-                        width: '100%',
-                      }}
-                      disabled={slot.isBooked}
-                      onMouseEnter={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = '#d2a85a';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!slot.isBooked && selectedTime !== slot.startTime) {
-                          e.target.style.background = '#16213e';
-                        }
-                      }}
-                    >
-                      {convertTo12HourFormat(slot.startTime)} - {convertTo12HourFormat(slot.endTime)}
-                    </button>
-                  ))
+                  availableSlotsMap[selectedDate.toDateString()]
+                    ?.filter((slot) => !slot.isBooked) // ✅ Only include unbooked slots
+                    .map((slot) => (
+                      <button
+                        key={slot._id}
+                        onClick={() => {
+                          if (selectedLawyer?.price === 0 || selectedLawyer?.price === '') {
+                            handleFreeTimeSelection(slot);
+                          } else {
+                            handleTimeClick(slot.startTime, slot);
+                          }
+                        }}
+                        className="time-button"
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '5px',
+                          border: '1px solid #d4af37',
+                          background: selectedTime === slot.startTime ? '#d2a85a' : '#16213e',
+                          color: 'white',
+                          cursor: 'pointer',
+                          fontSize: 'clamp(0.7rem, 2vw, 0.8rem)',
+                          width: '100%',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (selectedTime !== slot.startTime) {
+                            e.target.style.background = '#d2a85a';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (selectedTime !== slot.startTime) {
+                            e.target.style.background = '#16213e';
+                          }
+                        }}
+                      >
+                        {convertTo12HourFormat(slot.startTime)} - {convertTo12HourFormat(slot.endTime)}
+                      </button>
+                    ))
                 ) : (
                   <Typography sx={{ color: '#d4af37' }}>Select a date to view available times</Typography>
                 )}
@@ -1799,9 +1807,19 @@ function LegalConsultationStepper() {
                                   }
                                 } catch (error) {
                                   console.warn('Failed to clear card element:', error);
-                                  // This is non-critical, so we don't need to show an error to the user
                                 }
                               }
+                            }}
+                            sx={{
+                              '& .MuiRadio-root': {
+                                color: '#d4af37', // Radio button color
+                                '&.Mui-checked': {
+                                  color: '#d4af37', // Checked state color
+                                },
+                              },
+                              '& .MuiFormControlLabel-label': {
+                                color: 'white', // Label color
+                              },
                             }}
                           >
                             <FormControlLabel
@@ -2539,7 +2557,7 @@ function LegalConsultationStepper() {
             <Button
               variant="outlined"
               startIcon={<WhatsApp />} // Make sure to import WhatsApp icon from @mui/icons-material
-              href="https://wa.me/9714332%205928" // Replace with your WhatsApp number
+              href="https://wa.me/+9714332205928" // Replace with your WhatsApp number
               target="_blank"
               sx={{
                 justifyContent: 'flex-start',
@@ -2551,7 +2569,7 @@ function LegalConsultationStepper() {
                 },
               }}
             >
-              WhatsApp: +9714332%205928
+              WhatsApp: +9714332205928
             </Button>
           </Box>
         </DialogContent>
@@ -2697,18 +2715,34 @@ function LegalConsultationStepper() {
             pt: 2,
           }}
         >
-          {activeStep < steps.length - 1 ? (
-            method !== 'Online' && (
+          {activeStep === steps.length - 1 ? (
+            <Button
+              variant="contained"
+              onClick={onResetClick}
+              sx={{
+                backgroundColor: '#d4af37',
+                color: '#18273e',
+                fontWeight: 'bold',
+                '&:hover': {
+                  backgroundColor: '#c19b2e',
+                },
+              }}
+            >
+              Book Another Appointment
+            </Button>
+          ) : (
+            // Show Next button only for steps 0-3 (Service Type, Select Lawyer, Date & Time, Consultation Method)
+            activeStep < 4 && (
               <Button
                 endIcon={<ArrowForward />}
                 variant="contained"
                 onClick={handleNext}
                 disabled={
                   loading ||
-                  (activeStep === 0 && !service) || // Service selection required
-                  (activeStep === 1 && !selectedLawyer) || // Lawyer selection required
-                  (activeStep === 2 && (!selectedDate || !selectedSlot)) || // Date/time selection required
-                  (activeStep === 3 && !method) // Consultation method required
+                  (activeStep === 0 && !service) ||
+                  (activeStep === 1 && !selectedLawyer) ||
+                  (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
+                  (activeStep === 3 && !method)
                 }
                 sx={{
                   backgroundColor: '#d4af37',
@@ -2726,21 +2760,6 @@ function LegalConsultationStepper() {
                 {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
               </Button>
             )
-          ) : (
-            <Button
-              variant="contained"
-              onClick={onResetClick}
-              sx={{
-                backgroundColor: '#d4af37',
-                color: '#18273e',
-                fontWeight: 'bold',
-                '&:hover': {
-                  backgroundColor: '#c19b2e',
-                },
-              }}
-            >
-              Book Another Appointment
-            </Button>
           )}
         </Box>
       </Paper>
