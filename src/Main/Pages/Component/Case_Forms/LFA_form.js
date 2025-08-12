@@ -50,14 +50,14 @@ const LEA_Form = ({ token }) => {
     const [agreement, setAgreement] = useState({
         fixedParts: [
             'This Agreement ("Agreement") is entered into and shall become effective as of ',
-            ', by and between:\n\n**',
-            '**, with its principal place of business located at ',
-            ', represented herein by **',
-            '**, duly authorized (Hereinafter referred to as the "Attorney")\n\nAnd\n\n**',
-            '** a national of ',
+            ', by and between:\n\n',
+            ', with its principal place of business located at ',
+            ', represented herein by ',
+            ', duly authorized (Hereinafter referred to as the "Attorney")\n\nAnd\n\n',
+            ' a national of ',
             ', with their principal place of residence located ',
-            ', holding Emirates ID Number: ',
             ' issued on: ',
+
             ', having email ID: ',
             ' and Contact Number: ',
             ' (Hereinafter referred to as the "Client")'
@@ -70,6 +70,7 @@ const LEA_Form = ({ token }) => {
             'Dr. Ali Moustafa Mohamed Elba',
             'Egypt',
             'Dubai, United Arab Emirates',
+            'holding Emirates ID Number: ',
             '784-1952-3620694-4',
             new Date().toLocaleDateString('en-GB'),
             'alyelba@yahoo.com',
@@ -123,6 +124,7 @@ const LEA_Form = ({ token }) => {
     ]);
 
     const [savedSignature, setSavedSignature] = useState(null);
+    const [savedLawyerSignature, setSavedLawyerSignature] = useState(null);
     const [isFormFilled, setisFormFilled] = useState(false);
     const [savedClientSignature, setSavedClientSignature] = useState(null);
     const [isLocalSign, setIsLocalSign] = useState(false);
@@ -153,7 +155,7 @@ const LEA_Form = ({ token }) => {
             setEditMode(false)
             setisFormFilled(true)
             setIsLocalSign(data.data?.ClientSignatureImage ? true : false)
-
+            setSavedLawyerSignature()
         } catch (err) {
             showDataLoading(false)
             // setMessage(err.response?.data?.message || "Error deleting task.");
@@ -165,6 +167,7 @@ const LEA_Form = ({ token }) => {
     const handleSignatureSave = (dataUrl) => {
         console.log("Lawyar Signature Base64:", dataUrl);
         setSavedSignature(dataUrl); // store it locally
+        setSavedLawyerSignature(dataUrl)
         // setIsLocalSign(true)
 
         // You could also send it to your backend here
@@ -1137,12 +1140,39 @@ const LEA_Form = ({ token }) => {
         return list?.map((heading, hIndex) => (
             <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
                 <div className="d-flex flex-wrap align-items-start mb-2">
-                    <div className="me-2 mt-1 fw-bold">
+                    <div className="d-flex me-2 mt-1 fw-bold">
+                        {editMode && !savedClientSignature && (
+                            <div className="ms-2 d-flex gap-1" style={{
+                            }}>
+
+                                <div
+                                    type=""
+                                    style={{
+                                        color: 'green', fontSize: 16, borderRadius: '5px',
+                                        boxShadow: '0px 4px 4px rgba(4, 2, 2, 0.2)'
+                                    }}
+                                    onClick={() => addHeading(hIndex)}
+                                >
+                                    <BsPlus />
+                                </div>
+                                <div
+                                    type=""
+                                    style={{
+                                        color: 'red', fontSize: 16, borderRadius: '5px',
+                                        boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
+                                    }}
+                                    onClick={() => deleteHeading(hIndex)}
+                                >
+                                    <BsDash />
+                                </div>
+
+                            </div>
+                        )}
                         {isFixed ? hIndex + 1 : hIndex + 11}
                     </div>
 
                     <div className="flex-grow-1">
-                        {editMode ? (
+                        {editMode && !savedClientSignature ? (
                             <textarea
                                 className="form-control form-control-sm fw-bold text-break me-2"
                                 placeholder="Enter heading"
@@ -1177,24 +1207,7 @@ const LEA_Form = ({ token }) => {
                         )}
                     </div>
 
-                    {editMode && (
-                        <div className="ms-2 d-flex flex-column">
-                            <button
-                                type="button"
-                                className="btn btn-success btn-sm mb-1"
-                                onClick={() => addHeading(hIndex)}
-                            >
-                                <BsPlus />
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                onClick={() => deleteHeading(hIndex)}
-                            >
-                                <BsDash />
-                            </button>
-                        </div>
-                    )}
+
                 </div>
 
                 {/* POINTS */}
@@ -1202,7 +1215,7 @@ const LEA_Form = ({ token }) => {
                     {heading.points?.map((point, pIndex) => (
                         <li key={pIndex}>
                             <div className="d-flex flex-wrap align-items-center mb-2">
-                                {editMode ? (
+                                {editMode && !savedClientSignature ? (
                                     <textarea
                                         className="form-control form-control-sm me-2 text-break"
                                         placeholder="Point"
@@ -1235,29 +1248,35 @@ const LEA_Form = ({ token }) => {
                                     </div>
                                 )}
 
-                                {editMode && (
+                                {editMode && !savedClientSignature && (
                                     <>
-                                        <button
-                                            type="button"
-                                            className="btn btn-success btn-sm me-1"
+                                        <div
+                                            type=""
+                                            style={{
+                                                color: 'green', fontSize: 16, borderRadius: '5px',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
+                                            }}
                                             onClick={() => addPoint(hIndex)}
                                         >
                                             <BsPlus />
-                                        </button>
-                                        <button
-                                            type="button"
-                                            className="btn btn-danger btn-sm"
+                                        </div>
+                                        <div
+                                            type=""
+                                            style={{
+                                                color: 'red', fontSize: 16, borderRadius: '5px',
+                                                boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
+                                            }}
                                             onClick={() => deletePoint(hIndex, pIndex)}
                                         >
                                             <BsDash />
-                                        </button>
+                                        </div>
                                     </>
                                 )}
                             </div>
                         </li>
                     ))}
 
-                    {editMode && (
+                    {editMode && !savedClientSignature && (
                         <li>
                             <button
                                 type="button"
@@ -1331,7 +1350,7 @@ const LEA_Form = ({ token }) => {
 
                         <div className="card p-2 p-md-4 shadow-sm mb-4">
                             <label className="form-label fw-bold fs-5 text-break">Agreement</label>
-                            {editMode && !isclient ? (
+                            {editMode && !isclient && !savedClientSignature ? (
                                 <div
                                     className="form-control p-3"
                                     style={{ minHeight: '300px', whiteSpace: 'pre-wrap' }}
@@ -1404,7 +1423,7 @@ const LEA_Form = ({ token }) => {
                         {/* Custom Headings */}
                         {renderHeadings(headings, setHeadings, false)}
 
-                        {(isFormFilled && savedClientSignature && !isclient && editMode) &&
+                        {(isFormFilled && savedClientSignature && !savedSignature && !isclient) &&
 
                             <div style={{ padding: 20 }}>
                                 <h2>Lawyer Signature</h2>
@@ -1417,20 +1436,7 @@ const LEA_Form = ({ token }) => {
                             </div>
                         }
 
-                        {savedSignature && (
-                            <div style={{ marginTop: 20 }}>
-                                <h4>Lawyer Signature:</h4>
-                                <img
-                                    src={savedSignature}
-                                    alt="Saved Signature"
-                                    style={{
-                                        maxWidth: "120px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                    }}
-                                />
-                            </div>
-                        )}
+
                         {/* {(isFormFilled && !savedClientSignature ) && */}
 
                         <div style={{ padding: 20 }}>
@@ -1443,21 +1449,50 @@ const LEA_Form = ({ token }) => {
                             }
                         </div>
                         {/* } */}
-                        {/* Preview the saved signature */}
-                        {savedClientSignature && (
-                            <div style={{ marginTop: 20 }}>
-                                <h4>Client Signature:</h4>
-                                <img
-                                    src={savedClientSignature}
-                                    alt="Saved Signature"
-                                    style={{
-                                        maxWidth: "120px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                    }}
-                                />
-                            </div>
-                        )}
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                gap: "20px",
+                                width: "100%",
+                            }}
+                        >
+                            {/* Lawyer Signature - Left */}
+                            {savedSignature && (
+                                <div>
+                                    <h4>Lawyer Signature:</h4>
+                                    <img
+                                        src={savedSignature}
+                                        alt="Lawyer Signature"
+                                        style={{
+                                            maxWidth: "220px",
+                                            maxHeight: "300px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Client Signature - Right */}
+                            {savedClientSignature && (
+                                <div>
+                                    <h4>Client Signature:</h4>
+                                    <img
+                                        src={savedClientSignature}
+                                        alt="Client Signature"
+                                        style={{
+                                            maxWidth: "220px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
 
 
 
@@ -1465,6 +1500,12 @@ const LEA_Form = ({ token }) => {
                         {/* Buttons */}
 
                         <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap">
+                            {(!isclient && savedClientSignature && savedLawyerSignature) && (
+                                <button className="btn btn-sm btn-primary fw-bold" onClick={handleUpdateLawyerSubmit} style={{ width: '150px' }}>
+                                    Update Agreement
+                                </button>
+                            )
+                            }
                             {editMode ? (
                                 <>
                                     {(!isFormFilled && !savedClientSignature) ? (
@@ -1476,9 +1517,9 @@ const LEA_Form = ({ token }) => {
                                         Update Agreement
                                     </button>)
                                     }
-                                    <button className="btn btn-sm btn-primary fw-bold" onClick={addHeading} style={{ width: '150px' }}>
+                                    {/* <button className="btn btn-sm btn-primary fw-bold" onClick={addHeading} style={{ width: '150px' }}>
                                         Add Heading
-                                    </button>
+                                    </button> */}
                                 </>
                             ) :
                                 <>
@@ -1489,7 +1530,7 @@ const LEA_Form = ({ token }) => {
                                         </button>
                                     }
 
-                                    {(!isclient && savedClientSignature) && (
+                                    {(!isclient && !savedClientSignature) && (
                                         <button className="btn btn-sm btn-primary fw-bold" onClick={() => setEditMode(true)} style={{ width: '150px' }}>
                                             Edit Agreement
                                         </button>
