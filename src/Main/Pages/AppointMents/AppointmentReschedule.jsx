@@ -83,8 +83,12 @@ export default function RescheduleConfirm() {
     setShowConfirmDialog(true);
   };
 
-  const confirmReschedule = () => {
+  const confirmReschedule = async () => {
     setShowConfirmDialog(false);
+    // await axios.post(`${ApiEndPoint}payments/update-status`, {
+    //   paymentId: paymentResponse?.paymentId,
+    //   meetingDetails: '',
+    // });
     navigate(
       `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(
         name.replace(/\s+/g, '-')
