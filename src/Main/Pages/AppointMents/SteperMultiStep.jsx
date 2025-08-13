@@ -970,7 +970,7 @@ function LegalConsultationStepper() {
               clientMessage,
               isInPerson: method === 'InPerson',
               officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-              rescheduleLink: `${window.location.origin}/reschedule?appointmentId=${ref}`,
+              rescheduleLink: `${window.location.origin}reschedule/${phone}/${name.replace(/\s+/g, '-')}`,
               ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
             },
             isClientEmail: true,
