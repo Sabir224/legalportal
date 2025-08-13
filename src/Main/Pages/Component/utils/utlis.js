@@ -93,7 +93,7 @@ export const theme = createTheme({
   },
 });
 
-// export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
+//export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
 export const ApiEndPoint = 'http://localhost:5001/api/';
 
@@ -212,9 +212,12 @@ export const logout = (navigate) => {
 export const isPublicRoute = (pathname) => {
   const staticPublicRoutes = ['/', '/signup', '/forget-password', '/reset-password', '/client-consultation'];
 
-  const isStatic = staticPublicRoutes.includes(pathname);
+  // Remove query params from pathname for matching
+  const cleanPath = pathname.split('?')[0];
 
-  const isDynamicPublic = matchPath('/clientAppointMent/:phone/:name', pathname);
+  const isStatic = staticPublicRoutes.includes(cleanPath);
+
+  const isDynamicPublic = matchPath('/clientAppointMent/:phone/:name', cleanPath);
 
   return isStatic || isDynamicPublic;
 };
