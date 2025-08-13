@@ -1173,6 +1173,10 @@ const BasicCase = ({ token }) => {
                 minWidth: '150px',
                 color: 'white'
               }}>Request Number</span>
+
+
+
+
               {/* CASE SUB TYPE Filter */}
               <span
                 ref={caseSubTypeRef}
@@ -1195,7 +1199,17 @@ const BasicCase = ({ token }) => {
                       setCaseSubTypeFilter(!showCaseSubTypeFilter);
                     }}
                   >
-                    <FontAwesomeIcon icon={faFilter} />
+                    <FontAwesomeIcon
+                      icon={faFilter}
+                      style={{
+                        color:
+                          filters.CaseSubType &&
+                            filters.CaseSubType.length > 0 &&
+                            filters.CaseSubType.length <= Subtypelist.length
+                            ? "red" // kuch select hain lekin sab nahi
+                            : "white",
+                      }}
+                    />
                   </Dropdown.Toggle>
                   <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
                     <Dropdown.Item
@@ -1222,8 +1236,8 @@ const BasicCase = ({ token }) => {
                         handleFilterChange("CaseSubType", "");
                       }}
                       style={{
-                        backgroundColor: filters.CaseSubType.includes("") ? "" : "red",
-                        color: "white"
+                        backgroundColor: filters.CaseSubType.includes("") ? "" : "",
+                        color: "white",
                       }}
                     >
                       <Form.Check
@@ -1243,8 +1257,8 @@ const BasicCase = ({ token }) => {
                           handleFilterChange("CaseSubType", type);
                         }}
                         style={{
-                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "red",
-                          color: "white"
+                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "",
+                          color: "white",
                         }}
                       >
                         <Form.Check
@@ -1268,7 +1282,7 @@ const BasicCase = ({ token }) => {
                           backgroundColor: "#18273e",
                           fontSize: "14px",
                           cursor: "pointer",
-                          display: "inline-block"
+                          display: "inline-block",
                         }}
                         onClick={() => {
                           handleApplyFilter("CaseSubType");
@@ -1304,7 +1318,17 @@ const BasicCase = ({ token }) => {
                       setCaseTypeFilter(!showCaseTypeFilter);
                     }}
                   >
-                    <FontAwesomeIcon icon={faFilter} />
+                    <FontAwesomeIcon
+                      icon={faFilter}
+                      style={{
+                        color:
+                          filters.CaseType &&
+                            filters.CaseType.length > 0 &&
+                            filters.CaseType.length <= CaseTypeList.length
+                            ? "red"
+                            : "white",
+                      }}
+                    />
                   </Dropdown.Toggle>
                   <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
                     <Dropdown.Item
@@ -1331,8 +1355,8 @@ const BasicCase = ({ token }) => {
                         handleFilterChange("CaseType", "");
                       }}
                       style={{
-                        backgroundColor: filters.CaseType.includes("") ? "" : "red",
-                        color: "white"
+                        backgroundColor: filters.CaseType.includes("") ? "" : "",
+                        color: "white",
                       }}
                     >
                       <Form.Check
@@ -1352,8 +1376,8 @@ const BasicCase = ({ token }) => {
                           handleFilterChange("CaseType", type);
                         }}
                         style={{
-                          backgroundColor: filters.CaseType.includes(type) ? "" : "red",
-                          color: "white"
+                          backgroundColor: filters.CaseType.includes(type) ? "" : "",
+                          color: "white",
                         }}
                       >
                         <Form.Check
@@ -1377,7 +1401,7 @@ const BasicCase = ({ token }) => {
                           backgroundColor: "#18273e",
                           fontSize: "14px",
                           cursor: "pointer",
-                          display: "inline-block"
+                          display: "inline-block",
                         }}
                         onClick={() => {
                           handleApplyFilter("CaseType");

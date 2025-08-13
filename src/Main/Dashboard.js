@@ -97,6 +97,7 @@ import PublicAppointment from './Pages/AppointMents/Appointment';
 import { alignContent, alignItems, justifyContent, justifyItems, padding } from '@mui/system';
 import CaseSummary from './Pages/cases/CaseSummary';
 import LEA_Form from './Pages/Component/Case_Forms/LFA_form';
+import LFQ_ClientCaseEvaluationForm from './Pages/Component/Case_Forms/LFQFrom';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -394,6 +395,14 @@ const Dashboard = () => {
         setCurrentScreen(
           <AlertProvider>
             <LEA_Form token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
+        break;
+      case 28:
+        setCurrentScreen(
+          <AlertProvider>
+            <LFQ_ClientCaseEvaluationForm token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
         );
@@ -900,6 +909,18 @@ const Dashboard = () => {
                 dispatch(FormHDetails(null));
 
                 handlescreen2(21);
+              },
+            },
+            {
+              icon: faQuestionCircle,
+              label: 'LFQ form',
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(Caseinfo(null));
+                dispatch(FormCDetails(null));
+                dispatch(FormHDetails(null));
+
+                handlescreen2(28);
               },
             },
             { icon: faSignOut, label: 'Logout', action: handleLogOut },
