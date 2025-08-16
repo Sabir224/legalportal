@@ -25,6 +25,7 @@ export default function RescheduleConfirm() {
   const [loading, setLoading] = useState(true);
   const [canReschedule, setCanReschedule] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [paymentId, setPaymentId] = useState('');
 
   const { phone, name } = useParams();
   const ref = searchParams.get('ref');
@@ -50,22 +51,39 @@ export default function RescheduleConfirm() {
       const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
       if (responseData?.success && responseData.data) {
         const { payment, lawyer } = responseData.data;
-        if (payment?.meetingDetails) {
-          const appointmentDate = new Date(payment.meetingDetails.date);
+        console.log('Payment Data:', payment, lawyer);
+
+        let appointmentDate = null;
+        let slot = null;
+        let meetingLink = payment.appointmentLink || null;
+        let canRescheduleFlag = true; // default true if no date
+
+        // If meetingDetails exists, extract appointment data
+        if (payment.meetingDetails) {
+          appointmentDate = new Date(payment.meetingDetails.date);
+          slot = payment.meetingDetails.slot || null;
+          meetingLink = payment.meetingDetails.meetingUrl || meetingLink;
+
           const now = new Date();
           const timeDiff = (appointmentDate - now) / (1000 * 60);
-          setConfirmationData({
-            lawyer,
-            service: payment.serviceType,
-            method: payment.consultationType,
-            paymentMethod: payment.paymentMethod,
-            date: appointmentDate,
-            slot: payment.meetingDetails.slot,
-            meetingLink: payment.meetingDetails.meetingUrl,
-            fee: payment.amount,
-          });
-          setCanReschedule(timeDiff > 30);
+          canRescheduleFlag = timeDiff > 30;
         }
+
+        setConfirmationData({
+          lawyer,
+          payment: payment?._id, // direct ID here
+          service: payment?.serviceType,
+          method: payment?.consultationType,
+          paymentMethod: payment?.paymentMethod,
+          date: appointmentDate,
+          slot,
+          meetingLink,
+          fee: payment?.amount,
+          status: payment?.status,
+        });
+
+        setPaymentId(payment._id);
+        setCanReschedule(canRescheduleFlag);
       }
     } catch (error) {
       console.error('Failed to load payment data:', error);
@@ -84,16 +102,43 @@ export default function RescheduleConfirm() {
   };
 
   const confirmReschedule = async () => {
-    setShowConfirmDialog(false);
-    // await axios.post(`${ApiEndPoint}payments/update-status`, {
-    //   paymentId: paymentResponse?.paymentId,
-    //   meetingDetails: '',
-    // });
-    navigate(
-      `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(
-        name.replace(/\s+/g, '-')
-      )}?ref=${encodeURIComponent(ref)}`
-    );
+    try {
+      // 1. Update appointment slot (if needed)
+      if (confirmationData.slot?._id && confirmationData.lawyer?._id) {
+        const updatedSlot = {
+          slot: confirmationData.slot._id,
+          isBooked: false,
+        };
+        const slotUpdateResponse = await axios.patch(
+          `${ApiEndPoint}crmBookappointments/${confirmationData.lawyer._id}/${confirmationData.slot._id}`,
+          updatedSlot
+        );
+        // console.log('slotUpdateResponse', slotUpdateResponse.data);
+        if (slotUpdateResponse.status !== 200) {
+          throw new Error('Failed to update appointment slot');
+        }
+      }
+
+      // 2. Update payment status
+      //  console.log('Payment ID:', confirmationData);
+      const paymentUpdateResponse = await axios.post(`${ApiEndPoint}payments/update-status`, {
+        paymentId: confirmationData?.payment,
+        meetingDetails: null,
+      });
+      console.log('Payment Link Data:', paymentUpdateResponse.data);
+      if (paymentUpdateResponse.status !== 200) {
+        throw new Error('Failed to update payment status');
+      }
+
+      // 3. Close dialog & navigate
+      setShowConfirmDialog(false);
+      navigate(
+        `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(name.replace(/\s+/g, '-'))}?ref=${ref}`
+      );
+    } catch (error) {
+      console.error('❌ Error during confirm reschedule:', error);
+      // Optionally show an error message to the user
+    }
   };
 
   if (loading) {
@@ -266,8 +311,14 @@ export default function RescheduleConfirm() {
             Are you sure you want to reschedule your appointment with {confirmationData.lawyer?.UserName}?
           </Typography>
           <Typography sx={{ mt: 1, fontSize: '0.9rem', color: '#aaaaaa' }}>
-            Current appointment: {confirmationData.date.toLocaleDateString()} at{' '}
-            {convertTo12HourFormat(confirmationData.slot?.startTime)}
+            Current appointment:
+            {confirmationData.date.toLocaleDateString('en-US', {
+              weekday: 'long',
+              month: 'long',
+              day: 'numeric',
+              year: 'numeric',
+            })}{' '}
+            at {convertTo12HourFormat(confirmationData.slot?.startTime)}
           </Typography>
         </DialogContent>
         <DialogActions>

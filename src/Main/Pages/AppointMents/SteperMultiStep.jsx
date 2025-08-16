@@ -131,6 +131,9 @@ function LegalConsultationStepper() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('PayOnline');
+  const [paymentId, setPaymentId] = useState('');
+  const [bookingData, setBookingData] = useState(null);
+
   const dateOptions = {
     timeZone: 'Asia/Dubai',
     year: 'numeric',
@@ -211,6 +214,8 @@ function LegalConsultationStepper() {
                 setConfirmationData({
                   lawyer: lawyer,
                   service: payment.serviceType,
+                  phone: payment.phone,
+                  email: payment.email,
                   method: payment.consultationType,
                   paymentMethod: payment.paymentMethod,
                   date: new Date(payment.meetingDetails.date),
@@ -231,19 +236,35 @@ function LegalConsultationStepper() {
                   setConfirmationData({
                     lawyer: lawyer,
                     service: payment.serviceType,
+                    phone: payment.phone,
+                    email: payment.email,
                     method: payment.consultationType,
                     paymentMethod: payment.paymentMethod,
                     date: new Date(payment.meetingDetails.date),
                     slot: payment.meetingDetails.slot,
                     meetingLink: payment.meetingDetails.meetingUrl,
                   });
+                  setPaymentId(payment.paymentId);
                   setActiveStep(6); // Confirmation
                 } else {
+                  setConfirmationData({
+                    lawyer: lawyer,
+                    service: payment.serviceType,
+                    phone: payment.phone,
+                    email: payment.email,
+                    method: payment.consultationType,
+                    paymentMethod: payment.paymentMethod,
+                    date: payment.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
+                    slot: payment.meetingDetails?.slot || null,
+                    meetingLink: payment.meetingDetails?.meetingUrl || null,
+                    confirmed: !!payment.meetingDetails, // true if meeting exists
+                  });
                   // Paid but no meeting - skip to date/time selection
                   setActiveStep(2); // Date & Time
                 }
               } else {
                 // Not paid yet - go to payment step
+
                 setActiveStep(4); // Payment
               }
             }
@@ -696,6 +717,7 @@ function LegalConsultationStepper() {
     // Create payment intent
     const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
     const { clientSecret, paymentId } = data;
+    setPaymentId(paymentId);
 
     // Confirm payment
     const { error: confirmError, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
@@ -776,9 +798,9 @@ function LegalConsultationStepper() {
         mailmsg: {
           lawyerDetails: selectedLawyer,
           clientDetails: {
-            UserName: paymentForm.name,
-            Phone: paymentForm.phone,
-            Email: paymentForm.email,
+            UserName: paymentForm.name || confirmationData?.name || name,
+            Phone: paymentForm.phone || phone,
+            Email: paymentForm.email || confirmationData?.email,
           },
           selectedTime: selectedTime,
           formattedDate: formattedDate,
@@ -798,6 +820,9 @@ function LegalConsultationStepper() {
       console.log('✅ Lawyer Email Response:', lawyerEmailResponse.data);
 
       // Send client email if email provided
+      const rescheduleLink =
+        `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+      console.log('Built link:', rescheduleLink);
       if (paymentForm.email) {
         console.log('🔄 Sending Client Email');
         const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
@@ -808,18 +833,16 @@ function LegalConsultationStepper() {
           mailmsg: {
             lawyerDetails: selectedLawyer,
             clientDetails: {
-              UserName: paymentForm.name,
-              Phone: paymentForm.phone,
-              Email: paymentForm.email,
+              UserName: paymentForm.name || confirmationData?.name || name,
+              Phone: paymentForm.phone || phone,
+              Email: paymentForm.email || confirmationData?.email,
             },
             selectedTime: selectedTime,
             formattedDate: formattedDate,
             clientMessage,
             isInPerson: method === 'InPerson',
             officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-            rescheduleLink: `${window.location.origin}/reschedule/${encodeURIComponent(phone)}/${encodeURIComponent(
-              name.replace(/\s+/g, '-')
-            )}?ref=${encodeURIComponent(paymentId)}`,
+            rescheduleLink: rescheduleLink,
             ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
           },
           isClientEmail: true,
@@ -890,6 +913,7 @@ function LegalConsultationStepper() {
       // 🔹 Step 1: Create Teams Meeting
       try {
         console.group('📅 Creating Microsoft Teams Meeting');
+
         const meetingResponse = await axios.post(`${ApiEndPoint}CreateTeamMeeting`, meetingDetails);
         meetingCreated = true;
         meetingUrl = meetingResponse.data.meetingLink;
@@ -902,7 +926,8 @@ function LegalConsultationStepper() {
         console.groupEnd();
         throw new Error('Failed to create meeting link.');
       }
-
+      const rescheduleLink =
+        `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
       // 🔹 Step 2: Send Email
       const emailData = {
         to: selectedLawyer?.Email,
@@ -925,20 +950,24 @@ function LegalConsultationStepper() {
           UserName: selectedLawyer?.lawyerName,
         },
         clientDetails: {
-          UserName: paymentForm.name,
-          Phone: paymentForm.phone,
+          UserName: paymentForm.name || confirmationData?.name || name,
+          Phone: paymentForm.phone || phone,
+          Email: paymentForm.email || confirmationData?.email,
         },
         selectedTime: selectedSlot.startTime,
         formattedDate: formattedDate,
+        rescheduleLink: rescheduleLink,
       };
 
       const requestBody = {
         to: selectedLawyer?.Email,
         subject: `New Appointment Booking - ${service}`,
+        clientWhatsApp: phone,
         client: {
           user: {
-            UserName: paymentForm.name,
-            Phone: paymentForm,
+            UserName: paymentForm.name || confirmationData?.name || name,
+            Phone: paymentForm.phone || phone,
+            Email: paymentForm.email || confirmationData?.email,
           },
         },
         mailmsg: emailData,
@@ -951,6 +980,9 @@ function LegalConsultationStepper() {
         emailSent = true;
         console.log('✅ Lawyer  Email sent:', emailResponse.data);
         if (paymentForm.email) {
+          const rescheduleLink =
+            `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+          console.log('Built link:', rescheduleLink);
           console.log('🔄 Sending Client Email');
           const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
             to: paymentForm?.email,
@@ -960,9 +992,9 @@ function LegalConsultationStepper() {
             mailmsg: {
               lawyerDetails: selectedLawyer,
               clientDetails: {
-                UserName: paymentForm?.name,
-                Phone: paymentForm?.phone,
-                Email: paymentForm?.email,
+                UserName: paymentForm.name || confirmationData?.name || name,
+                Phone: paymentForm.phone || phone,
+                Email: paymentForm.email || confirmationData?.email,
               },
               meetingLink: meetingUrl,
               selectedTime: selectedSlot.startTime,
@@ -970,7 +1002,7 @@ function LegalConsultationStepper() {
               clientMessage,
               isInPerson: method === 'InPerson',
               officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-              rescheduleLink: `${window.location.origin}reschedule/${phone}/${name.replace(/\s+/g, '-')}`,
+              rescheduleLink: rescheduleLink,
               ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
             },
             isClientEmail: true,
@@ -2556,9 +2588,10 @@ function LegalConsultationStepper() {
 
             <Button
               variant="outlined"
-              startIcon={<WhatsApp />} // Make sure to import WhatsApp icon from @mui/icons-material
-              href="https://wa.me/+9714332205928" // Replace with your WhatsApp number
+              startIcon={<WhatsApp />}
+              href="https://wa.me/971526986451" // Removed the extra '+' before country code
               target="_blank"
+              rel="noopener noreferrer" // Added for security
               sx={{
                 justifyContent: 'flex-start',
                 color: '#d4af37',
@@ -2569,7 +2602,7 @@ function LegalConsultationStepper() {
                 },
               }}
             >
-              WhatsApp: +9714332205928
+              WhatsApp: +971 52 698 6451
             </Button>
           </Box>
         </DialogContent>
