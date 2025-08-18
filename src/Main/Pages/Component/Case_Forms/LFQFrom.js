@@ -14,6 +14,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const caseInfo = useSelector((state) => state.screen.Caseinfo);
     const [clientName, setClientName] = useState('');
     const [clientContactInfo, setclientContactInfo] = useState('');
+    const [clientContactphone, setclientContactphone] = useState('');
     const [dateValue, setDateValue] = useState('');
     const [localCounsel, setLocalCounsel] = useState("no");
     const [matterReference, setMatterReference] = useState(caseInfo?.CaseNumber);
@@ -88,15 +89,16 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const fetchLFQForm = async (caseId) => {
         showDataLoading(true)
         try {
-            const res = await axios.get(`${ApiEndPoint}getUserById/${caseInfo?.ClientId}`);
+            const res = await axios.get(`${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`);
             if (res.data) {
                 const data = res.data;
 
                 // ===== BASIC FIELDS =====
-                setClientName(data.UserName || "");
+                setClientName(data?.user.UserName || "");
 
                 // console.log("client Data= ", data)
-                setclientContactInfo(data.Email || "");
+                setclientContactInfo(data?.user.Email || "");
+                setclientContactphone(data?.clientDetails.Contact || "");
             }
         } catch (error) {
             console.error("Error fetching client details", error);
@@ -146,7 +148,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 setFormId(data._id)
                 // ===== BASIC FIELDS =====
                 setClientName(data.clientName || "");
-                setclientContactInfo(data.clientContactInfo || "");
+                setclientContactInfo(data.clientEmail || "");
+                setclientContactphone(data.clientContactphone || "");
 
                 // ===== DATE OF CLIENT MEETING =====
                 if (data.dateOfClientMeeting) {
@@ -278,7 +281,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             // Basic text fields
             formData.append("caseId", caseInfo?._id);
             formData.append("clientName", clientName);
-            formData.append("clientContactInfo", clientContactInfo);
+            formData.append("clientEmail", clientContactInfo);
+            formData.append("clientContactphone", clientContactphone);
             const [dateValueday, dateValuemonth, dateValueyear] = dateValue.split("/");
             const dateValue_formattedDate = new Date(`${dateValueyear}-${dateValuemonth}-${dateValueday}`); // YYYY-MM-DD format
 
@@ -503,7 +507,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             const payload = {
                 caseId: caseInfo?._id,
                 clientName,
-                clientContactInfo,
+                clientEmail: clientContactInfo,
+                clientContactphone,
                 dateOfClientMeeting: dateValue_formattedDate.toISOString(),
                 matterReference,
                 caseType,
@@ -679,13 +684,24 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 />
                             </div>
                             <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Client Contact Info</label>
+                                <label className="form-label fw-semibold">Client Contact Email</label>
                                 <input
                                     className="form-control"
                                     type="text"
                                     onChange={(e) => setclientContactInfo(e.target.value)}
                                     value={clientContactInfo}
-                                    placeholder="Phone / Email"
+                                    placeholder="Email"
+                                    disabled={true}
+                                />
+                            </div>
+                            <div className="col-md-6 mb-3">
+                                <label className="form-label fw-semibold">Client Contact Number</label>
+                                <input
+                                    className="form-control"
+                                    type="text"
+                                    onChange={(e) => setclientContactphone(e.target.value)}
+                                    value={clientContactphone}
+                                    placeholder="Phone Number"
                                     disabled={true}
                                 />
                             </div>
@@ -1282,7 +1298,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             </div>
 
                             {/* Approved by (Chairman) */}
-                            {((approvedBySign || preparedBy !== token?._id) && dataFound) && (
+                            {((approvedBySign || "admin" === token?.Role) && dataFound) && (
                                 <div className="col-md-6">
                                     <div className="card shadow-sm border-0 rounded-3 mb-4">
                                         <div className="card-body">

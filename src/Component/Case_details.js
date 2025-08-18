@@ -64,6 +64,7 @@ const Case_details = ({ token }) => {
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
 
   const [lastActiveSectionId, setLastActiveSectionId] = useState(null);
+  const [isLFQISfilled, setisLFQISfilled] = useState(false);
   const sectionRefs = useRef({});
   const previousActiveSections = useRef([]);
 
@@ -393,6 +394,19 @@ const Case_details = ({ token }) => {
     setIsDataFetched(false);
     setsections([]);
 
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`${ApiEndPoint}getLFQCheckbyCaseId/${reduxCaseInfo?._id}`);
+      setisLFQISfilled(res.data.result); // true/false backend se
+    } catch (err) {
+      console.error("Error fetching LFQ form:", err);
+      setisLFQISfilled(false); // agar error ho to default false
+    } finally {
+      setLoading(false);
+    }
+
+
     try {
       const caseIdToUse = getCaseId();
       if (!caseIdToUse) {
@@ -592,8 +606,11 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client"
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
-          ...[{ label: "Form LFA", onClick: handleFormLFA }],
-          ...(token?.Role !== "client"
+          ...(isLFQISfilled
+            ? [{ label: "Form LFA", onClick: handleFormLFA }]
+            : []),
+
+          ...((token?.Role !== "client")
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
             : []),
 
