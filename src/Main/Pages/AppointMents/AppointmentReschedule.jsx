@@ -26,6 +26,7 @@ export default function RescheduleConfirm() {
   const [canReschedule, setCanReschedule] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [paymentId, setPaymentId] = useState('');
+  const [caseDiscription, setDiscription] = useState('');
 
   const { phone, name } = useParams();
   const ref = searchParams.get('ref');
@@ -51,27 +52,40 @@ export default function RescheduleConfirm() {
       const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
       if (responseData?.success && responseData.data) {
         const { payment, lawyer } = responseData.data;
-        console.log('Payment Data:', payment, lawyer);
+        // console.log('Payment Data:', payment, lawyer);
 
         let appointmentDate = null;
         let slot = null;
         let meetingLink = payment.appointmentLink || null;
-        let canRescheduleFlag = true; // default true if no date
+        let canRescheduleFlag = true; // default
+        if (payment) {
+          // console.log('Discription: ', payment);
+          setDiscription(payment?.caseDescription);
+        }
 
-        // If meetingDetails exists, extract appointment data
         if (payment.meetingDetails) {
-          appointmentDate = new Date(payment.meetingDetails.date);
+          const meetingDate = new Date(payment.meetingDetails.date);
           slot = payment.meetingDetails.slot || null;
           meetingLink = payment.meetingDetails.meetingUrl || meetingLink;
 
-          const now = new Date();
-          const timeDiff = (appointmentDate - now) / (1000 * 60);
-          canRescheduleFlag = timeDiff > 30;
+          if (slot?.startTime) {
+            // Merge date + startTime to get exact meeting start datetime
+            const [startHour, startMinute] = slot.startTime.split(':').map(Number);
+            meetingDate.setHours(startHour, startMinute, 0, 0);
+
+            const now = new Date();
+            const timeDiffMinutes = (meetingDate - now) / (1000 * 60);
+
+            // Only allow if more than 30 minutes before start
+            canRescheduleFlag = timeDiffMinutes > 30;
+          }
+
+          appointmentDate = meetingDate;
         }
 
         setConfirmationData({
           lawyer,
-          payment: payment?._id, // direct ID here
+          payment: payment?._id,
           service: payment?.serviceType,
           method: payment?.consultationType,
           paymentMethod: payment?.paymentMethod,
@@ -135,6 +149,11 @@ export default function RescheduleConfirm() {
       navigate(
         `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(name.replace(/\s+/g, '-'))}?ref=${ref}`
       );
+
+      // Force a full reload after navigation
+      setTimeout(() => {
+        window.location.reload();
+      }, 0);
     } catch (error) {
       console.error('❌ Error during confirm reschedule:', error);
       // Optionally show an error message to the user
@@ -248,6 +267,10 @@ export default function RescheduleConfirm() {
           <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
             {[
               { label: 'Service', value: confirmationData.service },
+              {
+                label: 'Case Description',
+                value: caseDiscription,
+              },
               { label: 'Consultation Type', value: confirmationData.method === 'InPerson' ? 'In-Person' : 'Online' },
               {
                 label: 'Date & Time',
@@ -267,7 +290,19 @@ export default function RescheduleConfirm() {
                 <Typography variant="body2" sx={{ color: '#d4af37' }}>
                   {item.label}
                 </Typography>
-                <Typography fontWeight="medium">{item.value}</Typography>
+                <Typography
+                  fontWeight="medium"
+                  sx={{
+                    color: 'white',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 3, // Show max 3 lines
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {item.value}
+                </Typography>
               </Box>
             ))}
           </Box>

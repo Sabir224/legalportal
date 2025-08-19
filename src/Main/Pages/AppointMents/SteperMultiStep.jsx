@@ -131,14 +131,15 @@ function LegalConsultationStepper() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('PayOnline');
-  const [paymentId, setPaymentId] = useState('');
+  const [oldpaymentId, setPaymentId] = useState('');
   const [bookingData, setBookingData] = useState(null);
+  const [caseDiscription, setDiscription] = useState('');
 
   const dateOptions = {
     timeZone: 'Asia/Dubai',
-    year: 'numeric',
     month: 'long',
     day: 'numeric',
+    year: 'numeric',
   };
 
   const steps = [
@@ -183,6 +184,14 @@ function LegalConsultationStepper() {
     { name: 'Immigration', description: 'Visa and citizenship processes' },
     { name: 'Corporate', description: 'Business formation and compliance' },
   ];
+  const handleChangeCaseDiscription = (e) => {
+    const value = e.target.value;
+    // Basic validation if needed (like max length)
+    if (value.length <= 1024) {
+      setDiscription(value);
+    }
+  };
+
   React.useEffect(() => {
     console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
     let isMounted = true;
@@ -195,13 +204,15 @@ function LegalConsultationStepper() {
 
         if (responseData?.success && responseData.data) {
           setData(responseData.data);
-          const { payment, lawyer } = responseData.data;
+          const { payment, lawyer, linkData } = responseData.data;
+          setLinkData(linkData);
 
           // Always set available data
           if (payment) {
             setService(payment.serviceType || '');
             setMethod(payment.consultationType || '');
             setPaymentMethod(payment.paymentMethod || 'Card');
+            setDiscription(payment?.caseDescription);
           }
 
           if (lawyer) setSelectedLawyer(lawyer);
@@ -216,12 +227,13 @@ function LegalConsultationStepper() {
                   service: payment.serviceType,
                   phone: payment.phone,
                   email: payment.email,
-                  method: payment.consultationType,
-                  paymentMethod: payment.paymentMethod,
+                  method: payment?.consultationType,
+                  paymentMethod: payment?.paymentMethod,
                   date: new Date(payment.meetingDetails.date),
                   slot: payment.meetingDetails.slot,
                   meetingLink: payment.meetingDetails.meetingUrl,
                 });
+                setPaymentId(payment?._id);
                 setActiveStep(6); // Confirmation
               } else {
                 // No meeting details yet - proceed to scheduling
@@ -235,31 +247,34 @@ function LegalConsultationStepper() {
                   // Complete booking - show confirmation
                   setConfirmationData({
                     lawyer: lawyer,
-                    service: payment.serviceType,
-                    phone: payment.phone,
-                    email: payment.email,
-                    method: payment.consultationType,
-                    paymentMethod: payment.paymentMethod,
-                    date: new Date(payment.meetingDetails.date),
-                    slot: payment.meetingDetails.slot,
-                    meetingLink: payment.meetingDetails.meetingUrl,
+                    service: payment?.serviceType,
+                    phone: payment?.phone,
+                    email: payment?.email,
+                    status: payment?.status,
+                    method: payment?.consultationType,
+                    paymentMethod: payment?.paymentMethod,
+                    date: new Date(payment?.meetingDetails?.date),
+                    slot: payment?.meetingDetails?.slot,
+                    meetingLink: payment?.meetingDetails?.meetingUrl,
                   });
-                  setPaymentId(payment.paymentId);
+                  setPaymentId(payment?._id);
                   setActiveStep(6); // Confirmation
                 } else {
                   setConfirmationData({
                     lawyer: lawyer,
-                    service: payment.serviceType,
-                    phone: payment.phone,
-                    email: payment.email,
-                    method: payment.consultationType,
-                    paymentMethod: payment.paymentMethod,
-                    date: payment.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
-                    slot: payment.meetingDetails?.slot || null,
-                    meetingLink: payment.meetingDetails?.meetingUrl || null,
-                    confirmed: !!payment.meetingDetails, // true if meeting exists
+                    service: payment?.serviceType,
+                    phone: payment?.phone,
+                    email: payment?.email,
+                    status: payment?.status,
+                    method: payment?.consultationType,
+                    paymentMethod: payment?.paymentMethod,
+                    date: payment?.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
+                    slot: payment?.meetingDetails?.slot || null,
+                    meetingLink: payment?.meetingDetails?.meetingUrl || null,
+                    confirmed: !!payment?.meetingDetails, // true if meeting exists
                   });
                   // Paid but no meeting - skip to date/time selection
+                  setPaymentId(payment?._id);
                   setActiveStep(2); // Date & Time
                 }
               } else {
@@ -288,36 +303,36 @@ function LegalConsultationStepper() {
   }, [ref]);
 
   // Debug effect for state changes
-  React.useEffect(() => {
-    console.groupCollapsed('[State Debug] Current State');
-    console.log('Active Step:', activeStep);
-    console.log('Method:', method);
-    console.log('Service:', service);
-    console.log(
-      'Selected Lawyer:',
-      selectedLawyer
-        ? {
-            id: selectedLawyer._id,
-            name: selectedLawyer.UserName,
-            specialty: selectedLawyer.specialty,
-          }
-        : null
-    );
-    console.log('Confirmation Data:', confirmationData);
-    console.log('Meeting Link:', meetingLink);
-    console.log('Initial Data Loaded:', initialDataLoaded);
-    console.log(
-      'API Data:',
-      data
-        ? {
-            paymentStatus: data.payment?.status,
-            hasMeeting: !!data.payment?.meetingDetails,
-            lawyerName: data.lawyer?.UserName,
-          }
-        : null
-    );
-    console.groupEnd();
-  }, [activeStep, method, service, selectedLawyer, confirmationData, meetingLink, initialDataLoaded, data]);
+  // React.useEffect(() => {
+  //   console.groupCollapsed('[State Debug] Current State');
+  //   console.log('Active Step:', activeStep);
+  //   console.log('Method:', method);
+  //   console.log('Service:', service);
+  //   console.log(
+  //     'Selected Lawyer:',
+  //     selectedLawyer
+  //       ? {
+  //           id: selectedLawyer._id,
+  //           name: selectedLawyer.UserName,
+  //           specialty: selectedLawyer.specialty,
+  //         }
+  //       : null
+  //   );
+  //   console.log('Confirmation Data:', confirmationData);
+  //   console.log('Meeting Link:', meetingLink);
+  //   console.log('Initial Data Loaded:', initialDataLoaded);
+  //   console.log(
+  //     'API Data:',
+  //     data
+  //       ? {
+  //           paymentStatus: data.payment?.status,
+  //           hasMeeting: !!data.payment?.meetingDetails,
+  //           lawyerName: data.lawyer?.UserName,
+  //         }
+  //       : null
+  //   );
+  //   console.groupEnd();
+  // }, [activeStep, method, service, selectedLawyer, confirmationData, meetingLink, initialDataLoaded, data]);
   // Fetch lawyers from API
   React.useEffect(() => {
     const fetchLawyers = async () => {
@@ -414,12 +429,15 @@ function LegalConsultationStepper() {
 
   const handleNext = () => {
     // For free appointments after method selection
+
     if (activeStep === 3 && (selectedLawyer?.price === '0' || selectedLawyer?.price === '')) {
       setActiveStep(5); // Skip to confirmation
     }
     // For paid appointments that just need to select time slot
     else if (activeStep === 2 && data?.payment?.status === 'paid' && !data?.payment?.meetingDetails) {
       setActiveStep(5); // Skip to confirmation after selecting time
+    } else if (activeStep === 2 && data?.payment?.consultationType === 'InPerson') {
+      setActiveStep(5);
     } else {
       setActiveStep(activeStep + 1); // Normal step progression
     }
@@ -466,10 +484,11 @@ function LegalConsultationStepper() {
   const nextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
-
   const handleDateClick = (date) => {
     if (date) {
-      setSelectedDate(date);
+      // Extract ONLY date parts (ignore time & timezone)
+      const pureDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      setSelectedDate(pureDate); // Stores only YYYY-MM-DD (no time)
       fetchAppointments(selectedLawyer._id);
     }
   };
@@ -544,28 +563,77 @@ function LegalConsultationStepper() {
     setIsPopupVisible(false);
     setClientMessage('');
   };
+  /**
+   * Updates slot booking status for a lawyer.
+   *
+   * @param {Object} params
+   * @param {string} params.lawyerId - The lawyer's ID.
+   * @param {string} params.slotId - The slot's ID.
+   * @param {boolean} [params.isBooked=true] - Whether the slot is booked or unbooked.
+   * @param {Object} [params.publicBooking] - Optional booking details { name, phone }.
+   */
+  const updateSlotBooking = async ({ lawyerId, slotId, isBooked = true, publicBooking = {} }) => {
+    console.group('📌 Updating Slot Booking');
+
+    if (!lawyerId || !slotId) {
+      console.error('❌ Missing lawyerId or slotId for booking update.');
+      return;
+    }
+
+    const updatedSlot = {
+      slot: slotId,
+      isBooked,
+      publicBooking: {
+        name: publicBooking.name || '',
+        phone: publicBooking.phone || '',
+      },
+    };
+
+    console.log('🔄 Calling crmBookappointments PATCH with:', updatedSlot);
+
+    try {
+      const slotUpdateResponse = await axios.patch(
+        `${ApiEndPoint}crmBookappointments/${lawyerId}/${slotId}`,
+        updatedSlot
+      );
+      console.log('✅ Slot Update Success:', slotUpdateResponse.data);
+      return slotUpdateResponse.data;
+    } catch (slotErr) {
+      console.error('❌ Slot Update Failed:', {
+        error: slotErr.message,
+        response: slotErr.response?.data,
+        config: {
+          url: slotErr.config?.url,
+          data: slotErr.config?.data,
+        },
+      });
+      throw slotErr;
+    } finally {
+      console.groupEnd();
+    }
+  };
 
   const handleConfirmPayment = async () => {
     setIsProcessing(true);
     setPaymentError(null);
     console.group('🔵 handleConfirmPayment - Start');
-    console.log('Initial state:', {
-      paymentForm,
-      selectedLawyer,
-      selectedSlot,
-      selectedDate,
-      method,
-      paymentMethod,
-      service,
-      clientMessage,
-    });
+    // console.log('Initial state:', {
+    //   paymentForm,
+    //   selectedLawyer,
+    //   selectedSlot,
+    //   selectedDate,
+    //   method,
+    //   paymentMethod,
+    //   service,
+    //   clientMessage,
+    // });
 
     try {
       // Common payment data
       const paymentData = {
-        name: paymentForm.name,
-        phone: paymentForm.phone,
-        email: paymentForm.email,
+        name: paymentForm?.name || confirmationData?.name || data?.payment?.name,
+        phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone,
+        email: paymentForm?.email || data?.payment?.email,
         amount: Number(selectedLawyer?.price) || 200,
         serviceType: service,
         lawyerId: selectedLawyer?._id,
@@ -578,40 +646,70 @@ function LegalConsultationStepper() {
       console.log('📦 Payment Data Prepared:', paymentData);
 
       // Handle Pay at Office flow (only for InPerson consultation)
-      // In the main handleConfirmPayment function, replace the error throwing with:
       if (method === 'InPerson' && paymentMethod === 'PayInOffice') {
         console.log('⚙️ Processing InPerson PayInOffice flow');
-        await handlePayInOfficeFlow(paymentData);
+
+        if (data?.payment?.status === 'pending') {
+          // console.log("PaymenData___:",oldpaymentId);
+          await sendConfirmationEmails(oldpaymentId || data?.payment?._id);
+          await updateSlotBooking({
+            lawyerId: selectedLawyer?._id,
+            slotId: selectedSlot?._id,
+            isBooked: true,
+            publicBooking: {
+              name: paymentForm.name || confirmationData?.name,
+              phone: paymentForm.phone || confirmationData?.phone,
+            },
+          });
+          await axios.post(`${ApiEndPoint}payments/update-status`, {
+            paymentId: oldpaymentId || data?.payment?._id,
+            meetingDetails: {
+              meetingUrl: 'meetingbooked',
+              date: selectedDate,
+              slot: selectedSlot,
+            },
+          });
+          setActiveStep(6);
+        } else {
+          await handlePayInOfficeFlow(paymentData);
+        }
       } else if (paymentMethod === 'PayOnline') {
         console.log('⚙️ Processing Card Payment flow');
-        await handleCardPaymentFlow(paymentData);
+
+        if (data?.payment?.status === 'paid') {
+          await sendConfirmationEmails(oldpaymentId || data?.payment?._id);
+          await updateSlotBooking({
+            lawyerId: selectedLawyer?._id,
+            slotId: selectedSlot?._id,
+            isBooked: true,
+            publicBooking: {
+              name: paymentForm.name || confirmationData?.name,
+              phone: paymentForm.phone || confirmationData?.phone,
+            },
+          });
+          await axios.post(`${ApiEndPoint}payments/update-status`, {
+            paymentId: oldpaymentId || data?.payment?._id,
+            meetingDetails: {
+              meetingUrl: 'meetingbooked',
+              date: selectedDate,
+              slot: selectedSlot,
+            },
+          });
+          setActiveStep(6);
+        } else {
+          await handleCardPaymentFlow(paymentData);
+        }
       } else {
         const errorMsg = `Unsupported combination: Consultation type ${method} with payment method ${paymentMethod}`;
         console.error('❌', errorMsg);
         setPaymentError('This payment method is not available for the selected consultation type');
         throw new Error(errorMsg);
       }
-
-      throw new Error('Invalid payment method or consultation type combination');
     } catch (err) {
-      console.error('❌ Main Error Handler:', {
-        error: err,
-        message: err.message,
-        stack: err.stack,
-        response: err.response?.data,
-      });
-      setPaymentError(err.message || 'Payment processing failed');
-
-      if (err.response) {
-        console.error('🔍 Response Details:', {
-          status: err.response.status,
-          headers: err.response.headers,
-          data: err.response.data,
-        });
-      }
+      console.error('❌ handleConfirmPayment failed:', err);
+      setPaymentError(err.message || 'Something went wrong');
     } finally {
-      console.log('🏁 Final Cleanup - Setting isProcessing to false');
-      setIsProcessing(false);
+      setIsProcessing(false); // ✅ Always executed no matter what
       console.groupEnd();
     }
   };
@@ -632,6 +730,7 @@ function LegalConsultationStepper() {
           date: selectedDate,
           slot: selectedSlot,
         },
+        caseDescription: caseDiscription,
       });
 
       if (paymentResponse.isDuplicate) {
@@ -648,8 +747,8 @@ function LegalConsultationStepper() {
       slot: selectedSlot?._id,
       isBooked: true,
       publicBooking: {
-        name: paymentForm.name,
-        phone: paymentForm.phone,
+        name: paymentForm.name || confirmationData.name,
+        phone: paymentForm.phone || confirmationData.phone,
       },
     };
 
@@ -680,9 +779,9 @@ function LegalConsultationStepper() {
     const confirmationPayload = {
       lawyer: selectedLawyer,
       service,
-      method,
+      method: method || confirmationData.method,
       paymentMethod: 'PayInOffice',
-      paymentRecord: { _id: paymentResponse.paymentId },
+      paymentRecord: { _id: paymentResponse.paymentId || oldpaymentId || data?.payment?._id },
       ...(selectedDate && { date: selectedDate }),
       ...(selectedSlot && { slot: selectedSlot }),
       clientMessage,
@@ -717,6 +816,7 @@ function LegalConsultationStepper() {
     // Create payment intent
     const { data } = await axios.post(`${ApiEndPoint}payments/create-payment-intent`, paymentData);
     const { clientSecret, paymentId } = data;
+    const PaymentID = paymentId;
     setPaymentId(paymentId);
 
     // Confirm payment
@@ -737,7 +837,7 @@ function LegalConsultationStepper() {
 
     // Prepare all data to save
     const paymentUpdateData = {
-      paymentId,
+      paymentId: PaymentID || oldpaymentId || data?.payment?._id,
       status: 'paid',
       paymentIntentId: paymentIntent.id,
       paymentMethodId: paymentIntent.payment_method,
@@ -747,6 +847,7 @@ function LegalConsultationStepper() {
           ...(selectedSlot && { slot: selectedSlot }),
         },
       }),
+      caseDescription: caseDiscription,
     };
 
     // Update payment with all details
@@ -787,25 +888,31 @@ function LegalConsultationStepper() {
   // Helper function to send confirmation emails
   const sendConfirmationEmails = async (paymentId) => {
     console.group('📧 Sending Confirmation Emails');
-    const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(selectedDate);
+    const formattedDate = selectedDate
+      ? `${selectedDate.getDate()} ${selectedDate.toLocaleString('default', {
+          month: 'long',
+        })}, ${selectedDate.getFullYear()}`
+      : '';
     try {
       // Send lawyer email
       console.log('🔄 Sending Lawyer Email');
       const lawyerEmailPayload = {
         to: selectedLawyer?.Email,
-        subject: `New ${method === 'Online' ? 'Online' : 'In-Person'} Appointment with ${paymentForm.name}`,
+        subject: `New ${method === 'Online' ? 'Online' : 'In-Person'} Appointment with ${
+          paymentForm.name || data?.payment?.name
+        }`,
         text: 'Appointment details',
         mailmsg: {
           lawyerDetails: selectedLawyer,
           clientDetails: {
-            UserName: paymentForm.name || confirmationData?.name || name,
-            Phone: paymentForm.phone || phone,
-            Email: paymentForm.email || confirmationData?.email,
+            UserName: paymentForm?.name || confirmationData?.name || data?.payment?.name || name,
+            Phone: paymentForm.phone || data?.payment?.phone || phone,
+            Email: paymentForm.email || data?.payment?.email,
           },
           selectedTime: selectedTime,
           formattedDate: formattedDate,
           clientMessage,
-          isInPerson: method === 'InPerson',
+          isInPerson: method || confirmationData.method === 'InPerson',
           officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
           ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
         },
@@ -823,24 +930,24 @@ function LegalConsultationStepper() {
       const rescheduleLink =
         `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
       console.log('Built link:', rescheduleLink);
-      if (paymentForm.email) {
+      if (paymentForm.email || confirmationData?.email || data?.payment?.email) {
         console.log('🔄 Sending Client Email');
         const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
-          to: paymentForm.email,
+          to: paymentForm?.email || confirmationData?.email || data?.payment?.email,
           subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
           text: 'Appointment details',
           clientWhatsApp: phone,
           mailmsg: {
             lawyerDetails: selectedLawyer,
             clientDetails: {
-              UserName: paymentForm.name || confirmationData?.name || name,
-              Phone: paymentForm.phone || phone,
-              Email: paymentForm.email || confirmationData?.email,
+              UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
+              Phone: paymentForm.phone || data?.payment?.phone || phone,
+              Email: paymentForm.email || data?.payment?.email,
             },
             selectedTime: selectedTime,
             formattedDate: formattedDate,
             clientMessage,
-            isInPerson: method === 'InPerson',
+            isInPerson: method || confirmationData.method === 'InPerson',
             officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
             rescheduleLink: rescheduleLink,
             ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
@@ -894,7 +1001,13 @@ function LegalConsultationStepper() {
 
       const startTime24 = convertTo24Hour(selectedSlot.startTime);
       const endTime24 = convertTo24Hour(selectedSlot.endTime);
-      const formattedDate = new Intl.DateTimeFormat('en-US', dateOptions).format(selectedDate);
+      const formattedDate = selectedDate
+        ? `${selectedDate.getDate()} ${selectedDate.toLocaleString('default', {
+            month: 'long',
+          })}, ${selectedDate.getFullYear()}`
+        : '';
+      console.log('Selected Slot:', selectedDate);
+      console.log('Formated Date:', formattedDate);
 
       let startDateTime = new Date(`${meetingDate}T${startTime24}:00Z`);
       let endDateTime = new Date(`${meetingDate}T${endTime24}:00Z`);
@@ -934,7 +1047,7 @@ function LegalConsultationStepper() {
         subject: `New Appointment Booking - ${service}`,
         clientMessage: clientMessage || 'No additional message provided',
         meetingDetails: {
-          lawyerName: selectedLawyer.UserName,
+          lawyerName: selectedLawyer?.UserName,
           service: service,
           date: selectedDate.toLocaleDateString('en-US', {
             weekday: 'long',
@@ -947,12 +1060,12 @@ function LegalConsultationStepper() {
         },
         lawyerDetails: {
           _id: selectedLawyer?._id,
-          UserName: selectedLawyer?.lawyerName,
+          UserName: selectedLawyer?.UserName,
         },
         clientDetails: {
-          UserName: paymentForm.name || confirmationData?.name || name,
-          Phone: paymentForm.phone || phone,
-          Email: paymentForm.email || confirmationData?.email,
+          UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
+          Phone: paymentForm.phone || data?.payment?.phone || phone,
+          Email: paymentForm.email || data?.payment?.email,
         },
         selectedTime: selectedSlot.startTime,
         formattedDate: formattedDate,
@@ -962,7 +1075,6 @@ function LegalConsultationStepper() {
       const requestBody = {
         to: selectedLawyer?.Email,
         subject: `New Appointment Booking - ${service}`,
-        clientWhatsApp: phone,
         client: {
           user: {
             UserName: paymentForm.name || confirmationData?.name || name,
@@ -979,22 +1091,22 @@ function LegalConsultationStepper() {
         const emailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody);
         emailSent = true;
         console.log('✅ Lawyer  Email sent:', emailResponse.data);
-        if (paymentForm.email) {
-          const rescheduleLink =
-            `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
-          console.log('Built link:', rescheduleLink);
+        if (paymentForm.email || confirmationData?.email) {
+          // const rescheduleLink =
+          //   `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+          // console.log('Built link:', rescheduleLink);
           console.log('🔄 Sending Client Email');
           const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
-            to: paymentForm?.email,
+            to: paymentForm?.email || confirmationData.email || data?.payment?.email,
             subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
             clientWhatsApp: phone,
             text: 'Appointment details',
             mailmsg: {
               lawyerDetails: selectedLawyer,
               clientDetails: {
-                UserName: paymentForm.name || confirmationData?.name || name,
-                Phone: paymentForm.phone || phone,
-                Email: paymentForm.email || confirmationData?.email,
+                UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
+                Phone: paymentForm.phone || data?.payment?.phone || phone,
+                Email: paymentForm.email || data?.payment?.email,
               },
               meetingLink: meetingUrl,
               selectedTime: selectedSlot.startTime,
@@ -1021,7 +1133,19 @@ function LegalConsultationStepper() {
       if (!slotId) throw new Error('Missing slot ID');
 
       try {
-        console.group('📌 Updating Slot Booking');
+        console.group('🛠 DEBUG: Updating Slot Booking');
+
+        console.log('📌 Selected Lawyer ID:', selectedLawyer?._id);
+        console.log('📌 Slot ID:', slotId);
+        console.log('📌 Meeting URL:', meetingUrl);
+        console.log('📌 Payment Form:', paymentForm);
+        console.log('📌 Phone:', phone);
+
+        if (!slotId || !selectedLawyer?._id) {
+          console.error('❌ Missing required data to update slot');
+          throw new Error(`Missing data: slotId=${slotId}, lawyerId=${selectedLawyer?._id}`);
+        }
+
         const updatedSlot = {
           slot: slotId,
           isBooked: true,
@@ -1032,16 +1156,23 @@ function LegalConsultationStepper() {
           meetingLink: meetingUrl,
         };
 
+        console.log('📤 PATCH URL:', `${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`);
+        console.log('📦 PATCH BODY:', updatedSlot);
+
         const responseupdate = await axios.patch(
-          `${ApiEndPoint}crmBookappointments/${selectedLawyer?._id}/${slotId}`,
+          `${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`,
           updatedSlot
         );
+
         slotUpdated = true;
-        console.log('✅ Slot updated:', responseupdate.data);
+        console.log('✅ Slot updated successfully:', responseupdate.data);
+
         console.groupEnd();
       } catch (err) {
-        console.group('❌ Slot Update Failed');
-        console.error('Error:', err.response?.data || err.message);
+        console.group('❌ DEBUG: Slot Update Failed');
+        console.error('❌ Error Response Data:', err.response?.data);
+        console.error('❌ Error Message:', err.message);
+        console.error('❌ Full Error Object:', err);
         console.groupEnd();
         throw new Error('Failed to update slot');
       }
@@ -1057,17 +1188,17 @@ function LegalConsultationStepper() {
         clientMessage,
       };
       setConfirmationData(confirmation);
-
       // 🔹 Step 5: Payment Update
       try {
         console.group('💰 Updating Payment Status');
         await axios.post(`${ApiEndPoint}payments/update-status`, {
-          paymentId: data?.payment?._id,
+          paymentId: oldpaymentId || data?.payment?._id,
           meetingDetails: {
             meetingUrl: meetingUrl,
             date: selectedDate,
             slot: selectedSlot,
           },
+          caseDescription: caseDiscription,
         });
         console.log('✅ Payment status updated');
         console.groupEnd();
@@ -1248,6 +1379,80 @@ function LegalConsultationStepper() {
                   </MenuItem>
                 ))}
               </Select>
+              <Box sx={{ position: 'relative', marginTop: '10px' }}>
+                <TextField
+                  label="Case Description"
+                  name="casediscription"
+                  value={caseDiscription}
+                  onChange={handleChangeCaseDiscription}
+                  required
+                  multiline
+                  minRows={1}
+                  maxRows={4}
+                  inputProps={{
+                    maxLength: 1024,
+                  }}
+                  InputLabelProps={{
+                    sx: {
+                      color: '#d4af37 !important', // Golden color for label
+                      '&.Mui-focused': {
+                        color: '#d4af37 !important', // Maintain golden when focused
+                      },
+                    },
+                  }}
+                  InputProps={{
+                    style: {
+                      color: 'white',
+                      backgroundColor: '#18273e',
+                      overflowY: 'auto',
+                      paddingBottom: '25px',
+                    },
+                  }}
+                  sx={{
+                    width: '100%',
+                    '& .MuiOutlinedInput-root': {
+                      backgroundColor: '#18273e !important',
+                      '& fieldset': {
+                        borderColor: 'rgba(255, 255, 255, 0.23)',
+                      },
+                      '&:hover fieldset': {
+                        borderColor: '#d4af37',
+                      },
+                      '&.Mui-focused fieldset': {
+                        borderColor: '#d4af37',
+                      },
+                      '&.Mui-error fieldset': {
+                        borderColor: '#f44336',
+                      },
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#d4af37',
+                    },
+                    '& .MuiFormHelperText-root': {
+                      color: caseDiscription.length > 1024 ? '#f44336' : 'rgba(255, 255, 255, 0.7)',
+                    },
+                  }}
+                  helperText={caseDiscription.length > 1024 ? 'Maximum 1024 characters exceeded' : ''}
+                  error={caseDiscription.length > 1024}
+                />
+
+                {/* Character counter positioned absolutely */}
+                <Typography
+                  variant="caption"
+                  sx={{
+                    position: 'absolute',
+                    right: 14,
+                    bottom: 8,
+                    color: caseDiscription.length > 900 ? '#d4af37' : 'rgba(255, 255, 255, 0.5)',
+                    fontWeight: caseDiscription.length > 900 ? 600 : 400,
+                    backgroundColor: '#18273e',
+                    padding: '0 4px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {`${caseDiscription.length}/1024`}
+                </Typography>
+              </Box>
             </FormControl>
           </Box>
         );
@@ -2036,7 +2241,7 @@ function LegalConsultationStepper() {
                         marginLeft: '10px',
                       }}
                     >
-                      {'  '}AED {selectedLawyer?.price || 200}
+                      {'  '}AED {selectedLawyer?.price || data?.payment?.amount || 200}
                     </Typography>
                   </Box>
                 </Grid>
@@ -2448,11 +2653,31 @@ function LegalConsultationStepper() {
                     Fee
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    AED {selectedLawyer?.price || 'AED 200'}
+                    AED {selectedLawyer?.price || data?.payment?.amount || 'AED 200'}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="body2" sx={{ color: '#d4af37' }}>
+                    Case Description
+                  </Typography>
+                  <Typography
+                    fontWeight="medium"
+                    sx={{
+                      color: 'white',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 3, // Show max 3 lines
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {caseDiscription.split(' ').slice(0, 20).join(' ')}
+                    {caseDiscription.split(' ').length > 20 && '...'}
                   </Typography>
                 </Box>
               </Box>
-              {method !== 'InPerson' && (
+
+              {method !== 'InPerson' ? (
                 <Box sx={{ mt: 3 }}>
                   <Button
                     variant="contained"
@@ -2482,6 +2707,41 @@ function LegalConsultationStepper() {
                     Confirm Appointment
                   </Button>
                 </Box>
+              ) : (
+                data?.payment &&
+                data?.payment?.consultationType === 'InPerson' && (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1 }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleConfirmPayment}
+                      disabled={isProcessing}
+                      sx={{
+                        px: 3,
+                        py: 1.2,
+                        backgroundColor: '#d4af37',
+                        color: '#18273e',
+                        fontWeight: 'bold',
+                        fontSize: '1rem',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 14px rgba(212, 175, 55, 0.4)',
+                        '&:hover': { backgroundColor: '#c19b2e' },
+                        '&.Mui-disabled': {
+                          backgroundColor: 'rgba(212, 175, 55, 0.4)',
+                          color: '#18273e99',
+                        },
+                      }}
+                    >
+                      {isProcessing ? (
+                        <>
+                          <CircularProgress size={20} sx={{ color: '#18273e', mr: 1.5 }} />
+                          Processing...
+                        </>
+                      ) : (
+                        `Confirm Your Appointment`
+                      )}
+                    </Button>
+                  </Box>
+                )
               )}
             </Paper>
           </Box>
@@ -2514,18 +2774,22 @@ function LegalConsultationStepper() {
         }}
       >
         <Tooltip title="Need help? Contact us" arrow disableInteractive disablePortal>
-          <IconButton
+          <Button
             onClick={() => setHelpOpen(true)}
+            startIcon={<HelpOutline />}
             sx={{
-              backgroundColor: '#d4af37',
               color: '#18273e',
+              backgroundColor: '#d4af37',
               '&:hover': {
                 backgroundColor: '#c19b2e',
               },
+              textTransform: 'none', // Prevents uppercase transformation
+              fontWeight: 'medium',
+              padding: '6px 16px',
             }}
           >
-            <HelpOutline />
-          </IconButton>
+            Contact Us
+          </Button>
         </Tooltip>
       </Box>
       {/* Help Dialog */}
