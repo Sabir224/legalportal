@@ -63,9 +63,13 @@ const Case_details = ({ token }) => {
   const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
 
+
   const [lastActiveSectionId, setLastActiveSectionId] = useState(null);
+  const [isLFQISfilled, setisLFQISfilled] = useState(false);
+  const [isclientAssigned, setisclientAssigned] = useState(reduxCaseInfo.ClientId ? true : false);
   const sectionRefs = useRef({});
   const previousActiveSections = useRef([]);
+
 
   useEffect(() => {
     // Find which section is new
@@ -393,6 +397,19 @@ const Case_details = ({ token }) => {
     setIsDataFetched(false);
     setsections([]);
 
+
+    try {
+      setLoading(true);
+      const res = await axios.get(`${ApiEndPoint}getLFQCheckbyCaseId/${reduxCaseInfo?._id}`);
+      setisLFQISfilled(res.data.result); // true/false backend se
+    } catch (err) {
+      console.error("Error fetching LFQ form:", err);
+      setisLFQISfilled(false); // agar error ho to default false
+    } finally {
+      setLoading(false);
+    }
+
+
     try {
       const caseIdToUse = getCaseId();
       if (!caseIdToUse) {
@@ -493,6 +510,12 @@ const Case_details = ({ token }) => {
     // console.log(global.User);
     dispatch(screenChange(27));
   };
+  const handleFormLFQ = async () => {
+    // global.lawyerDetails = lawyerDetails[0];
+    // global.User = user;
+    // console.log(global.User);
+    dispatch(screenChange(28));
+  };
   const handleViewTask = async () => {
     // global.lawyerDetails = lawyerDetails[0];
     // global.User = user;
@@ -580,13 +603,20 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client"
             ? [{ label: "Add Task", onClick: handleAddTask }]
             : []),
-          ...(token?.Role !== "client"
+          ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form H", onClick: handleFormH }]
             : []),
-          ...(token?.Role !== "client"
+          ...((token?.Role !== "client"&&  isclientAssigned)
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
-          ...[{ label: "Form LFA", onClick: handleFormLFA }],
+          ...((isLFQISfilled && isclientAssigned)
+            ? [{ label: "Form LFA", onClick: handleFormLFA }]
+            : []),
+
+          ...((token?.Role !== "client" && isclientAssigned)
+            ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
+            : []),
+
         ].map(({ label, onClick }, index) => (
           <div key={index} className="d-flex justify-content-center mb-2">
             <button

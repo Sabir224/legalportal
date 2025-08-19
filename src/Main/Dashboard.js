@@ -911,18 +911,18 @@ const Dashboard = () => {
                 handlescreen2(21);
               },
             },
-            {
-              icon: faQuestionCircle,
-              label: 'LFQ form',
-              action: () => {
-                dispatch(clientEmail(null));
-                dispatch(Caseinfo(null));
-                dispatch(FormCDetails(null));
-                dispatch(FormHDetails(null));
+            // {
+            //   icon: faQuestionCircle,
+            //   label: 'LFQ form',
+            //   action: () => {
+            //     dispatch(clientEmail(null));
+            //     dispatch(Caseinfo(null));
+            //     dispatch(FormCDetails(null));
+            //     dispatch(FormHDetails(null));
 
-                handlescreen2(28);
-              },
-            },
+            //     handlescreen2(28);
+            //   },
+            // },
             { icon: faSignOut, label: 'Logout', action: handleLogOut },
           ]
             .filter(Boolean)
@@ -1003,6 +1003,7 @@ const Dashboard = () => {
               {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
               {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
               {screen === 27 && <ScreenHeader title={`View LFA${caseDetailsScreenTitle}`} onBack={handleBack} />}
+              {screen === 28 && <ScreenHeader title={`View LFQ${caseDetailsScreenTitle}`} onBack={handleBack} />}
             </h3>
 
             {/* Admin Buttons */}

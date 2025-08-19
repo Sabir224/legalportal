@@ -1359,41 +1359,103 @@ const LEA_Form = ({ token }) => {
                                         <React.Fragment key={index}>
                                             <span>{part}</span>
                                             {index < agreement.editableValues.length && (
-                                                <span
-                                                    contentEditable
-                                                    suppressContentEditableWarning={true}
-                                                    onInput={(e) => handleEditableChange(index, e.currentTarget.innerHTML)}
-                                                    onKeyDown={(e) => {
-                                                        // Bold shortcut
-                                                        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-                                                            e.preventDefault();
-                                                            document.execCommand('bold', false, null);
+                                                // <span
+                                                //     contentEditable
+                                                //     suppressContentEditableWarning={true}
+                                                //     onInput={(e) => handleEditableChange(index, e.currentTarget.innerHTML)}
+                                                //     onKeyDown={(e) => {
+                                                //         // Bold shortcut
+                                                //         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+                                                //             e.preventDefault();
+                                                //             document.execCommand('bold', false, null);
+                                                //         }
+                                                //         // Tab insert spaces
+                                                //         if (e.key === 'Tab') {
+                                                //             e.preventDefault();
+                                                //             document.execCommand('insertText', false, '    ');
+                                                //         }
+                                                //     }}
+                                                //     dangerouslySetInnerHTML={{
+                                                //         __html: agreement.editableValues[index] || ''
+                                                //     }}
+                                                //     className="border-bottom mx-1 px-1"
+                                                //     style={{
+                                                //         border: 'none',
+                                                //         borderBottom: '1px solid #000',
+                                                //         background: 'transparent',
+                                                //         minWidth: '100px',
+                                                //         maxWidth: '100%', // full width allowed
+                                                //         display: 'inline-block',
+                                                //         wordBreak: 'break-word',
+                                                //         overflowWrap: 'break-word',
+                                                //         whiteSpace: 'pre-wrap',
+                                                //         direction: 'ltr',       // Force Left-to-Right writing
+                                                //         textAlign: 'left'       // Align text to left
+                                                //     }}
+
+                                                // />
+
+
+                                                <p
+                                                    ref={(el) => {
+                                                        if (el && !el.innerHTML.trim()) {
+                                                            el.innerHTML = agreement.editableValues[index] || '\u00A0';
                                                         }
-                                                        // Tab insert spaces
+                                                    }}
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onInput={(e) => {
+                                                        const html = e.currentTarget.innerHTML;
+                                                        handleEditableChange(index, html);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        // Ctrl+B for bold
+                                                        if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+                                                            e.preventDefault();
+                                                            document.execCommand('bold');
+                                                        }
+
+                                                        // Tab key for 8 spaces
                                                         if (e.key === 'Tab') {
                                                             e.preventDefault();
-                                                            document.execCommand('insertText', false, '    ');
+                                                            const selection = window.getSelection();
+                                                            if (!selection.rangeCount) return;
+
+                                                            const range = selection.getRangeAt(0);
+                                                            const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
+                                                            const spaceNode = document.createTextNode(tabSpaces);
+
+                                                            range.insertNode(spaceNode);
+                                                            // Move cursor after inserted spaces
+                                                            range.setStartAfter(spaceNode);
+                                                            range.setEndAfter(spaceNode);
+                                                            selection.removeAllRanges();
+                                                            selection.addRange(range);
                                                         }
                                                     }}
-                                                    dangerouslySetInnerHTML={{
-                                                        __html: agreement.editableValues[index] || ''
+                                                    onBlur={(e) => {
+                                                        if (!e.currentTarget.textContent.trim()) {
+                                                            e.currentTarget.innerHTML = '\u00A0';
+                                                        }
                                                     }}
-                                                    className="border-bottom mx-1 px-1"
                                                     style={{
-                                                        border: 'none',
-                                                        borderBottom: '1px solid #000',
-                                                        background: 'transparent',
-                                                        minWidth: '100px',
-                                                        maxWidth: '100%', // full width allowed
-                                                        display: 'inline-block',
-                                                        wordBreak: 'break-word',
-                                                        overflowWrap: 'break-word',
-                                                        whiteSpace: 'pre-wrap',
-                                                        direction: 'ltr',       // Force Left-to-Right writing
-                                                        textAlign: 'left'       // Align text to left
+                                                        display: "inline",
+                                                        minWidth: "2ch",
+                                                        maxWidth: "100%",
+                                                        outline: "none",
+                                                        background: "transparent",
+                                                        verticalAlign: "middle",
+                                                        whiteSpace: "pre-wrap",
+                                                        wordBreak: "break-word",
+                                                        fontFamily: "inherit",
+                                                        fontSize: "inherit",
+                                                        padding: "0 2px",
+                                                        boxSizing: "border-box",
+                                                        textDecoration: "underline", // underline continues on wrap
+                                                        textDecorationSkipInk: "none" // keeps underline from skipping descenders
                                                     }}
-
                                                 />
+
                                             )}
                                         </React.Fragment>
                                     ))}
