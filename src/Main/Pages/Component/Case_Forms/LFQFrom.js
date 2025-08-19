@@ -43,6 +43,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     const [ResourcelocalCounsel, setResourceLocalCounsel] = useState('');
     const [localCounselHours, setLocalCounselHours] = useState('');
+    const [ResourcelocalCounselHours, setResourceLocalCounselHours] = useState('');
     const [paralegal, setParalegal] = useState('');
     const [paralegalHours, setParalegalHours] = useState('');
     const [otherResources, setOtherResources] = useState('');
@@ -178,7 +179,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 setAssociateName(data.associateLawyer?.name || "");
                 setAssociateHours(data.associateLawyer?.estHours || "");
                 setResourceLocalCounsel(data.resourceLocalCounsel?.name || "");
-                setLocalCounselHours(data.resourceLocalCounsel?.estHours || "");
+                setResourceLocalCounselHours(data.resourceLocalCounsel?.estHours || "");
                 setParalegal(data.paralegalSupport?.role || "");
                 setParalegalHours(data.paralegalSupport?.estHours || "");
                 setOtherResources(data.otherResources?.description || "");
@@ -276,6 +277,109 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         e.preventDefault();
 
         try {
+
+
+
+            const validations = [
+                // Basic information
+                { condition: !caseInfo?._id, message: "Case ID is missing" },
+                { condition: !clientName, message: "Client name is required" },
+                { condition: !clientContactInfo, message: "Client email is required" },
+                { condition: !clientContactphone, message: "Client phone is required" },
+                { condition: !dateValue, message: "Meeting date is required" },
+                { condition: !caseType, message: "Case type is required" },
+                { condition: !jurisdiction, message: "Jurisdiction is required" },
+                { condition: !complexity, message: "Complexity level is required in Case Complexity & Stakes" },
+                { condition: !AmountatStake, message: "Amount at Stake is required in Case Complexity & Stakes" },
+                { condition: !estimatedDuration, message: "Estimated Duration is required in Case Complexity & Stakes" },
+
+                { condition: !clientCategory || clientCategory.length === 0, message: "Please select at least one client category" },
+
+                // Communication needs - required
+                { condition: !communication, message: "Please select communication needs" },
+
+                // Legal team
+                { condition: !seniorName, message: "Senior lawyer name is required" },
+                { condition: !seniorHours, message: "Senior lawyer hours is required" },
+                { condition: !associateName, message: "Associate lawyer name is required" },
+                { condition: !associateHours, message: "Associate lawyer hours is required" },
+                { condition: !paralegal, message: "Paralegal/Support Staff is required" },
+                { condition: !paralegalHours, message: "paralegalHours is required" },
+                { condition: !otherResourceHours, message: "Other Resource Hours is required" },
+                { condition: !otherResources, message: "Other Resources is required" },
+
+                // Signatures
+                { condition: !preparedBy, message: "Prepared by name is required" },
+                { condition: !preparedDate, message: "Prepared date is required" },
+                { condition: !preparedBySign, message: "Prepared signature is required" },
+                { condition: !keyFactors, message: "Key Factors is required" },
+                { condition: !specialTerms, message: "Special Terms is required" },
+
+                // Conditional validations
+                {
+                    condition: localCounsel === "yes" && !localCounselHours,
+                    message: "Local counsel hours required when counsel is needed"
+                },
+                {
+                    condition: ResourcelocalCounselHours && !ResourcelocalCounsel,
+                    message: "Local counsel name required when counsel is needed"
+                },
+            ];
+
+            // Check all validations
+            for (const validation of validations) {
+                if (validation.condition) {
+                    showError(validation.message);
+                    return;
+                }
+            }
+
+
+
+            if (!feeStructure) {
+                showError("Please select a fee structure");
+                return;
+            }
+
+            switch (feeStructure) {
+                case "Other":
+                    if (!otherFee) {
+                        showError("Please specify other fee details");
+                        return;
+                    }
+                    break;
+                case "Hourly-billed":
+                    if (!hourlyRates) {
+                        showError("Please enter hourly rates");
+                        return;
+                    }
+                    break;
+                case "Fixed Fee":
+                    if (!fixedFee) {
+                        showError("Please enter fixed fee amount");
+                        return;
+                    }
+                    break;
+            }
+
+            // Client category validation
+            const isRetainerClient = clientCategory.includes("Retainer Client");
+            const isReferral = clientCategory.includes("Referral");
+
+            if (isRetainerClient && !retainerDetails) {
+                showError("Retainer details required for Retainer Client");
+                return;
+            }
+
+            if (isReferral && !referredBy) {
+                showError("Referral source required for Referral client");
+                return;
+            }
+
+
+
+
+
             const formData = new FormData();
             showLoading()
             // Basic text fields
@@ -308,7 +412,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             formData.append("associateLawyer[name]", associateName);
             formData.append("associateLawyer[estHours]", associateHours || "");
             formData.append("resourceLocalCounsel[name]", ResourcelocalCounsel);
-            formData.append("resourceLocalCounsel[estHours]", localCounselHours || "");
+            formData.append("resourceLocalCounsel[estHours]", ResourcelocalCounselHours || "");
             formData.append("paralegalSupport[role]", paralegal);
             formData.append("paralegalSupport[estHours]", paralegalHours || "");
             formData.append("otherResources[description]", otherResources || "");
@@ -490,9 +594,113 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         e.preventDefault();
         setIsEdit(true);
         setDataFound(false);
-        showLoading()
 
         try {
+
+
+
+            const validations = [
+                // Basic information
+                { condition: !caseInfo?._id, message: "Case ID is missing" },
+                { condition: !clientName, message: "Client name is required" },
+                { condition: !clientContactInfo, message: "Client email is required" },
+                { condition: !clientContactphone, message: "Client phone is required" },
+                { condition: !dateValue, message: "Meeting date is required" },
+                { condition: !caseType, message: "Case type is required" },
+                { condition: !jurisdiction, message: "Jurisdiction is required" },
+                { condition: !complexity, message: "Complexity level is required in Case Complexity & Stakes" },
+                { condition: !AmountatStake, message: "Amount at Stake is required in Case Complexity & Stakes" },
+                { condition: !estimatedDuration, message: "Estimated Duration is required in Case Complexity & Stakes" },
+
+                { condition: !clientCategory || clientCategory.length === 0, message: "Please select at least one client category" },
+
+                // Communication needs - required
+                { condition: !communication, message: "Please select communication needs" },
+
+                // Legal team
+                { condition: !seniorName, message: "Senior lawyer name is required" },
+                { condition: !seniorHours, message: "Senior lawyer hours is required" },
+                { condition: !associateName, message: "Associate lawyer name is required" },
+                { condition: !associateHours, message: "Associate lawyer hours is required" },
+                { condition: !paralegal, message: "Paralegal/Support Staff is required" },
+                { condition: !paralegalHours, message: "paralegalHours is required" },
+                { condition: !otherResourceHours, message: "Other Resource Hours is required" },
+                { condition: !otherResources, message: "Other Resources is required" },
+
+                // Signatures
+                { condition: !preparedBy, message: "Prepared by name is required" },
+                { condition: !preparedDate, message: "Prepared date is required" },
+                { condition: !preparedBySign, message: "Prepared signature is required" },
+                { condition: !keyFactors, message: "Key Factors is required" },
+                { condition: !specialTerms, message: "Special Terms is required" },
+
+                // Conditional validations
+                {
+                    condition: localCounsel === "yes" && !localCounselHours,
+                    message: "Local counsel hours required when counsel is needed"
+                },
+                {
+                    condition: ResourcelocalCounselHours && !ResourcelocalCounsel,
+                    message: "Local counsel name required when counsel is needed"
+                },
+            ];
+
+            // Check all validations
+            for (const validation of validations) {
+                if (validation.condition) {
+                    showError(validation.message);
+                    return;
+                }
+            }
+
+
+
+            if (!feeStructure) {
+                showError("Please select a fee structure");
+                return;
+            }
+
+            switch (feeStructure) {
+                case "Other":
+                    if (!otherFee) {
+                        showError("Please specify other fee details");
+                        return;
+                    }
+                    break;
+                case "Hourly-billed":
+                    if (!hourlyRates) {
+                        showError("Please enter hourly rates");
+                        return;
+                    }
+                    break;
+                case "Fixed Fee":
+                    if (!fixedFee) {
+                        showError("Please enter fixed fee amount");
+                        return;
+                    }
+                    break;
+            }
+
+            // Client category validation
+            const isRetainerClient = clientCategory.includes("Retainer Client");
+            const isReferral = clientCategory.includes("Referral");
+
+            if (isRetainerClient && !retainerDetails) {
+                showError("Retainer details required for Retainer Client");
+                return;
+            }
+
+            if (isReferral && !referredBy) {
+                showError("Referral source required for Referral client");
+                return;
+            }
+
+
+
+
+
+
+            showLoading()
             const [day, month, year] = preparedDate.split("/");
             const preparedDate_formattedDate = new Date(`${year}-${month}-${day}`);
 
@@ -531,7 +739,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 },
                 resourceLocalCounsel: {
                     name: ResourcelocalCounsel,
-                    estHours: localCounselHours,
+                    estHours: ResourcelocalCounselHours,
                 },
                 paralegalSupport: {
                     role: paralegal,
@@ -730,85 +938,97 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     />
                                 </div>
                             </div>
-
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Matter / Case Reference</label>
-                                <div className="form-check form-check-inline">
-                                    <label className="form-check-label">{matterReference}</label>
+                            {/* Matter / Case Reference */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Matter / Case Reference
+                                </label>
+                                <div className="col-md-9">
+                                    <span className="fw-normal">{matterReference}</span>
                                 </div>
-
                             </div>
                         </div>
 
                         {/* Case Type */}
-                        <div className="mb-3 d-flex">
-                            <label className="form-label fw-bold">Type of Case: </label><br />
-                            <div className="form-check form-check-inline">
-                                <label className="form-check-label">{caseType}</label>
+                        <div className="row mb-3 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Type of Case
+                            </label>
+                            <div className="col-md-9">
+                                <span className="fw-normal">{caseType}</span>
                             </div>
                         </div>
 
                         {/* Jurisdiction */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Jurisdiction</label><br />
-                            {["UAE Local Courts", "DIFC Courts", "Arbitration", "Other"].map((court) => (
-                                <div className="form-check form-check-inline" key={court}>
-                                    <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        name="jurisdiction"
-                                        value={court}
-                                        checked={jurisdiction === court}
-                                        onChange={(e) => setJurisdiction(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
-                                    <label className="form-check-label">{court}</label>
-                                </div>
-                            ))}
+                        <div className="row mb-3 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Jurisdiction
+                            </label>
+                            <div className="col-md-9">
+                                {["UAE Local Courts", "DIFC Courts", "Arbitration", "Other"].map((court) => (
+                                    <div className="form-check form-check-inline" key={court}>
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="jurisdiction"
+                                            value={court}
+                                            checked={jurisdiction === court}
+                                            onChange={(e) => setJurisdiction(e.target.value)}
+                                            disabled={dataFound || isclient}
+                                        />
+                                        <label className="form-check-label fw-normal">{court}</label>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
 
                         {/* Local Counsel */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Local Counsel Required (UAE law)</label><br />
-                            <div className="form-check form-check-inline">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="localCounsel"
-                                    value="yes"
-                                    checked={localCounsel === "yes"}
-                                    onChange={(e) => setLocalCounsel("yes")}
-                                    disabled={(dataFound || isclient)}
-                                />
-                                <label className="form-check-label">Yes</label>
-                            </div>
-                            <div className="form-check form-check-inline">
-                                <input
-                                    className="form-check-input"
-                                    type="radio"
-                                    name="localCounsel"
-                                    value="no"
-                                    checked={localCounsel === "no"}
-                                    onChange={(e) => setLocalCounsel("no")}
-                                    disabled={(dataFound || isclient)}
-                                />
-                                <label className="form-check-label">No</label>
-                            </div>
-
-                            {localCounsel === "yes" && (
-                                <div className="mt-2 ms-3">
-                                    <label className="form-label">If Yes, Est. Local Counsel Hours</label>
+                        <div className="row mb-3 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Local Counsel Required (UAE law)
+                            </label>
+                            <div className="col-md-9">
+                                <div className="form-check form-check-inline">
                                     <input
-                                        className="form-control"
-                                        type="number"
-                                        value={localCounselHours}
-                                        onChange={(e) => setLocalCounselHours(e.target.value)}
-                                        placeholder="Hours"
-                                        disabled={(dataFound || isclient)}
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="localCounsel"
+                                        value="yes"
+                                        checked={localCounsel === "yes"}
+                                        onChange={() => setLocalCounsel("yes")}
+                                        disabled={dataFound || isclient}
                                     />
+                                    <label className="form-check-label fw-normal">Yes</label>
                                 </div>
-                            )}
+                                <div className="form-check form-check-inline">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="localCounsel"
+                                        value="no"
+                                        checked={localCounsel === "no"}
+                                        onChange={() => setLocalCounsel("no")}
+                                        disabled={dataFound || isclient}
+                                    />
+                                    <label className="form-check-label fw-normal">No</label>
+                                </div>
+
+                                {localCounsel === "yes" && (
+                                    <div className="mt-2">
+                                        <label className="form-label fw-bold">If Yes, Est. Local Counsel Hours</label>
+                                        <input
+                                            className="form-control"
+                                            type="number"
+                                            value={localCounselHours}
+                                            onChange={(e) => setLocalCounselHours(e.target.value)}
+                                            placeholder="Hours"
+                                            disabled={dataFound || isclient}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -818,41 +1038,54 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                         <h5 className="fw-bold mb-3 text-primary">Case Complexity & Stakes</h5>
 
                         {/* Case Complexity Level */}
-                        <div className="mb-3 d-flex">
-                            <label className="form-label fw-semibold">Case Complexity Level: </label><br />
-                            <label className="form-check-label"> {complexity}</label>
+                        <div className="row mb-3 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Case Complexity Level
+                            </label>
+                            <div className="col-md-9">
+                                <span className="fw-normal">{complexity}</span>
+                            </div>
                         </div>
 
                         {/* Amount at Stake */}
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Amount at Stake (Claim/Defense Value)</label>
-                            <div className="input-group">
-                                <input
-                                    className="form-control"
-                                    type="number"
-                                    value={AmountatStake}
-                                    onChange={(e) => setAmountAtStake(e.target.value)}
-                                    placeholder="Enter amount"
-                                    disabled={(dataFound || isclient)}
-                                />
-                                <span className="input-group-text">AED</span>
+                        <div className="row mb-3 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Amount at Stake (Claim/Defense Value)
+                            </label>
+                            <div className="col-md-9">
+                                <div className="input-group">
+                                    <input
+                                        className="form-control"
+                                        type="number"
+                                        value={AmountatStake}
+                                        onChange={(e) => setAmountAtStake(e.target.value)}
+                                        placeholder="Enter amount"
+                                        disabled={dataFound || isclient}
+                                    />
+                                    <span className="input-group-text">AED</span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Estimated Case Duration */}
-                        <div className="mb-0">
-                            <label className="form-label fw-semibold">Estimated Case Duration</label>
-                            <input
-                                className="form-control"
-                                value={estimatedDuration}
-                                onChange={(e) => setestimatedDuration(e.target.value)}
-                                type="text"
-                                placeholder="e.g. 3-6 months; note any urgent deadlines"
-                                disabled={(dataFound || isclient)}
-                            />
+                        <div className="row mb-0 align-items-center">
+                            <label className="col-md-3 col-form-label fw-bold">
+                                Estimated Case Duration
+                            </label>
+                            <div className="col-md-9">
+                                <input
+                                    className="form-control"
+                                    value={estimatedDuration}
+                                    onChange={(e) => setestimatedDuration(e.target.value)}
+                                    type="text"
+                                    placeholder="e.g. 3-6 months; note any urgent deadlines"
+                                    disabled={dataFound || isclient}
+                                />
+                            </div>
                         </div>
                     </div>
                 </div>
+
 
                 {/* Page X - Resource & Effort Estimation */}
                 <div className="card shadow-sm border-0 rounded-3 mb-4">
@@ -884,7 +1117,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     value={seniorHours}
                                     onChange={(e) => {
                                         setSeniorHours(e.target.value)
-                                        setTotalHours(Number(e.target.value) + Number(associateHours) + Number(localCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+                                        setTotalHours(Number(e.target.value) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
 
                                     }}
                                     disabled={(dataFound || isclient)}
@@ -917,7 +1150,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     value={associateHours}
                                     onChange={(e) => {
                                         setAssociateHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(e.target.value) + Number(localCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+                                        setTotalHours(Number(seniorHours) + Number(e.target.value) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
 
                                     }
                                     }
@@ -946,9 +1179,9 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     type="number"
                                     className="form-control"
                                     placeholder="Hours"
-                                    value={localCounselHours}
+                                    value={ResourcelocalCounselHours}
                                     onChange={(e) => {
-                                        setLocalCounselHours(e.target.value)
+                                        setResourceLocalCounselHours(e.target.value)
                                         setTotalHours(Number(seniorHours) + Number(associateHours) + Number(e.target.value) + Number(paralegalHours) + Number(otherResourceHours))
 
                                     }}
@@ -982,7 +1215,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     value={paralegalHours}
                                     onChange={(e) => {
                                         setParalegalHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(localCounselHours) + Number(e.target.value) + Number(otherResourceHours))
+                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(e.target.value) + Number(otherResourceHours))
                                     }}
                                     disabled={(dataFound || isclient)}
                                 />
@@ -1011,7 +1244,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     value={otherResourceHours}
                                     onChange={(e) => {
                                         setOtherResourceHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(localCounselHours) + Number(paralegalHours) + Number(e.target.value))
+                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(e.target.value))
                                     }
                                     }
                                     disabled={(dataFound || isclient)}
