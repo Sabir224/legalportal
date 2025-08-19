@@ -63,10 +63,13 @@ const Case_details = ({ token }) => {
   const [effectiveCaseInfo, setEffectiveCaseInfo] = useState(null);
   const reduxCaseInfo = useSelector((state) => state.screen.Caseinfo);
 
+
   const [lastActiveSectionId, setLastActiveSectionId] = useState(null);
   const [isLFQISfilled, setisLFQISfilled] = useState(false);
+  const [isclientAssigned, setisclientAssigned] = useState(reduxCaseInfo.ClientId ? true : false);
   const sectionRefs = useRef({});
   const previousActiveSections = useRef([]);
+
 
   useEffect(() => {
     // Find which section is new
@@ -600,17 +603,17 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client"
             ? [{ label: "Add Task", onClick: handleAddTask }]
             : []),
-          ...(token?.Role !== "client"
+          ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form H", onClick: handleFormH }]
             : []),
-          ...(token?.Role !== "client"
+          ...((token?.Role !== "client"&&  isclientAssigned)
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
-          ...(isLFQISfilled
+          ...((isLFQISfilled && isclientAssigned)
             ? [{ label: "Form LFA", onClick: handleFormLFA }]
             : []),
 
-          ...((token?.Role !== "client")
+          ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
             : []),
 

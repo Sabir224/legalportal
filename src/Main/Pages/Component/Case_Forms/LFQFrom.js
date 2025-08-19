@@ -375,7 +375,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             }
         } catch (error) {
             console.error("Form submission error:", error);
-            showError("Error Submitting Form. Please Fill Complete Form .");
+            showError("Unable to submit. Kindly complete all required fields before proceeding.");
+
         }
     };
     const handleEdit = async (e) => {
@@ -581,7 +582,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             }
         } catch (error) {
             console.error("Form submission error:", error);
-            showError("Data not update. Please fill complete form.");
+            showError("Update failed. Kindly fill in all required fields before proceeding.");
+
         }
     };
     const handleUpdateSignature = async (e) => {
@@ -623,7 +625,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             }
         } catch (error) {
             console.error("Form submission error:", error);
-            showError("Error submitting form. Please try again.");
+            showError("We encountered an issue while submitting your form. Please try again later.");
         }
     };
 
@@ -880,7 +882,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     className="form-control"
                                     placeholder="Hours"
                                     value={seniorHours}
-                                    onChange={(e) => setSeniorHours(e.target.value)}
+                                    onChange={(e) => {
+                                        setSeniorHours(e.target.value)
+                                        setTotalHours(Number(e.target.value) + Number(associateHours) + Number(localCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                    }}
                                     disabled={(dataFound || isclient)}
                                 />
                             </div>
@@ -909,7 +915,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     className="form-control"
                                     placeholder="Hours"
                                     value={associateHours}
-                                    onChange={(e) => setAssociateHours(e.target.value)}
+                                    onChange={(e) => {
+                                        setAssociateHours(e.target.value)
+                                        setTotalHours(Number(seniorHours) + Number(e.target.value) + Number(localCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                    }
+                                    }
                                     disabled={(dataFound || isclient)}
                                 />
                             </div>
@@ -936,7 +947,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     className="form-control"
                                     placeholder="Hours"
                                     value={localCounselHours}
-                                    onChange={(e) => setLocalCounselHours(e.target.value)}
+                                    onChange={(e) => {
+                                        setLocalCounselHours(e.target.value)
+                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(e.target.value) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                    }}
                                     disabled={(dataFound || isclient)}
                                 />
                             </div>
@@ -965,7 +980,10 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     className="form-control"
                                     placeholder="Hours"
                                     value={paralegalHours}
-                                    onChange={(e) => setParalegalHours(e.target.value)}
+                                    onChange={(e) => {
+                                        setParalegalHours(e.target.value)
+                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(localCounselHours) + Number(e.target.value) + Number(otherResourceHours))
+                                    }}
                                     disabled={(dataFound || isclient)}
                                 />
                             </div>
@@ -991,7 +1009,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     className="form-control"
                                     placeholder="Hours"
                                     value={otherResourceHours}
-                                    onChange={(e) => setOtherResourceHours(e.target.value)}
+                                    onChange={(e) => {
+                                        setOtherResourceHours(e.target.value)
+                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(localCounselHours) + Number(paralegalHours) + Number(e.target.value))
+                                    }
+                                    }
                                     disabled={(dataFound || isclient)}
                                 />
                             </div>
@@ -1009,7 +1031,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     placeholder="Total"
                                     value={totalHours}
                                     onChange={(e) => setTotalHours(e.target.value)}
-                                    disabled={(dataFound || isclient)}
+                                    disabled={true}
+                                // disabled={(dataFound || isclient)}
                                 />
                             </div>
                         </div>
