@@ -570,544 +570,10 @@ const LEA_Form = ({ token }) => {
         setHeadings(updated);
     };
 
-
-
-
-
-
-    // const renderHeadings = (list, setFn, isFixed = false) =>
-    //     list?.map((heading, hIndex) => (
-    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
-    //             <div className="d-flex flex-wrap align-items-start mb-2" style={{ flexDirection: "" }}>
-    //                 <div>
-    //                     <span className="me-2 mt-1 fw-bold">{isFixed ? (hIndex + 1) : (hIndex + 11)}</span>
-    //                 </div>
-    //                 <div>
-    //                     {editMode && !isFixed && !isclient ? (
-    //                         <>
-    //                             <textarea
-    //                                 className="form-control form-control-sm fw-bold text-break me-2"
-    //                                 placeholder="Enter heading"
-    //                                 value={heading.title}
-    //                                 onChange={(e) => updateHeadingTitle(hIndex, e.target.value)}
-    //                                 style={{
-    //                                     overflowY: 'auto',
-    //                                     resize: 'none',
-    //                                     minHeight: '60px',
-    //                                     flex: '1 1 auto',
-    //                                     wordWrap: 'break-word',
-    //                                     wordBreak: 'break-word'
-    //                                 }}
-    //                             />
-    //                             <button
-    //                                 className="btn btn-danger btn-sm mt-2 mt-md-0"
-    //                                 onClick={() => {
-    //                                     const updated = [...list];
-    //                                     updated.splice(hIndex, 1);
-    //                                     setFn(updated);
-    //                                 }}
-    //                             >
-    //                                 Delete Heading
-    //                             </button>
-    //                         </>
-    //                     ) : (
-    //                         <div
-    //                             className="form-control form-control-sm bg-white text-break fw-bold"
-    //                             style={{
-    //                                 whiteSpace: 'pre-wrap',
-    //                                 flex: '1 1 100%',
-    //                                 wordBreak: 'break-word'
-    //                             }}
-    //                         >
-    //                             {heading.title}
-    //                         </div>
-    //                     )}
-    //                 </div>
-    //             </div>
-
-
-    //             <ul className="list-unstyled ps-2 ps-md-3">
-    //                 {heading?.points?.map((point, pIndex) => (
-    //                     <li key={pIndex}>
-    //                         {editMode && !isclient ? (
-    //                             <div className="d-flex flex-wrap align-items-center mb-2">
-    //                                 <textarea
-    //                                     className="form-control form-control-sm me-2 text-break"
-    //                                     placeholder="Point"
-    //                                     value={point.text}
-    //                                     onChange={(e) =>
-    //                                         updatePoint(setFn, list, hIndex, pIndex, e.target.value)
-    //                                     }
-    //                                     style={{
-    //                                         overflowY: 'auto',
-    //                                         resize: 'none',
-    //                                         minHeight: '60px',
-    //                                         flex: '1 1 100%',
-    //                                         wordWrap: 'break-word'
-    //                                     }}
-    //                                 />
-    //                                 {!isFixed && (
-    //                                     <button
-    //                                         onClick={() => removePoint(hIndex, pIndex)}
-    //                                         className="btn btn-danger btn-sm mt-2 mt-md-0"
-    //                                     >
-    //                                         ×
-    //                                     </button>
-    //                                 )}
-    //                             </div>
-    //                         ) : (
-    //                             <div className="form-control form-control-sm bg-white mb-2 text-break">
-    //                                 {point.text}
-    //                             </div>
-    //                         )}
-
-    //                         <ol type="i" className="ps-3 ps-md-4 small">
-    //                             {point?.subpoints?.map((sub, sIndex) => (
-    //                                 <li key={sIndex}>
-    //                                     {editMode && !isclient ? (
-    //                                         <div className="d-flex flex-wrap align-items-center mb-2">
-    //                                             <textarea
-    //                                                 className="form-control form-control-sm me-2 text-break"
-    //                                                 placeholder="Subpoint"
-    //                                                 value={sub.text}
-    //                                                 onChange={(e) =>
-    //                                                     updateSubpoint(setFn, list, hIndex, pIndex, sIndex, e.target.value)
-    //                                                 }
-    //                                                 style={{
-    //                                                     overflowY: 'auto',
-    //                                                     resize: 'none',
-    //                                                     minHeight: '60px',
-    //                                                     flex: '1 1 100%',
-    //                                                     wordWrap: 'break-word'
-    //                                                 }}
-    //                                             />
-    //                                             {!isFixed && (
-    //                                                 <button
-    //                                                     onClick={() => removeSubpoint(hIndex, pIndex, sIndex)}
-    //                                                     className="btn btn-danger btn-sm mt-2 mt-md-0"
-    //                                                 >
-    //                                                     ×
-    //                                                 </button>
-    //                                             )}
-    //                                         </div>
-    //                                     ) : (
-    //                                         <div className="form-control form-control-sm bg-white mb-2 text-break">
-    //                                             {sub.text}
-    //                                         </div>
-    //                                     )}
-    //                                     <ul className="ps-3 ps-md-4 small">
-    //                                         {sub?.subsubpoints?.map((ss, ssIndex) => (
-    //                                             <li key={ssIndex}>
-    //                                                 {editMode && !isclient ? (
-    //                                                     <div className="d-flex flex-wrap align-items-center mb-2">
-    //                                                         <textarea
-    //                                                             className="form-control form-control-sm me-2 text-break"
-    //                                                             placeholder="Sub-subpoint"
-    //                                                             value={ss.text}
-    //                                                             onChange={(e) =>
-    //                                                                 updateSubSubpoint(setFn, list, hIndex, pIndex, sIndex, ssIndex, e.target.value)
-    //                                                             }
-    //                                                             style={{
-    //                                                                 overflowY: 'auto',
-    //                                                                 resize: 'none',
-    //                                                                 minHeight: '60px',
-    //                                                                 flex: '1 1 100%',
-    //                                                                 wordWrap: 'break-word'
-    //                                                             }}
-    //                                                         />
-    //                                                         {!isFixed && (
-    //                                                             <button
-    //                                                                 onClick={() =>
-    //                                                                     removeSubSubpoint(hIndex, pIndex, sIndex, ssIndex)
-    //                                                                 }
-    //                                                                 className="btn btn-danger btn-sm mt-2 mt-md-0"
-    //                                                             >
-    //                                                                 ×
-    //                                                             </button>
-    //                                                         )}
-    //                                                     </div>
-    //                                                 ) : (
-    //                                                     <div className="form-control form-control-sm bg-white mb-2 text-break">
-    //                                                         {ss.text}
-    //                                                     </div>
-    //                                                 )}
-    //                                             </li>
-    //                                         ))}
-    //                                     </ul>
-    //                                 </li>
-    //                             ))}
-    //                         </ol>
-    //                     </li>
-    //                 ))}
-    //             </ul>
-    //         </div>
-    //     ));
-
-
     const [editHeadingIndex, setEditHeadingIndex] = useState(null);
-    // const renderHeadings = (list, setFn, isFixed = false) => {
-
-    //     const addHeading = (index) => {
-    //         const updated = [...list];
-    //         updated.splice(index + 1, 0, { title: "", points: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deleteHeading = (index) => {
-    //         const updated = [...list];
-    //         updated.splice(index, 1);
-    //         setFn(updated);
-    //     };
-
-    //     const addPoint = (hIndex) => {
-    //         const updated = [...list];
-    //         updated[hIndex].points.push({ text: "", subpoints: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deletePoint = (hIndex, pIndex) => {
-    //         const updated = [...list];
-    //         updated[hIndex].points.splice(pIndex, 1);
-    //         setFn(updated);
-    //     };
-
-    //     return list?.map((heading, hIndex) => (
-    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
-    //             <div className="d-flex flex-wrap align-items-start mb-2">
-    //                 <div className="me-2 mt-1 fw-bold">
-    //                     {isFixed ? hIndex + 1 : hIndex + 11}
-    //                 </div>
-
-    //                 <div className="flex-grow-1">
-    //                     {editHeadingIndex === hIndex ? (
-    //                         <textarea
-    //                             autoFocus
-    //                             className="form-control form-control-sm fw-bold text-break me-2"
-    //                             placeholder="Enter heading"
-    //                             value={heading.title}
-    //                             onChange={(e) => {
-    //                                 const updated = [...list];
-    //                                 updated[hIndex].title = e.target.value;
-    //                                 setFn(updated);
-    //                             }}
-    //                             onBlur={() => setEditHeadingIndex(null)}
-    //                             style={{
-    //                                 overflowY: 'auto',
-    //                                 resize: 'none',
-    //                                 minHeight: '60px',
-    //                                 flex: '1 1 auto',
-    //                                 wordWrap: 'break-word',
-    //                                 wordBreak: 'break-word'
-    //                             }}
-    //                         />
-    //                     ) : (
-    //                         <div
-    //                             className="form-control form-control-sm bg-white text-break fw-bold"
-    //                             style={{
-    //                                 whiteSpace: 'pre-wrap',
-    //                                 flex: '1 1 100%',
-    //                                 wordBreak: 'break-word',
-    //                                 cursor: 'pointer'
-    //                             }}
-    //                             onDoubleClick={() => setEditHeadingIndex(hIndex)}
-    //                         >
-    //                             {heading.title || "Double-click to edit heading"}
-    //                         </div>
-    //                     )}
-    //                 </div>
-
-    //                 {/* Add / Delete Heading buttons (Always visible now) */}
-    //                 <div className="ms-2 d-flex flex-column">
-    //                     <button
-    //                         type="button"
-    //                         className="btn btn-success btn-sm mb-1"
-    //                         onClick={() => addHeading(hIndex)}
-    //                     >
-    //                         <BsPlus />
-    //                     </button>
-    //                     <button
-    //                         type="button"
-    //                         className="btn btn-danger btn-sm"
-    //                         onClick={() => deleteHeading(hIndex)}
-    //                     >
-    //                         <BsDash />
-    //                     </button>
-    //                 </div>
-    //             </div>
-
-    //             {/* POINTS */}
-    //             <ul className="list-unstyled ps-2 ps-md-3">
-    //                 {heading.points?.map((point, pIndex) => (
-    //                     <li key={pIndex}>
-    //                         <div className="d-flex flex-wrap align-items-center mb-2">
-    //                             <textarea
-    //                                 className="form-control form-control-sm me-2 text-break"
-    //                                 placeholder="Point"
-    //                                 value={point.text}
-    //                                 onChange={(e) => {
-    //                                     const updated = [...list];
-    //                                     updated[hIndex].points[pIndex].text = e.target.value;
-    //                                     setFn(updated);
-    //                                 }}
-    //                                 style={{
-    //                                     overflowY: 'auto',
-    //                                     resize: 'none',
-    //                                     minHeight: '60px',
-    //                                     flex: '1 1 100%',
-    //                                     wordWrap: 'break-word'
-    //                                 }}
-    //                             />
-    //                             {/* Add / Delete Point buttons (Always visible) */}
-    //                             <button
-    //                                 type="button"
-    //                                 className="btn btn-success btn-sm me-1"
-    //                                 onClick={() => addPoint(hIndex)}
-    //                             >
-    //                                 <BsPlus />
-    //                             </button>
-    //                             <button
-    //                                 type="button"
-    //                                 className="btn btn-danger btn-sm"
-    //                                 onClick={() => deletePoint(hIndex, pIndex)}
-    //                             >
-    //                                 <BsDash />
-    //                             </button>
-    //                         </div>
-    //                     </li>
-    //                 ))}
-
-    //                 <li>
-    //                     <button
-    //                         type="button"
-    //                         className="btn btn-outline-primary btn-sm"
-    //                         onClick={() => addPoint(hIndex)}
-    //                     >
-    //                         + Add Point
-    //                     </button>
-    //                 </li>
-    //             </ul>
-    //         </div>
-    //     ));
-    // };
-
-
-    //     const renderHeadings = (list, setFn, isFixed = false) => {
-
-    //     const addHeading = (index) => {
-    //         if (!editMode) return; // Editing mode off => ignore
-    //         const updated = [...list];
-    //         updated.splice(index + 1, 0, { title: "", points: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deleteHeading = (index) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated.splice(index, 1);
-    //         setFn(updated);
-    //     };
-
-    //     const addPoint = (hIndex) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated[hIndex].points.push({ text: "", subpoints: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deletePoint = (hIndex, pIndex) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated[hIndex].points.splice(pIndex, 1);
-    //         setFn(updated);
-    //     };
-
-    //     return list?.map((heading, hIndex) => (
-    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
-    //             <div className="d-flex flex-wrap align-items-start mb-2">
-    //                 <div className="me-2 mt-1 fw-bold">
-    //                     {isFixed ? hIndex + 1 : hIndex + 11}
-    //                 </div>
-
-    //                 <div className="flex-grow-1">
-    //                     {editMode ? (
-    //                         <textarea
-    //                             className="form-control form-control-sm fw-bold text-break me-2"
-    //                             placeholder="Enter heading"
-    //                             value={heading.title}
-    //                             onChange={(e) => {
-    //                                 const updated = [...list];
-    //                                 updated[hIndex].title = e.target.value;
-    //                                 setFn(updated);
-    //                             }}
-    //                             style={{
-    //                                 overflowY: 'auto',
-    //                                 resize: 'none',
-    //                                 minHeight: '60px',
-    //                                 flex: '1 1 auto',
-    //                                 wordWrap: 'break-word',
-    //                                 wordBreak: 'break-word'
-    //                             }}
-    //                         />
-    //                     ) : (
-    //                         <div
-    //                             className="form-control form-control-sm bg-white text-break fw-bold"
-    //                             style={{
-    //                                 whiteSpace: 'pre-wrap',
-    //                                 flex: '1 1 100%',
-    //                                 wordBreak: 'break-word'
-    //                             }}
-    //                         >
-    //                             {heading.title || ""}
-    //                         </div>
-    //                     )}
-    //                 </div>
-
-    //                 {editMode && (
-    //                     <div className="ms-2 d-flex flex-column">
-    //                         <button
-    //                             type="button"
-    //                             className="btn btn-success btn-sm mb-1"
-    //                             onClick={() => addHeading(hIndex)}
-    //                         >
-    //                             <BsPlus />
-    //                         </button>
-    //                         <button
-    //                             type="button"
-    //                             className="btn btn-danger btn-sm"
-    //                             onClick={() => deleteHeading(hIndex)}
-    //                         >
-    //                             <BsDash />
-    //                         </button>
-    //                     </div>
-    //                 )}
-    //             </div>
-
-    //             {/* POINTS */}
-    //             <ul className="list-unstyled ps-2 ps-md-3">
-    //                 {heading.points?.map((point, pIndex) => (
-    //                     <li key={pIndex}>
-    //                         <div className="d-flex flex-wrap align-items-center mb-2">
-    //                             {editMode ? (
-    //                                 <textarea
-    //                                     className="form-control form-control-sm me-2 text-break"
-    //                                     placeholder="Point"
-    //                                     value={point.text}
-    //                                     onChange={(e) => {
-    //                                         const updated = [...list];
-    //                                         updated[hIndex].points[pIndex].text = e.target.value;
-    //                                         setFn(updated);
-    //                                     }}
-    //                                     style={{
-    //                                         overflowY: 'auto',
-    //                                         resize: 'none',
-    //                                         minHeight: '60px',
-    //                                         flex: '1 1 100%',
-    //                                         wordWrap: 'break-word'
-    //                                     }}
-    //                                 />
-    //                             ) : (
-    //                                 <div
-    //                                     className="form-control form-control-sm bg-white text-break"
-    //                                     style={{
-    //                                         whiteSpace: 'pre-wrap',
-    //                                         flex: '1 1 100%',
-    //                                         wordBreak: 'break-word'
-    //                                     }}
-    //                                 >
-    //                                     {point.text || ""}
-    //                                 </div>
-    //                             )}
-
-    //                             {editMode && (
-    //                                 <>
-    //                                     <button
-    //                                         type="button"
-    //                                         className="btn btn-success btn-sm me-1"
-    //                                         onClick={() => addPoint(hIndex)}
-    //                                     >
-    //                                         <BsPlus />
-    //                                     </button>
-    //                                     <button
-    //                                         type="button"
-    //                                         className="btn btn-danger btn-sm"
-    //                                         onClick={() => deletePoint(hIndex, pIndex)}
-    //                                     >
-    //                                         <BsDash />
-    //                                     </button>
-    //                                 </>
-    //                             )}
-    //                         </div>
-    //                     </li>
-    //                 ))}
-
-    //                 {editMode && (
-    //                     <li>
-    //                         <button
-    //                             type="button"
-    //                             className="btn btn-outline-primary btn-sm"
-    //                             onClick={() => addPoint(hIndex)}
-    //                         >
-    //                             + Add Point
-    //                         </button>
-    //                     </li>
-    //                 )}
-    //             </ul>
-    //         </div>
-    //     ));
-    // };
 
 
     const renderHeadings = (list, setFn, isFixed = false) => {
-        const autoResize = (e) => {
-            e.target.style.height = "auto";
-            e.target.style.height = e.target.scrollHeight + "px";
-        };
-
-        const handleKeyDown = (e, hIndex, pIndex = null) => {
-            // Bold shortcut (Ctrl+B / Cmd+B)
-            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-                e.preventDefault();
-                const start = e.target.selectionStart;
-                const end = e.target.selectionEnd;
-                const text = e.target.value;
-                const selected = text.substring(start, end);
-                const newText = text.substring(0, start) + `**${selected}**` + text.substring(end);
-
-                const updated = [...list];
-                if (pIndex === null) {
-                    updated[hIndex].title = newText;
-                } else {
-                    updated[hIndex].points[pIndex].text = newText;
-                }
-                setFn(updated);
-
-                setTimeout(() => {
-                    e.target.selectionStart = start + 2;
-                    e.target.selectionEnd = end + 2;
-                }, 0);
-            }
-
-            // Tab inserts spaces
-            if (e.key === "Tab") {
-                e.preventDefault();
-                const start = e.target.selectionStart;
-                const end = e.target.selectionEnd;
-                const text = e.target.value;
-                const newText = text.substring(0, start) + "    " + text.substring(end);
-
-                const updated = [...list];
-                if (pIndex === null) {
-                    updated[hIndex].title = newText;
-                } else {
-                    updated[hIndex].points[pIndex].text = newText;
-                }
-                setFn(updated);
-
-                setTimeout(() => {
-                    e.target.selectionStart = e.target.selectionEnd = start + 4;
-                }, 0);
-            }
-        };
 
         const addHeading = (index) => {
             if (!editMode) return;
@@ -1173,37 +639,81 @@ const LEA_Form = ({ token }) => {
 
                     <div className="flex-grow-1">
                         {editMode && !savedClientSignature ? (
-                            <textarea
-                                className="form-control form-control-sm fw-bold text-break me-2"
-                                placeholder="Enter heading"
-                                value={heading.title}
-                                onChange={(e) => {
-                                    autoResize(e);
+                            <p
+                                ref={(el) => {
+                                    if (el && !el.innerHTML.trim()) {
+                                        el.innerHTML = heading.title || '\u00A0';
+                                    }
+                                }}
+                                contentEditable
+                                suppressContentEditableWarning
+                                onInput={(e) => {
+                                    const html = e.currentTarget.innerHTML;
                                     const updated = [...list];
-                                    updated[hIndex].title = e.target.value;
+                                    updated[hIndex].title = html;
                                     setFn(updated);
                                 }}
-                                onKeyDown={(e) => handleKeyDown(e, hIndex)}
+                                onKeyDown={(e) => {
+                                    // Ctrl+B for bold
+                                    if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+                                        e.preventDefault();
+                                        document.execCommand('bold');
+                                    }
+
+                                    // Tab key for 8 spaces
+                                    if (e.key === 'Tab') {
+                                        e.preventDefault();
+                                        const selection = window.getSelection();
+                                        if (!selection.rangeCount) return;
+
+                                        const range = selection.getRangeAt(0);
+                                        const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
+                                        const spaceNode = document.createTextNode(tabSpaces);
+
+                                        range.insertNode(spaceNode);
+                                        // Move cursor after inserted spaces
+                                        range.setStartAfter(spaceNode);
+                                        range.setEndAfter(spaceNode);
+                                        selection.removeAllRanges();
+                                        selection.addRange(range);
+                                    }
+                                }}
+                                onBlur={(e) => {
+                                    if (!e.currentTarget.textContent.trim()) {
+                                        e.currentTarget.innerHTML = '\u00A0';
+                                    }
+                                }}
                                 style={{
-                                    overflow: 'hidden',
-                                    resize: 'none',
-                                    minHeight: '40px',
-                                    flex: '1 1 auto',
-                                    wordWrap: 'break-word',
-                                    wordBreak: 'break-word'
+                                    display: "inline-block",
+                                    minHeight: "40px",
+                                    width: "100%",
+                                    outline: "none",
+                                    background: "transparent",
+                                    whiteSpace: "pre-wrap",
+                                    wordBreak: "break-word",
+                                    fontFamily: "inherit",
+                                    fontSize: "inherit",
+                                    fontWeight: "bold",
+                                    padding: "4px 6px",
+                                    border: "1px solid #ccc",
+                                    borderRadius: "4px",
+                                    boxSizing: "border-box",
                                 }}
                             />
+
                         ) : (
                             <div
-                                className="form-control form-control-sm bg-white text-break fw-bold"
-                                style={{
-                                    whiteSpace: 'pre-wrap',
-                                    flex: '1 1 100%',
-                                    wordBreak: 'break-word'
-                                }}
+                                className="form-control bg-white p-3 fw-bold"
+                                style={{ whiteSpace: 'pre-wrap' }}
                             >
-                                {heading.title || ""}
+
+                                <React.Fragment key={hIndex}>
+                                    <span>{heading.label || ""}</span>
+                                    <span dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
+                                </React.Fragment>
+
                             </div>
+
                         )}
                     </div>
 
@@ -1216,36 +726,80 @@ const LEA_Form = ({ token }) => {
                         <li key={pIndex}>
                             <div className="d-flex flex-wrap align-items-center mb-2">
                                 {editMode && !savedClientSignature ? (
-                                    <textarea
-                                        className="form-control form-control-sm me-2 text-break"
-                                        placeholder="Point"
-                                        value={point.text}
-                                        onChange={(e) => {
-                                            autoResize(e);
+                                    <p
+                                        ref={(el) => {
+                                            if (el && !el.innerHTML.trim()) {
+                                                el.innerHTML = point.text || '\u00A0';
+                                            }
+                                        }}
+                                        contentEditable
+                                        suppressContentEditableWarning
+                                        onInput={(e) => {
+                                            const html = e.currentTarget.innerHTML;
                                             const updated = [...list];
-                                            updated[hIndex].points[pIndex].text = e.target.value;
+                                            updated[hIndex].points[pIndex].text = html;
                                             setFn(updated);
                                         }}
-                                        onKeyDown={(e) => handleKeyDown(e, hIndex, pIndex)}
+                                        onKeyDown={(e) => {
+                                            // Ctrl+B for bold
+                                            if (e.ctrlKey && e.key.toLowerCase() === 'b') {
+                                                e.preventDefault();
+                                                document.execCommand('bold');
+                                            }
+
+                                            // Tab key for 8 spaces
+                                            if (e.key === 'Tab') {
+                                                e.preventDefault();
+                                                const selection = window.getSelection();
+                                                if (!selection.rangeCount) return;
+
+                                                const range = selection.getRangeAt(0);
+                                                const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
+                                                const spaceNode = document.createTextNode(tabSpaces);
+
+                                                range.insertNode(spaceNode);
+                                                // Move cursor after inserted spaces
+                                                range.setStartAfter(spaceNode);
+                                                range.setEndAfter(spaceNode);
+                                                selection.removeAllRanges();
+                                                selection.addRange(range);
+                                            }
+                                        }}
+                                        onBlur={(e) => {
+                                            if (!e.currentTarget.textContent.trim()) {
+                                                e.currentTarget.innerHTML = '\u00A0';
+                                            }
+                                        }}
                                         style={{
-                                            overflow: 'hidden',
-                                            resize: 'none',
-                                            minHeight: '40px',
-                                            flex: '1 1 100%',
-                                            wordWrap: 'break-word'
+                                            display: "inline-block",
+                                            minHeight: "40px",
+                                            width: "100%",
+                                            outline: "none",
+                                            background: "transparent",
+                                            whiteSpace: "pre-wrap",
+                                            wordBreak: "break-word",
+                                            fontFamily: "inherit",
+                                            fontSize: "inherit",
+                                            padding: "4px 6px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "4px",
+                                            boxSizing: "border-box",
                                         }}
                                     />
+
                                 ) : (
                                     <div
-                                        className="form-control form-control-sm bg-white text-break"
-                                        style={{
-                                            whiteSpace: 'pre-wrap',
-                                            flex: '1 1 100%',
-                                            wordBreak: 'break-word'
-                                        }}
+                                        className="form-control bg-white p-3"
+                                        style={{ whiteSpace: 'pre-wrap' }}
                                     >
-                                        {point.text || ""}
+                                        {list[hIndex]?.points?.map((point, pIndex) => (
+                                            <React.Fragment key={pIndex}>
+                                                <span>{point.label || ""}</span>
+                                                <span dangerouslySetInnerHTML={{ __html: point.text || "" }} />
+                                            </React.Fragment>
+                                        ))}
                                     </div>
+
                                 )}
 
                                 {editMode && !savedClientSignature && (
@@ -1292,11 +846,6 @@ const LEA_Form = ({ token }) => {
         ));
     };
 
-
-
-
-
-
     return (
         <div className="card w-100" style={{ maxHeight: '87vh', overflowY: 'auto' }}>
             {(!isclient || isFormFilled) ?
@@ -1307,45 +856,6 @@ const LEA_Form = ({ token }) => {
                             <img src="logo.png" alt="Logo" className="me-2 me-md-3 mb-2 mb-md-0" style={{ height: '50px' }} />
                             <h1 className="mb-0 h4 h3-md fw-bold text-break">Legal Fee Agreement</h1>
                         </div>
-
-                        {/* Agreement Text
-                        <div className="card p-2 p-md-4 shadow-sm mb-4">
-                            <label className="form-label fw-bold fs-5 text-break">Agreement</label>
-                            {editMode && !isclient ? (
-                                <div className="form-control p-3" style={{ minHeight: '300px', whiteSpace: 'pre-wrap' }}>
-                                    {agreement?.fixedParts?.map((part, index) => (
-                                        <React.Fragment key={index}>
-                                            <span>{part}</span>
-                                            {index < agreement.editableValues.length && (
-                                                <input
-                                                    type="text"
-                                                    value={agreement.editableValues[index]}
-                                                    onChange={(e) => handleEditableChange(index, e.target.value)}
-                                                    className="border-bottom mx-1 px-1"
-                                                    style={{
-                                                        border: 'none',
-                                                        borderBottom: '1px solid #000',
-                                                        background: 'transparent',
-                                                        minWidth: '100px'
-                                                    }}
-                                                />
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="form-control bg-white p-3" style={{ whiteSpace: 'pre-wrap', minHeight: '300px' }}>
-                                    {agreement?.fixedParts?.map((part, index) => (
-                                        <React.Fragment key={index}>
-                                            <span>{part}</span>
-                                            {index < agreement.editableValues.length && (
-                                                <span>{agreement.editableValues[index]}</span>
-                                            )}
-                                        </React.Fragment>
-                                    ))}
-                                </div>
-                            )}
-                        </div> */}
 
 
                         <div className="card p-2 p-md-4 shadow-sm mb-4">
@@ -1359,42 +869,6 @@ const LEA_Form = ({ token }) => {
                                         <React.Fragment key={index}>
                                             <span>{part}</span>
                                             {index < agreement.editableValues.length && (
-                                                // <span
-                                                //     contentEditable
-                                                //     suppressContentEditableWarning={true}
-                                                //     onInput={(e) => handleEditableChange(index, e.currentTarget.innerHTML)}
-                                                //     onKeyDown={(e) => {
-                                                //         // Bold shortcut
-                                                //         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
-                                                //             e.preventDefault();
-                                                //             document.execCommand('bold', false, null);
-                                                //         }
-                                                //         // Tab insert spaces
-                                                //         if (e.key === 'Tab') {
-                                                //             e.preventDefault();
-                                                //             document.execCommand('insertText', false, '    ');
-                                                //         }
-                                                //     }}
-                                                //     dangerouslySetInnerHTML={{
-                                                //         __html: agreement.editableValues[index] || ''
-                                                //     }}
-                                                //     className="border-bottom mx-1 px-1"
-                                                //     style={{
-                                                //         border: 'none',
-                                                //         borderBottom: '1px solid #000',
-                                                //         background: 'transparent',
-                                                //         minWidth: '100px',
-                                                //         maxWidth: '100%', // full width allowed
-                                                //         display: 'inline-block',
-                                                //         wordBreak: 'break-word',
-                                                //         overflowWrap: 'break-word',
-                                                //         whiteSpace: 'pre-wrap',
-                                                //         direction: 'ltr',       // Force Left-to-Right writing
-                                                //         textAlign: 'left'       // Align text to left
-                                                //     }}
-
-                                                // />
-
 
                                                 <p
                                                     ref={(el) => {
@@ -1497,8 +971,6 @@ const LEA_Form = ({ token }) => {
 
                             </div>
                         }
-
-
                         {/* {(isFormFilled && !savedClientSignature ) && */}
 
                         <div style={{ padding: 20 }}>
@@ -1554,11 +1026,6 @@ const LEA_Form = ({ token }) => {
                                 </div>
                             )}
                         </div>
-
-
-
-
-
                         {/* Buttons */}
 
                         <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap">
@@ -1579,9 +1046,7 @@ const LEA_Form = ({ token }) => {
                                         Update Agreement
                                     </button>)
                                     }
-                                    {/* <button className="btn btn-sm btn-primary fw-bold" onClick={addHeading} style={{ width: '150px' }}>
-                                        Add Heading
-                                    </button> */}
+
                                 </>
                             ) :
                                 <>
