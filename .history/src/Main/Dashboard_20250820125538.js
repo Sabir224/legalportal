@@ -939,6 +939,7 @@ const Dashboard = () => {
                 dispatch(Caseinfo(null));
                 dispatch(FormCDetails(null));
                 dispatch(FormHDetails(null));
+
                 handlescreen2(29);
               },
             },
