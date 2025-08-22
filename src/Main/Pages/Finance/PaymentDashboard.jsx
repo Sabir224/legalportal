@@ -27,6 +27,8 @@ import {
   IconButton,
   Divider,
   Button,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import {
   CalendarToday,
@@ -37,11 +39,17 @@ import {
   FilterList,
   Close,
   DateRange,
+  Phone as PhoneIcon,
+  Person as PersonIcon,
+  Work as WorkIcon,
+  Payment as PaymentIcon,
+  CalendarMonth as CalendarMonthIcon,
 } from '@mui/icons-material';
 import { styled } from '@mui/material/styles';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
+import { ApiEndPoint } from '../Component/utils/utlis';
 
 // Styled components with white and gold theme
 const ElegantCard = styled(Card)(({ theme }) => ({
@@ -86,13 +94,16 @@ export default function PaymentDashboard() {
   const [endDateFilter, setEndDateFilter] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const response = await fetch('http://localhost:5001/api/payments/getAllPaymentData');
+        const response = await fetch(`${ApiEndPoint}payments/getAllPaymentData`);
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -260,7 +271,13 @@ export default function PaymentDashboard() {
       >
         <Box textAlign="center">
           <CircularProgress size={60} sx={{ color: lightTheme.accentColor }} />
-          <Typography sx={{ color: lightTheme.textPrimary, mt: 2, fontSize: '1.1rem' }}>
+          <Typography
+            sx={{
+              color: lightTheme.textPrimary,
+              mt: 2,
+              fontSize: { xs: '0.9rem', sm: '1.1rem' },
+            }}
+          >
             Loading payment data...
           </Typography>
         </Box>
@@ -272,34 +289,55 @@ export default function PaymentDashboard() {
     <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
       <Box
         sx={{
-          minHeight: '100vh',
           background: lightTheme.background,
-          py: 4,
-          px: { xs: 2, sm: 4 },
+          py: { xs: 2, sm: 3, md: 4 },
+          px: { xs: 1, sm: 2, md: 3, lg: 4 },
           maxHeight: '86vh',
           overflowY: 'auto',
         }}
       >
         <Container maxWidth="xl" disableGutters>
-          <Typography
-            variant="h4"
+          {/* Fixed Title Section */}
+          <Box
             sx={{
-              color: lightTheme.textPrimary,
-              fontWeight: 700,
-              mb: 4,
               display: 'flex',
               alignItems: 'center',
               gap: 1.5,
+              mb: { xs: 2, sm: 3, md: 4 },
+              flexWrap: { xs: 'wrap', sm: 'nowrap' }, // Allow wrapping on mobile
             }}
           >
-            <AttachMoney sx={{ color: lightTheme.accentColor, fontSize: 32 }} />
-            Payment Dashboard
-          </Typography>
-
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+            <AttachMoney
+              sx={{
+                color: lightTheme.accentColor,
+                fontSize: { xs: 24, sm: 28, md: 32 },
+                flexShrink: 0, // Prevent icon from shrinking
+              }}
+            />
+            <Typography
+              variant="h4"
+              sx={{
+                color: lightTheme.textPrimary,
+                fontWeight: 700,
+                fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+                whiteSpace: { xs: 'normal', sm: 'nowrap' }, // Allow text wrap on mobile
+              }}
+            >
+              Payment Dashboard
+            </Typography>
+          </Box>
+          <Grid
+            container
+            spacing={{ xs: 2, sm: 3 }}
+            sx={{
+              mb: { xs: 2, sm: 3, md: 4 },
+              flex: '0 0 auto', // cards area keeps intrinsic height
+            }}
+          >
+            {/* Total Payments Card */}
             <Grid item xs={12} sm={6} md={3}>
               <ElegantCard>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                     <Typography
                       variant="body2"
@@ -308,31 +346,47 @@ export default function PaymentDashboard() {
                         fontWeight: 600,
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
-                        fontSize: '0.75rem',
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
                       }}
                     >
                       Total Payments
                     </Typography>
-                    <People sx={{ color: lightTheme.accentColor, fontSize: 28 }} />
+                    <People
+                      sx={{
+                        color: lightTheme.accentColor,
+                        fontSize: { xs: 24, sm: 28 },
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="h4"
                     component="div"
                     fontWeight="bold"
-                    sx={{ color: lightTheme.textPrimary, mb: 1 }}
+                    sx={{
+                      color: lightTheme.textPrimary,
+                      mb: 1,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                    }}
                   >
                     {totalClients}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: lightTheme.textSecondary, fontSize: '0.875rem' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: lightTheme.textSecondary,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    }}
+                  >
                     Active appointments
                   </Typography>
                 </CardContent>
               </ElegantCard>
             </Grid>
 
+            {/* Paid Payments Card */}
             <Grid item xs={12} sm={6} md={3}>
               <ElegantCard>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                     <Typography
                       variant="body2"
@@ -341,31 +395,47 @@ export default function PaymentDashboard() {
                         fontWeight: 600,
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
-                        fontSize: '0.75rem',
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
                       }}
                     >
                       Paid Payments
                     </Typography>
-                    <AttachMoney sx={{ color: lightTheme.accentColor, fontSize: 28 }} />
+                    <AttachMoney
+                      sx={{
+                        color: lightTheme.accentColor,
+                        fontSize: { xs: 24, sm: 28 },
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="h4"
                     component="div"
                     fontWeight="bold"
-                    sx={{ color: lightTheme.textPrimary, mb: 1 }}
+                    sx={{
+                      color: lightTheme.textPrimary,
+                      mb: 1,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                    }}
                   >
                     {paidPayments}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: lightTheme.textSecondary, fontSize: '0.875rem' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: lightTheme.textSecondary,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    }}
+                  >
                     Completed transactions
                   </Typography>
                 </CardContent>
               </ElegantCard>
             </Grid>
 
+            {/* Pending Payments Card */}
             <Grid item xs={12} sm={6} md={3}>
               <ElegantCard>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                     <Typography
                       variant="body2"
@@ -374,31 +444,47 @@ export default function PaymentDashboard() {
                         fontWeight: 600,
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
-                        fontSize: '0.75rem',
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
                       }}
                     >
                       Pending Payments
                     </Typography>
-                    <CalendarToday sx={{ color: lightTheme.accentColor, fontSize: 28 }} />
+                    <CalendarToday
+                      sx={{
+                        color: lightTheme.accentColor,
+                        fontSize: { xs: 24, sm: 28 },
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="h4"
                     component="div"
                     fontWeight="bold"
-                    sx={{ color: lightTheme.textPrimary, mb: 1 }}
+                    sx={{
+                      color: lightTheme.textPrimary,
+                      mb: 1,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                    }}
                   >
                     {pendingPayments}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: lightTheme.textSecondary, fontSize: '0.875rem' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: lightTheme.textSecondary,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    }}
+                  >
                     Awaiting payment
                   </Typography>
                 </CardContent>
               </ElegantCard>
             </Grid>
 
+            {/* Total Revenue Card */}
             <Grid item xs={12} sm={6} md={3}>
               <ElegantCard>
-                <CardContent sx={{ p: 3 }}>
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
                     <Typography
                       variant="body2"
@@ -407,22 +493,37 @@ export default function PaymentDashboard() {
                         fontWeight: 600,
                         textTransform: 'uppercase',
                         letterSpacing: 0.5,
-                        fontSize: '0.75rem',
+                        fontSize: { xs: '0.7rem', sm: '0.75rem' },
                       }}
                     >
                       Total Revenue
                     </Typography>
-                    <Description sx={{ color: lightTheme.accentColor, fontSize: 28 }} />
+                    <Description
+                      sx={{
+                        color: lightTheme.accentColor,
+                        fontSize: { xs: 24, sm: 28 },
+                      }}
+                    />
                   </Box>
                   <Typography
                     variant="h4"
                     component="div"
                     fontWeight="bold"
-                    sx={{ color: lightTheme.textPrimary, mb: 1 }}
+                    sx={{
+                      color: lightTheme.textPrimary,
+                      mb: 1,
+                      fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
+                    }}
                   >
                     ${totalRevenue.toLocaleString()}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: lightTheme.textSecondary, fontSize: '0.875rem' }}>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: lightTheme.textSecondary,
+                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                    }}
+                  >
                     From paid consultations
                   </Typography>
                 </CardContent>
@@ -430,401 +531,498 @@ export default function PaymentDashboard() {
             </Grid>
           </Grid>
 
-          <ElegantCard>
-            <CardHeader
-              title={
-                <Box display="flex" alignItems="center" justifyContent="space-between">
-                  <Box display="flex" alignItems="center" gap={2}>
-                    <Typography variant="h6" sx={{ color: lightTheme.textPrimary, fontWeight: 600 }}>
-                      Client Appointments & Payments
-                    </Typography>
-                    <Chip
-                      label={`${filteredData.length} of ${totalClients}`}
-                      variant="outlined"
-                      sx={{
-                        borderColor: lightTheme.accentColor,
-                        color: lightTheme.textPrimary,
-                        fontWeight: 500,
-                      }}
-                    />
-                  </Box>
-                  <Box>
-                    <IconButton
-                      onClick={() => setShowFilters(!showFilters)}
-                      sx={{ color: lightTheme.accentColor, mr: 1 }}
-                    >
-                      <FilterList />
-                    </IconButton>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={clearAllFilters}
-                      sx={{
-                        color: lightTheme.textSecondary,
-                        borderColor: alpha(lightTheme.accentColor, 0.3),
-                        '&:hover': {
-                          borderColor: lightTheme.accentColor,
-                          backgroundColor: alpha(lightTheme.accentColor, 0.05),
-                        },
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </Box>
-                </Box>
-              }
-              sx={{ pb: 1 }}
-            />
-
-            {/* Filters Section */}
-            <Box sx={{ px: 3, pb: 2 }}>
-              {showFilters && (
-                <>
-                  {/* Search Row */}
-                  <Grid container spacing={2} sx={{ mb: 1 }}>
-                    <Grid item xs={12}>
-                      <TextField
-                        fullWidth
-                        placeholder="Search by client name, phone, lawyer, or service..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        sx={{
-                          ...filterInputSx,
-                          '& .MuiInputBase-input': {
-                            padding: '12px',
-                          },
-                          '& .MuiInputBase-input::placeholder': {
-                            color: lightTheme.textSecondary,
-                            opacity: 0.8,
-                          },
-                        }}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Search sx={{ color: lightTheme.accentColor, fontSize: 22, mr: 1 }} />
-                            </InputAdornment>
-                          ),
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-
-                  {/* Filters Row */}
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6} md={3}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel
-                          sx={{
-                            color: lightTheme.textSecondary,
-                            '&.Mui-focused': {
-                              color: lightTheme.accentColor,
-                            },
-                          }}
-                        >
-                          Status
-                        </InputLabel>
-                        <Select
-                          value={statusFilter}
-                          label="Status"
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                          sx={filterInputSx}
-                        >
-                          <MenuItem value="all">All Statuses</MenuItem>
-                          <MenuItem value="paid">Paid</MenuItem>
-                          <MenuItem value="pending">Pending</MenuItem>
-                          <MenuItem value="failed">Failed</MenuItem>
-                          <MenuItem value="no-payment">No Payment</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel
-                          sx={{
-                            color: lightTheme.textSecondary,
-                            '&.Mui-focused': {
-                              color: lightTheme.accentColor,
-                            },
-                          }}
-                        >
-                          Service
-                        </InputLabel>
-                        <Select
-                          value={serviceFilter}
-                          label="Service"
-                          onChange={(e) => setServiceFilter(e.target.value)}
-                          sx={filterInputSx}
-                        >
-                          <MenuItem value="all">All Services</MenuItem>
-                          {uniqueServices.map((service) => (
-                            <MenuItem key={service} value={service}>
-                              {service}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                      <FormControl fullWidth size="small">
-                        <InputLabel
-                          sx={{
-                            color: lightTheme.textSecondary,
-                            '&.Mui-focused': {
-                              color: lightTheme.accentColor,
-                            },
-                          }}
-                        >
-                          Consultation Type
-                        </InputLabel>
-                        <Select
-                          value={consultationTypeFilter}
-                          label="Consultation Type"
-                          onChange={(e) => setConsultationTypeFilter(e.target.value)}
-                          sx={filterInputSx}
-                        >
-                          <MenuItem value="all">All Types</MenuItem>
-                          {uniqueConsultationTypes.map((type) => (
-                            <MenuItem key={type} value={type}>
-                              {type}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                      <DatePicker
-                        label="Start Date"
-                        value={startDateFilter}
-                        onChange={(newValue) => setStartDateFilter(newValue)}
-                        format="dd/MM/yyyy"
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            size: 'small',
-                            sx: filterInputSx,
-                            InputLabelProps: {
-                              shrink: true,
-                              sx: {
-                                color: lightTheme.textSecondary,
-                                '&.Mui-focused': {
-                                  color: lightTheme.accentColor,
-                                },
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-
-                    <Grid item xs={12} sm={6} md={3}>
-                      <DatePicker
-                        label="End Date"
-                        value={endDateFilter}
-                        onChange={(newValue) => setEndDateFilter(newValue)}
-                        format="dd/MM/yyyy"
-                        slotProps={{
-                          textField: {
-                            fullWidth: true,
-                            size: 'small',
-                            sx: filterInputSx,
-                            InputLabelProps: {
-                              shrink: true,
-                              sx: {
-                                color: lightTheme.textSecondary,
-                                '&.Mui-focused': {
-                                  color: lightTheme.accentColor,
-                                },
-                              },
-                            },
-                          },
-                        }}
-                      />
-                    </Grid>
-                  </Grid>
-                </>
-              )}
-            </Box>
-
-            <Divider sx={{ borderColor: alpha(lightTheme.accentColor, 0.2) }} />
-
-            <CardContent sx={{ pt: 0 }}>
-              <Paper
+          {/* MAIN AREA - take remaining space and let inner content scroll */}
+          <Box
+            sx={{
+              flex: 1, // take the remaining space in the parent
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: 0, // important to allow children to scroll inside flex
+              gap: 2,
+            }}
+          >
+            {/* Main Data Table/Card Section - ensure it fills the area */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+                minHeight: 0,
+              }}
+            >
+              <ElegantCard
+                // forward height styles to make sure card occupies full area
                 sx={{
-                  overflow: 'hidden',
-                  background: 'transparent',
-                  border: `1px solid ${alpha(lightTheme.accentColor, 0.2)}`,
-                  borderRadius: 2,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%',
+                  minHeight: 0,
                 }}
               >
-                <Box sx={{ overflowX: 'auto', maxHeight: '60vh' }}>
-                  <Table stickyHeader>
-                    <TableHead>
-                      <TableRow>
-                        <StyledTableCell
+                {/* Header */}
+                <CardHeader
+                  title={
+                    <Box display="flex" alignItems="center" justifyContent="space-between" flexWrap="wrap" gap={1}>
+                      <Box display="flex" alignItems="center" gap={2} flexWrap="wrap">
+                        <Typography
+                          variant="h6"
                           sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
+                            color: lightTheme.textPrimary,
+                            fontWeight: 600,
+                            fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
                           }}
                         >
-                          Client Name
-                        </StyledTableCell>
-                        <StyledTableCell
+                          Client Appointments & Payments
+                        </Typography>
+                        <Chip
+                          label={`${filteredData.length} of ${totalClients}`}
+                          variant="outlined"
                           sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
+                            borderColor: lightTheme.accentColor,
+                            color: lightTheme.textPrimary,
+                            fontWeight: 500,
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                          }}
+                        />
+                      </Box>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <IconButton
+                          onClick={() => setShowFilters(!showFilters)}
+                          sx={{ color: lightTheme.accentColor }}
+                          size="small"
+                        >
+                          <FilterList />
+                        </IconButton>
+                        <Button
+                          variant="outlined"
+                          size="small"
+                          onClick={clearAllFilters}
+                          sx={{
+                            color: lightTheme.textSecondary,
+                            borderColor: alpha(lightTheme.accentColor, 0.3),
+                            fontSize: { xs: '0.7rem', sm: '0.8rem' },
+                            '&:hover': {
+                              borderColor: lightTheme.accentColor,
+                              backgroundColor: alpha(lightTheme.accentColor, 0.05),
+                            },
                           }}
                         >
-                          Phone
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Lawyer
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Service
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Consultation Type
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Amount
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Status
-                        </StyledTableCell>
-                        <StyledTableCell
-                          sx={{
-                            backgroundColor: lightTheme.textPrimary,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            py: 2,
-                          }}
-                        >
-                          Created At
-                        </StyledTableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredData.map((item, idx) => (
-                        <StyledTableRow key={item.link?._id || idx} hover>
-                          <StyledTableCell>
-                            <Typography variant="body2" fontWeight="medium" sx={{ color: lightTheme.textPrimary }}>
-                              {item.link?.name || 'N/A'}
-                            </Typography>
-                          </StyledTableCell>
-                          <StyledTableCell sx={{ color: lightTheme.textPrimary }}>
-                            {item.link?.phone || 'N/A'}
-                          </StyledTableCell>
-                          <StyledTableCell>
-                            {item.lawyer ? (
-                              <Box>
-                                <Typography variant="body2" fontWeight="medium" sx={{ color: lightTheme.textPrimary }}>
-                                  {item.lawyer.FkUserId.UserName || 'N/A'}
-                                </Typography>
-                                {item.lawyer.Expertise && (
-                                  <Typography
-                                    variant="body2"
-                                    sx={{ color: lightTheme.textSecondary, fontSize: '0.75rem' }}
-                                  >
-                                    {item?.lawyer?.Expertise || 'N/A'}
-                                  </Typography>
-                                )}
-                              </Box>
-                            ) : (
-                              <Typography sx={{ color: lightTheme.textSecondary }}>—</Typography>
-                            )}
-                          </StyledTableCell>
-                          <StyledTableCell sx={{ color: lightTheme.textPrimary }}>
-                            {item?.lawyer?.Expertise || '—'}
-                          </StyledTableCell>
-                          <StyledTableCell sx={{ color: lightTheme.textPrimary }}>
-                            {item.payment?.consultationType || '—'}
-                          </StyledTableCell>
-                          <StyledTableCell sx={{ color: lightTheme.textPrimary }}>
-                            {item.payment?.amount ? `$${item.payment.amount}` : '—'}
-                          </StyledTableCell>
-                          <StyledTableCell>{getStatusChip(item.payment?.status)}</StyledTableCell>
-                          <StyledTableCell sx={{ color: lightTheme.textPrimary }}>
-                            {item.link?.createdAt
-                              ? new Date(item.link.createdAt).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'short',
-                                  day: 'numeric',
-                                })
-                              : 'N/A'}
-                          </StyledTableCell>
-                        </StyledTableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                          Clear Filters
+                        </Button>
+                      </Box>
+                    </Box>
+                  }
+                />
+
+                {/* Filters Section */}
+                <Box sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
+                  {showFilters && (
+                    <>
+                      {/* Search Row */}
+                      <Grid container spacing={2} sx={{ mb: 1 }}>
+                        <Grid item xs={12}>
+                          <TextField
+                            fullWidth
+                            placeholder="Search by client name, phone, lawyer, or service..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            sx={{
+                              ...filterInputSx,
+                              '& .MuiInputBase-input': {
+                                padding: { xs: '10px', sm: '12px' },
+                                fontSize: { xs: '0.9rem', sm: '1rem' },
+                              },
+                            }}
+                            InputProps={{
+                              startAdornment: (
+                                <InputAdornment position="start">
+                                  <Search
+                                    sx={{
+                                      color: lightTheme.accentColor,
+                                      fontSize: { xs: 18, sm: 22 },
+                                      mr: { xs: 0.5, sm: 1 },
+                                    }}
+                                  />
+                                </InputAdornment>
+                              ),
+                            }}
+                          />
+                        </Grid>
+                      </Grid>
+
+                      {/* Filters Row */}
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={6} md={3}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Status</InputLabel>
+                            <Select
+                              value={statusFilter}
+                              onChange={(e) => setStatusFilter(e.target.value)}
+                              sx={filterInputSx}
+                            >
+                              <MenuItem value="all">All Statuses</MenuItem>
+                              <MenuItem value="paid">Paid</MenuItem>
+                              <MenuItem value="pending">Pending</MenuItem>
+                              <MenuItem value="failed">Failed</MenuItem>
+                              <MenuItem value="no-payment">No Payment</MenuItem>
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Service</InputLabel>
+                            <Select
+                              value={serviceFilter}
+                              onChange={(e) => setServiceFilter(e.target.value)}
+                              sx={filterInputSx}
+                            >
+                              <MenuItem value="all">All Services</MenuItem>
+                              {uniqueServices.map((service) => (
+                                <MenuItem key={service} value={service}>
+                                  {service}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>Consultation Type</InputLabel>
+                            <Select
+                              value={consultationTypeFilter}
+                              onChange={(e) => setConsultationTypeFilter(e.target.value)}
+                              sx={filterInputSx}
+                            >
+                              <MenuItem value="all">All Types</MenuItem>
+                              {uniqueConsultationTypes.map((type) => (
+                                <MenuItem key={type} value={type}>
+                                  {type}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                          <DatePicker
+                            label="Start Date"
+                            value={startDateFilter}
+                            onChange={(newValue) => setStartDateFilter(newValue)}
+                          />
+                        </Grid>
+
+                        <Grid item xs={12} sm={6} md={3}>
+                          <DatePicker
+                            label="End Date"
+                            value={endDateFilter}
+                            onChange={(newValue) => setEndDateFilter(newValue)}
+                          />
+                        </Grid>
+                      </Grid>
+                    </>
+                  )}
                 </Box>
 
-                {filteredData.length === 0 && !loading && (
-                  <Box textAlign="center" py={6}>
-                    <Typography variant="h6" sx={{ color: lightTheme.textSecondary }}>
-                      {data.length === 0
-                        ? 'No data received from API'
-                        : 'No appointments found matching your criteria.'}
-                    </Typography>
-                    {data.length === 0 && (
-                      <Typography variant="body2" sx={{ color: lightTheme.textSecondary, mt: 1 }}>
-                        Check the console (F12) for API debugging information.
-                      </Typography>
-                    )}
-                  </Box>
-                )}
-              </Paper>
-            </CardContent>
-          </ElegantCard>
+                <Divider sx={{ borderColor: alpha(lightTheme.accentColor, 0.2) }} />
+
+                {/* Content - make this area flexible so it fills remaining card space and scrolls internally */}
+                <CardContent
+                  sx={{
+                    pt: 0,
+                    pb: '50px',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    minHeight: 0, // needed for nested scrolling with flex
+                  }}
+                >
+                  {isMobile ? (
+                    // Mobile Card View
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, overflow: 'auto', pr: 1 }}>
+                      {filteredData.length === 0 ? (
+                        <Box textAlign="center" py={6}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: lightTheme.textSecondary,
+                              fontSize: { xs: '1rem', sm: '1.25rem' },
+                            }}
+                          >
+                            {data.length === 0
+                              ? 'No data received from API'
+                              : 'No appointments found matching your criteria.'}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        filteredData.map((item, idx) => (
+                          <ElegantCard key={item.link?._id || idx}>
+                            <CardContent sx={{ p: 2 }}>
+                              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={1}>
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight="bold"
+                                  sx={{ color: lightTheme.textPrimary }}
+                                >
+                                  {item.link?.name || 'N/A'}
+                                </Typography>
+                                {getStatusChip(item.payment?.status)}
+                              </Box>
+
+                              <Box display="flex" flexDirection="column" gap={1}>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <PhoneIcon fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.link?.phone || 'N/A'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <PersonIcon fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.lawyer?.FkUserId?.UserName || 'N/A'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <WorkIcon fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item?.lawyer?.Expertise || '—'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <Description fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.payment?.consultationType || '—'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <AttachMoney fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.payment?.amount ? `$${item.payment.amount}` : '—'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <PaymentIcon fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.payment?.paymentMethod ? `${item.payment.paymentMethod}` : '—'}
+                                  </Typography>
+                                </Box>
+
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <CalendarMonthIcon fontSize="small" sx={{ color: lightTheme.accentColor }} />
+                                  <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
+                                    {item.link?.createdAt
+                                      ? new Date(item.link.createdAt).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'short',
+                                          day: 'numeric',
+                                        })
+                                      : 'N/A'}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            </CardContent>
+                          </ElegantCard>
+                        ))
+                      )}
+                    </Box>
+                  ) : (
+                    // Desktop Table View
+                    <Paper
+                      sx={{
+                        background: 'transparent',
+                        border: `1px solid ${alpha(lightTheme.accentColor, 0.2)}`,
+                        borderRadius: 2,
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                      }}
+                    >
+                      {/* Table wrapper - this will handle both horizontal and vertical scroll while filling available height */}
+                      <Box
+                        sx={{
+                          flex: 1,
+                          width: '100%',
+                          height: '100%',
+                          overflowX: 'auto',
+                          overflowY: 'auto',
+                        }}
+                      >
+                        <Table stickyHeader sx={{ minWidth: 600 }}>
+                          <TableHead sx={{ backgroundColor: lightTheme.textPrimary }}>
+                            <TableRow
+                              sx={{
+                                '& th': {
+                                  backgroundColor: lightTheme.textPrimary, // dark background
+                                  color: '#fff', // force text white
+                                  fontWeight: 600,
+                                },
+                              }}
+                            >
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 150 }}>
+                                Client Name
+                              </StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 120 }}>Phone</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 150 }}>Lawyer</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 160 }}>Service</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 200 }}>
+                                Consultation Type
+                              </StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 120 }}>Amount</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 150 }}>Method</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 120 }}>Status</StyledTableCell>
+                              <StyledTableCell sx={{ whiteSpace: 'nowrap', minWidth: 160 }}>Created At</StyledTableCell>
+                            </TableRow>
+                          </TableHead>
+
+                          <TableBody>
+                            {filteredData.map((item, idx) => (
+                              <StyledTableRow key={item.link?._id || idx} hover>
+                                <StyledTableCell>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight="medium"
+                                    sx={{
+                                      color: lightTheme.textPrimary,
+                                      fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                      whiteSpace: 'nowrap',
+                                    }}
+                                  >
+                                    {item.link?.name || 'N/A'}
+                                  </Typography>
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.link?.phone || 'N/A'}
+                                </StyledTableCell>
+                                <StyledTableCell>
+                                  {item.lawyer ? (
+                                    <Box>
+                                      <Typography
+                                        variant="body2"
+                                        fontWeight="medium"
+                                        sx={{
+                                          color: lightTheme.textPrimary,
+                                          fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                        }}
+                                      >
+                                        {item.lawyer.FkUserId.UserName || 'N/A'}
+                                      </Typography>
+                                      {item.lawyer.Expertise && (
+                                        <Typography
+                                          variant="body2"
+                                          sx={{
+                                            color: lightTheme.textSecondary,
+                                            fontSize: { xs: '0.65rem', sm: '0.75rem' },
+                                          }}
+                                        >
+                                          {item?.lawyer?.Expertise || 'N/A'}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                  ) : (
+                                    <Typography
+                                      sx={{
+                                        color: lightTheme.textSecondary,
+                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                      }}
+                                    >
+                                      —
+                                    </Typography>
+                                  )}
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item?.lawyer?.Expertise || '—'}
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.payment?.consultationType || '—'}
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.payment?.amount ? `$${item.payment.amount}` : '—'}
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.payment?.paymentMethod || '—'}
+                                </StyledTableCell>
+                                <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+                                  {getStatusChip(item.payment?.status)}
+                                </StyledTableCell>
+                                <StyledTableCell
+                                  sx={{
+                                    color: lightTheme.textPrimary,
+                                    fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {item.link?.createdAt
+                                    ? new Date(item.link.createdAt).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric',
+                                      })
+                                    : 'N/A'}
+                                </StyledTableCell>
+                              </StyledTableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </Box>
+
+                      {filteredData.length === 0 && !loading && (
+                        <Box textAlign="center" py={6}>
+                          <Typography
+                            variant="h6"
+                            sx={{
+                              color: lightTheme.textSecondary,
+                              fontSize: { xs: '1rem', sm: '1.25rem' },
+                            }}
+                          >
+                            {data.length === 0
+                              ? 'No data received from API'
+                              : 'No appointments found matching your criteria.'}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Paper>
+                  )}
+                </CardContent>
+              </ElegantCard>
+            </Box>
+          </Box>
         </Container>
       </Box>
     </LocalizationProvider>

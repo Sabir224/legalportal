@@ -558,8 +558,8 @@ const Dashboard = () => {
       <div
         className={`sidebar d-flex flex-column text-white position-relative ${isCollapsed ? 'col-1' : 'col-2'}`}
         style={{
-          minWidth: isCollapsed ? '50px' : '150px',
-          maxWidth: isCollapsed ? '50px' : '180px',
+          width: isCollapsed ? '50px' : '180px',
+          Width: isCollapsed ? '50px' : '180px',
         }}
       >
         {/* Collapse Toggle - hidden on small screens via CSS */}
@@ -976,10 +976,11 @@ const Dashboard = () => {
 
       {/* Main Content */}
       <div
-        className="flex-grow-1 ms-auto"
+        className="flex-grow-1"
         style={{
-          marginLeft: isCollapsed ? '50px' : '200px',
-          transition: 'margin-left 0.3s ease',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden', // keeps content inside
         }}
       >
         {/* Header */}
@@ -1022,7 +1023,10 @@ const Dashboard = () => {
               {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
               {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
               {screen === 27 && <ScreenHeader title={`View LFA${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 28 && <ScreenHeader title={`View LFQ${caseDetailsScreenTitle}`} onBack={handleBack} />}
+              {screen === 28 && <ScreenHeader title={`View LFQ${caseDetailsScreenTitle}`} onBack={handleBack} />}{' '}
+              {screen === 29 && (
+                <ScreenHeader title={`Payment Dashboard${caseDetailsScreenTitle}`} onBack={handleBack} />
+              )}
             </h3>
 
             {/* Admin Buttons */}
