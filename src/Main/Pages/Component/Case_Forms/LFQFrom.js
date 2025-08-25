@@ -7,6 +7,7 @@ import { ApiEndPoint } from "../utils/utlis";
 import { useSelector } from "react-redux";
 import { Caseinfo } from "../../../../REDUX/sliece";
 import { useAlert } from "../../../../Component/AlertContext";
+import { Dropdown, Form, InputGroup } from "react-bootstrap";
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
@@ -77,7 +78,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [formId, setFormId] = useState("");
     const [islocal, setislocal] = useState(false);
 
-
+    const [selectedDrafts, setSelectedDrafts] = useState("Select Draft");
+    const [getDrafts, setGetDrafts] = useState(null);
 
 
 
@@ -89,6 +91,31 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     const fetchLFQForm = async (caseId) => {
         showDataLoading(true)
+
+
+        try {
+            const response = await fetch(
+                `${ApiEndPoint}getAllLFQForms`
+                //  caseInfo === null ? (token?.Role === "admin" ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByUser/${token?._id}`) : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
+            );
+
+            if (!response.ok) {
+                showDataLoading(false)
+                throw new Error('Error fetching LFA');
+            }
+
+            const data = await response.json();
+
+            setGetDrafts(data)
+            // showDataLoading(false)
+        } catch (err) {
+            showDataLoading(false)
+            // setMessage(err.response?.data?.message || "Error deleting task.");
+            //  setShowError(true);
+        }
+
+
+
         try {
             const res = await axios.get(`${ApiEndPoint}getClientDetailsByUserId/${caseInfo?.ClientId}`);
             if (res.data) {
@@ -856,6 +883,105 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             <div className="container my-4">
 
                 <div className="container py-4">
+
+                    {token?.Role !== "client" &&
+
+                        < Form.Group className="mb-3">
+                            <Form.Label>
+                                Drafts <span className="text-danger"></span>
+                            </Form.Label>
+                            <InputGroup>
+                                <Dropdown className="w-100">
+                                    <Dropdown.Toggle
+                                        variant="outline-secondary"
+                                        id="dropdown-practice-area"
+                                        disabled={dataFound}
+                                        className="w-100 text-start d-flex justify-content-between align-items-center"
+                                    >
+                                        {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.clientName}`}
+                                    </Dropdown.Toggle>
+
+                                    <Dropdown.Menu className="w-100">
+                                        {getDrafts?.map((data, index) => (
+                                            <Dropdown.Item key={index} onClick={() => {
+
+                                                setSelectedDrafts(data)
+                                                setFormId(data._id)
+                                                // ===== BASIC FIELDS =====
+                                                setClientName(data.clientName || "");
+                                                setclientContactInfo(data.clientEmail || "");
+                                                setclientContactphone(data.clientContactphone || "");
+
+                                                // ===== DATE OF CLIENT MEETING =====
+                                                if (data.dateOfClientMeeting) {
+                                                    const date = new Date(data.dateOfClientMeeting);
+                                                    setDateValue(
+                                                        `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
+                                                    );
+                                                } else {
+                                                    setDateValue("");
+                                                }
+
+                                                // setMatterReference(data.matterReference || "");
+                                                // setCaseType(data.caseType || "");
+                                                setJurisdiction(data.jurisdiction || "");
+                                                setLocalCounsel(data.localCounselRequired || "");
+                                                setLocalCounselHours(data.estLocalCounselHours || "");
+
+                                                // ===== CASE COMPLEXITY =====
+                                                setComplexity(data.complexityLevel || "");
+                                                setAmountAtStake(data.amountAtStake || "");
+                                                setestimatedDuration(data.estimatedCaseDuration || "");
+
+                                                // ===== RESOURCES =====
+                                                setSeniorName(data.seniorLawyer?.name || "");
+                                                setSeniorHours(data.seniorLawyer?.estHours || "");
+                                                setAssociateName(data.associateLawyer?.name || "");
+                                                setAssociateHours(data.associateLawyer?.estHours || "");
+                                                setResourceLocalCounsel(data.resourceLocalCounsel?.name || "");
+                                                setResourceLocalCounselHours(data.resourceLocalCounsel?.estHours || "");
+                                                setParalegal(data.paralegalSupport?.role || "");
+                                                setParalegalHours(data.paralegalSupport?.estHours || "");
+                                                setOtherResources(data.otherResources?.description || "");
+                                                setOtherResourceHours(data.otherResources?.estHours || "");
+                                                setTotalHours(data.totalEstimatedHours || "");
+
+                                                // ===== CLIENT PROFILE =====
+                                                if (Array.isArray(data.clientCategory) && data.clientCategory.length > 0) {
+                                                    try {
+                                                        setClientCategory(JSON.parse(data.clientCategory[0])); // because your sample has array with JSON string
+                                                    } catch {
+                                                        setClientCategory(data.clientCategory);
+                                                    }
+                                                } else {
+                                                    setClientCategory([]);
+                                                }
+
+                                                setReferredBy(data.referredBy || "");
+                                                setRetainerDetails(data.retainerDetails || "");
+                                                setCommunication(data.communicationNeeds || "");
+                                                setClientNotes(data.clientNotes || "");
+
+                                                // ===== FEE PROPOSAL =====
+                                                setFeeStructure(data.feeStructure || "");
+                                                setOtherFee(data.otherFee || "");
+                                                setHourlyRates(data.hourlyRates || "");
+                                                setFixedFee(data.fixedFee || "");
+                                                setSpecialTerms(data.specialTerms || "");
+                                                setKeyFactors(data.keyFactors || "");
+
+                                            }
+                                            }>
+                                                {data?.clientName}
+                                            </Dropdown.Item>
+                                        ))}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+
+                            </InputGroup>
+                        </Form.Group>
+                    }
+
                     {/* Logo */}
                     <div className="text-center mb-4">
                         <img
@@ -1631,7 +1757,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     </div>
                 }
 
-                {(formId && preparedBy === token?._id && !approvedBySign) &&
+                {(formId && preparedBy === token?._id && !approvedBySign && dataFound) &&
                     <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
                         <div className="btn btn-primary fw-bold px-4" onClick={isEdit ? handleUpdate : handleEdit}>{isEdit ? "Update Form" : "Edit Form"}</div>
                     </div>
