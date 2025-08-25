@@ -19,6 +19,7 @@
     "@react-icons/all-files": "^4.1.0",
     "@react-pdf-viewer/core": "^3.12.0",
     "@react-pdf-viewer/thumbnail": "^3.12.0",
+    "@react-three/fiber": "^9.3.0",
     "@reduxjs/toolkit": "^2.6.1",
     "@stripe/react-stripe-js": "^3.8.0",
     "@stripe/stripe-js": "^7.7.0",
@@ -73,6 +74,7 @@
     "recharts": "^2.15.3",
     "smtp-client": "^0.4.0",
     "socket.io-client": "^4.8.1",
+    "three": "^0.179.1",
     "uuid": "^11.1.0",
     "vmsg": "^0.4.0",
     "xlsx": "^0.18.5"

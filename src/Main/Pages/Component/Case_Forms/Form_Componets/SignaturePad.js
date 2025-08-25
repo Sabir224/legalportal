@@ -66,9 +66,12 @@ const Form_SignaturePad = ({ height = 280, onSave, disable }) => {
         redraw();
     }, [strokes, currentStroke]);
 
+
+    const [hasSignature, setHasSignature] = useState(false);
     const handlePointerDown = e => {
         const rect = canvasRef.current.getBoundingClientRect();
         beginStroke(e.clientX - rect.left, e.clientY - rect.top);
+        setHasSignature(true);
     };
 
     const handlePointerMove = e => {
@@ -79,6 +82,9 @@ const Form_SignaturePad = ({ height = 280, onSave, disable }) => {
 
     const handlePointerUp = () => {
         endStroke();
+        if (hasSignature) {
+            handleSave('image/png');
+        }
     };
 
     const clearCanvas = () => {
@@ -122,13 +128,13 @@ const Form_SignaturePad = ({ height = 280, onSave, disable }) => {
                 />
             </div>
             <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                <button onClick={clearCanvas} style={{ color: "white", backgroundColor: "#18273e" }}>Clear</button>
-                <button onClick={undoLast} style={{ color: "white", backgroundColor: "#18273e" }}>Undo</button>
+                {/* <button onClick={undoLast} style={{ color: "white", backgroundColor: "#18273e" }}>Undo</button> */}
                 <label>Pen Size: <input type="range" min="1" max="8" value={penWidth} onChange={e => setPenWidth(+e.target.value)} /></label>
                 <label>Color: <input type="color" value={penColor} onChange={e => setPenColor(e.target.value)} /></label>
+                <button onClick={clearCanvas} style={{ color: "white", borderRadius: 6, backgroundColor: "red" }}>Clear</button>
                 {/* <button onClick={() => downloadImage('image/png')} style={{color:"white", backgroundColor:"#18273e"}}>Save PNG</button>
                 <button onClick={() => downloadImage('image/jpeg')} style={{color:"white", backgroundColor:"#18273e"}}>Save JPG</button> */}
-                <button onClick={() => handleSave('image/png')} style={{ color: "white", backgroundColor: "#18273e" }}>Pass to Parent</button>
+                {/* <button onClick={() => handleSave('image/png')} style={{ color: "white", backgroundColor: "#18273e" }}>Pass to Parent</button> */}
             </div>
         </div>
     );

@@ -128,6 +128,7 @@ const LEA_Form = ({ token }) => {
     const [isFormFilled, setisFormFilled] = useState(false);
     const [savedClientSignature, setSavedClientSignature] = useState(null);
     const [isLocalSign, setIsLocalSign] = useState(false);
+    const [IsLocalLawyerSign, setIsLocalLawyerSign] = useState(false);
     const [dataList, setDataList] = useState([]);
     const isclient = token?.Role === "client"
 
@@ -157,6 +158,7 @@ const LEA_Form = ({ token }) => {
             setEditMode(false)
             setisFormFilled(true)
             setIsLocalSign(data.data?.ClientSignatureImage ? true : false)
+            setIsLocalLawyerSign(!data.data?.LawyerSignatureImage ? true : false)
 
             setSavedLawyerSignature()
         } catch (err) {
@@ -171,7 +173,7 @@ const LEA_Form = ({ token }) => {
         console.log("Lawyar Signature Base64:", dataUrl);
         setSavedSignature(dataUrl); // store it locally
         setSavedLawyerSignature(dataUrl)
-        // setIsLocalSign(true)
+         setIsLocalLawyerSign(true)
 
         // You could also send it to your backend here
     };
@@ -1108,7 +1110,7 @@ const LEA_Form = ({ token }) => {
                     {/* Custom Headings */}
                     {renderHeadings(headings, setHeadings, false)}
 
-                    {(isFormFilled && savedClientSignature && !savedSignature && !isclient) && (
+                    {(isFormFilled && savedClientSignature &&  !isclient && IsLocalLawyerSign) && (
                         <div style={{ padding: 20 }} data-html2canvas-ignore="true">
                             <h2>Lawyer Signature</h2>
                             {/* Reusable Signature Pad */}
