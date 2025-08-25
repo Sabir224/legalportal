@@ -178,11 +178,38 @@ function LegalConsultationStepper() {
   const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
 
   const services = [
-    { name: 'Divorce', description: 'Marriage dissolution and related matters' },
-    { name: 'Property', description: 'Real estate transactions and disputes' },
-    { name: 'Criminal', description: 'Defense and legal representation' },
-    { name: 'Immigration', description: 'Visa and citizenship processes' },
-    { name: 'Corporate', description: 'Business formation and compliance' },
+    { name: 'Civil Case', description: 'Civil Case related legal services' },
+    { name: 'Commercial Law', description: 'Commercial Law related legal services' },
+    { name: 'Criminal Case', description: 'Criminal Case related legal services' },
+    { name: 'Family Law', description: 'Family Law related legal services' },
+    { name: 'Real Estate Case', description: 'Real Estate Case related legal services' },
+    { name: 'Labor Case', description: 'Labor Case related legal services' },
+    { name: 'Construction Case', description: 'Construction Case related legal services' },
+    { name: 'Maritime Case', description: 'Maritime Case related legal services' },
+    { name: 'Personal Injury Case', description: 'Personal Injury Case related legal services' },
+    { name: 'Technology Case', description: 'Technology Case related legal services' },
+    { name: 'Financial Case', description: 'Financial Case related legal services' },
+    { name: 'Public Law', description: 'Public Law related legal services' },
+    { name: 'Consumer Case', description: 'Consumer Case related legal services' },
+    { name: 'Environmental Case', description: 'Environmental Case related legal services' },
+  ];
+
+  const UpdateSubtypelist = [
+    'Civil Case',
+    'Commercial Law',
+    'Criminal Case',
+    'Family Law',
+    'Real Estate Case',
+    'Labor Case',
+    'Construction Case',
+    'Maritime Case',
+    'Personal Injury Case',
+    ,
+    'Technology Case',
+    'Financial Case',
+    'Public Law',
+    'Consumer Case',
+    'Environmental Case',
   ];
   const handleChangeCaseDiscription = (e) => {
     const value = e.target.value;
@@ -212,6 +239,7 @@ function LegalConsultationStepper() {
             setService(payment.serviceType || '');
             setMethod(payment.consultationType || '');
             setPaymentMethod(payment.paymentMethod || 'Card');
+            //console.log('Description:', payment?.caseDescription);
             setDiscription(payment?.caseDescription);
           }
 
@@ -660,6 +688,7 @@ function LegalConsultationStepper() {
               name: paymentForm.name || confirmationData?.name,
               phone: paymentForm.phone || confirmationData?.phone,
             },
+            caseDescription: caseDiscription,
           });
           await axios.post(`${ApiEndPoint}payments/update-status`, {
             paymentId: oldpaymentId || data?.payment?._id,
@@ -668,6 +697,7 @@ function LegalConsultationStepper() {
               date: selectedDate,
               slot: selectedSlot,
             },
+            caseDescription: caseDiscription,
           });
           setActiveStep(6);
         } else {
@@ -686,6 +716,7 @@ function LegalConsultationStepper() {
               name: paymentForm.name || confirmationData?.name,
               phone: paymentForm.phone || confirmationData?.phone,
             },
+            caseDescription: caseDiscription,
           });
           await axios.post(`${ApiEndPoint}payments/update-status`, {
             paymentId: oldpaymentId || data?.payment?._id,
@@ -694,6 +725,7 @@ function LegalConsultationStepper() {
               date: selectedDate,
               slot: selectedSlot,
             },
+            caseDescription: caseDiscription,
           });
           setActiveStep(6);
         } else {
@@ -916,6 +948,7 @@ function LegalConsultationStepper() {
           officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
           ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
         },
+        caseDescription: caseDiscription,
         isClientEmail: false,
       };
 
@@ -952,6 +985,7 @@ function LegalConsultationStepper() {
             rescheduleLink: rescheduleLink,
             ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
           },
+          caseDescription: caseDiscription,
           isClientEmail: true,
         });
         console.log('✅ Client Email Sent:', clientEmailResponse.data);
@@ -1082,6 +1116,7 @@ function LegalConsultationStepper() {
             Email: paymentForm.email || confirmationData?.email,
           },
         },
+        caseDescription: caseDiscription,
         mailmsg: emailData,
         text: '',
         html: null,
@@ -1117,6 +1152,7 @@ function LegalConsultationStepper() {
               rescheduleLink: rescheduleLink,
               ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
             },
+            caseDescription: caseDiscription,
             isClientEmail: true,
           });
           console.log('✅ Client Email Sent:', clientEmailResponse.data);
