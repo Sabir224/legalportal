@@ -606,15 +606,16 @@ const Case_details = ({ token }) => {
           ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form H", onClick: handleFormH }]
             : []),
-          ...((token?.Role !== "client"&&  isclientAssigned)
+          ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
-            : []),
-          ...((isLFQISfilled && isclientAssigned)
-            ? [{ label: "Form LFA", onClick: handleFormLFA }]
             : []),
 
           ...((token?.Role !== "client" && isclientAssigned)
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
+            : []),
+
+          ...((isLFQISfilled && isclientAssigned)
+            ? [{ label: "Form LFA", onClick: handleFormLFA }]
             : []),
 
         ].map(({ label, onClick }, index) => (
