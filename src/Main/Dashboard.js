@@ -108,6 +108,7 @@ import CaseSummary from './Pages/cases/CaseSummary';
 import LEA_Form from './Pages/Component/Case_Forms/LFA_form';
 import LFQ_ClientCaseEvaluationForm from './Pages/Component/Case_Forms/LFQFrom';
 import PaymentDashboard from './Pages/Finance/PaymentDashboard';
+import InvoiceForm from './Pages/Finance/Legalportal_Finance/InvoiceForm';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -130,6 +131,7 @@ const Dashboard = () => {
   const [viewLawyer, setViewLawyer] = useState(false);
   // At the top of your component
   const [showCaseOptions, setShowCaseOptions] = useState(false);
+  const [ShowFinanceOptions, setShowFinanceOptions] = useState(false);
   // Add state at top of component
   const [showFormOptions, setShowFormOptions] = useState(false);
 
@@ -415,6 +417,13 @@ const Dashboard = () => {
         setCurrentScreen(
           <AlertProvider>
             <PaymentDashboard token={decodedToken} />
+            <GlobalAlert />
+          </AlertProvider>
+        );
+      case 30:
+        setCurrentScreen(
+          <AlertProvider>
+            <InvoiceForm token={decodedToken} />
             <GlobalAlert />
           </AlertProvider>
         );
@@ -907,6 +916,43 @@ const Dashboard = () => {
             //     handlescreen2(17);
             //   },
             // },
+
+
+
+             decodedToken?.Role === 'admin'
+              ? {
+                  icon: faFolder,
+                  label: 'Finanace',
+                  action: () => setShowFinanceOptions(!ShowFinanceOptions), // Toggle options on click
+                }
+              : null,
+
+            ShowFinanceOptions && decodedToken?.Role === 'admin'
+              ? {
+                  icon: faBookOpen,
+                  label: 'Invoice',
+                  style: {
+                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                    borderRadius: '6px',
+                    marginLeft: 10,
+                    padding: '5px',
+                    gap: '10px',
+                    cursor: 'pointer',
+                    display: 'flex', // Important for centering
+                    alignItems: 'center', // Vertical center
+                    justifyContent: 'center', // Horizontal center
+                  },
+                  action: () => {
+                    dispatch(clientEmail(null));
+                    dispatch(Caseinfo(null));
+                    dispatch(FormCDetails(null));
+                    dispatch(FormHDetails(null));
+                    handlescreen2(30);
+                  },
+                }
+              : null,
+
+
             {
               icon: faQuestionCircle,
               label: 'FAQs',
