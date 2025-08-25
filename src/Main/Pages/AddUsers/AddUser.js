@@ -65,7 +65,24 @@ const AddUser = () => {
     { name: 'Criminal', description: 'Defense and legal representation' },
     { name: 'Immigration', description: 'Visa and citizenship processes' },
     { name: 'Corporate', description: 'Business formation and compliance' },
+
+    // Added UpdateSubtypelist items
+    { name: 'Civil Case', description: 'Civil Case related legal services' },
+    { name: 'Commercial Law', description: 'Commercial Law related legal services' },
+    { name: 'Criminal Case', description: 'Criminal Case related legal services' },
+    { name: 'Family Law', description: 'Family Law related legal services' },
+    { name: 'Real Estate Case', description: 'Real Estate Case related legal services' },
+    { name: 'Labor Case', description: 'Labor Case related legal services' },
+    { name: 'Construction Case', description: 'Construction Case related legal services' },
+    { name: 'Maritime Case', description: 'Maritime Case related legal services' },
+    { name: 'Personal Injury Case', description: 'Personal Injury Case related legal services' },
+    { name: 'Technology Case', description: 'Technology Case related legal services' },
+    { name: 'Financial Case', description: 'Financial Case related legal services' },
+    { name: 'Public Law', description: 'Public Law related legal services' },
+    { name: 'Consumer Case', description: 'Consumer Case related legal services' },
+    { name: 'Environmental Case', description: 'Environmental Case related legal services' },
   ];
+
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
 
   const toggleRoleDropdown = (e) => {
