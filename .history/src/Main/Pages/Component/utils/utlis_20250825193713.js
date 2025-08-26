@@ -64,9 +64,11 @@ export const useMediaQuery = (query) => {
     const mediaQuery = window.matchMedia(query);
     const handler = (event) => setMatches(event.matches);
 
+    // ✅ Use `addEventListener` instead of `addListener`
     mediaQuery.addEventListener('change', handler);
 
     return () => {
+      // ✅ Use `removeEventListener` instead of `removeListener`
       mediaQuery.removeEventListener('change', handler);
     };
   }, [query]);

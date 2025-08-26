@@ -420,7 +420,6 @@ const Dashboard = () => {
             <GlobalAlert />
           </AlertProvider>
         );
-        break;
       case 30:
         setCurrentScreen(
           <AlertProvider>
@@ -918,10 +917,12 @@ const Dashboard = () => {
             //   },
             // },
 
-            decodedToken?.Role === 'admin'
+
+
+             decodedToken?.Role === 'admin'
               ? {
                   icon: faFolder,
-                  label: 'Finance',
+                  label: 'Finanace',
                   action: () => setShowFinanceOptions(!ShowFinanceOptions), // Toggle options on click
                 }
               : null,
@@ -950,6 +951,7 @@ const Dashboard = () => {
                   },
                 }
               : null,
+
 
             {
               icon: faQuestionCircle,
@@ -1071,7 +1073,6 @@ const Dashboard = () => {
               {screen === 29 && (
                 <ScreenHeader title={`Payment Dashboard${caseDetailsScreenTitle}`} onBack={handleBack} />
               )}
-              {screen === 30 && <ScreenHeader title={`Finance ${caseDetailsScreenTitle}`} onBack={handleBack} />}
             </h3>
 
             {/* Admin Buttons */}
