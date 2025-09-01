@@ -2,7 +2,7 @@ import { useCookies } from "react-cookie";
 import { jwtDecode } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
-
+import Swal from "sweetalert2";
 class AuthService {
   constructor() {
     this.cookies = null;
@@ -51,13 +51,75 @@ class AuthService {
     }
   }
 
+  // redirectToLogin() {
+  //   this.removeCookie("token");
+  //   this.navigate("/", {
+  //     state: { from: window.location.pathname },
+  //     replace: true,
+  //   });
+  // }
+
+
+
   redirectToLogin() {
-    this.removeCookie("token");
-    this.navigate("/", {
-      state: { from: window.location.pathname },
-      replace: true,
+    // Show only once
+    if (this._logoutPopupShown || (Swal.isVisible && Swal.isVisible())) return;
+    this._logoutPopupShown = true;
+
+    const totalMs = 30 * 1000; // 30 seconds
+    let intervalId;
+    let loggedOut = false;
+
+    const doLogout = () => {
+      if (loggedOut) return;
+      loggedOut = true;
+      try { Swal.close(); } catch { }
+      this.removeCookie("token");
+      this.navigate("/", {
+        state: { from: window.location.pathname },
+        replace: true,
+      });
+    };
+
+    // Auto-logout even if dialog is closed
+    const logoutTimeout = setTimeout(doLogout, totalMs);
+
+    Swal.fire({
+      title: "Session ending",
+      html: `You will be logged out in <b>${Math.ceil(totalMs / 1000)}</b> seconds.`,
+      timer: totalMs,
+      timerProgressBar: true,
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: true,
+      confirmButtonText: "Logout now",   // ✅ new option
+      showCancelButton: true,
+      cancelButtonText: "OK",            // ✅ simple OK
+      reverseButtons: true,              // puts OK to the right (nice UX)
+      didOpen: () => {
+        const b = Swal.getHtmlContainer().querySelector("b");
+        intervalId = setInterval(() => {
+          const left = Swal.getTimerLeft?.();
+          if (left != null && b) b.textContent = String(Math.ceil(left / 1000));
+        }, 250);
+      },
+      willClose: () => {
+        if (intervalId) clearInterval(intervalId);
+        // (don't clear logoutTimeout; needed for auto-logout after OK)
+      },
+    }).then((result) => {
+      if (result.isConfirmed) {
+        // Logout now
+        clearTimeout(logoutTimeout);
+        doLogout();
+      } else if (result.dismiss === Swal.DismissReason.timer) {
+        // Timer finished -> auto logout
+        doLogout();
+      }
+      // If user clicked OK, we just wait for logoutTimeout to fire at 30s.
     });
   }
+
 
   getTokenData() {
     try {

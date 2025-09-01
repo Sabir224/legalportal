@@ -65,7 +65,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [specialTerms, setSpecialTerms] = useState('');
     const [keyFactors, setKeyFactors] = useState('');
 
-    const [preparedBy, setPreparedBy] = useState(token?._id);
+    const [preparedBy, setPreparedBy] = useState(token?.Role === "lawyer" ? token?._id : '');
     const [preparedBySign, setPreparedBySign] = useState('');
     const [preparedDate, setPreparedDate] = useState('');
     const [approvedBy, setApprovedBy] = useState(token?._id);
@@ -338,6 +338,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 // Signatures
                 { condition: !preparedBy, message: "Prepared by name is required" },
                 { condition: !preparedDate, message: "Prepared date is required" },
+
                 { condition: !preparedBySign, message: "Prepared signature is required" },
                 { condition: !keyFactors, message: "Key Factors is required" },
                 { condition: !specialTerms, message: "Special Terms is required" },
@@ -823,12 +824,44 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     };
     const handleUpdateSignature = async (e) => {
         e.preventDefault();
-        setIsEdit(true);
-        setDataFound(false);
         showLoading()
 
         try {
             const formData = new FormData();
+
+
+
+
+
+
+
+
+
+
+
+
+
+            const validations = [
+                // Basic information
+
+                // Signatures
+                { condition: !preparedBy, message: "Prepared by name is required" },
+                { condition: !preparedDate, message: "Prepared date is required" },
+                { condition: !approvedDate, message: "Approved date is required" },
+            ];
+
+            // Check all validations
+            for (const validation of validations) {
+                if (validation.condition) {
+                    showError(validation.message);
+                    return;
+                }
+            }
+
+
+
+            setIsEdit(true);
+            setDataFound(false);
 
             // signature file
             if (approvedBySign) {
@@ -898,7 +931,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         disabled={dataFound}
                                         className="w-100 text-start d-flex justify-content-between align-items-center"
                                     >
-                                        {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.clientName}`}
+                                        {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.matterReference}`}
                                     </Dropdown.Toggle>
 
                                     <Dropdown.Menu className="w-100">
@@ -972,7 +1005,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
                                             }
                                             }>
-                                                {data?.clientName}
+                                                {data?.matterReference}
                                             </Dropdown.Item>
                                         ))}
                                     </Dropdown.Menu>
@@ -1764,7 +1797,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 }
                 {(preparedBy !== token?._id && !isclient && (approvedBySign && islocal)) &&
                     <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
-                        <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save Signature</div>
+                        <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
                     </div>
                 }
 

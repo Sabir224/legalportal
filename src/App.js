@@ -154,6 +154,7 @@ function App() {
 
   return (
     <BrowserRouter>
+       <GlobalTokenValidator />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<SignIn />} />

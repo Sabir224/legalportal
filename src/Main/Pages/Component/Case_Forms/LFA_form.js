@@ -9,43 +9,23 @@ import ConfirmModal from '../../AlertModels/ConfirmModal';
 import { useAlert } from '../../../../Component/AlertContext';
 import Form_SignaturePad from './Form_Componets/SignaturePad';
 import { BsPlus, BsDash, BsDownload } from "react-icons/bs";
-const LEA_Form = ({ token }) => {
-    // Agreement content
-    // const [agreement, setAgreement] = useState({
-    //     fixedParts: [
-    //         `This Agreement ("Agreement") is entered into and shall become effective as of ${new Date().toLocaleDateString('en-GB')} by and between:\n\n**`,
-    //         '**, with its principal place of business located at ',
-    //         ', represented herein by **',
-    //         '**, duly authorized (Hereinafter referred to as the "Attorney")\n\nAnd\n\n**',
-    //         '** a national of ',
-    //         ', with their principal place of residence located ',
-    //         ', holding Emirates ID Number: ',
-    //         ` issued on: ${new Date().toLocaleDateString('en-GB')}, having email ID: `,
-    //         ' and Contact Number: ',
-    //         ' (Hereinafter referred to as the "Client")'
-    //     ],
-    //     editableValues: [
-    //         'M/s AWS Legal Consultancy FZ-LLC',
-    //         '1 Sheikh Zayed Road, The H Dubai, Office 1602, P.O. Box 96070, Dubai, the United Arab Emirates',
-    //         'Mr Aws M. Younis, Chairman',
-    //         'Dr. Ali Moustafa Mohamed Elba',
-    //         'Egypt',
-    //         'Dubai, United Arab Emirates',
-    //         '784-1952-3620694-4',
-    //         'alyelba@yahoo.com',
-    //         '+971521356931'
-    //     ]
-    // });
-    const caseInfo = useSelector((state) => state.screen.Caseinfo);
+import { Dropdown, Form, InputGroup } from "react-bootstrap";
+import CEEditable from './CEEditable';
+import { v4 as uuidv4 } from "uuid";
 
+const LEA_Form = ({ token }) => {
+    const caseInfo = useSelector((state) => state.screen.Caseinfo);
     const { showDataLoading } = useAlert();
 
+    const [selectedDrafts, setSelectedDrafts] = useState("Select Draft");
+    const [getDrafts, setGetDrafts] = useState(null);
+
+    // NEW: force remount key for contentEditable sections
+    const [draftKey, setDraftKey] = useState(0);
 
     useEffect(() => {
-        FetchLFA()
+        FetchLFA();
     }, []);
-
-
 
     const [agreement, setAgreement] = useState({
         fixedParts: [
@@ -57,7 +37,6 @@ const LEA_Form = ({ token }) => {
             ' a national of ',
             ', with their principal place of residence located ',
             ' issued on: ',
-
             ', having email ID: ',
             ' and Contact Number: ',
             ' (Hereinafter referred to as the "Client")'
@@ -78,50 +57,20 @@ const LEA_Form = ({ token }) => {
         ]
     });
 
-    // Fixed Headings State
     const [fixedHeadings, setFixedHeadings] = useState([
-        {
-            title: 'Section 1: Fundamental Ethics and Professional Conducts Rules',
-            points: [{ text: '', subpoints: [] }]
-        },
-        {
-            title: 'Section 2: Purpose ',
-            points: [{ text: '', subpoints: [] }]
-        },
-        {
-            title: 'Section 3: Professional Fees for Dispute Case ',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 4: Other Fees ',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 5: Making Contact',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 6: Making appointments',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 7: Co-operation ',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 8: Contact by the other side',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 9: Bank Details',
-            points: [{ text: '', subpoints: [] }]
-        }, {
-            title: 'Section 10: Miscellaneous ',
-            points: [{ text: '', subpoints: [] }]
-        }
+        { title: 'Section 1: Fundamental Ethics and Professional Conducts Rules', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 2: Purpose ', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 3: Professional Fees for Dispute Case ', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 4: Other Fees ', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 5: Making Contact', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 6: Making appointments', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 7: Co-operation ', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 8: Contact by the other side', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 9: Bank Details', points: [{ text: '', subpoints: [] }] },
+        { title: 'Section 10: Miscellaneous ', points: [{ text: '', subpoints: [] }] }
     ]);
 
-    // Dynamic headings
-    const [headings, setHeadings] = useState([
-        // {
-        //     title: '',
-        //     points: [{ text: '', subpoints: [] }]
-        // }
-    ]);
+    const [headings, setHeadings] = useState([]);
 
     const [savedSignature, setSavedSignature] = useState(null);
     const [savedLawyerSignature, setSavedLawyerSignature] = useState(null);
@@ -130,70 +79,67 @@ const LEA_Form = ({ token }) => {
     const [isLocalSign, setIsLocalSign] = useState(false);
     const [IsLocalLawyerSign, setIsLocalLawyerSign] = useState(false);
     const [dataList, setDataList] = useState([]);
-    const isclient = token?.Role === "client"
+    const isclient = token?.Role === "client";
 
     const FetchLFA = async () => {
-        showDataLoading(true)
-        console.log('caseInfo=', caseInfo);
+        showDataLoading(true);
         try {
-            const response = await fetch(
-                `${ApiEndPoint}getLFAForm/${caseInfo?._id}`
-                //  caseInfo === null ? (token?.Role === "admin" ? `${ApiEndPoint}getAllTasksWithDetails` : `${ApiEndPoint}getTasksByUser/${token?._id}`) : `${ApiEndPoint}getTasksByCase/${caseInfo?._id}`
-            );
-
+            const response = await fetch(`${ApiEndPoint}getLFAForm/${caseInfo?._id}`);
             if (!response.ok) {
-                showDataLoading(false)
+                showDataLoading(false);
                 throw new Error('Error fetching LFA');
             }
-
             const data = await response.json();
-            showDataLoading(false)
-            console.log('fetch LFA', data.data.agreement);
+            showDataLoading(false);
+
             setAgreement(data.data.agreement);
             setDataList(data.data);
             setFixedHeadings(data.data.fixedHeadings);
             setHeadings(data.data.headings);
             setSavedClientSignature(data.data?.ClientSignatureImage ? data.data?.ClientSignatureImage : "");
             setSavedSignature(data.data?.LawyerSignatureImage ? data.data?.LawyerSignatureImage : "");
-            setEditMode(false)
-            setisFormFilled(true)
-            setIsLocalSign(data.data?.ClientSignatureImage ? true : false)
-            setIsLocalLawyerSign(!data.data?.LawyerSignatureImage ? true : false)
+            setEditMode(false);
+            setisFormFilled(true);
+            setIsLocalSign(!!data.data?.ClientSignatureImage);
+            setIsLocalLawyerSign(!data.data?.LawyerSignatureImage);
+            setSavedLawyerSignature();
 
-            setSavedLawyerSignature()
+            // ensure UI refreshes on initial fetch too
+            setDraftKey((k) => k + 1);
         } catch (err) {
-            showDataLoading(false)
-            // setMessage(err.response?.data?.message || "Error deleting task.");
-            //  setShowError(true);
+            showDataLoading(false);
         }
 
-    }
-    // This will be called when user clicks "Pass to Parent" button inside SignaturePad
+        try {
+            const response = await fetch(`${ApiEndPoint}getAllLFAForms`);
+            if (!response.ok) {
+                showDataLoading(false);
+                throw new Error('Error fetching LFA');
+            }
+            const data = await response.json();
+            setGetDrafts(data);
+        } catch (err) {
+            showDataLoading(false);
+        }
+    };
+
     const handleSignatureSave = (dataUrl) => {
-        console.log("Lawyar Signature Base64:", dataUrl);
-        setSavedSignature(dataUrl); // store it locally
-        setSavedLawyerSignature(dataUrl)
-         setIsLocalLawyerSign(true)
-
-        // You could also send it to your backend here
+        setSavedSignature(dataUrl);
+        setSavedLawyerSignature(dataUrl);
+        setIsLocalLawyerSign(true);
     };
+
     const handleClientSignatureSave = (dataUrl) => {
-        console.log("Client Signature Base64:", dataUrl);
-        setSavedClientSignature(dataUrl); // store it locally
-        // setIsLocalSign(true)
-        // You could also send it to your backend here
+        setSavedClientSignature(dataUrl);
     };
 
-    const [editMode, setEditMode] = useState(true);
+    const [editMode, setEditMode] = useState(token?.Role === "lawyer" ? true : false);
 
     const handleEditableChange = (index, newValue) => {
         const updated = [...agreement.editableValues];
         updated[index] = newValue;
         setAgreement({ ...agreement, editableValues: updated });
     };
-
-    // const handleSubmit = () => ;
-
 
     function base64ToFile(base64String, filename) {
         const arr = base64String.split(",");
@@ -207,16 +153,12 @@ const LEA_Form = ({ token }) => {
         return new File([u8arr], filename, { type: mime });
     }
 
-
     const handleClientSubmit = async () => {
         try {
             const formData = new FormData();
-
-            // Required fields
             formData.append("caseId", caseInfo?._id || "");
-            formData.append("Islawyer", false); // Client submit karega
+            formData.append("Islawyer", false);
 
-            // Agreement ko JSON me convert karke append karna
             formData.append(
                 "agreement",
                 JSON.stringify({
@@ -225,41 +167,31 @@ const LEA_Form = ({ token }) => {
                 })
             );
 
-            // Fixed Headings JSON
-            // formData.append("fixedHeadings", JSON.stringify(fixedHeadings));
-            // Transform karna before append
             const formattedHeadings = fixedHeadings?.map(h => ({
                 title: h.title,
                 points: h.points?.map(p => ({
                     text: p.text || "",
-                    subpoints: p.subpoints?.map(sp => ({
-                        text: sp.text || ""
-                    })) || []
+                    subpoints: p.subpoints?.map(sp => ({ text: sp.text || "" })) || []
                 }))
             }));
 
             formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
-
-            // Custom Headings JSON
             formData.append("headings", JSON.stringify(headings));
 
-            // Client signature file agar available ho
             if (savedClientSignature) {
                 const file = base64ToFile(savedClientSignature, "client-signature.png");
                 formData.append("file", file);
             }
 
-            // POST request
             const res = await fetch(`${ApiEndPoint}createLFAForm`, {
                 method: "POST",
-                body: formData, // multipart/form-data
+                body: formData
             });
 
             const data = await res.json();
             if (data.success) {
                 setEditMode(false);
-                setIsLocalSign(true)
-                console.log("✅ Client form saved:", data);
+                setIsLocalSign(true);
             } else {
                 console.error("❌ Failed:", data.message);
             }
@@ -268,18 +200,15 @@ const LEA_Form = ({ token }) => {
         }
     };
 
-
-
-
     const handleLawyerSubmit = async () => {
+
+
+        console.log(fixedHeadings)
         try {
             const formData = new FormData();
-
-            // Required fields
             formData.append("caseId", caseInfo?._id || "");
-            formData.append("Islawyer", true); // Client submit karega
+            formData.append("Islawyer", true);
 
-            // Agreement ko JSON me convert karke append karna
             formData.append(
                 "agreement",
                 JSON.stringify({
@@ -288,40 +217,31 @@ const LEA_Form = ({ token }) => {
                 })
             );
 
-            // Fixed Headings JSON
-            // formData.append("fixedHeadings", JSON.stringify(fixedHeadings));
-            // Transform karna before append
             const formattedHeadings = fixedHeadings?.map(h => ({
                 title: h.title,
                 points: h.points?.map(p => ({
                     text: p.text || "",
-                    subpoints: p.subpoints?.map(sp => ({
-                        text: sp.text || ""
-                    })) || []
+                    subpoints: p.subpoints?.map(sp => ({ text: sp.text || "" })) || []
                 }))
             }));
 
             formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
-
-            // Custom Headings JSON
             formData.append("headings", JSON.stringify(headings));
 
-            // Client signature file agar available ho
-            if (savedClientSignature) {
+            // FIXED: use lawyer signature (savedSignature), not savedClientSignature
+            if (savedSignature) {
                 const file = base64ToFile(savedSignature, "lawyer-signature.png");
                 formData.append("file", file);
             }
 
-            // POST request
             const res = await fetch(`${ApiEndPoint}createLFAForm`, {
                 method: "POST",
-                body: formData, // multipart/form-data
+                body: formData
             });
 
             const data = await res.json();
             if (data.success) {
                 setEditMode(false);
-                console.log("✅ Client form saved:", data);
             } else {
                 console.error("❌ Failed:", data.message);
             }
@@ -329,15 +249,13 @@ const LEA_Form = ({ token }) => {
             console.error("Error submitting form:", err);
         }
     };
+
     const handleUpdateClientSubmit = async () => {
         try {
             const formData = new FormData();
-
-            // Required fields
             formData.append("caseId", caseInfo?._id || "");
-            formData.append("Islawyer", false); // Client submit karega
+            formData.append("Islawyer", false);
 
-            // Agreement ko JSON me convert karke append karna
             formData.append(
                 "agreement",
                 JSON.stringify({
@@ -346,40 +264,30 @@ const LEA_Form = ({ token }) => {
                 })
             );
 
-            // Fixed Headings JSON
-            // formData.append("fixedHeadings", JSON.stringify(fixedHeadings));
-            // Transform karna before append
             const formattedHeadings = fixedHeadings?.map(h => ({
                 title: h.title,
                 points: h.points?.map(p => ({
                     text: p.text || "",
-                    subpoints: p.subpoints?.map(sp => ({
-                        text: sp.text || ""
-                    })) || []
+                    subpoints: p.subpoints?.map(sp => ({ text: sp.text || "" })) || []
                 }))
             }));
 
             formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
-
-            // Custom Headings JSON
             formData.append("headings", JSON.stringify(headings));
 
-            // Client signature file agar available ho
             if (savedClientSignature) {
                 const file = base64ToFile(savedClientSignature, "client-signature.png");
                 formData.append("file", file);
             }
 
-            // POST request
             const res = await fetch(`${ApiEndPoint}createLFAForm`, {
                 method: "POST",
-                body: formData, // multipart/form-data
+                body: formData
             });
 
             const data = await res.json();
             if (data.success) {
                 setEditMode(false);
-                console.log("✅ Client form saved:", data);
             } else {
                 console.error("❌ Failed:", data.message);
             }
@@ -388,87 +296,12 @@ const LEA_Form = ({ token }) => {
         }
     };
 
-
-
-
-    // const handleUpdateLawyerSubmit = async () => {
-    //     try {
-    //         const formData = new FormData();
-    //         // Required fields
-    //         formData.append("caseId", caseInfo?._id || "");
-    //         formData.append("Islawyer", !isclient); // Client submit karega
-
-    //         // Agreement ko JSON me convert karke append karna
-    //         formData.append(
-    //             "agreement",
-    //             JSON.stringify({
-    //                 fixedParts: agreement.fixedParts,
-    //                 editableValues: agreement.editableValues
-    //             })
-    //         );
-
-    //         // Fixed Headings JSON
-    //         // formData.append("fixedHeadings", JSON.stringify(fixedHeadings));
-    //         // Transform karna before append
-    //         const formattedHeadings = fixedHeadings?.map(h => ({
-    //             title: h.title,
-    //             points: h.points?.map(p => ({
-    //                 text: p.text || "",
-    //                 subpoints: p.subpoints?.map(sp => ({
-    //                     text: sp.text || ""
-    //                 })) || []
-    //             }))
-    //         }));
-
-    //         formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
-
-    //         // Custom Headings JSON
-    //         formData.append("headings", JSON.stringify(headings));
-
-    //         // Client signature file agar available ho
-    //         if (savedSignature && !isclient) {
-    //             const file = base64ToFile(savedSignature, "lawyer-signature.png");
-    //             formData.append("file", file);
-    //         }
-
-    //         if (savedClientSignature && isclient) {
-    //             const file = base64ToFile(savedClientSignature, "client-signature.png");
-    //             formData.append("file", file);
-    //         }
-    //         // POST request
-
-    //         console.log("lawyers=", formData)
-
-    //         const res = await fetch(`${ApiEndPoint}updateLFAForm`, {
-    //             method: "PUT",
-    //             body: formData, // multipart/form-data
-    //         });
-
-    //         const data = await res.json();
-
-    //         if (data.success) {
-    //             setEditMode(false);
-    //             FetchLFA()
-    //             console.log("✅ Client form saved:", data);
-    //         } else {
-    //             console.error("❌ Failed:", data.message);
-    //         }
-    //     } catch (err) {
-    //         console.error("Error submitting form:", err);
-    //     }
-    // };
-
-
-
     const handleUpdateLawyerSubmit = async () => {
         try {
             const formData = new FormData();
-
-            // Required fields
             formData.append("caseId", caseInfo?._id || "");
             formData.append("Islawyer", !isclient);
 
-            // Agreement
             formData.append(
                 "agreement",
                 JSON.stringify({
@@ -477,23 +310,17 @@ const LEA_Form = ({ token }) => {
                 })
             );
 
-            // Fixed Headings format
             const formattedHeadings = fixedHeadings?.map(h => ({
                 title: h.title,
                 points: h.points?.map(p => ({
                     text: p.text || "",
-                    subpoints: p.subpoints?.map(sp => ({
-                        text: sp.text || ""
-                    })) || []
+                    subpoints: p.subpoints?.map(sp => ({ text: sp.text || "" })) || []
                 }))
             })) || [];
 
             formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
-
-            // Custom Headings
             formData.append("headings", JSON.stringify(headings || []));
 
-            // Signatures
             if (!isclient && savedSignature) {
                 const file = base64ToFile(savedSignature, "lawyer-signature.png");
                 formData.append("file", file);
@@ -504,13 +331,6 @@ const LEA_Form = ({ token }) => {
                 formData.append("file", file);
             }
 
-            // Debug print all FormData
-            console.log("=== FormData being sent ===");
-            for (let [key, value] of formData.entries()) {
-                console.log(key, value);
-            }
-
-            // API Call
             const res = await fetch(`${ApiEndPoint}updateLFAForm`, {
                 method: "PUT",
                 body: formData
@@ -521,7 +341,6 @@ const LEA_Form = ({ token }) => {
             if (data.success) {
                 setEditMode(false);
                 FetchLFA();
-                console.log("✅ Form updated:", data);
             } else {
                 console.error("❌ Failed:", data.message);
             }
@@ -577,427 +396,709 @@ const LEA_Form = ({ token }) => {
 
     const [editHeadingIndex, setEditHeadingIndex] = useState(null);
 
-
-
-
-
-
     const pdfRef = useRef(null);
 
-    // ---------- Download handler (html2pdf) + clean PDF mode ----------
     const handleDownload = async () => {
         if (!pdfRef.current) return;
         try {
-            // Clean print look ON (textfield borders/bg off)
             pdfRef.current.classList.add("pdf-mode");
-
             const { default: html2pdf } = await import("html2pdf.js");
             const opt = {
-                margin: [12, 15, 12, 15], // [top, left, bottom, right] in mm
+                margin: [12, 15, 12, 15],
                 filename: "Legal_Fee_Agreement.pdf",
                 image: { type: "jpeg", quality: 0.98 },
                 html2canvas: { scale: 2.2, useCORS: true, scrollY: 0 },
                 jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
                 pagebreak: { mode: ["css", "legacy"] },
             };
-
             await html2pdf().set(opt).from(pdfRef.current).save();
         } catch (e) {
             console.error("PDF generation failed:", e);
             alert("Sorry, unable to generate PDF. Check console for details.");
         } finally {
-            // Clean print look OFF (UI normal)
             pdfRef.current.classList.remove("pdf-mode");
         }
     };
 
-    // ---------- Helper: renderHeadings (alignment + bullets + ignore UI in PDF) ----------
-    const renderHeadings = (list, setFn, isFixed = false) => {
-        const addHeading = (index) => {
-            if (!editMode) return;
-            const updated = [...list];
-            updated.splice(index + 1, 0, { title: "", points: [] });
-            setFn(updated);
-        };
-
-        const deleteHeading = (index) => {
-            if (!editMode) return;
-            const updated = [...list];
-            updated.splice(index, 1);
-            setFn(updated);
-        };
-
-        const addPoint = (hIndex) => {
-            if (!editMode) return;
-            const updated = [...list];
-            updated[hIndex].points.push({ text: "", subpoints: [] });
-            setFn(updated);
-        };
-
-        const deletePoint = (hIndex, pIndex) => {
-            if (!editMode) return;
-            const updated = [...list];
-            updated[hIndex].points.splice(pIndex, 1);
-            setFn(updated);
-        };
-
-        return list?.map((heading, hIndex) => (
-            <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
-                {/* === HEADING ROW: index + title + actions in ONE row === */}
-                <div
-                    className="heading-row"
-                    style={{
-                        display: "grid",
-                        // gridTemplateColumns: "36px 1fr auto",
-                        columnGap: "1px",
-                        alignItems: "center",
-                        marginBottom: "8px",
-                    }}
-                >
-                    {/* Index number (fixed width) */}
-                    <div
-                        className="idx"
-                        style={{ width: "20px", minWidth: "10px", textAlign: "right", fontWeight: 600 }}
-                    >
-                        {isFixed ? hIndex + 1 : hIndex + 11}.
-                    </div>
-
-                    {/* Heading content (fills the row) */}
-                    <div className="form-control bg-white p-1 fw-bold" style={{ whiteSpace: "pre-wrap", textAlign: "justify" }}>
-                        {editMode && !savedClientSignature ? (
-                            <p
-                                ref={(el) => {
-                                    if (el && !el.innerHTML.trim()) el.innerHTML = heading.title || "\u00A0";
-                                }}
-                                contentEditable
-                                suppressContentEditableWarning
-                                onInput={(e) => {
-                                    const html = e.currentTarget.innerHTML;
-                                    const updated = [...list];
-                                    updated[hIndex].title = html;
-                                    setFn(updated);
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.ctrlKey && e.key.toLowerCase() === "b") {
-                                        e.preventDefault();
-                                        document.execCommand("bold");
-                                    }
-                                    if (e.key === "Tab") {
-                                        e.preventDefault();
-                                        const selection = window.getSelection();
-                                        if (!selection.rangeCount) return;
-                                        const range = selection.getRangeAt(0);
-                                        const tabSpaces = "\u00A0".repeat(8);
-                                        const spaceNode = document.createTextNode(tabSpaces);
-                                        range.insertNode(spaceNode);
-                                        range.setStartAfter(spaceNode);
-                                        range.setEndAfter(spaceNode);
-                                        selection.removeAllRanges();
-                                        selection.addRange(range);
-                                    }
-                                }}
-                                onBlur={(e) => {
-                                    if (!e.currentTarget.textContent.trim()) e.currentTarget.innerHTML = "\u00A0";
-                                }}
-                                style={{
-                                    display: "inline-block",
-                                    minHeight: "40px",
-                                    width: "100%",
-                                    outline: "none",
-                                    background: "transparent",
-                                    whiteSpace: "pre-wrap",
-                                    wordBreak: "break-word",
-                                    fontFamily: "inherit",
-                                    fontSize: "inherit",
-                                    fontWeight: "bold",
-                                    padding: "4px 6px",
-                                    border: "1px solid #ccc",
-                                    borderRadius: "4px",
-                                    boxSizing: "border-box",
-                                    textAlign: "justify",
-                                }}
-                            />
-                        ) : (
-                            <div>
-                                <React.Fragment key={hIndex}>
-                                    <span>{heading.label || ""}</span>
-                                    <span dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
-                                </React.Fragment>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Actions (only edit mode) */}
-                    <div
-                        style={{ display: editMode && !savedClientSignature ? "flex" : "none", gap: "6px" }}
-                        data-html2canvas-ignore="true"
-                    >
-                        <div
-                            style={{
-                                color: "green",
-                                fontSize: 16,
-                                borderRadius: "5px",
-                                boxShadow: "0px 4px 4px rgba(4, 2, 2, 0.2)",
-                                cursor: "pointer",
-                            }}
-                            onClick={() => addHeading(hIndex)}
-                        >
-                            <BsPlus />
-                        </div>
-                        <div
-                            style={{
-                                color: "red",
-                                fontSize: 16,
-                                borderRadius: "5px",
-                                boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)",
-                                cursor: "pointer",
-                            }}
-                            onClick={() => deleteHeading(hIndex)}
-                        >
-                            <BsDash />
-                        </div>
-                    </div>
-                </div>
-
-                {/* === POINTS === */}
-                <ul className="list-unstyled ps-2 ps-md-3">
-                    {heading.points?.map((point, pIndex) => (
-                        <li key={pIndex}>
-                            <div className="d-flex flex-wrap align-items-center mb-2">
-                                {editMode && !savedClientSignature ? (
-                                    <p
-                                        ref={(el) => {
-                                            if (el && !el.innerHTML.trim()) el.innerHTML = point.text || "\u00A0";
-                                        }}
-                                        contentEditable
-                                        suppressContentEditableWarning
-                                        onInput={(e) => {
-                                            const html = e.currentTarget.innerHTML;
-                                            const updated = [...list];
-                                            updated[hIndex].points[pIndex].text = html;
-                                            setFn(updated);
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.ctrlKey && e.key.toLowerCase() === "b") {
-                                                e.preventDefault();
-                                                document.execCommand("bold");
-                                            }
-                                            if (e.key === "Tab") {
-                                                e.preventDefault();
-                                                const selection = window.getSelection();
-                                                if (!selection.rangeCount) return;
-                                                const range = selection.getRangeAt(0);
-                                                const tabSpaces = "\u00A0".repeat(8);
-                                                const spaceNode = document.createTextNode(tabSpaces);
-                                                range.insertNode(spaceNode);
-                                                range.setStartAfter(spaceNode);
-                                                range.setEndAfter(spaceNode);
-                                                selection.removeAllRanges();
-                                                selection.addRange(range);
-                                            }
-                                        }}
-                                        onBlur={(e) => {
-                                            if (!e.currentTarget.textContent.trim()) e.currentTarget.innerHTML = "\u00A0";
-                                        }}
-                                        style={{
-                                            display: "inline-block",
-                                            minHeight: "40px",
-                                            width: "100%",
-                                            outline: "none",
-                                            background: "transparent",
-                                            whiteSpace: "pre-wrap",
-                                            wordBreak: "break-word",
-                                            fontFamily: "inherit",
-                                            fontSize: "inherit",
-                                            padding: "4px 6px",
-                                            border: "1px solid #ddd",
-                                            borderRadius: "4px",
-                                            boxSizing: "border-box",
-                                            textAlign: "justify",
-                                        }}
-                                    />
-                                ) : (
-                                    <div className="" style={{ whiteSpace: "pre-wrap", textAlign: "justify" }}>
-                                        {/* {list[hIndex]?.points?.map((point, pIdx) => ( */}
-                                            <React.Fragment key={pIndex}>
-                                                <span>{point.label || ""}</span>
-                                                <span dangerouslySetInnerHTML={{ __html: point.text || "" }} />
-                                            </React.Fragment>
-                                        {/* ))} */}
-                                    </div>
-                                )}
-
-                                {editMode && !savedClientSignature && (
-                                    <>
-                                        <div
-                                            style={{
-                                                color: "green",
-                                                fontSize: 16,
-                                                borderRadius: "5px",
-                                                boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => addPoint(hIndex)}
-                                            data-html2canvas-ignore="true"
-                                        >
-                                            <BsPlus />
-                                        </div>
-                                        <div
-                                            style={{
-                                                color: "red",
-                                                fontSize: 16,
-                                                borderRadius: "5px",
-                                                boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)",
-                                                cursor: "pointer",
-                                            }}
-                                            onClick={() => deletePoint(hIndex, pIndex)}
-                                            data-html2canvas-ignore="true"
-                                        >
-                                            <BsDash />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-
-                            {/* --- SUBPOINTS (table-based bullets for perfect alignment) --- */}
-                            {Array.isArray(point?.subpoints) && point.subpoints.length > 0 && (
-                                <div style={{ margin: "4px 0 8px 0", paddingLeft: "16px", paddingRight: "16px" }}>
-                                    {point.subpoints.map((sp, sIndex) => {
-                                        const html = typeof sp === "string" ? sp : sp?.text || "";
-                                        return (
-                                            <table
-                                                key={sIndex}
-                                                style={{
-                                                    borderCollapse: "collapse",
-                                                    width: "100%",
-                                                    tableLayout: "fixed",
-                                                    margin: "2px 0",
-                                                }}
-                                            >
-                                                <tbody>
-                                                    <tr>
-                                                        <td
-                                                            style={{
-                                                                width: "14px",
-                                                                minWidth: "14px",
-                                                                textAlign: "center",
-                                                                verticalAlign: "top",
-                                                            }}
-                                                        >
-                                                            •
-                                                        </td>
-                                                        <td
-                                                            style={{
-                                                                paddingLeft: "8px",
-                                                                textAlign: "justify",
-                                                                wordBreak: "break-word",
-                                                            }}
-                                                        >
-                                                            <div style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: html }} />
-                                                        </td>
-                                                    </tr>
-                                                </tbody>
-                                            </table>
-                                        );
-                                    })}
-                                </div>
-                            )}
-                        </li>
-                    ))}
-
-                    {editMode && !savedClientSignature && (
-                        <li>
-                            <button
-                                type="button"
-                                className="btn btn-outline-primary btn-sm"
-                                onClick={() => addPoint(hIndex)}
-                                data-html2canvas-ignore="true"
-                            >
-                                + Add Point
-                            </button>
-                        </li>
-                    )}
-                </ul>
-            </div>
-        ));
+    // UPDATED: selecting a draft now forces a clean remount & syncs signatures
+    const handlePickDraft = (data) => {
+        setAgreement(data.agreement);
+        setFixedHeadings(data.fixedHeadings);
+        setHeadings(data.headings);
+        setSelectedDrafts(data);
+        // setSavedClientSignature(data?.ClientSignatureImage || "");
+        // setSavedSignature(data?.LawyerSignatureImage || "");
+        //  setEditMode(true);
+        setDraftKey((k) => k + 1); // force remount
     };
 
 
 
+    // const renderHeadings = (list, setFn, isFixed = false) => {
+    //     // === helpers: insert/delete right AFTER current index ===
+
+    //     const deleteHeading = (index) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = Array.isArray(prev) ? [...prev] : [];
+    //             if (index < 0 || index >= updated.length) return prev;
+    //             updated.splice(index, 1);
+    //             return updated;
+    //         });
+    //     };
+
+    //     const addHeadingAfter = (hIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = Array.isArray(prev) ? [...prev] : [];
+    //             const newHeading = { title: "New Section", points: [{ text: "", subpoints: [] }] };
+    //             updated.splice(hIndex + 1, 0, newHeading);
+    //             return updated;
+    //         });
+    //     };
+
+    //     const addPointAfter = (hIndex, pIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = Array.isArray(heading.points) ? [...heading.points] : [];
+    //             pts.splice(pIndex + 1, 0, { text: "", subpoints: [] });
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     const deletePoint = (hIndex, pIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = Array.isArray(heading.points) ? [...heading.points] : [];
+    //             if (pIndex < 0 || pIndex >= pts.length) return prev;
+
+    //             pts.splice(pIndex, 1);
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     const addPointAtEnd = (hIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = Array.isArray(heading.points) ? [...heading.points] : [];
+    //             pts.push({ text: "", subpoints: [] });
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     return list?.map((heading, hIndex) => (
+    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
+    //             <div
+    //                 className="heading-row"
+    //                 style={{ display: "grid", columnGap: "1px", alignItems: "center", marginBottom: "8px" }}
+    //             >
+    //                 <div
+    //                     className="idx"
+    //                     style={{ width: "20px", minWidth: "10px", textAlign: "right", fontWeight: 600 }}
+    //                 >
+    //                     {isFixed ? hIndex + 1 : hIndex + 11}.
+    //                 </div>
+
+    //                 <div className="form-control bg-white p-1 fw-bold" style={{ whiteSpace: "pre-wrap", textAlign: "justify" }}>
+    //                     {editMode && !savedClientSignature ? (
+    //                         <p
+    //                             ref={(el) => {
+    //                                 if (el && !el.innerHTML.trim()) el.innerHTML = heading.title || "\u00A0";
+    //                             }}
+    //                             contentEditable
+    //                             suppressContentEditableWarning
+    //                             onInput={(e) => {
+    //                                 const html = e.currentTarget.innerHTML;
+    //                                 const updated = [...list];
+    //                                 updated[hIndex].title = html;
+    //                                 setFn(updated);
+    //                             }}
+    //                             onKeyDown={(e) => {
+    //                                 if (e.ctrlKey && e.key.toLowerCase() === "b") {
+    //                                     e.preventDefault();
+    //                                     document.execCommand("bold");
+    //                                 }
+    //                                 if (e.key === "Tab") {
+    //                                     e.preventDefault();
+    //                                     const selection = window.getSelection();
+    //                                     if (!selection.rangeCount) return;
+    //                                     const range = selection.getRangeAt(0);
+    //                                     const tabSpaces = "\u00A0".repeat(8);
+    //                                     const spaceNode = document.createTextNode(tabSpaces);
+    //                                     range.insertNode(spaceNode);
+    //                                     range.setStartAfter(spaceNode);
+    //                                     selection.removeAllRanges();
+    //                                     selection.addRange(range);
+    //                                 }
+    //                             }}
+    //                             onBlur={(e) => {
+    //                                 if (!e.currentTarget.textContent.trim()) e.currentTarget.innerHTML = "\u00A0";
+    //                             }}
+    //                             style={{
+    //                                 display: "inline-block",
+    //                                 minHeight: "40px",
+    //                                 width: "100%",
+    //                                 outline: "none",
+    //                                 background: "transparent",
+    //                                 whiteSpace: "pre-wrap",
+    //                                 wordBreak: "break-word",
+    //                                 fontFamily: "inherit",
+    //                                 fontSize: "inherit",
+    //                                 fontWeight: "bold",
+    //                                 padding: "4px 6px",
+    //                                 border: "1px solid #ccc",
+    //                                 borderRadius: "4px",
+    //                                 boxSizing: "border-box",
+    //                                 textAlign: "justify",
+    //                             }}
+    //                         />
+    //                     ) : (
+    //                         <div>
+    //                             <React.Fragment key={hIndex}>
+    //                                 <span>{heading.label || ""}</span>
+    //                                 <span dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
+    //                             </React.Fragment>
+    //                         </div>
+    //                     )}
+    //                 </div>
+
+    //                 {/* ACTIONS: now insert AFTER current heading */}
+    //                 <div
+    //                     style={{ display: editMode && !savedClientSignature ? "flex" : "none", gap: "6px" }}
+    //                     data-html2canvas-ignore="true"
+    //                 >
+    //                     <div
+    //                         style={{ color: "green", fontSize: 16, borderRadius: "5px", boxShadow: "0px 4px 4px rgba(4, 2, 2, 0.2)", cursor: "pointer" }}
+    //                         onClick={() => addHeadingAfter(hIndex)}
+    //                     >
+    //                         <BsPlus />
+    //                     </div>
+    //                     <div
+    //                         style={{ color: "red", fontSize: 16, borderRadius: "5px", boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)", cursor: "pointer" }}
+    //                         onClick={() => deleteHeading(hIndex)}
+    //                     >
+    //                         <BsDash />
+    //                     </div>
+    //                 </div>
+    //             </div>
+
+    //             <ul className="list-unstyled ps-2 ps-md-3">
+    //                 {heading.points?.map((point, pIndex) => (
+    //                     <li key={pIndex}>
+    //                         <div className="d-flex flex-wrap align-items-center mb-2">
+    //                             {editMode && !savedClientSignature ? (
+    //                                 <p
+    //                                     ref={(el) => {
+    //                                         if (el && !el.innerHTML.trim()) el.innerHTML = point.text || "\u00A0";
+    //                                     }}
+    //                                     contentEditable
+    //                                     suppressContentEditableWarning
+    //                                     onInput={(e) => {
+    //                                         const html = e.currentTarget.innerHTML;
+    //                                         const updated = [...list];
+    //                                         updated[hIndex].points[pIndex].text = html;
+    //                                         setFn(updated);
+    //                                     }}
+    //                                     onKeyDown={(e) => {
+    //                                         if (e.ctrlKey && e.key.toLowerCase() === "b") {
+    //                                             e.preventDefault();
+    //                                             document.execCommand("bold");
+    //                                         }
+    //                                         if (e.key === "Tab") {
+    //                                             e.preventDefault();
+    //                                             const selection = window.getSelection();
+    //                                             if (!selection.rangeCount) return;
+    //                                             const range = selection.getRangeAt(0);
+    //                                             const tabSpaces = "\u00A0".repeat(8);
+    //                                             const spaceNode = document.createTextNode(tabSpaces);
+    //                                             range.insertNode(spaceNode);
+    //                                             range.setStartAfter(spaceNode);
+    //                                             selection.removeAllRanges();
+    //                                             selection.addRange(range);
+    //                                         }
+    //                                     }}
+    //                                     onBlur={(e) => {
+    //                                         if (!e.currentTarget.textContent.trim()) e.currentTarget.innerHTML = "\u00A0";
+    //                                     }}
+    //                                     style={{
+    //                                         display: "inline-block",
+    //                                         minHeight: "40px",
+    //                                         width: "100%",
+    //                                         outline: "none",
+    //                                         background: "transparent",
+    //                                         whiteSpace: "pre-wrap",
+    //                                         wordBreak: "break-word",
+    //                                         fontFamily: "inherit",
+    //                                         fontSize: "inherit",
+    //                                         padding: "4px 6px",
+    //                                         border: "1px solid #ddd",
+    //                                         borderRadius: "4px",
+    //                                         boxSizing: "border-box",
+    //                                         textAlign: "justify",
+    //                                     }}
+    //                                 />
+    //                             ) : (
+    //                                 <div className="" style={{ whiteSpace: "pre-wrap", textAlign: "justify" }}>
+    //                                     <React.Fragment key={pIndex}>
+    //                                         <span>{point.label || ""}</span>
+    //                                         <span dangerouslySetInnerHTML={{ __html: point.text || "" }} />
+    //                                     </React.Fragment>
+    //                                 </div>
+    //                             )}
+
+    //                             {editMode && !savedClientSignature && (
+    //                                 <>
+    //                                     {/* INSERT new point AFTER current pIndex */}
+    //                                     <div
+    //                                         style={{ color: "green", fontSize: 16, borderRadius: "5px", boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)", cursor: "pointer" }}
+    //                                         onClick={() => addPointAfter(hIndex, pIndex)}
+    //                                         data-html2canvas-ignore="true"
+    //                                     >
+    //                                         <BsPlus />
+    //                                     </div>
+    //                                     <div
+    //                                         style={{ color: "red", fontSize: 16, borderRadius: "5px", boxShadow: "0px 4px 4px rgba(0, 0, 0, 0.2)", cursor: "pointer" }}
+    //                                         onClick={() => deletePoint(hIndex, pIndex)}
+    //                                         data-html2canvas-ignore="true"
+    //                                     >
+    //                                         <BsDash />
+    //                                     </div>
+    //                                 </>
+    //                             )}
+    //                         </div>
+
+    //                         {/* subpoints UI remains same */}
+    //                         {Array.isArray(point?.subpoints) && point.subpoints.length > 0 && (
+    //                             <div style={{ margin: "4px 0 8px 0", paddingLeft: "16px", paddingRight: "16px" }}>
+    //                                 {point.subpoints.map((sp, sIndex) => {
+    //                                     const html = typeof sp === "string" ? sp : sp?.text || "";
+    //                                     return (
+    //                                         <table
+    //                                             key={sIndex}
+    //                                             style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed", margin: "2px 0" }}
+    //                                         >
+    //                                             <tbody>
+    //                                                 <tr>
+    //                                                     <td style={{ width: "14px", minWidth: "14px", textAlign: "center", verticalAlign: "top" }}>
+    //                                                         •
+    //                                                     </td>
+    //                                                     <td style={{ paddingLeft: "8px", textAlign: "justify", wordBreak: "break-word" }}>
+    //                                                         <div style={{ margin: 0 }} dangerouslySetInnerHTML={{ __html: html }} />
+    //                                                     </td>
+    //                                                 </tr>
+    //                                             </tbody>
+    //                                         </table>
+    //                                     );
+    //                                 })}
+    //                             </div>
+    //                         )}
+    //                     </li>
+    //                 ))}
+
+    //                 {editMode && !savedClientSignature && (
+    //                     <li>
+    //                         <button
+    //                             type="button"
+    //                             className="btn btn-outline-primary btn-sm"
+    //                             onClick={() => addPointAtEnd(hIndex)}
+    //                             data-html2canvas-ignore="true"
+    //                         >
+    //                             + Add Point
+    //                         </button>
+    //                     </li>
+    //                 )}
+    //             </ul>
+    //         </div>
+    //     ));
+    // };
+
+
+
+
+    // const renderHeadings = (list, setFn, isFixed = false) => {
+    //     // === helpers ===
+    //     const deleteHeading = (hIndex) => {
+    //         if (!editMode) return;
+
+    //         setFn((prev) => {
+    //             if (!Array.isArray(prev)) return prev;
+
+    //             const updated = [...prev];
+    //             updated.splice(hIndex, 1); // sirf targeted heading delete
+    //             return updated;
+    //         });
+
+    //         // focus shifting (optional)
+    //         setTimeout(() => {
+    //             const targetIdx = Math.max(0, hIndex - 1);
+    //             const editors = document.querySelectorAll('[data-head-editor="1"]');
+    //             if (editors && editors[targetIdx]) {
+    //                 editors[targetIdx].focus();
+    //             }
+    //         }, 0);
+    //     };
+
+    //     const addHeadingAfter = (hIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = Array.isArray(prev) ? [...prev] : [];
+    //             const newHeading = { title: "New Section", points: [{ text: "", subpoints: [] }] };
+    //             updated.splice(hIndex + 1, 0, newHeading);
+    //             return updated;
+    //         });
+    //     };
+
+    //     const addPointAfter = (hIndex, pIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = Array.isArray(heading.points) ? [...heading.points] : [];
+    //             pts.splice(pIndex + 1, 0, { text: "", subpoints: [] });
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     const deletePoint = (hIndex, pIndex) => {
+    //         if (!editMode) return;
+
+    //         setFn((prev) => {
+    //             if (!Array.isArray(prev)) return prev;
+
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading || !Array.isArray(heading.points)) return prev;
+
+    //             const newPoints = [...heading.points];
+    //             newPoints.splice(pIndex, 1); // sirf targeted point delete
+
+    //             updated[hIndex] = { ...heading, points: newPoints };
+    //             return updated;
+    //         });
+    //     };
+
+    //     const addPointAtEnd = (hIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = Array.isArray(heading.points) ? [...heading.points] : [];
+    //             pts.push({ text: "", subpoints: [] });
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     // === UI ===
+    //     return list?.map((heading, hIndex) => (
+    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
+    //             {/* Heading Title */}
+    //             <div className="heading-row" style={{ display: "grid", columnGap: "1px", alignItems: "center", marginBottom: "8px" }}>
+    //                 <div className="idx" style={{ width: "20px", textAlign: "right", fontWeight: 600 }}>
+    //                     {isFixed ? hIndex + 1 : hIndex + 11}.
+    //                 </div>
+
+    //                 {editMode && !savedClientSignature ? (
+
+    //                     <CEEditable
+    //                         tag="h4"
+    //                         html={heading.title}
+    //                         placeholder={"\\u00A0"}
+    //                         className="form-control bg-white p-1 fw-bold"
+    //                         style={{
+    //                             whiteSpace: "pre-wrap",
+    //                             textAlign: "justify",
+    //                             display: "inline-block",
+    //                             minHeight: "40px",
+    //                             width: "100%",
+    //                             outline: "none",
+    //                             background: "transparent",
+    //                             wordBreak: "break-word",
+    //                             fontFamily: "inherit",
+    //                             fontSize: "inherit",
+    //                             fontWeight: "bold",
+    //                             padding: "4px 6px",
+    //                             border: "1px solid #ccc",
+    //                             borderRadius: "4px",
+    //                             boxSizing: "border-box",
+    //                         }}
+    //                         onChange={(newHtml) => {
+    //                             const updated = [...list];
+    //                             updated[hIndex].title = newHtml;
+    //                             setFn(updated);
+    //                         }}
+    //                         onEmpty={() => {
+    //                             // If you also want "empty = delete":
+    //                             // setFn(prev => {
+    //                             //   const next = Array.isArray(prev) ? [...prev] : [];
+    //                             //   next.splice(hIndex, 1);
+    //                             //   return next;
+    //                             // });
+    //                         }}
+    //                         data-head-editor="1"   // <— add this so we can focus after delete
+    //                     />
+
+
+    //                 ) : (
+    //                     <div className="fw-bold" style={{ textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
+    //                 )}
+
+    //                 {editMode && !savedClientSignature && (
+    //                     <div style={{ display: "flex", gap: "6px" }} data-html2canvas-ignore="true">
+    //                         <div style={{ color: "green", cursor: "pointer" }} onClick={() => addHeadingAfter(hIndex)}>
+    //                             <BsPlus />
+    //                         </div>
+    //                         <div style={{ color: "red", cursor: "pointer" }} onClick={() => deleteHeading(hIndex)}>
+    //                             <BsDash />
+    //                         </div>
+    //                     </div>
+    //                 )}
+    //             </div>
+
+    //             {/* Points */}
+    //             <ul className="list-unstyled ps-2 ps-md-3">
+    //                 {heading.points?.map((point, pIndex) => (
+    //                     <li key={pIndex}>
+    //                         <div className="d-flex align-items-center mb-2">
+    //                             {editMode && !savedClientSignature ? (
+    //                                 <p
+    //                                     contentEditable
+    //                                     suppressContentEditableWarning
+    //                                     onInput={(e) => {
+    //                                         const updated = [...list];
+    //                                         updated[hIndex].points[pIndex].text = e.currentTarget.innerHTML;
+    //                                         setFn(updated);
+    //                                     }}
+    //                                     style={{
+    //                                         minHeight: "30px",
+    //                                         width: "100%",
+    //                                         outline: "none",
+    //                                         border: "1px solid #ddd",
+    //                                         borderRadius: "4px",
+    //                                         padding: "4px 6px",
+    //                                         textAlign: "justify"
+    //                                     }}
+    //                                     dangerouslySetInnerHTML={{ __html: point.text || "" }}
+    //                                 />
+    //                             ) : (
+    //                                 <div style={{ textAlign: "justify" }} dangerouslySetInnerHTML={{ __html: point.text || "" }} />
+    //                             )}
+
+    //                             {editMode && !savedClientSignature && (
+    //                                 <>
+    //                                     <div style={{ color: "green", cursor: "pointer" }} onClick={() => addPointAfter(hIndex, pIndex)}>
+    //                                         <BsPlus />
+    //                                     </div>
+    //                                     <div style={{ color: "red", cursor: "pointer" }} onClick={() => deletePoint(hIndex, pIndex)}>
+    //                                         <BsDash />
+    //                                     </div>
+    //                                 </>
+    //                             )}
+    //                         </div>
+    //                     </li>
+    //                 ))}
+
+    //                 {editMode && !savedClientSignature && (
+    //                     <li>
+    //                         <button type="button" className="btn btn-outline-primary btn-sm" onClick={() => addPointAtEnd(hIndex)} data-html2canvas-ignore="true">
+    //                             + Add Point
+    //                         </button>
+    //                     </li>
+    //                 )}
+    //             </ul>
+    //         </div>
+    //     ));
+    // };
+
+
+
+
+    // const renderHeadings = (list, setFn, isFixed = false) => {
+    //     // Add Heading
+    //     const addHeadingAfter = (hIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = Array.isArray(prev) ? [...prev] : [];
+    //             const newHeading = { id: uuidv4(), title: "New Section", points: [{ id: uuidv4(), text: "", subpoints: [] }] };
+    //             updated.splice(hIndex + 1, 0, newHeading);
+    //             return updated;
+    //         });
+    //     };
+
+    //     // Add Point
+    //     const addPointAfter = (hIndex, pIndex) => {
+    //         if (!editMode) return;
+    //         setFn((prev) => {
+    //             const updated = [...prev];
+    //             const heading = updated[hIndex];
+    //             if (!heading) return prev;
+
+    //             const pts = [...(heading.points || [])];
+    //             pts.splice(pIndex + 1, 0, { id: uuidv4(), text: "", subpoints: [] });
+    //             updated[hIndex] = { ...heading, points: pts };
+    //             return updated;
+    //         });
+    //     };
+
+    //     // === UI ===
+    //     return list?.map((heading, hIndex) => (
+    //         <div key={heading.id} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
+    //             {/* Heading Title */}
+    //             <div className="heading-row d-flex align-items-center mb-2">
+    //                 <div className="idx fw-bold me-2">{isFixed ? hIndex + 1 : hIndex + 11}.</div>
+
+    //                 {editMode && !savedClientSignature ? (
+    //                     <CEEditable
+    //                         key={heading.id}   // force re-init editor
+    //                         html={heading.title}
+    //                         onChange={(newHtml) => {
+    //                             setFn((prev) => {
+    //                                 const updated = [...prev];
+    //                                 updated[hIndex].title = newHtml;
+    //                                 return updated;
+    //                             });
+    //                         }}
+    //                     />
+    //                 ) : (
+    //                     <div className="fw-bold" dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
+    //                 )}
+    //             </div>
+
+    //             {/* Points */}
+    //             <ul className="list-unstyled ps-3">
+    //                 {heading.points?.map((point, pIndex) => (
+    //                     <li key={point.id}>
+    //                         {editMode && !savedClientSignature ? (
+    //                             <CEEditable
+    //                                 key={point.id}   // force re-init editor
+    //                                 html={point.text}
+    //                                 onChange={(newHtml) => {
+    //                                     setFn((prev) => {
+    //                                         const updated = [...prev];
+    //                                         updated[hIndex].points[pIndex].text = newHtml;
+    //                                         return updated;
+    //                                     });
+    //                                 }}
+    //                             />
+    //                         ) : (
+    //                             <div dangerouslySetInnerHTML={{ __html: point.text || "" }} />
+    //                         )}
+    //                     </li>
+    //                 ))}
+    //             </ul>
+    //         </div>
+    //     ));
+    // };
+
+
+
+    // ---- renderHeadings.jsx ----
+
+
+    const renderHeadings = (list, setFn, isFixed = false, editMode = true) => {
+        if (!Array.isArray(list)) return null;
+
+        // Step 1: Array -> HTML
+        const combinedHtml = list
+            .map(
+                (heading, hIndex) => `
+                <p><strong><ul>${heading.title || ""}</ul></strong></p>
+                <ul>
+                    ${(heading.points || [])
+                        .map((p) => `<li>${p.text || ""}</li>`)
+                        .join("")}
+                </ul>
+            `
+            )
+            .join("");
+
+        // Step 2: HTML -> Array
+        const parseHtmlToArray = (html) => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, "text/html");
+            const sections = [];
+
+            let currentHeading = null;
+
+            doc.body.childNodes.forEach((node) => {
+                if (node.nodeName === "P") {
+                    // extract heading text (remove numbering if any)
+                    const headingText = node.textContent.replace(/^\d+\.\s*/, "").trim();
+                    currentHeading = { title: headingText, points: [] };
+                    sections.push(currentHeading);
+                } else if (node.nodeName === "UL" && currentHeading) {
+                    const points = Array.from(node.querySelectorAll("li")).map((li) => ({
+                        text: li.innerHTML,
+                        subpoints: [],
+                    }));
+                    currentHeading.points = points;
+                }
+            });
+
+            return sections;
+        };
+
+        return (
+            <div className="section border p-2 rounded bg-light">
+                {editMode ? (
+                    <CEEditable
+                        list={list} // 👈 ab array directly de sakte ho
+                        onChange={(updatedList) => setFixedHeadings(updatedList)}
+                        disable={isFormFilled}
+                    />
+                ) : (
+                    <div dangerouslySetInnerHTML={{ __html: combinedHtml }} />
+                )}
+            </div>
+        );
+    };
+
+
     return (
         <div className="card w-100" style={{ maxHeight: "87vh", overflowY: "auto" }}>
-            {/* Inline CSS: alignment + clean PDF look + forced bullets */}
             <style>{`
-        /* ===== Alignment & Typography ===== */
         .word-paper { color: #000; line-height: 1.4; }
-        /* Heading row = fixed index column + fluid title column */
-        .word-paper .heading-row {
-          display: grid;
-          grid-template-columns: 32px 1fr;   /* fixed index width */
-          column-gap: 8px;
-          align-items: start;
-        }
-        .word-paper .idx {
-          width: 32px;
-          min-width: 32px;
-          text-align: right; /* numbers right-aligned like Word lists */
-        }
-
-        /* Justify main text everywhere it makes sense */
+        .word-paper .heading-row { display: grid; grid-template-columns: 32px 1fr; column-gap: 8px; align-items: start; }
+        .word-paper .idx { width: 32px; min-width: 32px; text-align: right; }
         .word-paper .form-control,
         .word-paper [contenteditable="true"],
         .word-paper ul.sub-bullets,
-        .word-paper ul.sub-bullets li {
-          text-align: justify;
-        }
-
-        /* ===== Clean PDF mode (toggled at export) ===== */
+        .word-paper ul.sub-bullets li { text-align: justify; }
         .word-paper.pdf-mode * { box-shadow: none !important; }
         .word-paper.pdf-mode .card,
         .word-paper.pdf-mode .form-control,
-        .word-paper.pdf-mode .section {
-          border: none !important;
-          background: transparent !important;
-        }
-        .word-paper.pdf-mode [contenteditable="true"] {
-          border: none !important;
-          outline: none !important;
-          background: transparent !important;
-          padding: 0 !important;
-        }
-
-        /* ===== Ensure list markers render in PDF (override Bootstrap resets) ===== */
+        .word-paper.pdf-mode .section { border: none !important; background: transparent !important; }
+        .word-paper.pdf-mode [contenteditable="true"] { border: none !important; outline: none !important; background: transparent !important; padding: 0 !important; }
         .word-paper.pdf-mode ul,
-        .word-paper.pdf-mode ol {
-          list-style: revert !important;
-          padding-left: 24px !important;
-          margin: 4px 0 6px 0 !important;
-        }
-        /* Subpoints bullets */
-        .word-paper ul.sub-bullets {
-          list-style-type: disc !important;
-          list-style-position: outside !important;
-          padding-left: 24px !important;
-          margin: 4px 0 6px 0 !important;
-        }
-        .word-paper ul.sub-bullets li {
-          display: list-item !important;
-          margin: 2px 0 !important;
-        }
-        /* If wrapped by .list-unstyled/form-control, still show bullets */
+        .word-paper.pdf-mode ol { list-style: revert !important; padding-left: 24px !important; margin: 4px 0 6px 0 !important; }
+        .word-paper ul.sub-bullets { list-style-type: disc !important; list-style-position: outside !important; padding-left: 24px !important; margin: 4px 0 6px 0 !important; }
+        .word-paper ul.sub-bullets li { display: list-item !important; margin: 2px 0 !important; }
         .word-paper .list-unstyled ul.sub-bullets,
-        .word-paper .form-control ul.sub-bullets {
-          list-style-type: disc !important;
-          padding-left: 24px !important;
-        }
-
-        /* Hide ignored elements in print fallback */
-        @media print {
-          [data-html2canvas-ignore="true"] { display: none !important; }
-        }
+        .word-paper .form-control ul.sub-bullets { list-style-type: disc !important; padding-left: 24px !important; }
+        @media print { [data-html2canvas-ignore="true"] { display: none !important; } }
       `}</style>
 
-            {/* -------- toolbar (ignored in PDF) -------- */}
+            {/* toolbar */}
             <div className="d-flex justify-content-end mb-3" data-html2canvas-ignore="true">
                 <button
                     className="btn btn-primary d-flex align-items-center"
@@ -1011,8 +1112,8 @@ const LEA_Form = ({ token }) => {
             </div>
 
             {(!isclient || isFormFilled) ? (
-                // --------- ONLY THIS CONTAINER will be exported to PDF ---------
-                <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef}>
+                // IMPORTANT: key={draftKey} forces remount so new draft values appear
+                <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef} key={draftKey}>
                     {/* Header */}
                     <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
                         <img
@@ -1023,6 +1124,61 @@ const LEA_Form = ({ token }) => {
                         />
                         <h1 className="mb-0 h4 h3-md fw-bold text-break">Legal Fee Agreement</h1>
                     </div>
+
+                    {token?.Role !== "client" && (
+                        // <Form.Group className="mb-3">
+                        //     <Form.Label>Drafts <span className="text-danger"></span></Form.Label>
+                        //     <InputGroup>
+                        //         <Dropdown className="w-100">
+                        //             <Dropdown.Toggle
+                        //                 variant="outline-secondary"
+                        //                 id="dropdown-practice-area"
+                        //                 // ENABLED now: allow switching drafts anytime
+                        //                 className="w-100 text-start d-flex justify-content-between align-items-center"
+                        //             >
+                        //                 {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.CaseNumber}`}
+                        //             </Dropdown.Toggle>
+
+                        //             <Dropdown.Menu className="w-100">
+                        //                 {getDrafts?.map((data, index) => (
+                        //                     <Dropdown.Item key={index} onClick={() => handlePickDraft(data)}>
+                        //                         {data?.CaseNumber}
+                        //                     </Dropdown.Item>
+                        //                 ))}
+                        //             </Dropdown.Menu>
+                        //         </Dropdown>
+                        //     </InputGroup>
+                        // </Form.Group>
+
+
+                        <Form.Group className="mb-3">
+                            <Form.Label>Drafts</Form.Label>
+
+                            <Dropdown className="w-100">
+                                <Dropdown.Toggle
+                                    variant="outline-secondary"
+                                    disabled={isFormFilled}
+                                    id="dropdown-practice-area"
+                                    className="w-100 text-start d-flex justify-content-between align-items-center"
+                                >
+                                    {selectedDrafts === "Select Draft"
+                                        ? "Select Draft"
+                                        : `${selectedDrafts?.CaseNumber}`}
+                                </Dropdown.Toggle>
+
+                                <Dropdown.Menu className="w-100" disabled={isFormFilled}>
+
+
+                                    {getDrafts?.map((data, index) => (
+                                        <Dropdown.Item key={index} onClick={() => handlePickDraft(data)}>
+                                            {data?.CaseNumber}
+                                        </Dropdown.Item>
+                                    ))}
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Form.Group>
+
+                    )}
 
                     <div className="card p-2 p-md-4 shadow-sm mb-4">
                         <label className="form-label fw-bold fs-5 text-break">Agreement</label>
@@ -1058,7 +1214,6 @@ const LEA_Form = ({ token }) => {
                                                         const spaceNode = document.createTextNode(tabSpaces);
                                                         range.insertNode(spaceNode);
                                                         range.setStartAfter(spaceNode);
-                                                        range.setEndAfter(spaceNode);
                                                         selection.removeAllRanges();
                                                         selection.addRange(range);
                                                     }
@@ -1108,12 +1263,11 @@ const LEA_Form = ({ token }) => {
                     {renderHeadings(fixedHeadings, setFixedHeadings, true)}
 
                     {/* Custom Headings */}
-                    {renderHeadings(headings, setHeadings, false)}
+                    {/* {renderHeadings(headings, setHeadings, false)} */}
 
-                    {(isFormFilled && savedClientSignature &&  !isclient && IsLocalLawyerSign) && (
+                    {(isFormFilled && savedClientSignature && !isclient && IsLocalLawyerSign && token?.Role === "lawyer") && (
                         <div style={{ padding: 20 }} data-html2canvas-ignore="true">
                             <h2>Lawyer Signature</h2>
-                            {/* Reusable Signature Pad */}
                             <Form_SignaturePad height={250} onSave={handleSignatureSave} />
                         </div>
                     )}
@@ -1122,7 +1276,6 @@ const LEA_Form = ({ token }) => {
                         {(isclient && !isLocalSign) && (
                             <div>
                                 <h2>Client Signature</h2>
-                                {/* Reusable Signature Pad */}
                                 <Form_SignaturePad height={250} onSave={handleClientSignatureSave} />
                             </div>
                         )}
@@ -1138,7 +1291,6 @@ const LEA_Form = ({ token }) => {
                             width: "100%",
                         }}
                     >
-                        {/* Lawyer Signature - Left */}
                         {savedSignature && (
                             <div>
                                 <h4>Lawyer Signature:</h4>
@@ -1155,7 +1307,6 @@ const LEA_Form = ({ token }) => {
                             </div>
                         )}
 
-                        {/* Client Signature - Right */}
                         {savedClientSignature && (
                             <div>
                                 <h4>Client Signature:</h4>
@@ -1172,7 +1323,6 @@ const LEA_Form = ({ token }) => {
                         )}
                     </div>
 
-                    {/* Buttons (ALL ignored in PDF) */}
                     <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap" data-html2canvas-ignore="true">
                         {(!isclient && savedClientSignature && savedLawyerSignature) && (
                             <button
@@ -1181,7 +1331,7 @@ const LEA_Form = ({ token }) => {
                                 style={{ width: "150px" }}
                                 data-html2canvas-ignore="true"
                             >
-                                Update Agreement
+                                Save & Update Agreement
                             </button>
                         )}
 
@@ -1194,7 +1344,7 @@ const LEA_Form = ({ token }) => {
                                         style={{ width: "150px" }}
                                         data-html2canvas-ignore="true"
                                     >
-                                        Save Agreement
+                                        Save & Submit Agreement
                                     </button>
                                 ) : (
                                     <button
@@ -1203,7 +1353,7 @@ const LEA_Form = ({ token }) => {
                                         style={{ width: "150px" }}
                                         data-html2canvas-ignore="true"
                                     >
-                                        Update Agreement
+                                        Save & Update Agreement
                                     </button>
                                 )}
                             </>
@@ -1216,11 +1366,11 @@ const LEA_Form = ({ token }) => {
                                         style={{ width: "150px" }}
                                         data-html2canvas-ignore="true"
                                     >
-                                        Save Signature
+                                        Save & Submit Signature
                                     </button>
                                 )}
 
-                                {(!isclient && !savedClientSignature) && (
+                                {(!isclient && !savedClientSignature && token?.Role === "lawyer") && (
                                     <button
                                         className="btn btn-sm btn-primary fw-bold"
                                         onClick={() => setEditMode(true)}
@@ -1239,544 +1389,6 @@ const LEA_Form = ({ token }) => {
             )}
         </div>
     );
-
-
-
-
-
-
-
-
-
-
-
-
-    // const renderHeadings = (list, setFn, isFixed = false) => {
-
-    //     const addHeading = (index) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated.splice(index + 1, 0, { title: "", points: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deleteHeading = (index) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated.splice(index, 1);
-    //         setFn(updated);
-    //     };
-
-    //     const addPoint = (hIndex) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated[hIndex].points.push({ text: "", subpoints: [] });
-    //         setFn(updated);
-    //     };
-
-    //     const deletePoint = (hIndex, pIndex) => {
-    //         if (!editMode) return;
-    //         const updated = [...list];
-    //         updated[hIndex].points.splice(pIndex, 1);
-    //         setFn(updated);
-    //     };
-
-    //     return list?.map((heading, hIndex) => (
-    //         <div key={hIndex} className="section border p-2 p-md-3 my-2 my-md-3 rounded bg-light">
-    //             <div className="d-flex flex-wrap align-items-start mb-2">
-    //                 <div className="d-flex me-2 mt-1 fw-bold">
-    //                     {editMode && !savedClientSignature && (
-    //                         <div className="ms-2 d-flex gap-1" style={{
-    //                         }}>
-
-    //                             <div
-    //                                 type=""
-    //                                 style={{
-    //                                     color: 'green', fontSize: 16, borderRadius: '5px',
-    //                                     boxShadow: '0px 4px 4px rgba(4, 2, 2, 0.2)'
-    //                                 }}
-    //                                 onClick={() => addHeading(hIndex)}
-    //                             >
-    //                                 <BsPlus />
-    //                             </div>
-    //                             <div
-    //                                 type=""
-    //                                 style={{
-    //                                     color: 'red', fontSize: 16, borderRadius: '5px',
-    //                                     boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
-    //                                 }}
-    //                                 onClick={() => deleteHeading(hIndex)}
-    //                             >
-    //                                 <BsDash />
-    //                             </div>
-
-    //                         </div>
-    //                     )}
-    //                     {isFixed ? hIndex + 1 : hIndex + 11}
-    //                 </div>
-
-    //                 <div className="flex-grow-1">
-    //                     {editMode && !savedClientSignature ? (
-    //                         <p
-    //                             ref={(el) => {
-    //                                 if (el && !el.innerHTML.trim()) {
-    //                                     el.innerHTML = heading.title || '\u00A0';
-    //                                 }
-    //                             }}
-    //                             contentEditable
-    //                             suppressContentEditableWarning
-    //                             onInput={(e) => {
-    //                                 const html = e.currentTarget.innerHTML;
-    //                                 const updated = [...list];
-    //                                 updated[hIndex].title = html;
-    //                                 setFn(updated);
-    //                             }}
-    //                             onKeyDown={(e) => {
-    //                                 // Ctrl+B for bold
-    //                                 if (e.ctrlKey && e.key.toLowerCase() === 'b') {
-    //                                     e.preventDefault();
-    //                                     document.execCommand('bold');
-    //                                 }
-
-    //                                 // Tab key for 8 spaces
-    //                                 if (e.key === 'Tab') {
-    //                                     e.preventDefault();
-    //                                     const selection = window.getSelection();
-    //                                     if (!selection.rangeCount) return;
-
-    //                                     const range = selection.getRangeAt(0);
-    //                                     const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
-    //                                     const spaceNode = document.createTextNode(tabSpaces);
-
-    //                                     range.insertNode(spaceNode);
-    //                                     // Move cursor after inserted spaces
-    //                                     range.setStartAfter(spaceNode);
-    //                                     range.setEndAfter(spaceNode);
-    //                                     selection.removeAllRanges();
-    //                                     selection.addRange(range);
-    //                                 }
-    //                             }}
-    //                             onBlur={(e) => {
-    //                                 if (!e.currentTarget.textContent.trim()) {
-    //                                     e.currentTarget.innerHTML = '\u00A0';
-    //                                 }
-    //                             }}
-    //                             style={{
-    //                                 display: "inline-block",
-    //                                 minHeight: "40px",
-    //                                 width: "100%",
-    //                                 outline: "none",
-    //                                 background: "transparent",
-    //                                 whiteSpace: "pre-wrap",
-    //                                 wordBreak: "break-word",
-    //                                 fontFamily: "inherit",
-    //                                 fontSize: "inherit",
-    //                                 fontWeight: "bold",
-    //                                 padding: "4px 6px",
-    //                                 border: "1px solid #ccc",
-    //                                 borderRadius: "4px",
-    //                                 boxSizing: "border-box",
-    //                             }}
-    //                         />
-
-    //                     ) : (
-    //                         <div
-    //                             className="form-control bg-white p-3 fw-bold"
-    //                             style={{ whiteSpace: 'pre-wrap' }}
-    //                         >
-
-    //                             <React.Fragment key={hIndex}>
-    //                                 <span>{heading.label || ""}</span>
-    //                                 <span dangerouslySetInnerHTML={{ __html: heading.title || "" }} />
-    //                             </React.Fragment>
-
-    //                         </div>
-
-    //                     )}
-    //                 </div>
-
-
-    //             </div>
-
-    //             {/* POINTS */}
-    //             <ul className="list-unstyled ps-2 ps-md-3">
-    //                 {heading.points?.map((point, pIndex) => (
-    //                     <li key={pIndex}>
-    //                         <div className="d-flex flex-wrap align-items-center mb-2">
-    //                             {editMode && !savedClientSignature ? (
-    //                                 <p
-    //                                     ref={(el) => {
-    //                                         if (el && !el.innerHTML.trim()) {
-    //                                             el.innerHTML = point.text || '\u00A0';
-    //                                         }
-    //                                     }}
-    //                                     contentEditable
-    //                                     suppressContentEditableWarning
-    //                                     onInput={(e) => {
-    //                                         const html = e.currentTarget.innerHTML;
-    //                                         const updated = [...list];
-    //                                         updated[hIndex].points[pIndex].text = html;
-    //                                         setFn(updated);
-    //                                     }}
-    //                                     onKeyDown={(e) => {
-    //                                         // Ctrl+B for bold
-    //                                         if (e.ctrlKey && e.key.toLowerCase() === 'b') {
-    //                                             e.preventDefault();
-    //                                             document.execCommand('bold');
-    //                                         }
-
-    //                                         // Tab key for 8 spaces
-    //                                         if (e.key === 'Tab') {
-    //                                             e.preventDefault();
-    //                                             const selection = window.getSelection();
-    //                                             if (!selection.rangeCount) return;
-
-    //                                             const range = selection.getRangeAt(0);
-    //                                             const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
-    //                                             const spaceNode = document.createTextNode(tabSpaces);
-
-    //                                             range.insertNode(spaceNode);
-    //                                             // Move cursor after inserted spaces
-    //                                             range.setStartAfter(spaceNode);
-    //                                             range.setEndAfter(spaceNode);
-    //                                             selection.removeAllRanges();
-    //                                             selection.addRange(range);
-    //                                         }
-    //                                     }}
-    //                                     onBlur={(e) => {
-    //                                         if (!e.currentTarget.textContent.trim()) {
-    //                                             e.currentTarget.innerHTML = '\u00A0';
-    //                                         }
-    //                                     }}
-    //                                     style={{
-    //                                         display: "inline-block",
-    //                                         minHeight: "40px",
-    //                                         width: "100%",
-    //                                         outline: "none",
-    //                                         background: "transparent",
-    //                                         whiteSpace: "pre-wrap",
-    //                                         wordBreak: "break-word",
-    //                                         fontFamily: "inherit",
-    //                                         fontSize: "inherit",
-    //                                         padding: "4px 6px",
-    //                                         border: "1px solid #ddd",
-    //                                         borderRadius: "4px",
-    //                                         boxSizing: "border-box",
-    //                                     }}
-    //                                 />
-
-    //                             ) : (
-    //                                 <div
-    //                                     className="form-control bg-white p-3"
-    //                                     style={{ whiteSpace: 'pre-wrap' }}
-    //                                 >
-    //                                     {list[hIndex]?.points?.map((point, pIndex) => (
-    //                                         <React.Fragment key={pIndex}>
-    //                                             <span>{point.label || ""}</span>
-    //                                             <span dangerouslySetInnerHTML={{ __html: point.text || "" }} />
-    //                                         </React.Fragment>
-    //                                     ))}
-    //                                 </div>
-
-    //                             )}
-
-    //                             {editMode && !savedClientSignature && (
-    //                                 <>
-    //                                     <div
-    //                                         type=""
-    //                                         style={{
-    //                                             color: 'green', fontSize: 16, borderRadius: '5px',
-    //                                             boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
-    //                                         }}
-    //                                         onClick={() => addPoint(hIndex)}
-    //                                     >
-    //                                         <BsPlus />
-    //                                     </div>
-    //                                     <div
-    //                                         type=""
-    //                                         style={{
-    //                                             color: 'red', fontSize: 16, borderRadius: '5px',
-    //                                             boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.2)'
-    //                                         }}
-    //                                         onClick={() => deletePoint(hIndex, pIndex)}
-    //                                     >
-    //                                         <BsDash />
-    //                                     </div>
-    //                                 </>
-    //                             )}
-    //                         </div>
-    //                     </li>
-    //                 ))}
-
-    //                 {editMode && !savedClientSignature && (
-    //                     <li>
-    //                         <button
-    //                             type="button"
-    //                             className="btn btn-outline-primary btn-sm"
-    //                             onClick={() => addPoint(hIndex)}
-    //                         >
-    //                             + Add Point
-    //                         </button>
-    //                     </li>
-    //                 )}
-    //             </ul>
-    //         </div>
-    //     ));
-    // };
-
-    // return (
-    //     <div className="card w-100" style={{ maxHeight: '87vh', overflowY: 'auto' }}>
-    //         <div className="d-flex justify-content-end mb-3">
-    //             <button
-    //                 className="btn btn-primary d-flex align-items-center"
-    //                 onClick={() => { }}
-    //                 style={{ padding: '8px 16px' }}
-    //             >
-    //                 <BsDownload className="me-2" />
-    //                 Download PDF
-    //             </button>
-    //         </div>
-
-    //         {(!isclient || isFormFilled) ?
-    //             (
-    //                 <div className="container mt-2 mt-md-4">
-    //                     {/* Header */}
-    //                     <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
-    //                         <img src="logo.png" alt="Logo" className="me-2 me-md-3 mb-2 mb-md-0" style={{ height: '50px' }} />
-    //                         <h1 className="mb-0 h4 h3-md fw-bold text-break">Legal Fee Agreement</h1>
-    //                     </div>
-
-
-    //                     <div className="card p-2 p-md-4 shadow-sm mb-4">
-    //                         <label className="form-label fw-bold fs-5 text-break">Agreement</label>
-    //                         {editMode && !isclient && !savedClientSignature ? (
-    //                             <div
-    //                                 className="form-control p-3"
-    //                                 style={{ minHeight: '300px', whiteSpace: 'pre-wrap' }}
-    //                             >
-    //                                 {agreement?.fixedParts?.map((part, index) => (
-    //                                     <React.Fragment key={index}>
-    //                                         <span>{part}</span>
-    //                                         {index < agreement.editableValues.length && (
-
-    //                                             <p
-    //                                                 ref={(el) => {
-    //                                                     if (el && !el.innerHTML.trim()) {
-    //                                                         el.innerHTML = agreement.editableValues[index] || '\u00A0';
-    //                                                     }
-    //                                                 }}
-    //                                                 contentEditable
-    //                                                 suppressContentEditableWarning
-    //                                                 onInput={(e) => {
-    //                                                     const html = e.currentTarget.innerHTML;
-    //                                                     handleEditableChange(index, html);
-    //                                                 }}
-    //                                                 onKeyDown={(e) => {
-    //                                                     // Ctrl+B for bold
-    //                                                     if (e.ctrlKey && e.key.toLowerCase() === 'b') {
-    //                                                         e.preventDefault();
-    //                                                         document.execCommand('bold');
-    //                                                     }
-
-    //                                                     // Tab key for 8 spaces
-    //                                                     if (e.key === 'Tab') {
-    //                                                         e.preventDefault();
-    //                                                         const selection = window.getSelection();
-    //                                                         if (!selection.rangeCount) return;
-
-    //                                                         const range = selection.getRangeAt(0);
-    //                                                         const tabSpaces = '\u00A0'.repeat(8); // 8 non-breaking spaces
-    //                                                         const spaceNode = document.createTextNode(tabSpaces);
-
-    //                                                         range.insertNode(spaceNode);
-    //                                                         // Move cursor after inserted spaces
-    //                                                         range.setStartAfter(spaceNode);
-    //                                                         range.setEndAfter(spaceNode);
-    //                                                         selection.removeAllRanges();
-    //                                                         selection.addRange(range);
-    //                                                     }
-    //                                                 }}
-    //                                                 onBlur={(e) => {
-    //                                                     if (!e.currentTarget.textContent.trim()) {
-    //                                                         e.currentTarget.innerHTML = '\u00A0';
-    //                                                     }
-    //                                                 }}
-    //                                                 style={{
-    //                                                     display: "inline",
-    //                                                     minWidth: "2ch",
-    //                                                     maxWidth: "100%",
-    //                                                     outline: "none",
-    //                                                     background: "transparent",
-    //                                                     verticalAlign: "middle",
-    //                                                     whiteSpace: "pre-wrap",
-    //                                                     wordBreak: "break-word",
-    //                                                     fontFamily: "inherit",
-    //                                                     fontSize: "inherit",
-    //                                                     padding: "0 2px",
-    //                                                     boxSizing: "border-box",
-    //                                                     textDecoration: "underline", // underline continues on wrap
-    //                                                     textDecorationSkipInk: "none" // keeps underline from skipping descenders
-    //                                                 }}
-    //                                             />
-
-    //                                         )}
-    //                                     </React.Fragment>
-    //                                 ))}
-    //                             </div>
-    //                         ) : (
-    //                             <div
-    //                                 className="form-control bg-white p-3"
-    //                                 style={{ whiteSpace: 'pre-wrap', minHeight: '300px' }}
-    //                             >
-    //                                 {agreement?.fixedParts?.map((part, index) => (
-    //                                     <React.Fragment key={index}>
-    //                                         <span>{part}</span>
-    //                                         {index < agreement.editableValues.length && (
-    //                                             <span dangerouslySetInnerHTML={{ __html: agreement.editableValues[index] }} />
-    //                                         )}
-    //                                     </React.Fragment>
-    //                                 ))}
-    //                             </div>
-    //                         )}
-    //                     </div>
-
-
-
-    //                     {/* Fixed Headings */}
-    //                     {renderHeadings(fixedHeadings, setFixedHeadings, true)}
-
-    //                     {/* Custom Headings */}
-    //                     {renderHeadings(headings, setHeadings, false)}
-
-    //                     {(isFormFilled && savedClientSignature && !savedSignature && !isclient) &&
-
-    //                         <div style={{ padding: 20 }}>
-    //                             <h2>Lawyer Signature</h2>
-
-    //                             {/* Reusable Signature Pad */}
-    //                             <Form_SignaturePad height={250} onSave={handleSignatureSave} />
-
-    //                             {/* Preview the saved signature */}
-
-    //                         </div>
-    //                     }
-    //                     {/* {(isFormFilled && !savedClientSignature ) && */}
-
-    //                     <div style={{ padding: 20 }}>
-    //                         {(isclient && !isLocalSign) &&
-    //                             <div>
-    //                                 <h2>Client Signature</h2>
-    //                                 {/* Reusable Signature Pad */}
-    //                                 <Form_SignaturePad height={250} onSave={handleClientSignatureSave} />
-    //                             </div>
-    //                         }
-    //                     </div>
-    //                     {/* } */}
-    //                     <div
-    //                         style={{
-    //                             display: "flex",
-    //                             flexDirection: "row",
-    //                             justifyContent: "space-between",
-    //                             alignItems: "flex-start",
-    //                             gap: "20px",
-    //                             width: "100%",
-    //                         }}
-    //                     >
-    //                         {/* Lawyer Signature - Left */}
-    //                         {savedSignature && (
-    //                             <div>
-    //                                 <h4>Lawyer Signature:</h4>
-    //                                 <img
-    //                                     src={savedSignature}
-    //                                     alt="Lawyer Signature"
-    //                                     style={{
-    //                                         maxWidth: "220px",
-    //                                         maxHeight: "300px",
-    //                                         border: "1px solid #ccc",
-    //                                         borderRadius: "4px",
-    //                                     }}
-    //                                 />
-    //                             </div>
-    //                         )}
-
-    //                         {/* Client Signature - Right */}
-    //                         {savedClientSignature && (
-    //                             <div>
-    //                                 <h4>Client Signature:</h4>
-    //                                 <img
-    //                                     src={savedClientSignature}
-    //                                     alt="Client Signature"
-    //                                     style={{
-    //                                         maxWidth: "220px",
-    //                                         border: "1px solid #ccc",
-    //                                         borderRadius: "4px",
-    //                                     }}
-    //                                 />
-    //                             </div>
-    //                         )}
-    //                     </div>
-    //                     {/* Buttons */}
-
-    //                     <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap">
-    //                         {(!isclient && savedClientSignature && savedLawyerSignature) && (
-    //                             <button className="btn btn-sm btn-primary fw-bold" onClick={handleUpdateLawyerSubmit} style={{ width: '150px' }}>
-    //                                 Update Agreement
-    //                             </button>
-    //                         )
-    //                         }
-    //                         {editMode ? (
-    //                             <>
-    //                                 {(!isFormFilled && !savedClientSignature) ? (
-
-    //                                     <button className="btn btn-sm btn-primary fw-bold" onClick={token?.Role !== "client" ? handleLawyerSubmit : handleClientSubmit} style={{ width: '150px' }}>
-    //                                         Save Agreement
-    //                                     </button>
-    //                                 ) : (<button className="btn btn-sm btn-primary fw-bold" onClick={handleUpdateLawyerSubmit} style={{ width: '150px' }}>
-    //                                     Update Agreement
-    //                                 </button>)
-    //                                 }
-
-    //                             </>
-    //                         ) :
-    //                             <>
-    //                                 {
-    //                                     (isclient && !isLocalSign) &&
-    //                                     <button className="btn btn-sm btn-primary fw-bold" onClick={handleUpdateLawyerSubmit} style={{ width: '150px' }}>
-    //                                         Save Signature
-    //                                     </button>
-    //                                 }
-
-    //                                 {(!isclient && !savedClientSignature) && (
-    //                                     <button className="btn btn-sm btn-primary fw-bold" onClick={() => setEditMode(true)} style={{ width: '150px' }}>
-    //                                         Edit Agreement
-    //                                     </button>
-    //                                 )
-    //                                 }
-
-    //                             </>
-    //                         }
-    //                     </div>
-
-    //                 </div>
-    //             )
-    //             : (
-    //                 <div className="text-center text-black py-5">
-    //                     No LFA Form Available.
-    //                 </div>
-    //             )}
-    //     </div >
-    // );
 };
 
 export default LEA_Form;
-
-
-
-
-
-
-
-
-
-
-
