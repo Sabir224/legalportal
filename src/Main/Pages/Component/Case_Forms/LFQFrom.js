@@ -8,6 +8,10 @@ import { useSelector } from "react-redux";
 import { Caseinfo } from "../../../../REDUX/sliece";
 import { useAlert } from "../../../../Component/AlertContext";
 import { Dropdown, Form, InputGroup } from "react-bootstrap";
+import pdfMake from "pdfmake/build/pdfmake";
+import pdfFonts from "pdfmake/build/vfs_fonts";
+import logo from "../../../Pages/Images/logo.png";
+
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
@@ -76,6 +80,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [dataFound, setDataFound] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [formId, setFormId] = useState("");
+    const [LFQData, setLFQData] = useState("");
     const [islocal, setislocal] = useState(false);
 
     const [selectedDrafts, setSelectedDrafts] = useState("Select Draft");
@@ -173,6 +178,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             const res = await axios.get(`${ApiEndPoint}getLFQFormByCaseId/${caseId}`);
             if (res.data) {
                 const data = res.data;
+                setLFQData(res.data)
                 setFormId(data._id)
                 // ===== BASIC FIELDS =====
                 setClientName(data.clientName || "");
@@ -911,6 +917,206 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         return new File([u8arr], filename, { type: mime });
     }
 
+
+
+    const getBase64ImageFromUrl = async (url) => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+
+    pdfMake.vfs = pdfFonts.pdfMake?.vfs;
+
+    const downloadCasePdf =async (data) => {
+
+         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
+        const docDefinition = {
+            // ===== Header (Image + Title) =====
+            header: {
+               columns: [
+        logoBase64
+          ? {
+              image: logoBase64,
+              width: 100,
+              margin: [10, 10, 0, 10],
+            }
+          : {},
+        {
+          text: "Case Details Report",
+          style: "pdfTitle",
+          alignment: "center",
+          margin: [0, 20, 0, 0],
+        },
+                ],
+                margin: [10, 10],
+            },
+
+            content: [
+                // ================= Page 1: Client & Case Info =================
+                { text: "Client & Case Information", style: "header" },
+
+                {
+                    table: {
+                        widths: ["35%", "65%"],
+                        body: [
+                            [{ text: "Client Name", style: "label" }, { text: data.clientName || "-", style: "value" }],
+                            [{ text: "Client Email", style: "label" }, { text: data.clientEmail || "-", style: "value" }],
+                            [{ text: "Client Contact Number", style: "label" }, { text: data.clientContactphone || "-", style: "value" }],
+                            [
+                                { text: "Date of Meeting", style: "label" },
+                                { text: data.dateOfClientMeeting ? new Date(data.dateOfClientMeeting).toLocaleDateString() : "-", style: "value" },
+                            ],
+                            [{ text: "Matter / Case Reference", style: "label" }, { text: data.matterReference || "-", style: "value" }],
+                            [{ text: "Case Type", style: "label" }, { text: data.caseType || "-", style: "value" }],
+                            [{ text: "Jurisdiction", style: "label" }, { text: data.jurisdiction || "-", style: "value" }],
+                            [{ text: "Local Counsel Required", style: "label" }, { text: data.localCounselRequired || "-", style: "value" }],
+                            [{ text: "Est. Local Counsel Hours", style: "label" }, { text: data.estLocalCounselHours || "-", style: "value" }],
+                            [{ text: "Client Category", style: "label" }, { text: (data.clientCategory || []).join(", ") || "-", style: "value" }],
+                            [{ text: "Referred By", style: "label" }, { text: data.referredBy || "-", style: "value" }],
+                            [{ text: "Retainer Details", style: "label" }, { text: data.retainerDetails || "-", style: "value" }],
+                            [{ text: "Communication Needs", style: "label" }, { text: data.communicationNeeds || "-", style: "value" }],
+                            [{ text: "Fee Structure", style: "label" }, { text: data.feeStructure || "-", style: "value" }],
+                            [{ text: "Other Fee", style: "label" }, { text: data.otherFee || "-", style: "value" }],
+                            [{ text: "Special Terms", style: "label" }, { text: data.specialTerms || "-", style: "value" }],
+                            [{ text: "Key Factors", style: "label" }, { text: data.keyFactors || "-", style: "value" }],
+                            [{ text: "Prepared By", style: "label" }, { text: data.preparedBy || "-", style: "value" }],
+                            [
+                                { text: "Prepared Date", style: "label" },
+                                { text: data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-", style: "value" },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                },
+
+                // ================= Case Complexity =================
+                { text: "Case Complexity & Stakes", style: "header", margin: [0, 20, 0, 10] },
+
+                {
+                    table: {
+                        widths: ["35%", "65%"],
+                        body: [
+                            [{ text: "Case Complexity Level", style: "label" }, { text: data.complexityLevel || "-", style: "value" }],
+                            [
+                                { text: "Amount at Stake (Claim/Defense Value)", style: "label" },
+                                { text: `${data.amountAtStake || "-"} AED`, style: "value" },
+                            ],
+                            [
+                                { text: "Estimated Case Duration", style: "label" },
+                                { text: data.estimatedCaseDuration || "-", style: "value" },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                },
+
+                // ================= Resource & Effort Estimation =================
+                { text: "Resource & Effort Estimation", style: "header", margin: [0, 20, 0, 10] },
+
+                {
+                    table: {
+                        widths: ["40%", "40%", "20%"],
+                        body: [
+                            [
+                                { text: "Resource Type", style: "tableHeader" },
+                                { text: "Name / Role", style: "tableHeader" },
+                                { text: "Est. Hours", style: "tableHeader" },
+                            ],
+                            [
+                                { text: "Senior Lawyer", style: "label" },
+                                { text: data.seniorLawyer?.name || "-", style: "value" },
+                                { text: data.seniorLawyer?.estHours || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Associate Lawyer(s)", style: "label" },
+                                { text: data.associateLawyer?.name || "-", style: "value" },
+                                { text: data.associateLawyer?.estHours || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Local Counsel", style: "label" },
+                                { text: data.resourceLocalCounsel?.name || "-", style: "value" },
+                                { text: data.resourceLocalCounsel?.estHours || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Paralegal / Support Staff", style: "label" },
+                                { text: data.paralegalSupport?.role || "-", style: "value" },
+                                { text: data.paralegalSupport?.estHours || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Other Resources", style: "label" },
+                                { text: data.otherResources?.description || "-", style: "value" },
+                                { text: data.otherResources?.estHours || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Total Estimated Hours", style: "labelBold" },
+                                { text: "", style: "value" },
+                                { text: data.totalEstimatedHours || "-", style: "labelBold" },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                },
+            ],
+
+            // ========== Styles ==========
+            styles: {
+                pdfTitle: {
+                    fontSize: 16,
+                    bold: true,
+                    color: "#0d6efd",
+                },
+                header: {
+                    fontSize: 18,
+                    bold: true,
+                    margin: [0, 0, 0, 10],
+                    color: "#0d6efd",
+                },
+                tableHeader: {
+                    bold: true,
+                    fontSize: 12,
+                    fillColor: "#f1f1f1",
+                    margin: [0, 3, 0, 3],
+                },
+                label: {
+                    bold: true,
+                    fontSize: 11,
+                    color: "#000",
+                    margin: [0, 3, 0, 3],
+                },
+                labelBold: {
+                    bold: true,
+                    fontSize: 12,
+                    color: "#0d6efd",
+                    margin: [0, 3, 0, 3],
+                },
+                value: {
+                    fontSize: 11,
+                    color: "#333",
+                    margin: [0, 3, 0, 3],
+                },
+            },
+            defaultStyle: {
+                fontSize: 10,
+            },
+        };
+
+        pdfMake.createPdf(docDefinition).download(`Case_${data.clientName}.pdf`);
+    };
+
+
+
+
+
+
     return (
         <div className="card w-100" style={{ maxHeight: '87vh', overflowY: 'auto' }}>
             {(token?.Role === "lawyer" || dataFound) ?
@@ -1025,16 +1231,17 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             />
                         </div>
 
+                        <button
+                            onClick={() => downloadCasePdf(LFQData)}
+                            className="bg-blue-600 text-white px-4 py-2 rounded"
+                        >
+                            Download Case PDF
+                        </button>
                         {/* Heading */}
                         <h3 className="text-center fw-bold mb-2">
                             Client Case Evaluation & Fee Quotation Form <small className="text-muted">(Internal Use)</small>
                         </h3>
-                        {/* <p className="text-muted text-center mb-4" style={{ margin: "0 auto" }}>
-                        This form is to be completed by the Senior Lawyer after the initial client meeting.
-                        It captures all details needed to prepare a fee quotation for the client.
-                        The completed form will be reviewed by the Chairman for approval of the proposed fees.
-                    </p> */}
-                        {/* Page 1 */}
+
                     </div>
 
                     <div className="card shadow-sm border-0 rounded-3 mb-4">
