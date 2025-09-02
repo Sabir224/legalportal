@@ -1015,7 +1015,7 @@ const LEA_Form = ({ token }) => {
     // ---- renderHeadings.jsx ----
 
 
-    const renderHeadings = (list, setFn, isFixed = false, editMode = true) => {
+    const renderHeadings = (list, setFn, isFixed = false) => {
         if (!Array.isArray(list)) return null;
 
         // Step 1: Array -> HTML
@@ -1064,7 +1064,7 @@ const LEA_Form = ({ token }) => {
                     <CEEditable
                         list={list} // 👈 ab array directly de sakte ho
                         onChange={(updatedList) => setFixedHeadings(updatedList)}
-                        disable={isFormFilled}
+                        disable={(isFormFilled && !editMode)}
                     />
                 ) : (
                     <div dangerouslySetInnerHTML={{ __html: combinedHtml }} />

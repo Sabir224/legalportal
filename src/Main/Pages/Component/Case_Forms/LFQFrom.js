@@ -913,823 +913,758 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     return (
         <div className="card w-100" style={{ maxHeight: '87vh', overflowY: 'auto' }}>
-            <div className="container my-4">
+            {(token?.Role === "lawyer" || dataFound) ?
+                <div className="container my-4">
 
-                <div className="container py-4">
+                    <div className="container py-4">
 
-                    {token?.Role !== "client" &&
+                        {token?.Role !== "client" &&
 
-                        < Form.Group className="mb-3">
-                            <Form.Label>
-                                Drafts <span className="text-danger"></span>
-                            </Form.Label>
-                            <InputGroup>
-                                <Dropdown className="w-100">
-                                    <Dropdown.Toggle
-                                        variant="outline-secondary"
-                                        id="dropdown-practice-area"
-                                        disabled={dataFound}
-                                        className="w-100 text-start d-flex justify-content-between align-items-center"
-                                    >
-                                        {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.matterReference}`}
-                                    </Dropdown.Toggle>
+                            < Form.Group className="mb-3">
+                                <Form.Label>
+                                    Drafts <span className="text-danger"></span>
+                                </Form.Label>
+                                <InputGroup>
+                                    <Dropdown className="w-100">
+                                        <Dropdown.Toggle
+                                            variant="outline-secondary"
+                                            id="dropdown-practice-area"
+                                            disabled={dataFound}
+                                            className="w-100 text-start d-flex justify-content-between align-items-center"
+                                        >
+                                            {selectedDrafts === "Select Draft" ? "Select Draft" : `${selectedDrafts?.matterReference}`}
+                                        </Dropdown.Toggle>
 
-                                    <Dropdown.Menu className="w-100">
-                                        {getDrafts?.map((data, index) => (
-                                            <Dropdown.Item key={index} onClick={() => {
+                                        <Dropdown.Menu className="w-100">
+                                            {getDrafts?.map((data, index) => (
+                                                <Dropdown.Item key={index} onClick={() => {
 
-                                                setSelectedDrafts(data)
-                                                setFormId(data._id)
-                                                // ===== BASIC FIELDS =====
-                                                setClientName(data.clientName || "");
-                                                setclientContactInfo(data.clientEmail || "");
-                                                setclientContactphone(data.clientContactphone || "");
+                                                    setSelectedDrafts(data)
+                                                    // ===== BASIC FIELDS =====
+                                                    setClientName(data.clientName || "");
+                                                    setclientContactInfo(data.clientEmail || "");
+                                                    setclientContactphone(data.clientContactphone || "");
 
-                                                // ===== DATE OF CLIENT MEETING =====
-                                                if (data.dateOfClientMeeting) {
-                                                    const date = new Date(data.dateOfClientMeeting);
-                                                    setDateValue(
-                                                        `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
-                                                    );
-                                                } else {
-                                                    setDateValue("");
-                                                }
-
-                                                // setMatterReference(data.matterReference || "");
-                                                // setCaseType(data.caseType || "");
-                                                setJurisdiction(data.jurisdiction || "");
-                                                setLocalCounsel(data.localCounselRequired || "");
-                                                setLocalCounselHours(data.estLocalCounselHours || "");
-
-                                                // ===== CASE COMPLEXITY =====
-                                                setComplexity(data.complexityLevel || "");
-                                                setAmountAtStake(data.amountAtStake || "");
-                                                setestimatedDuration(data.estimatedCaseDuration || "");
-
-                                                // ===== RESOURCES =====
-                                                setSeniorName(data.seniorLawyer?.name || "");
-                                                setSeniorHours(data.seniorLawyer?.estHours || "");
-                                                setAssociateName(data.associateLawyer?.name || "");
-                                                setAssociateHours(data.associateLawyer?.estHours || "");
-                                                setResourceLocalCounsel(data.resourceLocalCounsel?.name || "");
-                                                setResourceLocalCounselHours(data.resourceLocalCounsel?.estHours || "");
-                                                setParalegal(data.paralegalSupport?.role || "");
-                                                setParalegalHours(data.paralegalSupport?.estHours || "");
-                                                setOtherResources(data.otherResources?.description || "");
-                                                setOtherResourceHours(data.otherResources?.estHours || "");
-                                                setTotalHours(data.totalEstimatedHours || "");
-
-                                                // ===== CLIENT PROFILE =====
-                                                if (Array.isArray(data.clientCategory) && data.clientCategory.length > 0) {
-                                                    try {
-                                                        setClientCategory(JSON.parse(data.clientCategory[0])); // because your sample has array with JSON string
-                                                    } catch {
-                                                        setClientCategory(data.clientCategory);
+                                                    // ===== DATE OF CLIENT MEETING =====
+                                                    if (data.dateOfClientMeeting) {
+                                                        const date = new Date(data.dateOfClientMeeting);
+                                                        setDateValue(
+                                                            `${String(date.getDate()).padStart(2, "0")}/${String(date.getMonth() + 1).padStart(2, "0")}/${date.getFullYear()}`
+                                                        );
+                                                    } else {
+                                                        setDateValue("");
                                                     }
-                                                } else {
-                                                    setClientCategory([]);
+
+                                                    // setMatterReference(data.matterReference || "");
+                                                    // setCaseType(data.caseType || "");
+                                                    setJurisdiction(data.jurisdiction || "");
+                                                    setLocalCounsel(data.localCounselRequired || "");
+                                                    setLocalCounselHours(data.estLocalCounselHours || "");
+
+                                                    // ===== CASE COMPLEXITY =====
+                                                    setComplexity(data.complexityLevel || "");
+                                                    setAmountAtStake(data.amountAtStake || "");
+                                                    setestimatedDuration(data.estimatedCaseDuration || "");
+
+                                                    // ===== RESOURCES =====
+                                                    setSeniorName(data.seniorLawyer?.name || "");
+                                                    setSeniorHours(data.seniorLawyer?.estHours || "");
+                                                    setAssociateName(data.associateLawyer?.name || "");
+                                                    setAssociateHours(data.associateLawyer?.estHours || "");
+                                                    setResourceLocalCounsel(data.resourceLocalCounsel?.name || "");
+                                                    setResourceLocalCounselHours(data.resourceLocalCounsel?.estHours || "");
+                                                    setParalegal(data.paralegalSupport?.role || "");
+                                                    setParalegalHours(data.paralegalSupport?.estHours || "");
+                                                    setOtherResources(data.otherResources?.description || "");
+                                                    setOtherResourceHours(data.otherResources?.estHours || "");
+                                                    setTotalHours(data.totalEstimatedHours || "");
+
+                                                    // ===== CLIENT PROFILE =====
+                                                    if (Array.isArray(data.clientCategory) && data.clientCategory.length > 0) {
+                                                        try {
+                                                            setClientCategory(JSON.parse(data.clientCategory[0])); // because your sample has array with JSON string
+                                                        } catch {
+                                                            setClientCategory(data.clientCategory);
+                                                        }
+                                                    } else {
+                                                        setClientCategory([]);
+                                                    }
+
+                                                    setReferredBy(data.referredBy || "");
+                                                    setRetainerDetails(data.retainerDetails || "");
+                                                    setCommunication(data.communicationNeeds || "");
+                                                    setClientNotes(data.clientNotes || "");
+
+                                                    // ===== FEE PROPOSAL =====
+                                                    setFeeStructure(data.feeStructure || "");
+                                                    setOtherFee(data.otherFee || "");
+                                                    setHourlyRates(data.hourlyRates || "");
+                                                    setFixedFee(data.fixedFee || "");
+                                                    setSpecialTerms(data.specialTerms || "");
+                                                    setKeyFactors(data.keyFactors || "");
+
                                                 }
+                                                }>
+                                                    {data?.matterReference}
+                                                </Dropdown.Item>
+                                            ))}
+                                        </Dropdown.Menu>
+                                    </Dropdown>
 
-                                                setReferredBy(data.referredBy || "");
-                                                setRetainerDetails(data.retainerDetails || "");
-                                                setCommunication(data.communicationNeeds || "");
-                                                setClientNotes(data.clientNotes || "");
+                                </InputGroup>
+                            </Form.Group>
+                        }
 
-                                                // ===== FEE PROPOSAL =====
-                                                setFeeStructure(data.feeStructure || "");
-                                                setOtherFee(data.otherFee || "");
-                                                setHourlyRates(data.hourlyRates || "");
-                                                setFixedFee(data.fixedFee || "");
-                                                setSpecialTerms(data.specialTerms || "");
-                                                setKeyFactors(data.keyFactors || "");
+                        {/* Logo */}
+                        <div className="text-center mb-4">
+                            <img
+                                src="logo.png"
+                                alt="Logo"
+                                style={{ height: "60px" }}
+                                className="img-fluid"
+                            />
+                        </div>
 
-                                            }
-                                            }>
-                                                {data?.matterReference}
-                                            </Dropdown.Item>
-                                        ))}
-                                    </Dropdown.Menu>
-                                </Dropdown>
-
-                            </InputGroup>
-                        </Form.Group>
-                    }
-
-                    {/* Logo */}
-                    <div className="text-center mb-4">
-                        <img
-                            src="logo.png"
-                            alt="Logo"
-                            style={{ height: "60px" }}
-                            className="img-fluid"
-                        />
-                    </div>
-
-                    {/* Heading */}
-                    <h3 className="text-center fw-bold mb-2">
-                        Client Case Evaluation & Fee Quotation Form <small className="text-muted">(Internal Use)</small>
-                    </h3>
-                    {/* <p className="text-muted text-center mb-4" style={{ margin: "0 auto" }}>
+                        {/* Heading */}
+                        <h3 className="text-center fw-bold mb-2">
+                            Client Case Evaluation & Fee Quotation Form <small className="text-muted">(Internal Use)</small>
+                        </h3>
+                        {/* <p className="text-muted text-center mb-4" style={{ margin: "0 auto" }}>
                         This form is to be completed by the Senior Lawyer after the initial client meeting.
                         It captures all details needed to prepare a fee quotation for the client.
                         The completed form will be reviewed by the Chairman for approval of the proposed fees.
                     </p> */}
-                    {/* Page 1 */}
-                </div>
+                        {/* Page 1 */}
+                    </div>
 
-                <div className="card shadow-sm border-0 rounded-3 mb-4">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-3 text-primary">Client & Case Information</h5>
-                        <div className="row">
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Client Name</label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    onChange={(e) => setClientName(e.target.value)}
-                                    value={clientName}
-                                    placeholder="Enter client name"
-                                    disabled={true}
-                                />
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Client Contact Email</label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    onChange={(e) => setclientContactInfo(e.target.value)}
-                                    value={clientContactInfo}
-                                    placeholder="Email"
-                                    disabled={true}
-                                />
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Client Contact Number</label>
-                                <input
-                                    className="form-control"
-                                    type="text"
-                                    onChange={(e) => setclientContactphone(e.target.value)}
-                                    value={clientContactphone}
-                                    placeholder="Phone Number"
-                                    disabled={true}
-                                />
-                            </div>
-                            <div className="col-md-6 mb-3">
-                                <label className="form-label fw-semibold">Date of Client Meeting</label>
-                                <div className="input-group">
-                                    <DatePicker
-                                        selected={
-                                            dateValue ? new Date(dateValue.split("/").reverse().join("-")) : null
-                                        }
-                                        onChange={(date) => {
-                                            if (date) {
-                                                const day = String(date.getDate()).padStart(2, "0");
-                                                const month = String(date.getMonth() + 1).padStart(2, "0");
-                                                const year = date.getFullYear();
-                                                setDateValue(`${day}/${month}/${year}`);
-                                            }
-                                        }}
-                                        dateFormat="dd/MM/yyyy"
+                    <div className="card shadow-sm border-0 rounded-3 mb-4">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-3 text-primary">Client & Case Information</h5>
+                            <div className="row">
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label fw-semibold">Client Name</label>
+                                    <input
                                         className="form-control"
-                                        placeholderText="dd/mm/yyyy"
-                                        wrapperClassName="w-100"
-                                        disabled={(dataFound || isclient)}
+                                        type="text"
+                                        onChange={(e) => setClientName(e.target.value)}
+                                        value={clientName}
+                                        placeholder="Enter client name"
+                                        disabled={true}
                                     />
                                 </div>
-                            </div>
-                            {/* Matter / Case Reference */}
-                            <div className="row mb-3 align-items-center">
-                                <label className="col-md-3 col-form-label fw-bold">
-                                    Matter / Case Reference
-                                </label>
-                                <div className="col-md-9">
-                                    <span className="fw-normal">{matterReference}</span>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label fw-semibold">Client Contact Email</label>
+                                    <input
+                                        className="form-control"
+                                        type="text"
+                                        onChange={(e) => setclientContactInfo(e.target.value)}
+                                        value={clientContactInfo}
+                                        placeholder="Email"
+                                        disabled={true}
+                                    />
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label fw-semibold">Client Contact Number</label>
+                                    <input
+                                        className="form-control"
+                                        type="text"
+                                        onChange={(e) => setclientContactphone(e.target.value)}
+                                        value={clientContactphone}
+                                        placeholder="Phone Number"
+                                        disabled={true}
+                                    />
+                                </div>
+                                <div className="col-md-6 mb-3">
+                                    <label className="form-label fw-semibold">Date of Client Meeting</label>
+                                    <div className="input-group">
+                                        <DatePicker
+                                            selected={
+                                                dateValue ? new Date(dateValue.split("/").reverse().join("-")) : null
+                                            }
+                                            onChange={(date) => {
+                                                if (date) {
+                                                    const day = String(date.getDate()).padStart(2, "0");
+                                                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                    const year = date.getFullYear();
+                                                    setDateValue(`${day}/${month}/${year}`);
+                                                }
+                                            }}
+                                            dateFormat="dd/MM/yyyy"
+                                            className="form-control"
+                                            placeholderText="dd/mm/yyyy"
+                                            wrapperClassName="w-100"
+                                            disabled={(dataFound || isclient)}
+                                        />
+                                    </div>
+                                </div>
+                                {/* Matter / Case Reference */}
+                                <div className="row mb-3 align-items-center">
+                                    <label className="col-md-3 col-form-label fw-bold">
+                                        Matter / Case Reference
+                                    </label>
+                                    <div className="col-md-9">
+                                        <span className="fw-normal">{matterReference}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* Case Type */}
-                        <div className="row mb-3 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Type of Case
-                            </label>
-                            <div className="col-md-9">
-                                <span className="fw-normal">{caseType}</span>
+                            {/* Case Type */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Type of Case
+                                </label>
+                                <div className="col-md-9">
+                                    <span className="fw-normal">{caseType}</span>
+                                </div>
                             </div>
-                        </div>
 
-                        {/* Jurisdiction */}
-                        <div className="row mb-3 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Jurisdiction
-                            </label>
-                            <div className="col-md-9">
-                                {["UAE Local Courts", "DIFC Courts", "Arbitration", "Other"].map((court) => (
-                                    <div className="form-check form-check-inline" key={court}>
+                            {/* Jurisdiction */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Jurisdiction
+                                </label>
+                                <div className="col-md-9">
+                                    {["UAE Local Courts", "DIFC Courts", "Arbitration", "Other"].map((court) => (
+                                        <div className="form-check form-check-inline" key={court}>
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="jurisdiction"
+                                                value={court}
+                                                checked={jurisdiction === court}
+                                                onChange={(e) => setJurisdiction(e.target.value)}
+                                                disabled={dataFound || isclient}
+                                            />
+                                            <label className="form-check-label fw-normal">{court}</label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Local Counsel */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Local Counsel Required (UAE law)
+                                </label>
+                                <div className="col-md-9">
+                                    <div className="form-check form-check-inline">
                                         <input
                                             className="form-check-input"
                                             type="radio"
-                                            name="jurisdiction"
-                                            value={court}
-                                            checked={jurisdiction === court}
-                                            onChange={(e) => setJurisdiction(e.target.value)}
+                                            name="localCounsel"
+                                            value="yes"
+                                            checked={localCounsel === "yes"}
+                                            onChange={() => setLocalCounsel("yes")}
                                             disabled={dataFound || isclient}
                                         />
-                                        <label className="form-check-label fw-normal">{court}</label>
+                                        <label className="form-check-label fw-normal">Yes</label>
                                     </div>
-                                ))}
+                                    <div className="form-check form-check-inline">
+                                        <input
+                                            className="form-check-input"
+                                            type="radio"
+                                            name="localCounsel"
+                                            value="no"
+                                            checked={localCounsel === "no"}
+                                            onChange={() => setLocalCounsel("no")}
+                                            disabled={dataFound || isclient}
+                                        />
+                                        <label className="form-check-label fw-normal">No</label>
+                                    </div>
+
+                                    {localCounsel === "yes" && (
+                                        <div className="mt-2">
+                                            <label className="form-label fw-bold">If Yes, Est. Local Counsel Hours</label>
+                                            <input
+                                                className="form-control"
+                                                type="number"
+                                                value={localCounselHours}
+                                                onChange={(e) => setLocalCounselHours(e.target.value)}
+                                                placeholder="Hours"
+                                                disabled={dataFound || isclient}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
+
                         </div>
+                    </div>
 
-                        {/* Local Counsel */}
-                        <div className="row mb-3 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Local Counsel Required (UAE law)
-                            </label>
-                            <div className="col-md-9">
-                                <div className="form-check form-check-inline">
-                                    <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        name="localCounsel"
-                                        value="yes"
-                                        checked={localCounsel === "yes"}
-                                        onChange={() => setLocalCounsel("yes")}
-                                        disabled={dataFound || isclient}
-                                    />
-                                    <label className="form-check-label fw-normal">Yes</label>
-                                </div>
-                                <div className="form-check form-check-inline">
-                                    <input
-                                        className="form-check-input"
-                                        type="radio"
-                                        name="localCounsel"
-                                        value="no"
-                                        checked={localCounsel === "no"}
-                                        onChange={() => setLocalCounsel("no")}
-                                        disabled={dataFound || isclient}
-                                    />
-                                    <label className="form-check-label fw-normal">No</label>
-                                </div>
+                    {/* Page 1 - Case Complexity */}
+                    <div className="card shadow-sm border-0 rounded-3 mb-4">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-3 text-primary">Case Complexity & Stakes</h5>
 
-                                {localCounsel === "yes" && (
-                                    <div className="mt-2">
-                                        <label className="form-label fw-bold">If Yes, Est. Local Counsel Hours</label>
+                            {/* Case Complexity Level */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Case Complexity Level
+                                </label>
+                                <div className="col-md-9">
+                                    <span className="fw-normal">{complexity}</span>
+                                </div>
+                            </div>
+
+                            {/* Amount at Stake */}
+                            <div className="row mb-3 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Amount at Stake (Claim/Defense Value)
+                                </label>
+                                <div className="col-md-9">
+                                    <div className="input-group">
                                         <input
                                             className="form-control"
                                             type="number"
-                                            value={localCounselHours}
-                                            onChange={(e) => setLocalCounselHours(e.target.value)}
-                                            placeholder="Hours"
+                                            value={AmountatStake}
+                                            onChange={(e) => setAmountAtStake(e.target.value)}
+                                            placeholder="Enter amount"
                                             disabled={dataFound || isclient}
                                         />
+                                        <span className="input-group-text">AED</span>
                                     </div>
-                                )}
+                                </div>
                             </div>
-                        </div>
 
-                    </div>
-                </div>
-
-                {/* Page 1 - Case Complexity */}
-                <div className="card shadow-sm border-0 rounded-3 mb-4">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-3 text-primary">Case Complexity & Stakes</h5>
-
-                        {/* Case Complexity Level */}
-                        <div className="row mb-3 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Case Complexity Level
-                            </label>
-                            <div className="col-md-9">
-                                <span className="fw-normal">{complexity}</span>
-                            </div>
-                        </div>
-
-                        {/* Amount at Stake */}
-                        <div className="row mb-3 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Amount at Stake (Claim/Defense Value)
-                            </label>
-                            <div className="col-md-9">
-                                <div className="input-group">
+                            {/* Estimated Case Duration */}
+                            <div className="row mb-0 align-items-center">
+                                <label className="col-md-3 col-form-label fw-bold">
+                                    Estimated Case Duration
+                                </label>
+                                <div className="col-md-9">
                                     <input
                                         className="form-control"
-                                        type="number"
-                                        value={AmountatStake}
-                                        onChange={(e) => setAmountAtStake(e.target.value)}
-                                        placeholder="Enter amount"
+                                        value={estimatedDuration}
+                                        onChange={(e) => setestimatedDuration(e.target.value)}
+                                        type="text"
+                                        placeholder="e.g. 3-6 months; note any urgent deadlines"
                                         disabled={dataFound || isclient}
                                     />
-                                    <span className="input-group-text">AED</span>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Estimated Case Duration */}
-                        <div className="row mb-0 align-items-center">
-                            <label className="col-md-3 col-form-label fw-bold">
-                                Estimated Case Duration
-                            </label>
-                            <div className="col-md-9">
-                                <input
-                                    className="form-control"
-                                    value={estimatedDuration}
-                                    onChange={(e) => setestimatedDuration(e.target.value)}
-                                    type="text"
-                                    placeholder="e.g. 3-6 months; note any urgent deadlines"
-                                    disabled={dataFound || isclient}
-                                />
+
+                    {/* Page X - Resource & Effort Estimation */}
+                    <div className="card shadow-sm border-0 rounded-3 mb-4">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-3 text-primary">Resource & Effort Estimation</h5>
+
+                            {/* Senior Lawyer */}
+                            <div className="mb-3 row align-items-center">
+                                <label className="col-sm-3 col-form-label fw-semibold">Senior Lawyer:</label>
+                                <div className="col-sm-5">
+                                    <select
+                                        className="form-select"
+                                        value={seniorName}
+                                        onChange={(e) => setSeniorName(e.target.value)}
+                                        disabled={(dataFound || isclient)}
+                                    >
+                                        <option value="">Select Senior Lawyer</option>
+                                        {seniorLawyers.map((name, index) => (
+                                            <option key={index} value={name._id}>{name?.UserName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Hours"
+                                        value={seniorHours}
+                                        onChange={(e) => {
+                                            setSeniorHours(e.target.value)
+                                            setTotalHours(Number(e.target.value) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                        }}
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Associate Lawyer(s) */}
+                            <div className="mb-3 row align-items-center">
+                                <label className="col-sm-3 col-form-label fw-semibold">Associate Lawyer(s):</label>
+                                <div className="col-sm-5">
+                                    <select
+                                        className="form-select"
+                                        value={associateName}
+                                        onChange={(e) => setAssociateName(e.target.value)}
+                                        disabled={(dataFound || isclient)}
+                                    >
+                                        <option value="">Select Associate</option>
+                                        {seniorLawyers.map((name, index) => (
+                                            <option key={index} value={name?._id}>{name?.UserName}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Hours"
+                                        value={associateHours}
+                                        onChange={(e) => {
+                                            setAssociateHours(e.target.value)
+                                            setTotalHours(Number(seniorHours) + Number(e.target.value) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                        }
+                                        }
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Local Counsel */}
+                            <div className="mb-3 row align-items-center">
+                                <label className="col-sm-3 col-form-label fw-semibold">Local Counsel (if any):</label>
+                                <div className="col-sm-5">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        value={ResourcelocalCounsel}
+                                        onChange={(e) => setResourceLocalCounsel(e.target.value)}
+                                        placeholder="Enter Local Counsel"
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+
+                                <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Hours"
+                                        value={ResourcelocalCounselHours}
+                                        onChange={(e) => {
+                                            setResourceLocalCounselHours(e.target.value)
+                                            setTotalHours(Number(seniorHours) + Number(associateHours) + Number(e.target.value) + Number(paralegalHours) + Number(otherResourceHours))
+
+                                        }}
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Paralegal / Support Staff */}
+                            <div className="mb-3 row align-items-center">
+                                <label className="col-sm-3 col-form-label fw-semibold">Paralegal/Support Staff:</label>
+                                <div className="col-sm-5">
+                                    <select
+                                        className="form-select"
+                                        value={paralegal}
+                                        onChange={(e) => setParalegal(e.target.value)}
+                                        disabled={(dataFound || isclient)}
+                                    >
+                                        <option value="">Select Role</option>
+                                        {paralegalStaff.map((role, index) => (
+                                            <option key={index} value={role}>{role}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Hours"
+                                        value={paralegalHours}
+                                        onChange={(e) => {
+                                            setParalegalHours(e.target.value)
+                                            setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(e.target.value) + Number(otherResourceHours))
+                                        }}
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Other Resources */}
+                            <div className="mb-3 row align-items-center">
+                                <label className="col-sm-3 col-form-label fw-semibold">Other Resources (Experts, etc.):</label>
+                                <div className="col-sm-5">
+                                    <input
+                                        type="text"
+                                        className="form-control"
+                                        placeholder="Specify resource"
+                                        value={otherResources}
+                                        onChange={(e) => setOtherResources(e.target.value)}
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                                <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        placeholder="Hours"
+                                        value={otherResourceHours}
+                                        onChange={(e) => {
+                                            setOtherResourceHours(e.target.value)
+                                            setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(e.target.value))
+                                        }
+                                        }
+                                        disabled={(dataFound || isclient)}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Total Estimated Hours */}
+                            <div className="mb-0 row align-items-center border-top pt-3">
+                                <label className="col-sm-7 col-form-label fw-bold text-primary">
+                                    Total Estimated Hours (all resources):
+                                </label>
+                                <div className="col-sm-2">
+                                    <input
+                                        type="number"
+                                        className="form-control fw-bold"
+                                        placeholder="Total"
+                                        value={totalHours}
+                                        onChange={(e) => setTotalHours(e.target.value)}
+                                        disabled={true}
+                                    // disabled={(dataFound || isclient)}
+                                    />
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                    {/* Page X - Client Profile & Relationship */}
+                    <div className="card shadow-sm border-0 rounded-3 mb-4">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-3 text-primary">Client Profile & Relationship</h5>
 
-                {/* Page X - Resource & Effort Estimation */}
-                <div className="card shadow-sm border-0 rounded-3 mb-4">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-3 text-primary">Resource & Effort Estimation</h5>
-
-                        {/* Senior Lawyer */}
-                        <div className="mb-3 row align-items-center">
-                            <label className="col-sm-3 col-form-label fw-semibold">Senior Lawyer:</label>
-                            <div className="col-sm-5">
-                                <select
-                                    className="form-select"
-                                    value={seniorName}
-                                    onChange={(e) => setSeniorName(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                >
-                                    <option value="">Select Senior Lawyer</option>
-                                    {seniorLawyers.map((name, index) => (
-                                        <option key={index} value={name._id}>{name?.UserName}</option>
+                            {/* Client Category */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">Client Category:</label>
+                                <div className="d-flex flex-wrap gap-4 ms-md-3">
+                                    {[
+                                        "New Client",
+                                        "Existing Client",
+                                        "Retainer Client",
+                                        "Referral",
+                                        "VIP/Key Client"
+                                    ].map((type) => (
+                                        <div className="form-check" key={type}>
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                id={type}
+                                                value={type}
+                                                checked={clientCategory.includes(type)}
+                                                onChange={handleCategoryChange}
+                                                disabled={(dataFound || isclient)}
+                                            />
+                                            <label className="form-check-label" htmlFor={type}>
+                                                {type}
+                                            </label>
+                                        </div>
                                     ))}
-                                </select>
-                            </div>
-                            <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    placeholder="Hours"
-                                    value={seniorHours}
-                                    onChange={(e) => {
-                                        setSeniorHours(e.target.value)
-                                        setTotalHours(Number(e.target.value) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
-
-                                    }}
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Associate Lawyer(s) */}
-                        <div className="mb-3 row align-items-center">
-                            <label className="col-sm-3 col-form-label fw-semibold">Associate Lawyer(s):</label>
-                            <div className="col-sm-5">
-                                <select
-                                    className="form-select"
-                                    value={associateName}
-                                    onChange={(e) => setAssociateName(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                >
-                                    <option value="">Select Associate</option>
-                                    {seniorLawyers.map((name, index) => (
-                                        <option key={index} value={name?._id}>{name?.UserName}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    placeholder="Hours"
-                                    value={associateHours}
-                                    onChange={(e) => {
-                                        setAssociateHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(e.target.value) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(otherResourceHours))
-
-                                    }
-                                    }
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Local Counsel */}
-                        <div className="mb-3 row align-items-center">
-                            <label className="col-sm-3 col-form-label fw-semibold">Local Counsel (if any):</label>
-                            <div className="col-sm-5">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    value={ResourcelocalCounsel}
-                                    onChange={(e) => setResourceLocalCounsel(e.target.value)}
-                                    placeholder="Enter Local Counsel"
-                                    disabled={(dataFound || isclient)}
-                                />
+                                </div>
                             </div>
 
-                            <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    placeholder="Hours"
-                                    value={ResourcelocalCounselHours}
-                                    onChange={(e) => {
-                                        setResourceLocalCounselHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(e.target.value) + Number(paralegalHours) + Number(otherResourceHours))
-
-                                    }}
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Paralegal / Support Staff */}
-                        <div className="mb-3 row align-items-center">
-                            <label className="col-sm-3 col-form-label fw-semibold">Paralegal/Support Staff:</label>
-                            <div className="col-sm-5">
-                                <select
-                                    className="form-select"
-                                    value={paralegal}
-                                    onChange={(e) => setParalegal(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                >
-                                    <option value="">Select Role</option>
-                                    {paralegalStaff.map((role, index) => (
-                                        <option key={index} value={role}>{role}</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    placeholder="Hours"
-                                    value={paralegalHours}
-                                    onChange={(e) => {
-                                        setParalegalHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(e.target.value) + Number(otherResourceHours))
-                                    }}
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Other Resources */}
-                        <div className="mb-3 row align-items-center">
-                            <label className="col-sm-3 col-form-label fw-semibold">Other Resources (Experts, etc.):</label>
-                            <div className="col-sm-5">
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    placeholder="Specify resource"
-                                    value={otherResources}
-                                    onChange={(e) => setOtherResources(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                            <label className="col-sm-2 col-form-label text-end fw-semibold">Est. Hours:</label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    placeholder="Hours"
-                                    value={otherResourceHours}
-                                    onChange={(e) => {
-                                        setOtherResourceHours(e.target.value)
-                                        setTotalHours(Number(seniorHours) + Number(associateHours) + Number(ResourcelocalCounselHours) + Number(paralegalHours) + Number(e.target.value))
-                                    }
-                                    }
-                                    disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-
-                        {/* Total Estimated Hours */}
-                        <div className="mb-0 row align-items-center border-top pt-3">
-                            <label className="col-sm-7 col-form-label fw-bold text-primary">
-                                Total Estimated Hours (all resources):
-                            </label>
-                            <div className="col-sm-2">
-                                <input
-                                    type="number"
-                                    className="form-control fw-bold"
-                                    placeholder="Total"
-                                    value={totalHours}
-                                    onChange={(e) => setTotalHours(e.target.value)}
-                                    disabled={true}
-                                // disabled={(dataFound || isclient)}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Page X - Client Profile & Relationship */}
-                <div className="card shadow-sm border-0 rounded-3 mb-4">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-3 text-primary">Client Profile & Relationship</h5>
-
-                        {/* Client Category */}
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Client Category:</label>
-                            <div className="d-flex flex-wrap gap-4 ms-md-3">
-                                {[
-                                    "New Client",
-                                    "Existing Client",
-                                    "Retainer Client",
-                                    "Referral",
-                                    "VIP/Key Client"
-                                ].map((type) => (
-                                    <div className="form-check" key={type}>
-                                        <input
-                                            className="form-check-input"
-                                            type="checkbox"
-                                            id={type}
-                                            value={type}
-                                            checked={clientCategory.includes(type)}
-                                            onChange={handleCategoryChange}
-                                            disabled={(dataFound || isclient)}
-                                        />
-                                        <label className="form-check-label" htmlFor={type}>
-                                            {type}
+                            {/* Conditional Fields */}
+                            <div className="mb-3 ms-md-4">
+                                {clientCategory.includes("Referral") && (
+                                    <div className="mb-2">
+                                        <label className="form-label small fw-semibold">
+                                            If Referral – Referred By:
                                         </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Conditional Fields */}
-                        <div className="mb-3 ms-md-4">
-                            {clientCategory.includes("Referral") && (
-                                <div className="mb-2">
-                                    <label className="form-label small fw-semibold">
-                                        If Referral – Referred By:
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control form-control-sm w-50"
-                                        placeholder="Enter name"
-                                        value={referredBy}
-                                        onChange={(e) => setReferredBy(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
-                                </div>
-                            )}
-
-                            {clientCategory.includes("Retainer Client") && (
-                                <div>
-                                    <label className="form-label small fw-semibold">
-                                        If Retainer Client – Retainer Details:
-                                    </label>
-                                    <input
-                                        type="text"
-                                        className="form-control form-control-sm w-75"
-                                        placeholder="e.g. monthly fee or hours covered"
-                                        value={retainerDetails}
-                                        onChange={(e) => setRetainerDetails(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
-                                </div>
-                            )}
-                        </div>
-
-                        {/* Client Communication Needs */}
-                        <div className="mb-3">
-                            <label className="form-label fw-semibold">Client Communication Needs:</label>
-                            <div className="d-flex flex-wrap gap-4 ms-md-3">
-                                {[
-                                    "Low (infrequent updates)",
-                                    "Medium (regular updates)",
-                                    "High (frequent updates)"
-                                ].map((level) => (
-                                    <div className="form-check" key={level}>
                                         <input
-                                            className="form-check-input"
-                                            type="radio"
-                                            name="communication"
-                                            id={level}
-                                            value={level}
-                                            checked={communication === level}
-                                            onChange={(e) => setCommunication(e.target.value)}
+                                            type="text"
+                                            className="form-control form-control-sm w-50"
+                                            placeholder="Enter name"
+                                            value={referredBy}
+                                            onChange={(e) => setReferredBy(e.target.value)}
                                             disabled={(dataFound || isclient)}
                                         />
-                                        <label className="form-check-label" htmlFor={level}>
-                                            {level}
+                                    </div>
+                                )}
+
+                                {clientCategory.includes("Retainer Client") && (
+                                    <div>
+                                        <label className="form-label small fw-semibold">
+                                            If Retainer Client – Retainer Details:
                                         </label>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Notes on Client Personality */}
-                        <div className="mb-0 ms-md-3">
-                            <label className="form-label fw-semibold">
-                                Notes on Client Personality / Expectations:
-                            </label>
-                            <textarea
-                                className="form-control"
-                                rows="2"
-                                placeholder="Enter notes"
-                                value={clientNotes}
-                                onChange={(e) => setClientNotes(e.target.value)}
-                                disabled={(dataFound || isclient)}
-                            ></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Fee Proposal & Pricing */}
-                <div className="card mb-4 shadow-sm h-100">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-4">Fee Proposal & Pricing</h5>
-
-                        {/* Proposed Fee Structure */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Proposed Fee Structure:</label>
-                            <div className="d-flex flex-wrap gap-3 ms-3">
-                                {["Hourly-billed", "Fixed Fee", "Other"].map((type) => (
-                                    <div className="form-check" key={type}>
                                         <input
-                                            className="form-check-input"
-                                            type="radio"
-                                            name="feeStructure"
-                                            value={type}
-                                            checked={feeStructure === type}
-                                            onChange={(e) => setFeeStructure(e.target.value)}
+                                            type="text"
+                                            className="form-control form-control-sm w-75"
+                                            placeholder="e.g. monthly fee or hours covered"
+                                            value={retainerDetails}
+                                            onChange={(e) => setRetainerDetails(e.target.value)}
                                             disabled={(dataFound || isclient)}
                                         />
-                                        <label className="form-check-label">{type}</label>
                                     </div>
-                                ))}
-                                {feeStructure === "Other" && (
-                                    <input
-                                        type="text"
-                                        className="form-control form-control-sm w-auto"
-                                        placeholder="Specify"
-                                        value={otherFee}
-                                        onChange={(e) => setOtherFee(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
                                 )}
                             </div>
-                        </div>
 
-                        {/* Conditional Fee Details */}
-                        <div className="mb-3 ms-4">
-                            {feeStructure === "Hourly-billed" && (
-                                <>
-                                    <label className="form-label">If Hourly: Proposed hourly rates & cap:</label>
-                                    <input
-                                        type="text"
-                                        className="form-control mb-2"
-                                        placeholder="e.g. Senior AED ___/hr, Associate AED ___/hr"
-                                        value={hourlyRates}
-                                        onChange={(e) => setHourlyRates(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
-                                </>
-                            )}
-
-                            {feeStructure === "Fixed Fee" && (
-                                <>
-                                    <label className="form-label">If Fixed Fee: Total Amount (AED)</label>
-                                    <input
-                                        type="text"
-                                        className="form-control mb-2"
-                                        placeholder="e.g. 25,000 AED"
-                                        value={fixedFee}
-                                        onChange={(e) => setFixedFee(e.target.value)}
-                                        disabled={(dataFound || isclient)}
-                                    />
-                                </>
-                            )}
-                        </div>
-
-                        {/* Special Terms */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Special Terms or Considerations:</label>
-                            <textarea
-                                className="form-control"
-                                rows="2"
-                                placeholder="e.g. advance retainer, installment plan, success fee conditions"
-                                value={specialTerms}
-                                onChange={(e) => setSpecialTerms(e.target.value)}
-                                disabled={(dataFound || isclient)}
-                            ></textarea>
-                        </div>
-
-                        {/* Key Factors Affecting Fee */}
-                        <div className="mb-3">
-                            <label className="form-label fw-bold">Key Factors Affecting Fee:</label>
-                            <textarea
-                                className="form-control"
-                                rows="2"
-                                placeholder="e.g. high amount at stake, urgent timelines, demanding client expectations"
-                                value={keyFactors}
-                                onChange={(e) => setKeyFactors(e.target.value)}
-                                disabled={(dataFound || isclient)}
-                            ></textarea>
-                        </div>
-                    </div>
-                </div>
-
-
-
-                {/* Approvals */}
-                <div className="card shadow-sm border-0 rounded-3 mt-4">
-                    <div className="card-body">
-                        <h5 className="fw-bold mb-4">Approvals</h5>
-
-                        <div className="row">
-                            {/* Prepared by (Senior Lawyer) */}
-                            <div className="col-md-6">
-                                <div className="card shadow-sm border-0 rounded-3 mb-4">
-                                    <div className="card-body">
-                                        <h5 className="fw-bold mb-4">Prepared by (Senior Lawyer)</h5>
-                                        <div className="row g-3 align-items-start">
-                                            {/* Name */}
-                                            <div className="col-12 mb-3">
-                                                <label className="form-label fw-semibold">Name:</label>
-                                                <select
-                                                    className="form-select"
-                                                    value={preparedBy}
-                                                    onChange={(e) => setPreparedBy(e.target.value)}
-                                                    disabled={true}
-                                                >
-                                                    <option value="">Select Lawyer</option>
-                                                    {seniorLawyers.map((name, index) => (
-                                                        <option key={index} value={name?._id}>{name?.UserName}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-
-                                            {/* Signature */}
-                                            <div className="col-12 mb-3">
-                                                <label className="form-label fw-semibold">Signature:</label>
-                                                {(!dataFound && !isEdit && !isclient) && (
-                                                    <Form_SignaturePad height={200} onSave={handlepreparedBySign} />
-                                                )}
-                                                {preparedBySign && (
-                                                    <div className="mt-2 text-center">
-                                                        <img
-                                                            src={preparedBySign}
-                                                            alt="Lawyer Signature"
-                                                            className="img-fluid border rounded"
-                                                            style={{ maxHeight: "150px" }}
-                                                        />
-                                                    </div>
-                                                )}
-                                            </div>
-
-                                            {/* Date */}
-                                            <div className="col-12">
-                                                <label className="form-label fw-semibold">Date:</label>
-                                                <DatePicker
-                                                    selected={preparedDate ? new Date(preparedDate.split("/").reverse().join("-")) : null}
-                                                    onChange={(date) => {
-                                                        if (date) {
-                                                            const day = String(date.getDate()).padStart(2, "0");
-                                                            const month = String(date.getMonth() + 1).padStart(2, "0");
-                                                            const year = date.getFullYear();
-                                                            setPreparedDate(`${day}/${month}/${year}`);
-                                                        }
-                                                    }}
-                                                    disabled={(dataFound || isclient)}
-                                                    dateFormat="dd/MM/yyyy"
-                                                    className="form-control"
-                                                    placeholderText="dd/mm/yyyy"
-                                                />
-                                            </div>
+                            {/* Client Communication Needs */}
+                            <div className="mb-3">
+                                <label className="form-label fw-semibold">Client Communication Needs:</label>
+                                <div className="d-flex flex-wrap gap-4 ms-md-3">
+                                    {[
+                                        "Low (infrequent updates)",
+                                        "Medium (regular updates)",
+                                        "High (frequent updates)"
+                                    ].map((level) => (
+                                        <div className="form-check" key={level}>
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="communication"
+                                                id={level}
+                                                value={level}
+                                                checked={communication === level}
+                                                onChange={(e) => setCommunication(e.target.value)}
+                                                disabled={(dataFound || isclient)}
+                                            />
+                                            <label className="form-check-label" htmlFor={level}>
+                                                {level}
+                                            </label>
                                         </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Approved by (Chairman) */}
-                            {((approvedBySign || "admin" === token?.Role) && dataFound) && (
+                            {/* Notes on Client Personality */}
+                            <div className="mb-0 ms-md-3">
+                                <label className="form-label fw-semibold">
+                                    Notes on Client Personality / Expectations:
+                                </label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="Enter notes"
+                                    value={clientNotes}
+                                    onChange={(e) => setClientNotes(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Fee Proposal & Pricing */}
+                    <div className="card mb-4 shadow-sm h-100">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-4">Fee Proposal & Pricing</h5>
+
+                            {/* Proposed Fee Structure */}
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Proposed Fee Structure:</label>
+                                <div className="d-flex flex-wrap gap-3 ms-3">
+                                    {["Hourly-billed", "Fixed Fee", "Other"].map((type) => (
+                                        <div className="form-check" key={type}>
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="feeStructure"
+                                                value={type}
+                                                checked={feeStructure === type}
+                                                onChange={(e) => setFeeStructure(e.target.value)}
+                                                disabled={(dataFound || isclient)}
+                                            />
+                                            <label className="form-check-label">{type}</label>
+                                        </div>
+                                    ))}
+                                    {feeStructure === "Other" && (
+                                        <input
+                                            type="text"
+                                            className="form-control form-control-sm w-auto"
+                                            placeholder="Specify"
+                                            value={otherFee}
+                                            onChange={(e) => setOtherFee(e.target.value)}
+                                            disabled={(dataFound || isclient)}
+                                        />
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Conditional Fee Details */}
+                            <div className="mb-3 ms-4">
+                                {feeStructure === "Hourly-billed" && (
+                                    <>
+                                        <label className="form-label">If Hourly: Proposed hourly rates & cap:</label>
+                                        <input
+                                            type="text"
+                                            className="form-control mb-2"
+                                            placeholder="e.g. Senior AED ___/hr, Associate AED ___/hr"
+                                            value={hourlyRates}
+                                            onChange={(e) => setHourlyRates(e.target.value)}
+                                            disabled={(dataFound || isclient)}
+                                        />
+                                    </>
+                                )}
+
+                                {feeStructure === "Fixed Fee" && (
+                                    <>
+                                        <label className="form-label">If Fixed Fee: Total Amount (AED)</label>
+                                        <input
+                                            type="text"
+                                            className="form-control mb-2"
+                                            placeholder="e.g. 25,000 AED"
+                                            value={fixedFee}
+                                            onChange={(e) => setFixedFee(e.target.value)}
+                                            disabled={(dataFound || isclient)}
+                                        />
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Special Terms */}
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Special Terms or Considerations:</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="e.g. advance retainer, installment plan, success fee conditions"
+                                    value={specialTerms}
+                                    onChange={(e) => setSpecialTerms(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+
+                            {/* Key Factors Affecting Fee */}
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Key Factors Affecting Fee:</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="e.g. high amount at stake, urgent timelines, demanding client expectations"
+                                    value={keyFactors}
+                                    onChange={(e) => setKeyFactors(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+
+
+                    {/* Approvals */}
+                    <div className="card shadow-sm border-0 rounded-3 mt-4">
+                        <div className="card-body">
+                            <h5 className="fw-bold mb-4">Approvals</h5>
+
+                            <div className="row">
+                                {/* Prepared by (Senior Lawyer) */}
                                 <div className="col-md-6">
                                     <div className="card shadow-sm border-0 rounded-3 mb-4">
                                         <div className="card-body">
-                                            <h5 className="fw-bold mb-4">Reviewed & Approved by (Chairman)</h5>
+                                            <h5 className="fw-bold mb-4">Prepared by (Senior Lawyer)</h5>
                                             <div className="row g-3 align-items-start">
                                                 {/* Name */}
                                                 <div className="col-12 mb-3">
                                                     <label className="form-label fw-semibold">Name:</label>
                                                     <select
                                                         className="form-select"
-                                                        value={approvedBy}
-                                                        onChange={(e) => setApprovedBy(e.target.value)}
+                                                        value={preparedBy}
+                                                        onChange={(e) => setPreparedBy(e.target.value)}
                                                         disabled={true}
                                                     >
-                                                        <option value="">Select Chairman</option>
-                                                        {getAllOpsteam.map((name, index) => (
+                                                        <option value="">Select Lawyer</option>
+                                                        {seniorLawyers.map((name, index) => (
                                                             <option key={index} value={name?._id}>{name?.UserName}</option>
                                                         ))}
                                                     </select>
@@ -1738,14 +1673,14 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                 {/* Signature */}
                                                 <div className="col-12 mb-3">
                                                     <label className="form-label fw-semibold">Signature:</label>
-                                                    {((!isclient && !approvedBySign) || (islocal)) && (
-                                                        <Form_SignaturePad height={200} onSave={handleSignatureSave} />
+                                                    {(!dataFound && !isEdit && !isclient) && (
+                                                        <Form_SignaturePad height={200} onSave={handlepreparedBySign} />
                                                     )}
-                                                    {approvedBySign && (
+                                                    {preparedBySign && (
                                                         <div className="mt-2 text-center">
                                                             <img
-                                                                src={approvedBySign}
-                                                                alt="Chairman Signature"
+                                                                src={preparedBySign}
+                                                                alt="Lawyer Signature"
                                                                 className="img-fluid border rounded"
                                                                 style={{ maxHeight: "150px" }}
                                                             />
@@ -1757,51 +1692,120 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                 <div className="col-12">
                                                     <label className="form-label fw-semibold">Date:</label>
                                                     <DatePicker
-                                                        selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                        selected={preparedDate ? new Date(preparedDate.split("/").reverse().join("-")) : null}
                                                         onChange={(date) => {
                                                             if (date) {
                                                                 const day = String(date.getDate()).padStart(2, "0");
                                                                 const month = String(date.getMonth() + 1).padStart(2, "0");
                                                                 const year = date.getFullYear();
-                                                                setApprovedDate(`${day}/${month}/${year}`);
+                                                                setPreparedDate(`${day}/${month}/${year}`);
                                                             }
                                                         }}
+                                                        disabled={(dataFound || isclient)}
                                                         dateFormat="dd/MM/yyyy"
                                                         className="form-control"
                                                         placeholderText="dd/mm/yyyy"
-                                                        disabled={(approvedBySign && !islocal)}
                                                     />
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                            )}
+
+                                {/* Approved by (Chairman) */}
+                                {((approvedBySign || "admin" === token?.Role) && dataFound) && (
+                                    <div className="col-md-6">
+                                        <div className="card shadow-sm border-0 rounded-3 mb-4">
+                                            <div className="card-body">
+                                                <h5 className="fw-bold mb-4">Reviewed & Approved by (Chairman)</h5>
+                                                <div className="row g-3 align-items-start">
+                                                    {/* Name */}
+                                                    <div className="col-12 mb-3">
+                                                        <label className="form-label fw-semibold">Name:</label>
+                                                        <select
+                                                            className="form-select"
+                                                            value={approvedBy}
+                                                            onChange={(e) => setApprovedBy(e.target.value)}
+                                                            disabled={true}
+                                                        >
+                                                            <option value="">Select Chairman</option>
+                                                            {getAllOpsteam.map((name, index) => (
+                                                                <option key={index} value={name?._id}>{name?.UserName}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+
+                                                    {/* Signature */}
+                                                    <div className="col-12 mb-3">
+                                                        <label className="form-label fw-semibold">Signature:</label>
+                                                        {((!isclient && !approvedBySign) || (islocal)) && (
+                                                            <Form_SignaturePad height={200} onSave={handleSignatureSave} />
+                                                        )}
+                                                        {approvedBySign && (
+                                                            <div className="mt-2 text-center">
+                                                                <img
+                                                                    src={approvedBySign}
+                                                                    alt="Chairman Signature"
+                                                                    className="img-fluid border rounded"
+                                                                    style={{ maxHeight: "150px" }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Date */}
+                                                    <div className="col-12">
+                                                        <label className="form-label fw-semibold">Date:</label>
+                                                        <DatePicker
+                                                            selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                            onChange={(date) => {
+                                                                if (date) {
+                                                                    const day = String(date.getDate()).padStart(2, "0");
+                                                                    const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                    const year = date.getFullYear();
+                                                                    setApprovedDate(`${day}/${month}/${year}`);
+                                                                }
+                                                            }}
+                                                            dateFormat="dd/MM/yyyy"
+                                                            className="form-control"
+                                                            placeholderText="dd/mm/yyyy"
+                                                            disabled={(approvedBySign && !islocal)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
+
+
                     </div>
 
+                    {/* Submit button */}
+                    {(!dataFound && !isEdit && !isclient) &&
+                        <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
+                            <div className="btn btn-primary fw-bold px-4" onClick={handleSubmit}>Save and Submit Form</div>
+                        </div>
+                    }
+
+                    {(formId && preparedBy === token?._id && !approvedBySign) &&
+
+                        <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
+                            <div className="btn btn-primary fw-bold px-4" onClick={isEdit ? handleUpdate : handleEdit}>{isEdit ? "Save and Update Form" : "Edit LFQ"}</div>
+                        </div>
+                    }
+                    {(preparedBy !== token?._id && !isclient && (approvedBySign && islocal)) &&
+                        <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
+                            <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
+                        </div>
+                    }
 
                 </div>
-
-                {/* Submit button */}
-                {(!dataFound && !isEdit && !isclient) &&
-                    <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
-                        <div className="btn btn-primary fw-bold px-4" onClick={handleSubmit}>Submit Form</div>
-                    </div>
-                }
-
-                {(formId && preparedBy === token?._id && !approvedBySign && dataFound) &&
-                    <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
-                        <div className="btn btn-primary fw-bold px-4" onClick={isEdit ? handleUpdate : handleEdit}>{isEdit ? "Update Form" : "Edit Form"}</div>
-                    </div>
-                }
-                {(preparedBy !== token?._id && !isclient && (approvedBySign && islocal)) &&
-                    <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
-                        <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
-                    </div>
-                }
-
-            </div>
+                :
+                <div className="text-center text-black py-5">No LFA Form Available.</div>
+            }
         </div >
     );
 };
