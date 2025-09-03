@@ -11,6 +11,7 @@ import { Dropdown, Form, InputGroup } from "react-bootstrap";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logo from "../../../Pages/Images/logo.png";
+import { height } from "@mui/system";
 
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
@@ -920,46 +921,182 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
 
     const getBase64ImageFromUrl = async (url) => {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
+        const res = await fetch(url);
+        const blob = await res.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
+
+    // ✅ Helper: Image ko Base64 me convert karega
+
+
+    const getSignBase64FromServer = async (imageUrl) => {
+        try {
+            const response = await fetch(
+                `${ApiEndPoint}get-image-base64?url=${encodeURIComponent(imageUrl)}`
+            );
+            if (!response.ok) {
+                throw new Error("Failed to get Base64 from server");
+            }
+            const base64 = await response.text(); // 👈 backend se string aayegi
+            return base64; // direct Base64 string
+        } catch (error) {
+            console.error("Error fetching Base64:", error);
+            return null;
+        }
+    };
+
+
 
 
     pdfMake.vfs = pdfFonts.pdfMake?.vfs;
 
-    const downloadCasePdf =async (data) => {
+    const downloadCasePdf = async (data) => {
+        const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
 
-         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
+        const preparedBySignBase64 = data?.preparedBySignpath
+            ? await getSignBase64FromServer(data.preparedBySignpath)
+            : null;
+
+
+        console.log("preparedBySignBase64= ", preparedBySignBase64)
+        const approvedBySignBase64 = data.approvedBySignpath
+            ? await getSignBase64FromServer(data.approvedBySignpath)
+            : null;
+        console.log("approvedBySignBase64= ", approvedBySignBase64)
         const docDefinition = {
-            // ===== Header (Image + Title) =====
-            header: {
-               columns: [
-        logoBase64
-          ? {
-              image: logoBase64,
-              width: 100,
-              margin: [10, 10, 0, 10],
-            }
-          : {},
-        {
-          text: "Case Details Report",
-          style: "pdfTitle",
-          alignment: "center",
-          margin: [0, 20, 0, 0],
-        },
-                ],
-                margin: [10, 10],
+            // ✅ Page margins set kiye (header/footer ke liye jagah)
+            pageMargins: [40, 100, 40, 60], // [left, top, right, bottom]
+
+            // ===== Header (Har page per repeat hoga) =====
+            // header: (currentPage, pageCount) => {
+            //   return {
+            //     margin: [40, 20, 40, 0],
+            //     stack: [
+            //       {
+            //         columns: [
+            //           logoBase64
+            //             ? {
+            //                 image: logoBase64,
+            //                 width: 80,
+            //               }
+            //             : {},
+            //           {
+            //             text: "Case Details Report",
+            //             style: "pdfTitle",
+            //             alignment: "center",
+            //             margin: [0, 20, 0, 0],
+            //           },
+            //         ],
+            //       },
+            //       {
+            //         canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1 }], // divider line
+            //         margin: [0, 10, 0, 0],
+            //       },
+            //     ],
+            //   };
+            // },
+
+            header: (currentPage, pageCount) => {
+                return {
+                    margin: [0, 0, 0, 0],
+                    stack: [
+                        {
+                            // Background rectangle
+                            canvas: [
+                                {
+                                    type: "rect",
+                                    x: 0,
+                                    y: 0,
+                                    w: 595,   // A4 page width in pt
+                                    h: 80,    // header height
+                                    color: "#1a2b42", // ✅ background color
+                                },
+                            ],
+                        },
+                        {
+                            columns: [
+                                logoBase64
+                                    ? { image: logoBase64, width: 40, height: 50, margin: [20, 15, 0, 0] }
+                                    : {},
+                                {
+                                    stack: [
+                                        { text: "SUHAD ALJUBOORI", fontSize: 14, bold: true, color: "#ffffff", margin: [0, 20, 0, 0] },
+                                        { text: "Advocates & Legal Consultants", fontSize: 12, color: "#ffffff", margin: [0, 5, 0, 0] },
+                                    ],
+                                },
+                            ],
+                            columnGap: 30, // logo aur text ke darmiyan gap
+                            margin: [20, -70, 0, 0], // left margin adjust kiya
+                            alignment: "left",
+                        },
+                    ],
+                };
             },
+
+
+
+
+            // ===== Footer (Har page per repeat hoga) =====
+            footer: (currentPage, pageCount) => {
+                const footerText =
+                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nAbu Dhabi: 2403, Tomouh Tower, Marina Square Jazeerat Al Reem\nTel: +971 (04) 332 5928, web: aws-legalgroup.com, email: info@awsadvocates.com";
+
+                return {
+                    stack: [
+                        // ✅ Background rectangle
+                        {
+                            canvas: [
+                                {
+                                    type: "rect",
+                                    x: 0,
+                                    y: 0,
+                                    w: 595,   // A4 width (pt)
+                                    h: 70,    // footer height
+                                    color: "#f5f5f5",
+                                },
+                            ],
+                            margin: [0, 0, 0, 0],
+                        },
+                        {
+                            columns: [
+                                { width: "*", text: "" }, // left spacer
+                                {
+                                    stack: [
+                                        {
+                                            text: footerText,
+                                            alignment: "center",
+                                            fontSize: 7,
+                                            color: "#333333",
+                                            margin: [0, -60, 0, 0], // move into grey box
+                                        },
+                                    ],
+                                },
+                                {
+                                    text: `Page ${currentPage} of ${pageCount}`,
+                                    alignment: "right",
+                                    margin: [0, -60, 40, 0], // move into grey box
+                                    fontSize: 8,
+                                    color: "#333333",
+                                },
+                            ],
+                        },
+                    ],
+                    margin: [0, -10, 0, 0],
+                };
+            },
+
+
+            // ===== Main Content =====
+
 
             content: [
                 // ================= Page 1: Client & Case Info =================
-                { text: "Client & Case Information", style: "header" },
+                { text: "Client & Case Information", style: "header", margin: [0, 40, 0, 10] },
 
                 {
                     table: {
@@ -1018,6 +1155,76 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     margin: [0, 10, 0, 20],
                 },
 
+                // ================= Client Profile & Relationship =================
+                { text: "Client Profile & Relationship", style: "header", margin: [0, 20, 0, 10] },
+
+                {
+                    table: {
+                        widths: ["35%", "65%"],
+                        body: [
+                            [
+                                { text: "Client Category", style: "label" },
+                                { text: (data.clientCategory || []).join(", ") || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Referred By", style: "label" },
+                                { text: data.referredBy || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Retainer Details", style: "label" },
+                                { text: data.retainerDetails || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Communication Needs", style: "label" },
+                                { text: data.communicationNeeds || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Notes on Client Personality / Expectations", style: "label" },
+                                { text: data.clientNotes || "-", style: "value" },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                },
+
+                // ================= Fee Proposal & Pricing =================
+                { text: "Fee Proposal & Pricing", style: "header", margin: [0, 20, 0, 10] },
+
+                {
+                    table: {
+                        widths: ["35%", "65%"],
+                        body: [
+                            [
+                                { text: "Proposed Fee Structure", style: "label" },
+                                { text: data.feeStructure || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Other Fee (if applicable)", style: "label" },
+                                { text: data.otherFee || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Hourly Rates (if Hourly)", style: "label" },
+                                { text: data.hourlyRates || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Fixed Fee Amount (if Fixed Fee)", style: "label" },
+                                { text: data.fixedFee || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Special Terms / Considerations", style: "label" },
+                                { text: data.specialTerms || "-", style: "value" },
+                            ],
+                            [
+                                { text: "Key Factors Affecting Fee", style: "label" },
+                                { text: data.keyFactors || "-", style: "value" },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                },
+
                 // ================= Resource & Effort Estimation =================
                 { text: "Resource & Effort Estimation", style: "header", margin: [0, 20, 0, 10] },
 
@@ -1065,52 +1272,78 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
+
+
+
+                // ================= Approvals =================
+                { text: "Approvals", style: "header", margin: [0, 20, 0, 10] },
+
+                {
+                    table: {
+                        widths: ["50%", "50%"],
+                        body: [
+                            // ===== Prepared by (Senior Lawyer) =====
+                            [
+                                {
+                                    stack: [
+                                        { text: `Name: ${data.preparedBy || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                        { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
+
+                                        data.preparedBySignpath
+                                            ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
+                                            : { text: "Signature: Not Provided", style: "value" },
+
+                                        // 👇 Signature line
+                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+
+                                        { text: "Prepared by Sign (Senior Lawyer)", style: "subHeader", margin: [0, 0, 0, 8] },
+                                    ],
+                                },
+
+                                // ===== Approved by (Chairman) =====
+                                {
+                                    stack: [
+                                        { text: `Name: ${data.approvedBy || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
+
+                                        approvedBySignBase64
+                                            ? { image: approvedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
+                                            : { text: "Signature: Not Provided", style: "value" },
+
+                                        // 👇 Signature line
+                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+
+                                        { text: "Reviewed & Approved by Sign (Chairman)", style: "subHeader", margin: [0, 0, 0, 8] },
+                                    ],
+                                },
+                            ],
+                        ],
+                    },
+                    layout: "lightHorizontalLines",
+                    margin: [0, 10, 0, 20],
+                }
+
+
             ],
 
-            // ========== Styles ==========
+            // ===== Styles =====
             styles: {
-                pdfTitle: {
-                    fontSize: 16,
-                    bold: true,
-                    color: "#0d6efd",
-                },
-                header: {
-                    fontSize: 18,
-                    bold: true,
-                    margin: [0, 0, 0, 10],
-                    color: "#0d6efd",
-                },
-                tableHeader: {
-                    bold: true,
-                    fontSize: 12,
-                    fillColor: "#f1f1f1",
-                    margin: [0, 3, 0, 3],
-                },
-                label: {
-                    bold: true,
-                    fontSize: 11,
-                    color: "#000",
-                    margin: [0, 3, 0, 3],
-                },
-                labelBold: {
-                    bold: true,
-                    fontSize: 12,
-                    color: "#0d6efd",
-                    margin: [0, 3, 0, 3],
-                },
-                value: {
-                    fontSize: 11,
-                    color: "#333",
-                    margin: [0, 3, 0, 3],
-                },
+                pdfTitle: { fontSize: 16, bold: true, color: "#0d6efd" },
+                header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10], color: "#0d6efd" },
+                tableHeader: { bold: true, fontSize: 12, fillColor: "#f1f1f1", margin: [0, 3, 0, 3] },
+                label: { bold: true, fontSize: 11, color: "#000", margin: [0, 3, 0, 3] },
+                labelBold: { bold: true, fontSize: 12, color: "#0d6efd", margin: [0, 3, 0, 3] },
+                value: { fontSize: 11, color: "#333", margin: [0, 3, 0, 3] },
             },
-            defaultStyle: {
-                fontSize: 10,
-            },
+            defaultStyle: { fontSize: 10 },
+
         };
 
         pdfMake.createPdf(docDefinition).download(`Case_${data.clientName}.pdf`);
     };
+
+
+
 
 
 
