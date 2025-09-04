@@ -208,7 +208,7 @@ export const logout = (navigate) => {
   navigate('/login'); // Adjust this to your login route
 };
 export const isPublicRoute = (pathname) => {
-  const staticPublicRoutes = ['/', '/signup', '/forget-password', '/reset-password', '/client-consultation'];
+  const staticPublicRoutes = ['/', '/signup', '/forget-password', '/reset-password', '/client-consultation','/LFQ_ClientCaseEvaluationForm'];
 
   // Remove query params from pathname for matching
   const cleanPath = pathname.split('?')[0];

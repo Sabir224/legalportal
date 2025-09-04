@@ -35,6 +35,7 @@ import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { isPublicRoute } from './Main/Pages/Component/utils/utlis';
 import RescheduleConfirm from './Main/Pages/AppointMents/AppointmentReschedule';
+import LFQ_ClientCaseEvaluationForm from './Main/Pages/Component/Case_Forms/LFQFrom';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -109,6 +110,7 @@ const GlobalTokenValidator = () => {
       '/forget-password',
       '/reset-password',
       '/client-consultation',
+      "/LFQ_ClientCaseEvaluationForm",
       '/clientAppointMent/:phone/:name',
       '/reschedule',
     ];
@@ -122,6 +124,7 @@ const GlobalTokenValidator = () => {
     if (location.pathname === redirectPath) return;
 
     const handleInteraction = () => {
+      
       validateToken();
     };
 
@@ -191,6 +194,15 @@ function App() {
           element={
             <AlertProvider>
               <ClientConsultationForm />
+              <GlobalAlert />
+            </AlertProvider>
+          }
+        />
+        <Route
+          path="/LFQ_ClientCaseEvaluationForm"
+          element={
+            <AlertProvider>
+              <LFQ_ClientCaseEvaluationForm />
               <GlobalAlert />
             </AlertProvider>
           }
