@@ -43,7 +43,7 @@ export default function FilterSection({
   return (
     <>
       <Typography variant="subtitle2" gutterBottom sx={{ color: '#d4af37', fontWeight: 600, mb: 2 }}>
-        {title} ({selectedValues.length} selected)
+        {title} Filter
       </Typography>
 
       {/* Search Input */}
