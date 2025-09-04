@@ -60,13 +60,6 @@ const AddUser = () => {
   const dropdownRef = useRef(null);
   const { showLoading, showSuccess, showError } = useAlert();
   const services = [
-    { name: 'Divorce', description: 'Marriage dissolution and related matters' },
-    { name: 'Property', description: 'Real estate transactions and disputes' },
-    { name: 'Criminal', description: 'Defense and legal representation' },
-    { name: 'Immigration', description: 'Visa and citizenship processes' },
-    { name: 'Corporate', description: 'Business formation and compliance' },
-
-    // Added UpdateSubtypelist items
     { name: 'Civil Case', description: 'Civil Case related legal services' },
     { name: 'Commercial Law', description: 'Commercial Law related legal services' },
     { name: 'Criminal Case', description: 'Criminal Case related legal services' },

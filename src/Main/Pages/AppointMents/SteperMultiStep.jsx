@@ -645,19 +645,19 @@ function LegalConsultationStepper() {
     setIsProcessing(true);
     setPaymentError(null);
     console.group('🔵 handleConfirmPayment - Start');
-    // console.log('Initial state:', {
-    //   paymentForm,
-    //   selectedLawyer,
-    //   selectedSlot,
-    //   selectedDate,
-    //   method,
-    //   paymentMethod,
-    //   service,
-    //   clientMessage,
-    // });
 
     try {
-      // Common payment data
+      let normalizedPaymentMethod = paymentMethod;
+      if (method === 'Online') {
+        normalizedPaymentMethod = 'Card';
+      } else if (method === 'InPerson') {
+        if (paymentMethod === 'PayOnline') {
+          normalizedPaymentMethod = 'Card';
+        } else {
+          normalizedPaymentMethod = 'PayInOffice';
+        }
+      }
+
       const paymentData = {
         name: paymentForm?.name || confirmationData?.name || data?.payment?.name,
         phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone,
@@ -666,82 +666,83 @@ function LegalConsultationStepper() {
         serviceType: service,
         lawyerId: selectedLawyer?._id,
         consultationType: method,
-        paymentMethod: paymentMethod === 'PayInOffice' ? 'PayInOffice' : 'Card',
+        paymentMethod: normalizedPaymentMethod,
         uniqueLinkId: ref || '',
         appointmentLink: window.location.href,
       };
 
-      console.log('📦 Payment Data Prepared:', paymentData);
+      // InPerson consultation
+      if (method === 'InPerson') {
+        if (normalizedPaymentMethod === 'PayInOffice') {
+          console.log('⚙️ Processing InPerson PayInOffice flow');
 
-      // Handle Pay at Office flow (only for InPerson consultation)
-      if (method === 'InPerson' && paymentMethod === 'PayInOffice') {
-        console.log('⚙️ Processing InPerson PayInOffice flow');
-
-        if (data?.payment?.status === 'pending') {
-          // console.log("PaymenData___:",oldpaymentId);
-          await sendConfirmationEmails(oldpaymentId || data?.payment?._id);
-          await updateSlotBooking({
-            lawyerId: selectedLawyer?._id,
-            slotId: selectedSlot?._id,
-            isBooked: true,
-            publicBooking: {
-              name: paymentForm.name || confirmationData?.name,
-              phone: paymentForm.phone || confirmationData?.phone,
-            },
-            caseDescription: caseDiscription,
-          });
-          await axios.post(`${ApiEndPoint}payments/update-status`, {
-            paymentId: oldpaymentId || data?.payment?._id,
-            meetingDetails: {
-              meetingUrl: 'meetingbooked',
-              date: selectedDate,
-              slot: selectedSlot,
-            },
-            caseDescription: caseDiscription,
-          });
-          setActiveStep(6);
-        } else {
-          await handlePayInOfficeFlow(paymentData);
-        }
-      } else if (paymentMethod === 'PayOnline') {
-        console.log('⚙️ Processing Card Payment flow');
-
-        if (data?.payment?.status === 'paid') {
-          await sendConfirmationEmails(oldpaymentId || data?.payment?._id);
-          await updateSlotBooking({
-            lawyerId: selectedLawyer?._id,
-            slotId: selectedSlot?._id,
-            isBooked: true,
-            publicBooking: {
-              name: paymentForm.name || confirmationData?.name,
-              phone: paymentForm.phone || confirmationData?.phone,
-            },
-            caseDescription: caseDiscription,
-          });
-          await axios.post(`${ApiEndPoint}payments/update-status`, {
-            paymentId: oldpaymentId || data?.payment?._id,
-            meetingDetails: {
-              meetingUrl: 'meetingbooked',
-              date: selectedDate,
-              slot: selectedSlot,
-            },
-            caseDescription: caseDiscription,
-          });
-          setActiveStep(6);
-        } else {
-          await handleCardPaymentFlow(paymentData);
+          if (data?.payment?._id) {
+            console.log('📌 Existing PayInOffice payment found, skipping creation:', data?.payment?._id);
+            await sendConfirmationEmails(data?.payment?._id);
+            await updateSlotBooking({
+              lawyerId: selectedLawyer?._id,
+              slotId: selectedSlot?._id,
+              isBooked: true,
+              publicBooking: {
+                name: paymentForm.name || confirmationData?.name,
+                phone: paymentForm.phone || confirmationData?.phone,
+              },
+              caseDescription: caseDiscription,
+            });
+            await axios.post(`${ApiEndPoint}payments/update-status`, {
+              paymentId: data?.payment?._id,
+              meetingDetails: {
+                meetingUrl: 'meetingbooked',
+                date: selectedDate,
+                slot: selectedSlot,
+              },
+              caseDescription: caseDiscription,
+            });
+            setActiveStep(6);
+          } else {
+            await handlePayInOfficeFlow(paymentData);
+          }
+        } else if (normalizedPaymentMethod === 'Card') {
+          if (data?.payment?.status === 'paid') {
+            await sendConfirmationEmails(data?.payment?._id);
+            await updateSlotBooking({
+              lawyerId: selectedLawyer?._id,
+              slotId: selectedSlot?._id,
+              isBooked: true,
+              publicBooking: {
+                name: paymentForm.name || confirmationData?.name,
+                phone: paymentForm.phone || confirmationData?.phone,
+              },
+              caseDescription: caseDiscription,
+            });
+            await axios.post(`${ApiEndPoint}payments/update-status`, {
+              paymentId: data?.payment?._id,
+              meetingDetails: {
+                meetingUrl: 'meetingbooked',
+                date: selectedDate,
+                slot: selectedSlot,
+              },
+              caseDescription: caseDiscription,
+            });
+            setActiveStep(6);
+          } else if (data?.payment?._id) {
+            console.log('📌 Existing Card payment pending, confirming only');
+            await handleCardPaymentFlow({ ...paymentData, paymentId: data?.payment?._id });
+          } else {
+            await handleCardPaymentFlow(paymentData);
+          }
         }
       } else {
         const errorMsg = `Unsupported combination: Consultation type ${method} with payment method ${paymentMethod}`;
-        console.error('❌', errorMsg);
+        console.log('❌', errorMsg);
         setPaymentError('This payment method is not available for the selected consultation type');
         throw new Error(errorMsg);
       }
     } catch (err) {
-      console.error('❌ handleConfirmPayment failed:', err);
+      console.log('❌ handleConfirmPayment failed:', err);
       setPaymentError(err.message || 'Something went wrong');
     } finally {
-      setIsProcessing(false); // ✅ Always executed no matter what
+      setIsProcessing(false);
       console.groupEnd();
     }
   };
@@ -1417,10 +1418,11 @@ function LegalConsultationStepper() {
               </Select>
               <Box sx={{ position: 'relative', marginTop: '10px' }}>
                 <TextField
-                  label="Case Description (Optional)"
+                  label="Case Description (Required)"
                   name="casediscription"
                   value={caseDiscription}
                   onChange={handleChangeCaseDiscription}
+                  required // 🔥 make it required
                   multiline
                   minRows={1}
                   maxRows={4}
@@ -1430,9 +1432,7 @@ function LegalConsultationStepper() {
                   InputLabelProps={{
                     sx: {
                       color: '#d4af37 !important',
-                      '&.Mui-focused': {
-                        color: '#d4af37 !important',
-                      },
+                      '&.Mui-focused': { color: '#d4af37 !important' },
                     },
                   }}
                   InputProps={{
@@ -1447,45 +1447,24 @@ function LegalConsultationStepper() {
                     width: '100%',
                     '& .MuiOutlinedInput-root': {
                       backgroundColor: '#18273e !important',
-                      '& fieldset': {
-                        borderColor: 'rgba(255, 255, 255, 0.23)',
-                      },
-                      '&:hover fieldset': {
-                        borderColor: '#d4af37',
-                      },
-                      '&.Mui-focused fieldset': {
-                        borderColor: '#d4af37',
-                      },
-                      '&.Mui-error fieldset': {
-                        borderColor: '#f44336',
-                      },
+                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                      '&:hover fieldset': { borderColor: '#d4af37' },
+                      '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                      '&.Mui-error fieldset': { borderColor: '#f44336' },
                     },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#d4af37',
-                    },
+                    '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
                     '& .MuiFormHelperText-root': {
                       color: caseDiscription.length > 1024 ? '#f44336' : 'rgba(255, 255, 255, 0.7)',
                     },
                   }}
-                  helperText={caseDiscription.length > 1024 ? 'Maximum 1024 characters exceeded' : ''}
+                  helperText={
+                    caseDiscription.length === 0
+                      ? 'Case description is required'
+                      : caseDiscription.length > 1024
+                      ? 'Maximum 1024 characters exceeded'
+                      : ''
+                  }
                 />
-
-                {/* Character counter positioned absolutely */}
-                <Typography
-                  variant="caption"
-                  sx={{
-                    position: 'absolute',
-                    right: 14,
-                    bottom: 8,
-                    color: caseDiscription.length > 900 ? '#d4af37' : 'rgba(255, 255, 255, 0.5)',
-                    fontWeight: caseDiscription.length > 900 ? 600 : 400,
-                    backgroundColor: '#18273e',
-                    padding: '0 4px',
-                    borderRadius: '4px',
-                  }}
-                >
-                  {`${caseDiscription.length}/1024`}
-                </Typography>
               </Box>
             </FormControl>
           </Box>
@@ -3070,7 +3049,7 @@ function LegalConsultationStepper() {
                 onClick={handleNext}
                 disabled={
                   loading ||
-                  (activeStep === 0 && !service) ||
+                  (activeStep === 0 && (!service || !caseDiscription.trim())) || // 🔥 now also requires description
                   (activeStep === 1 && !selectedLawyer) ||
                   (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
                   (activeStep === 3 && !method)
@@ -3079,9 +3058,7 @@ function LegalConsultationStepper() {
                   backgroundColor: '#d4af37',
                   color: '#18273e',
                   fontWeight: 'bold',
-                  '&:hover': {
-                    backgroundColor: '#c19b2e',
-                  },
+                  '&:hover': { backgroundColor: '#c19b2e' },
                   '&.Mui-disabled': {
                     backgroundColor: 'rgba(212, 175, 55, 0.5)',
                     color: 'rgba(24, 39, 62, 0.5)',

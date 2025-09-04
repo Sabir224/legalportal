@@ -1183,21 +1183,21 @@ export default function PaymentDashboard() {
                                   >
                                     Amount
                                   </StyledTableCell>
-                                  <StyledTableCell
+                                  {/* <StyledTableCell
                                     sx={{
                                       minWidth: 120,
                                       backgroundColor: lightTheme.textPrimary,
                                       color: lightTheme.background,
                                     }}
                                   >
-                                    Method
-                                  </StyledTableCell>
-                                  {/* <FilterableHeaderCell
+                                    Amount
+                                  </StyledTableCell> */}
+                                  <FilterableHeaderCell
                                     label="Method"
                                     minWidth={120}
                                     isActive={methodFilter.length > 0}
                                     onClick={(e) => handleOpenFilter('method', e)}
-                                  /> */}
+                                  />
 
                                   <FilterableHeaderCell
                                     label="Status"
