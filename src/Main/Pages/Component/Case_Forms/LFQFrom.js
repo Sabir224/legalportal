@@ -1061,8 +1061,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     table: {
                         widths: ["35%", "65%"],
                         body: [
-                            [{ text: "Client Name", style: "label" }, { text: data.clientName || "-", style: "value" }],
-                            [{ text: "Client Email", style: "label" }, { text: data.clientEmail || "-", style: "value" }],
+                            [{ text: "Client Name", style: "label" }, { text: data?.clientName || "-", style: "value" }],
+                            [{ text: "Client Email", style: "label" }, { text: data?.clientEmail || "-", style: "value" }],
                             [{ text: "Client Contact Number", style: "label" }, { text: data.clientContactphone || "-", style: "value" }],
                             [
                                 { text: "Date of Meeting", style: "label" },
