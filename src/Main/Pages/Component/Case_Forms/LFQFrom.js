@@ -779,7 +779,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
                 totalEstimatedHours: totalHours,
 
-                clientCategory,
+                clientCategory:JSON.stringify(clientCategory),
                 referredBy,
                 retainerDetails,
                 communicationNeeds: communication,
