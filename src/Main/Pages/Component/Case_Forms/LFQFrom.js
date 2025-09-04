@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import backgroundImage from "../../../Pages/Images/bg.jpg";
 import "bootstrap/dist/css/bootstrap.min.css";
 import DatePicker from "react-datepicker";
 import Form_SignaturePad from "./Form_Componets/SignaturePad";
@@ -88,6 +89,99 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [getDrafts, setGetDrafts] = useState(null);
 
 
+    const [generatedLink, setGeneratedLink] = useState("");
+    const [showLinkGenerator, setShowLinkGenerator] = useState(true); // To control whether the link generator is shown or not
+
+
+    // const handleGenerateLink = () => {
+    //     // ✅ caseId + timestamp ko ek object me rakho
+    //     const data = JSON.stringify({
+    //         caseId: caseInfo?._id,
+    //         timestamp: Date.now()
+    //     });
+
+    //     // ✅ base64 encode karo
+    //     const encrypted = btoa(data);
+
+    //     // ✅ link banao
+    //     const link = `${window.location.origin}/LFQ_ClientCaseEvaluationForm?data=${encodeURIComponent(encrypted)}`;
+    //     setGeneratedLink(link);
+
+    //     // ✅ copy to clipboard
+    //     navigator.clipboard.writeText(link)
+    //         .then(() => {
+    //             alert("Encrypted link copied to clipboard!");
+    //         })
+    //         .catch((err) => {
+    //             console.error("Failed to copy: ", err);
+    //         });
+    // };
+
+    const handleGenerateLink = () => {
+        // ✅ poora link banao (caseId + timestamp)
+        const originalLink = `${window.location.origin}/LFQ_ClientCaseEvaluationForm?caseId=${caseInfo?._id}&timestamp=${Date.now()}`;
+
+        // ✅ base64 encode karo
+        const encrypted = btoa(originalLink);
+
+        // ✅ final link (sirf ek hi "data" param hoga)
+        const finalLink = `${window.location.origin}/LFQ_ClientCaseEvaluationForm?data=${encodeURIComponent(encrypted)}`;
+        setGeneratedLink(finalLink);
+
+        // ✅ copy to clipboard
+        navigator.clipboard.writeText(finalLink)
+            .then(() => {
+                alert("Encrypted link copied to clipboard!");
+            })
+            .catch((err) => {
+                console.error("Failed to copy: ", err);
+            });
+    };
+
+
+    // useEffect(() => {
+    //     const params = new URLSearchParams(window.location.search);
+    //     const encoded = params.get("data");
+
+    //     if (encoded) {
+    //         try {
+    //             const decoded = atob(decodeURIComponent(encoded)); // base64 decode
+    //             const parsed = JSON.parse(decoded);
+
+    //             if (parsed.caseId) {
+    //                 setShowLinkGenerator(false);
+    //                 fetchLFQForm(parsed.caseId); // ✅ caseId ke sath API call
+    //             }
+    //         } catch (err) {
+    //             console.error("Decryption failed:", err);
+    //         }
+    //     }
+    // }, []);
+
+
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const encoded = params.get("data");
+
+        if (encoded) {
+            try {
+                // ✅ decode poora link
+                const decodedLink = atob(decodeURIComponent(encoded));
+                console.log("Decoded full link:", decodedLink);
+
+                // ✅ ab is decodedLink se query params nikaalo
+                const url = new URL(decodedLink);
+                const caseId = url.searchParams.get("caseId");
+
+                if (caseId) {
+                    setShowLinkGenerator(false);
+                    fetchLFQForm(caseId); // ✅ API call
+                }
+            } catch (err) {
+                console.error("Decryption failed:", err);
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (caseInfo) {
@@ -522,108 +616,6 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         setIsEdit(true)
         setDataFound(false)
         e.preventDefault();
-
-
-        // try {
-        //     const formData = new FormData();
-
-        //     // Basic text fields
-        //     formData.append("caseId", caseInfo?._id);
-        //     formData.append("clientName", clientName);
-        //     formData.append("clientContactInfo", clientContactInfo);
-        //     const [dateValueday, dateValuemonth, dateValueyear] = dateValue.split("/");
-        //     const dateValue_formattedDate = new Date(`${dateValueyear}-${dateValuemonth}-${dateValueday}`); // YYYY-MM-DD format
-
-        //     // console.log("formattedDate =", preparedDate_formattedDate);
-        //     console.log("ISO =", dateValue_formattedDate.toISOString());
-        //     console.log("ISO =");
-
-        //     formData.append("dateOfClientMeeting", dateValue_formattedDate);
-        //     formData.append("matterReference", matterReference || "");
-        //     formData.append("caseType", caseType);
-        //     formData.append("jurisdiction", jurisdiction);
-        //     formData.append("localCounselRequired", localCounsel);
-        //     formData.append("estLocalCounselHours", localCounselHours || "");
-
-        //     // Case complexity & stake
-        //     formData.append("complexityLevel", complexity);
-        //     formData.append("amountAtStake", AmountatStake || "");
-        //     formData.append("estimatedCaseDuration", estimatedDuration || "");
-
-        //     // Resource & Effort
-        //     formData.append("seniorLawyer[name]", seniorName);
-        //     formData.append("seniorLawyer[estHours]", seniorHours || "");
-        //     formData.append("associateLawyer[name]", associateName);
-        //     formData.append("associateLawyer[estHours]", associateHours || "");
-        //     formData.append("resourceLocalCounsel[name]", ResourcelocalCounsel);
-        //     formData.append("resourceLocalCounsel[estHours]", localCounselHours || "");
-        //     formData.append("paralegalSupport[role]", paralegal);
-        //     formData.append("paralegalSupport[estHours]", paralegalHours || "");
-        //     formData.append("otherResources[description]", otherResources || "");
-        //     formData.append("otherResources[estHours]", otherResourceHours || "");
-        //     formData.append("totalEstimatedHours", totalHours || "");
-        //     // Client profile
-        //     formData.append("clientCategory", JSON.stringify(clientCategory));
-        //     formData.append("referredBy", referredBy || "");
-        //     formData.append("retainerDetails", retainerDetails || "");
-        //     formData.append("communicationNeeds", communication || "");
-        //     formData.append("clientNotes", clientNotes || "");
-        //     // Fee proposal
-        //     formData.append("feeStructure", feeStructure || "");
-        //     formData.append("otherFee", otherFee || "");
-        //     formData.append("hourlyRates", hourlyRates || "");
-        //     formData.append("fixedFee", fixedFee || "");
-        //     formData.append("specialTerms", specialTerms || "");
-        //     formData.append("keyFactors", keyFactors || "");
-        //     // Signatures (convert base64 to file if possible)
-        //     // if (preparedBySign) {
-        //     //     const file = base64ToFile(preparedBySign, "preparedBySign.png");
-        //     //     formData.append("file", file);
-        //     // }
-
-        //     const [day, month, year] = preparedDate.split("/");
-        //     const preparedDate_formattedDate = new Date(`${year}-${month}-${day}`); // YYYY-MM-DD format
-
-        //     // console.log("formattedDate =", preparedDate_formattedDate);
-        //     console.log("ISO =", preparedDate_formattedDate.toISOString());
-        //     console.log("ISO =");
-
-
-
-        //     formData.append("preparedBy", preparedBy || "");
-        //     formData.append("preparedDate", preparedDate_formattedDate.toISOString() || "");
-
-        //     // if (approvedBySign) {
-        //     //     const file = base64ToFile(approvedBySign, "approvedBySign.png");
-        //     //     formData.append("file", file);
-        //     // }
-
-
-
-        //     const [appday, appmonth, appyear] = approvedDate.split("/");
-        //     const approvedDate_formattedDate = new Date(`${appyear}-${appmonth}-${appday}`); // YYYY-MM-DD format
-
-        //     // console.log("formattedDate =", approvedDate_formattedDate);
-        //     console.log("ISO =", approvedDate);
-
-        //     if (approvedDate) {
-        //         formData.append("approvedBy", approvedBy || "");
-        //         formData.append("approvedDate", approvedDate_formattedDate.toISOString() || "");
-        //     }
-        //     // Send request
-        //     const res = await axios.put(`${ApiEndPoint}updateDataLFQForm/${formId}`, formData, {
-        //         headers: {
-        //             "Content-Type": "multipart/form-data"
-        //         }
-        //     });
-
-        //     if (res.status === 200 || res.status === 201) {
-        //         alert("Form submitted successfully!");
-        //     }
-        // } catch (error) {
-        //     console.error("Form submission error:", error);
-        //     alert("Error submitting form. Please try again.");
-        // }
     };
     const handleUpdate = async (e) => {
         e.preventDefault();
@@ -836,18 +828,6 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         try {
             const formData = new FormData();
 
-
-
-
-
-
-
-
-
-
-
-
-
             const validations = [
                 // Basic information
 
@@ -961,45 +941,27 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const preparedBySignBase64 = data?.preparedBySignpath
             ? await getSignBase64FromServer(data.preparedBySignpath)
             : null;
+        const FillpreparedBy = getAllOpsteam.find(op => op._id === data.preparedBy);
+        const FillapprovedBy = getAllOpsteam.find(op => op._id === data.approvedBy);
+        const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer);
+        const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer);
+        let value = data.clientCategory[0]
+
+        console.log(data.clientCategory)
+        let parsedArray = Array.isArray(value) ? value : JSON.parse(value);
+
+        // array → formatted string
+        let formattedclientCategory = parsedArray.join(", ");
 
 
-        console.log("preparedBySignBase64= ", preparedBySignBase64)
         const approvedBySignBase64 = data.approvedBySignpath
             ? await getSignBase64FromServer(data.approvedBySignpath)
             : null;
-        console.log("approvedBySignBase64= ", approvedBySignBase64)
+
         const docDefinition = {
             // ✅ Page margins set kiye (header/footer ke liye jagah)
             pageMargins: [40, 100, 40, 60], // [left, top, right, bottom]
 
-            // ===== Header (Har page per repeat hoga) =====
-            // header: (currentPage, pageCount) => {
-            //   return {
-            //     margin: [40, 20, 40, 0],
-            //     stack: [
-            //       {
-            //         columns: [
-            //           logoBase64
-            //             ? {
-            //                 image: logoBase64,
-            //                 width: 80,
-            //               }
-            //             : {},
-            //           {
-            //             text: "Case Details Report",
-            //             style: "pdfTitle",
-            //             alignment: "center",
-            //             margin: [0, 20, 0, 0],
-            //           },
-            //         ],
-            //       },
-            //       {
-            //         canvas: [{ type: "line", x1: 0, y1: 0, x2: 515, y2: 0, lineWidth: 1 }], // divider line
-            //         margin: [0, 10, 0, 0],
-            //       },
-            //     ],
-            //   };
-            // },
 
             header: (currentPage, pageCount) => {
                 return {
@@ -1037,9 +999,6 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     ],
                 };
             },
-
-
-
 
             // ===== Footer (Har page per repeat hoga) =====
             footer: (currentPage, pageCount) => {
@@ -1096,7 +1055,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
             content: [
                 // ================= Page 1: Client & Case Info =================
-                { text: "Client & Case Information", style: "header", margin: [0, 40, 0, 10] },
+                { text: "Client & Case Information", style: "header", margin: [0, 10, 0, 10] },
 
                 {
                     table: {
@@ -1114,19 +1073,6 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             [{ text: "Jurisdiction", style: "label" }, { text: data.jurisdiction || "-", style: "value" }],
                             [{ text: "Local Counsel Required", style: "label" }, { text: data.localCounselRequired || "-", style: "value" }],
                             [{ text: "Est. Local Counsel Hours", style: "label" }, { text: data.estLocalCounselHours || "-", style: "value" }],
-                            [{ text: "Client Category", style: "label" }, { text: (data.clientCategory || []).join(", ") || "-", style: "value" }],
-                            [{ text: "Referred By", style: "label" }, { text: data.referredBy || "-", style: "value" }],
-                            [{ text: "Retainer Details", style: "label" }, { text: data.retainerDetails || "-", style: "value" }],
-                            [{ text: "Communication Needs", style: "label" }, { text: data.communicationNeeds || "-", style: "value" }],
-                            [{ text: "Fee Structure", style: "label" }, { text: data.feeStructure || "-", style: "value" }],
-                            [{ text: "Other Fee", style: "label" }, { text: data.otherFee || "-", style: "value" }],
-                            [{ text: "Special Terms", style: "label" }, { text: data.specialTerms || "-", style: "value" }],
-                            [{ text: "Key Factors", style: "label" }, { text: data.keyFactors || "-", style: "value" }],
-                            [{ text: "Prepared By", style: "label" }, { text: data.preparedBy || "-", style: "value" }],
-                            [
-                                { text: "Prepared Date", style: "label" },
-                                { text: data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-", style: "value" },
-                            ],
                         ],
                     },
                     layout: "lightHorizontalLines",
@@ -1164,7 +1110,14 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                         body: [
                             [
                                 { text: "Client Category", style: "label" },
-                                { text: (data.clientCategory || []).join(", ") || "-", style: "value" },
+                                {
+                                    text: Array.isArray(data.clientCategory) && data.clientCategory.length > 0
+                                        ? formattedclientCategory   // ✅ space ke sath comma
+                                        : "-",
+                                    style: "value"
+                                }
+
+
                             ],
                             [
                                 { text: "Referred By", style: "label" },
@@ -1189,7 +1142,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 },
 
                 // ================= Fee Proposal & Pricing =================
-                { text: "Fee Proposal & Pricing", style: "header", margin: [0, 20, 0, 10] },
+                { text: "Fee Proposal & Pricing", style: "header", margin: [0, 10, 0, 10] },
 
                 {
                     table: {
@@ -1239,12 +1192,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             ],
                             [
                                 { text: "Senior Lawyer", style: "label" },
-                                { text: data.seniorLawyer?.name || "-", style: "value" },
+                                { text: FillseniorLawyer || "-", style: "value" },
                                 { text: data.seniorLawyer?.estHours || "-", style: "value" },
                             ],
                             [
                                 { text: "Associate Lawyer(s)", style: "label" },
-                                { text: data.associateLawyer?.name || "-", style: "value" },
+                                { text: FillassociateLawyer || "-", style: "value" },
                                 { text: data.associateLawyer?.estHours || "-", style: "value" },
                             ],
                             [
@@ -1286,7 +1239,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             [
                                 {
                                     stack: [
-                                        { text: `Name: ${data.preparedBy || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                        { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
                                         { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
 
                                         data.preparedBySignpath
@@ -1296,14 +1249,14 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         // 👇 Signature line
                                         { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
 
-                                        { text: "Prepared by Sign (Senior Lawyer)", style: "subHeader", margin: [0, 0, 0, 8] },
+                                        { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
                                     ],
                                 },
 
                                 // ===== Approved by (Chairman) =====
                                 {
                                     stack: [
-                                        { text: `Name: ${data.approvedBy || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                        { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
                                         { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
 
                                         approvedBySignBase64
@@ -1313,7 +1266,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         // 👇 Signature line
                                         { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
 
-                                        { text: "Reviewed & Approved by Sign (Chairman)", style: "subHeader", margin: [0, 0, 0, 8] },
+                                        { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
                                     ],
                                 },
                             ],
@@ -1351,13 +1304,55 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
 
     return (
-        <div className="card w-100" style={{ maxHeight: '87vh', overflowY: 'auto' }}>
+
+
+        <div
+            className="card w-100"
+            style={
+                showLinkGenerator
+                    ? {
+                        maxHeight: "87vh",
+                        overflowX: "hidden",
+                        overflowY: "auto",
+                    }
+                    : {
+                        backgroundImage: `url(${backgroundImage})`,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                        minHeight: "100vh",
+                        display: "flex",
+                        justifyContent: "center",
+                        color: "white",
+                        alignItems: "center",
+                        overflowX: "hidden",
+                        overflowY: "auto",
+                    }
+            }
+        >
+
             {(token?.Role === "lawyer" || dataFound) ?
                 <div className="container my-4">
+                    <div className="d-flex justify-content-end mb-3 gap-2">
 
-                    <div className="container py-4">
+                        {showLinkGenerator &&
+                            <button className="btn btn-primary d-flex align-items-center" onClick={handleGenerateLink}>
+                                Generate Form Link
+                            </button>
+                        }
+                        <button
+                            onClick={() => downloadCasePdf(LFQData)}
+                            className="btn btn-primary d-flex align-items-center"
+                        // style={{ padding: "8px 8px" }}
+                        >
+                            Download Case PDF
+                        </button>
 
-                        {token?.Role !== "client" &&
+                    </div>
+
+                    <div className={showLinkGenerator ? "container py-4" : "card mb-2 p-4"}>
+
+                        {token?.Role !== "client" && showLinkGenerator &&
 
                             < Form.Group className="mb-3">
                                 <Form.Label>
@@ -1454,6 +1449,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             </Form.Group>
                         }
 
+
                         {/* Logo */}
                         <div className="text-center mb-4">
                             <img
@@ -1464,12 +1460,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             />
                         </div>
 
-                        <button
-                            onClick={() => downloadCasePdf(LFQData)}
-                            className="bg-blue-600 text-white px-4 py-2 rounded"
-                        >
-                            Download Case PDF
-                        </button>
+
                         {/* Heading */}
                         <h3 className="text-center fw-bold mb-2">
                             Client Case Evaluation & Fee Quotation Form <small className="text-muted">(Internal Use)</small>
