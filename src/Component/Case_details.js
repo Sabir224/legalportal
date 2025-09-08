@@ -66,7 +66,7 @@ const Case_details = ({ token }) => {
 
   const [lastActiveSectionId, setLastActiveSectionId] = useState(null);
   const [isLFQISfilled, setisLFQISfilled] = useState(false);
-  const [isclientAssigned, setisclientAssigned] = useState(reduxCaseInfo.ClientId ? true : false);
+  const [isclientAssigned, setisclientAssigned] = useState(reduxCaseInfo?.ClientId ? true : (reduxCaseInfo?._id && !reduxCaseInfo?.CaseNumber) ? true : false);
   const sectionRefs = useRef({});
   const previousActiveSections = useRef([]);
 
@@ -136,6 +136,7 @@ const Case_details = ({ token }) => {
       dispatch(reduxCaseInfo ? Caseinfo(reduxCaseInfo) : Caseinfo({
         _id: pendingCaseId || acknowledgeCaseId,
       }));
+
     }
   }, []);
 
@@ -401,6 +402,7 @@ const Case_details = ({ token }) => {
     try {
       setLoading(true);
       const res = await axios.get(`${ApiEndPoint}getLFQCheckbyCaseId/${reduxCaseInfo?._id}`);
+      console.log("res.data.result= ", res.data.result)
       setisLFQISfilled(res.data.result); // true/false backend se
     } catch (err) {
       console.error("Error fetching LFQ form:", err);
@@ -447,20 +449,20 @@ const Case_details = ({ token }) => {
     }
   };
   const fetchLawyerDetails = async () => {
-    try {
-      const response = await axios.get(
-        `${ApiEndPoint}geLawyerDetails?Email=Lawyer@gmail.com`
-      ); // API endpoint
-      // console.log("data of case", response.data.caseDetails);
-      // Assuming the API returns data in the `data` field
-      setUser(response.data.user);
-      // console.log(response.data.lawyerDetails)
-      setLawyersDetails([response.data.lawyerDetails]);
-      setLoading(false);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+    // try {
+    //   const response = await axios.get(
+    //     `${ApiEndPoint}geLawyerDetails?Email=Lawyer@gmail.com`
+    //   ); // API endpoint
+    //   // console.log("data of case", response.data.caseDetails);
+    //   // Assuming the API returns data in the `data` field
+    //   setUser(response.data.user);
+    //   // console.log(response.data.lawyerDetails)
+    //   setLawyersDetails([response.data.lawyerDetails]);
+    //   setLoading(false);
+    // } catch (err) {
+    //   setError(err.message);
+    //   setLoading(false);
+    // }
   };
   const handleViewDetails = async () => {
     global.lawyerDetails = lawyerDetails[0];
@@ -610,7 +612,7 @@ const Case_details = ({ token }) => {
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
 
-          ...((token?.Role !== "client" && isclientAssigned)
+          ...((isclientAssigned)
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
             : []),
 
