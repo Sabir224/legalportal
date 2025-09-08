@@ -10,6 +10,8 @@ import { useMediaQuery } from "react-responsive";
 import { ApiEndPoint } from "./Component/utils/utlis";
 import backgroundImage from "../Pages/Images/bg.jpg";
 import { useCookies } from "react-cookie";
+import { Caseinfo } from "../../REDUX/sliece";
+import { useDispatch } from "react-redux";
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -22,6 +24,7 @@ const SignIn = () => {
   const [loading, setLoading] = useState(false);
   const [cookies, setCookie, removeCookie] = useCookies(["user"]);
   const location = useLocation();
+  const dispatch = useDispatch();
 
   const handleNavigation = async (e) => {
     e.preventDefault();
@@ -54,6 +57,8 @@ const SignIn = () => {
 
         // Check for pending case redirect first
         const pendingCaseId = localStorage.getItem("pendingCaseId");
+        dispatch(Caseinfo({ _id: pendingCaseId }));
+
         const redirectPath = pendingCaseId
           ? "/Dashboards"
           : localStorage.getItem("redirectPath") || "/Dashboards";
@@ -116,9 +121,8 @@ const SignIn = () => {
             <Col
               sm={12}
               md={isTabletOrSmaller ? 12 : 6}
-              className={`d-flex flex-column justify-content-center ${
-                isTabletOrSmaller ? "text-center" : ""
-              }`}
+              className={`d-flex flex-column justify-content-center ${isTabletOrSmaller ? "text-center" : ""
+                }`}
             >
               <div className="d-flex justify-content-center mb-3">
                 <img
@@ -157,7 +161,7 @@ const SignIn = () => {
                       type="text"
                       className={`form-control ${error ? "is-invalid" : ""}`}
                       required
-                      // className="form-control-lg "
+                    // className="form-control-lg "
                     />
                   </div>
                 </Form.Group>
@@ -175,7 +179,7 @@ const SignIn = () => {
                       placeholder="Enter Password"
                       type="password"
                       required
-                      // className="form-control-lg "
+                    // className="form-control-lg "
                     />
                     <div className="invalid-feedback">{error}</div>{" "}
                     {/* Error message like required */}

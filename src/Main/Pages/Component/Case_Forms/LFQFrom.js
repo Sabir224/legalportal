@@ -2320,6 +2320,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [approvedDate, setApprovedDate] = useState('');
     const [AmountatStake, setAmountAtStake] = useState('');
     const [estimatedDuration, setestimatedDuration] = useState('');
+    const [ScopeOfWork, setScopeOfWork] = useState('');
     const [dataFound, setDataFound] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [formId, setFormId] = useState("");
@@ -2500,6 +2501,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 setHourlyRates(data.hourlyRates || "");
                 setFixedFee(data.fixedFee || "");
                 setSpecialTerms(data.specialTerms || "");
+                setScopeOfWork(data.ScopeOfWork || "");
                 setKeyFactors(data.keyFactors || "");
 
                 setPreparedBy(data.preparedBy || token?._id);
@@ -2678,6 +2680,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             formData.append("hourlyRates", hourlyRates || "");
             formData.append("fixedFee", fixedFee || "");
             formData.append("specialTerms", specialTerms || "");
+            formData.append("ScopeOfWork", ScopeOfWork || "");
             formData.append("keyFactors", keyFactors || "");
 
             if (preparedBySign) {
@@ -2874,6 +2877,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 hourlyRates,
                 fixedFee,
                 specialTerms,
+                ScopeOfWork,
                 keyFactors,
 
                 preparedBy,
@@ -2910,12 +2914,141 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     // Add this function to confirm the edit and remove chairman signature
     const confirmEdit = () => {
+        setDataFound(!dataFound)
+        setPreparedBySign("");
+        setPreparedDate("");
         setApprovedBySign(""); // Clear the chairman signature
         setApprovedDate(""); // Clear the approval date
         setDataFound(false); // Enable form editing
         setIsEdit(true);
         setShowConfirmModal(false);
     };
+
+
+    // function createApprovedSeal(options = {}) {
+    //     const {
+    //         size = 320,
+    //         mainText = "APPROVED",
+    //         subText = "AWS LegalGroup",
+    //         mainColor = "#2E3A87", // Deep Blue
+    //         ringWidth = 10
+    //     } = options;
+
+    //     const canvas = document.createElement("canvas");
+    //     const ctx = canvas.getContext("2d");
+    //     canvas.width = size;
+    //     canvas.height = size;
+
+    //     const centerX = size / 2;
+    //     const centerY = size / 2;
+    //     const radius = size / 2 - ringWidth;
+
+    //     // Outer Circle (Dashed Line)
+    //     ctx.lineWidth = ringWidth;
+    //     ctx.strokeStyle = mainColor;
+    //     ctx.setLineDash([15, 10]); // dash-gap style
+    //     ctx.beginPath();
+    //     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+    //     ctx.stroke();
+
+    //     // Reset dash for inner circle
+    //     ctx.setLineDash([]);
+
+    //     // Inner Circle (Solid Thin Line)
+    //     ctx.lineWidth = 3;
+    //     ctx.beginPath();
+    //     ctx.arc(centerX, centerY, radius - 30, 0, 2 * Math.PI);
+    //     ctx.stroke();
+
+    //     // Center Text (APPROVED)
+    //     ctx.fillStyle = mainColor;
+    //     ctx.font = "bold 46px 'Arial Black'";
+    //     ctx.textAlign = "center";
+    //     ctx.textBaseline = "middle";
+    //     ctx.fillText(mainText, centerX, centerY - 15);
+
+    //     // Sub Text (AWS LegalGroup, italic)
+    //     ctx.font = "italic 20px Georgia";
+    //     ctx.fillText(subText, centerX, centerY + 30);
+
+    //     return canvas.toDataURL("image/png");
+    // }
+
+
+
+    function createApprovedSeal(options = {}) {
+        const {
+            size = 320,
+            mainText = "APPROVED",
+            subText = "AWS LegalGroup",
+            mainColor = "#2E3A87", // Deep Blue
+            ringWidth = 10,
+            rotation = -15 * Math.PI / 180 // default tilt: -15 degrees
+        } = options;
+
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = size;
+        canvas.height = size;
+
+        const centerX = size / 2;
+        const centerY = size / 2;
+        const radius = size / 2 - ringWidth;
+
+        // Apply rotation
+        ctx.translate(centerX, centerY);
+        ctx.rotate(rotation);
+        ctx.translate(-centerX, -centerY);
+
+        // Outer Circle (Dashed Line)
+        ctx.lineWidth = ringWidth;
+        ctx.strokeStyle = mainColor;
+        ctx.setLineDash([15, 10]); // dash-gap style
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Reset dash for inner circle
+        ctx.setLineDash([]);
+
+        // Inner Circle (Solid Thin Line)
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, radius - 30, 0, 2 * Math.PI);
+        ctx.stroke();
+
+        // Center Text (APPROVED)
+        ctx.fillStyle = mainColor;
+        ctx.font = "bold 46px 'Arial Black'";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(mainText, centerX, centerY - 15);
+
+        // Sub Text (AWS LegalGroup, italic)
+        ctx.font = "italic 20px Georgia";
+        ctx.fillText(subText, centerX, centerY + 30);
+
+        return canvas.toDataURL("image/png");
+    }
+
+
+    // // Helper: Draw Circular Text
+    // function drawCircularText(ctx, text, centerX, centerY, radius, startAngle) {
+    //     const anglePerChar = (Math.PI) / (text.length - 1);
+    //     ctx.save();
+    //     ctx.translate(centerX, centerY);
+    //     ctx.rotate(startAngle - Math.PI / 2);
+
+    //     for (let i = 0; i < text.length; i++) {
+    //         ctx.save();
+    //         ctx.rotate(i * anglePerChar - (text.length - 1) * anglePerChar / 2);
+    //         ctx.textAlign = "center";
+    //         ctx.fillText(text[i], 0, -radius);
+    //         ctx.restore();
+    //     }
+    //     ctx.restore();
+    // }
+
 
     const handleUpdateSignature = async (e) => {
         e.preventDefault();
@@ -2940,11 +3073,31 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             setIsEdit(true);
             setDataFound(false);
 
-            if (approvedBySign) {
-                const file = base64ToFile(approvedBySign, "approvedBySign.png");
-                formData.append("file", file);
+            // if (approvedBySign) {
+            //     // const file = base64ToFile(approvedBySign, "approvedBySign.png");
+            //     const file = new File(["Approved"], "approvedBy.png", { type: "text/plain" });
+            //     formData.append("file", file);
+            // }
+            let file;
+
+            if (approvedBySign === "Approved") {
+                // ✅ "Approved" ko ek dummy stamp image me convert karna
+
+
+                const approvedStampBase64 = createApprovedSeal("Raheem Akbar");
+                // textToBase64Image("Approved", {
+                //     font: "bold 50px Arial",
+                //     textColor: "white",
+                //     bgColor: "red"
+                // });
+                // base64 ko File object me convert karo
+                file = base64ToFile(approvedStampBase64, "approvedBy.png");
+            } else {
+                // agar already signature base64 hai
+                file = base64ToFile(approvedBySign, "approvedBySign.png");
             }
 
+            formData.append("file", file);
             const [appday, appmonth, appyear] = approvedDate.split("/");
             const approvedDate_formattedDate = new Date(`${appyear}-${appmonth}-${appday}`);
 
@@ -2963,6 +3116,32 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 setIsEdit(false);
                 fetchLFQForm(caseInfo?._id);
                 showSuccess("Form Signature Submitted successfully!");
+            }
+        } catch (error) {
+            console.error("Form submission error:", error);
+            showError("We encountered an issue while submitting your form. Please try again later.");
+        }
+    };
+
+
+
+    const handleAccept = async (e) => {
+        e.preventDefault();
+        showLoading()
+
+        try {
+
+            const res = await axios.put(
+                `${ApiEndPoint}accpetLFQForm/${formId}`,
+                {
+                    headers: { "Content-Type": "multipart/form-data" },
+                }
+            );
+
+            if (res.status === 200 || res.status === 201) {
+                setIsEdit(false);
+                fetchLFQForm(caseInfo?._id);
+                showSuccess("Form Approved successfully!");
             }
         } catch (error) {
             console.error("Form submission error:", error);
@@ -3019,8 +3198,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             : null;
         const FillpreparedBy = getAllOpsteam.find(op => op._id === data.preparedBy);
         const FillapprovedBy = getAllOpsteam.find(op => op._id === data.approvedBy);
-        const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer);
-        const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer);
+        const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer?.name);
+        const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer?.name);
         let value = data.clientCategory[0]
 
         console.log("Nmae=", data.clientName)
@@ -3030,7 +3209,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const approvedBySignBase64 = data.approvedBySignpath
             ? await getSignBase64FromServer(data.approvedBySignpath)
             : null;
-
+        // const approvedBySignBase64 = data.approvedBySignpath
         const docDefinition = {
             pageMargins: [40, 100, 40, 60],
             header: (currentPage, pageCount) => {
@@ -3237,12 +3416,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             ],
                             [
                                 { text: "Senior Lawyer", style: "label" },
-                                { text: FillseniorLawyer || "-", style: "value" },
+                                { text: FillseniorLawyer?.UserName || "-", style: "value" },
                                 { text: data.seniorLawyer?.estHours || "-", style: "value" },
                             ],
                             [
                                 { text: "Associate Lawyer(s)", style: "label" },
-                                { text: FillassociateLawyer || "-", style: "value" },
+                                { text: FillassociateLawyer?.UserName || "-", style: "value" },
                                 { text: data.associateLawyer?.estHours || "-", style: "value" },
                             ],
                             [
@@ -3282,7 +3461,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
                                         data.preparedBySignpath
                                             ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
-                                            : { text: "Signature: Not Provided", style: "value" },
+                                            : { text: "Signature: ", style: "value" },
                                         { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
                                         { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
                                     ],
@@ -3292,8 +3471,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
                                         { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
                                         approvedBySignBase64
-                                            ? { image: approvedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
-                                            : { text: "Signature: Not Provided", style: "value" },
+                                            ? { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] }
+                                            : { text: "Signature: ", style: "value" },
                                         { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
                                         { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
                                     ],
@@ -3316,7 +3495,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             defaultStyle: { fontSize: 10 },
         };
 
-        pdfMake.createPdf(docDefinition).download(`Case_${data?.clientName}.pdf`);
+        pdfMake.createPdf(docDefinition).download(`Legal_Fee_Quotation_(${data?.clientName}).pdf`);
     };
 
     return (
@@ -3365,9 +3544,9 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             {(token?.Role === "lawyer" || dataFound) ?
                 <div className="container my-4">
                     <div className="d-flex justify-content-end mb-3 gap-2">
-                        {showLinkGenerator &&
+                        {(showLinkGenerator && token?.Role !== "client") &&
                             <button className="btn btn-primary d-flex align-items-center" onClick={handleGenerateLink}>
-                                Generate Form Link
+                                Generate Shareable Link
                             </button>
                         }
                         <button
@@ -3444,6 +3623,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                     setHourlyRates(data.hourlyRates || "");
                                                     setFixedFee(data.fixedFee || "");
                                                     setSpecialTerms(data.specialTerms || "");
+                                                    setScopeOfWork(data.ScopeOfWork || "");
                                                     setKeyFactors(data.keyFactors || "");
                                                 }}>
                                                     {data?.matterReference}
@@ -4006,6 +4186,17 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 ></textarea>
                             </div>
                             <div className="mb-3">
+                                <label className="form-label fw-bold">Scope of Work:</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="Enter the work Scope"
+                                    value={ScopeOfWork}
+                                    onChange={(e) => setScopeOfWork(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+                            <div className="mb-3">
                                 <label className="form-label fw-bold">Key Factors Affecting Fee:</label>
                                 <textarea
                                     className="form-control"
@@ -4044,7 +4235,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                 </div>
                                                 <div className="col-12 mb-3">
                                                     <label className="form-label fw-semibold">Signature:</label>
-                                                    {(!dataFound && !isEdit && !isclient) && (
+                                                    {(!dataFound && !isclient) && (
                                                         <Form_SignaturePad height={200} onSave={handlepreparedBySign} />
                                                     )}
                                                     {preparedBySign && (
@@ -4100,7 +4291,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                             ))}
                                                         </select>
                                                     </div>
-                                                    <div className="col-12 mb-3">
+                                                    {/* <div className="col-12 mb-3">
                                                         <label className="form-label fw-semibold">Signature:</label>
                                                         {((!isclient && !approvedBySign) || (islocal)) && (
                                                             <Form_SignaturePad height={200} onSave={handleSignatureSave} />
@@ -4115,7 +4306,47 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                                                 />
                                                             </div>
                                                         )}
+                                                    </div> */}
+
+
+                                                    <div className="col-12 mb-3">
+                                                        <label className="form-label fw-semibold">Signature:</label>
+
+                                                        {/* Agar signature approve nahi hua aur local bhi nahi hai */}
+                                                        {((!isclient && !approvedBySign) || islocal) && (
+                                                            <div className="text-center mt-2">
+                                                                <button
+                                                                    className="btn btn-success"
+                                                                    onClick={() => {
+                                                                        const selected = getAllOpsteam.find(x => x._id === approvedBy);
+                                                                        handleSignatureSave(createApprovedSeal(selected?.UserName || ""))
+                                                                    }}
+                                                                >
+                                                                    Approve
+                                                                </button>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Agar signature already approved hai */}
+                                                        {approvedBySign && (
+                                                            <div className="mt-2 text-center">
+                                                                {approvedBySign === "Approved" ? (
+                                                                    <span className="badge bg-success fs-6 px-3 py-2">
+                                                                        ✅ Approved
+                                                                    </span>
+                                                                ) : (
+                                                                    <img
+                                                                        src={approvedBySign}
+                                                                        alt="Chairman Signature"
+                                                                        className="img-fluid border rounded"
+                                                                        style={{ maxHeight: "150px" }}
+                                                                    />
+                                                                )}
+                                                            </div>
+                                                        )}
+
                                                     </div>
+
                                                     <div className="col-12">
                                                         <label className="form-label fw-semibold">Date:</label>
                                                         <DatePicker
@@ -4168,6 +4399,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
                         </div>
                     }
+                    {(preparedBySign && isclient && approvedBySign && !LFQData?.isApproved) &&
+                        <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
+                            <div className="btn btn-primary fw-bold px-4" onClick={handleAccept}>Accept</div>
+                        </div>
+                    }
 
                     {/* Add this section for the Update button after editing and removing chairman signature */}
                     {/* {(isEdit && !approvedBySign) &&
@@ -4177,7 +4413,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     } */}
                 </div>
                 :
-                <div className="text-center text-black py-5">No LFA Form Available.</div>
+                <div className="text-center text-black py-5">No LFQ Form Available.</div>
             }
         </div>
     );
