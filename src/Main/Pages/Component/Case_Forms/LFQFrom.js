@@ -3198,8 +3198,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             : null;
         const FillpreparedBy = getAllOpsteam.find(op => op._id === data.preparedBy);
         const FillapprovedBy = getAllOpsteam.find(op => op._id === data.approvedBy);
-        const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer);
-        const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer);
+        const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer?.name);
+        const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer?.name);
         let value = data.clientCategory[0]
 
         console.log("Nmae=", data.clientName)
@@ -3416,12 +3416,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             ],
                             [
                                 { text: "Senior Lawyer", style: "label" },
-                                { text: FillseniorLawyer || "-", style: "value" },
+                                { text: FillseniorLawyer?.UserName || "-", style: "value" },
                                 { text: data.seniorLawyer?.estHours || "-", style: "value" },
                             ],
                             [
                                 { text: "Associate Lawyer(s)", style: "label" },
-                                { text: FillassociateLawyer || "-", style: "value" },
+                                { text: FillassociateLawyer?.UserName || "-", style: "value" },
                                 { text: data.associateLawyer?.estHours || "-", style: "value" },
                             ],
                             [
@@ -3495,7 +3495,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             defaultStyle: { fontSize: 10 },
         };
 
-        pdfMake.createPdf(docDefinition).download(`Case_${data?.clientName}.pdf`);
+        pdfMake.createPdf(docDefinition).download(`Legal_Fee_Quotation_(${data?.clientName}).pdf`);
     };
 
     return (
