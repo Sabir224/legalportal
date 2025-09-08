@@ -606,62 +606,62 @@ const Dashboard = () => {
             },
             showOptions
               ? {
-                  icon: faBolt,
-                  label: 'Active',
-                  style: {
-                    backgroundColor: selectedOption === '' ? '#c0a262' : '#18273e', // Golden background
-                    borderRadius: '6px',
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    marginLeft: 10,
-                    // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    handleSelect('');
-                  },
-                }
+                icon: faBolt,
+                label: 'Active',
+                style: {
+                  backgroundColor: selectedOption === '' ? '#c0a262' : '#18273e', // Golden background
+                  borderRadius: '6px',
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  marginLeft: 10,
+                  // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  handleSelect('');
+                },
+              }
               : null,
             showOptions && decodedToken?.Role === 'admin'
               ? {
-                  icon: faCheckCircle,
-                  label: 'Close Positive',
-                  style: {
-                    backgroundColor: selectedOption === 'Close Positive' ? '#c0a262' : '#18273e', // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    handleSelect('Close Positive');
-                  },
-                }
+                icon: faCheckCircle,
+                label: 'Close Positive',
+                style: {
+                  backgroundColor: selectedOption === 'Close Positive' ? '#c0a262' : '#18273e', // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  handleSelect('Close Positive');
+                },
+              }
               : null,
             showOptions && decodedToken?.Role === 'admin'
               ? {
-                  icon: faBan,
-                  label: 'Close Negative',
-                  style: {
-                    marginLeft: 10,
-                    backgroundColor: selectedOption === 'Close Negative' ? '#c0a262' : '#18273e', // Golden background
-                    borderRadius: '6px',
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    // Horizontal center
-                  },
-                  action: () => {
-                    handleSelect('Close Negative');
-                  },
-                }
+                icon: faBan,
+                label: 'Close Negative',
+                style: {
+                  marginLeft: 10,
+                  backgroundColor: selectedOption === 'Close Negative' ? '#c0a262' : '#18273e', // Golden background
+                  borderRadius: '6px',
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  // Horizontal center
+                },
+                action: () => {
+                  handleSelect('Close Negative');
+                },
+              }
               : null,
             {
               icon: faMessage,
@@ -677,17 +677,17 @@ const Dashboard = () => {
             },
             decodedToken?.Role === 'admin'
               ? {
-                  icon: faPersonCircleCheck,
-                  label: 'View Users',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faPersonCircleCheck,
+                label: 'View Users',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(9);
-                  },
-                }
+                  handlescreen2(9);
+                },
+              }
               : null,
             // decodedToken?.Role === 'admin'
             //   ? {
@@ -723,75 +723,75 @@ const Dashboard = () => {
             // Inside your items array or menu render
             decodedToken?.Role === 'admin'
               ? {
-                  icon: faFolder,
-                  label: 'Case',
-                  action: () => setShowCaseOptions(!showCaseOptions), // Toggle options on click
-                }
+                icon: faFolder,
+                label: 'Case',
+                action: () => setShowCaseOptions(!showCaseOptions), // Toggle options on click
+              }
               : null,
 
             showCaseOptions && decodedToken?.Role === 'admin'
               ? {
-                  icon: faBookOpen,
-                  label: 'Add Case',
-                  style: {
-                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
-                    handlescreen2(11);
-                  },
-                }
+                icon: faBookOpen,
+                label: 'Add Case',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(11);
+                },
+              }
               : null,
 
             showCaseOptions && decodedToken?.Role === 'admin'
               ? {
-                  icon: faBookReader,
-                  label: 'Summary',
-                  style: {
-                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
-                    handlescreen2(26);
-                  },
-                }
+                icon: faBookReader,
+                label: 'Summary',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(26);
+                },
+              }
               : null,
 
             decodedToken?.Role !== 'client'
               ? {
-                  icon: faTasksAlt,
-                  label: 'View Task',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faTasksAlt,
+                label: 'View Task',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(14);
-                  },
-                }
+                  handlescreen2(14);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -835,75 +835,75 @@ const Dashboard = () => {
             // Inside your array of menu items — same pattern used
             decodedToken?.Role !== 'client'
               ? {
-                  icon: faWpforms, // Or any icon for "Form"
-                  label: 'Form',
-                  action: () => setShowFormOptions(!showFormOptions), // Toggle sub-options
-                }
+                icon: faWpforms, // Or any icon for "Form"
+                label: 'Form',
+                action: () => setShowFormOptions(!showFormOptions), // Toggle sub-options
+              }
               : null,
 
             showFormOptions && decodedToken?.Role !== 'client'
               ? {
-                  icon: faList12,
-                  label: 'Form C List',
-                  style: {
-                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
-                    handlescreen2(18);
-                  },
-                }
+                icon: faList12,
+                label: 'Form C List',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(18);
+                },
+              }
               : null,
 
             showFormOptions && decodedToken?.Role !== 'client'
               ? {
-                  icon: faList,
-                  label: 'Form H List',
-                  style: {
-                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
-                    handlescreen2(22);
-                  },
-                }
+                icon: faList,
+                label: 'Form H List',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(22);
+                },
+              }
               : null,
 
             decodedToken?.Role === 'receptionist'
               ? {
-                  icon: faCalendar,
-                  label: 'Meeting Calendar',
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
+                icon: faCalendar,
+                label: 'Meeting Calendar',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
 
-                    handlescreen2(24);
-                  },
-                }
+                  handlescreen2(24);
+                },
+              }
               : null,
             // {
             //   icon: faStickyNote,
@@ -920,35 +920,60 @@ const Dashboard = () => {
 
             decodedToken?.Role === 'admin'
               ? {
-                  icon: faFolder,
-                  label: 'Finance',
-                  action: () => setShowFinanceOptions(!ShowFinanceOptions), // Toggle options on click
-                }
+                icon: faFolder,
+                label: 'Finance',
+                action: () => setShowFinanceOptions(!ShowFinanceOptions), // Toggle options on click
+              }
               : null,
 
             ShowFinanceOptions && decodedToken?.Role === 'admin'
               ? {
-                  icon: faBookOpen,
-                  label: 'Invoice',
-                  style: {
-                    // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
-                    borderRadius: '6px',
-                    marginLeft: 10,
-                    padding: '5px',
-                    gap: '10px',
-                    cursor: 'pointer',
-                    display: 'flex', // Important for centering
-                    alignItems: 'center', // Vertical center
-                    justifyContent: 'center', // Horizontal center
-                  },
-                  action: () => {
-                    dispatch(clientEmail(null));
-                    dispatch(Caseinfo(null));
-                    dispatch(FormCDetails(null));
-                    dispatch(FormHDetails(null));
-                    handlescreen2(30);
-                  },
-                }
+                icon: faBookOpen,
+                label: 'Invoice',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(30);
+                },
+              }
+              : null,
+            ShowFinanceOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faMoneyBill1,
+                label: 'Payments',
+                style: {
+                  // backgroundColor: selectedOption === "Close Positive" ? '#c0a262' : "#18273e",      // Golden background
+                  borderRadius: '6px',
+                  marginLeft: 10,
+                  padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex', // Important for centering
+                  alignItems: 'center', // Vertical center
+                  justifyContent: 'center', // Horizontal center
+                },
+
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(29);
+                },
+              }
               : null,
 
             {
@@ -975,17 +1000,7 @@ const Dashboard = () => {
             //     handlescreen2(28);
             //   },
             // },
-            {
-              icon: faMoneyBill1,
-              label: 'Payments',
-              action: () => {
-                dispatch(clientEmail(null));
-                dispatch(Caseinfo(null));
-                dispatch(FormCDetails(null));
-                dispatch(FormHDetails(null));
-                handlescreen2(29);
-              },
-            },
+
             { icon: faSignOut, label: 'Logout', action: handleLogOut },
           ]
             .filter(Boolean)
