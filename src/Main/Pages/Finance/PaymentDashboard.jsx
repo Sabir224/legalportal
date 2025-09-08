@@ -1,5 +1,7 @@
 'use client';
+import jsPDF from 'jspdf';
 
+import logo from '../../Pages/Images/logo.png';
 import { useEffect, useState, useMemo } from 'react';
 import {
   Card,
@@ -55,6 +57,7 @@ import { ApiEndPoint } from '../Component/utils/utlis';
 import StatCard from './StatCard';
 import FilterSection from './FilterSection';
 import FilterableHeaderCell from './FilterableHeaderCell';
+import { minWidth } from '@mui/system';
 
 // Styled components with white and gold theme
 const ElegantCard = styled(Card)(({ theme }) => ({
@@ -108,6 +111,7 @@ export default function PaymentDashboard() {
   const [openFilter, setOpenFilter] = useState(null);
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [methodFilter, setMethodFilter] = useState([]);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
 
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
@@ -120,6 +124,186 @@ export default function PaymentDashboard() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeFilter, setActiveFilter] = useState(null);
+  const dullBlackColor = [50, 50, 50];
+  const generateInvoice = (appointment) => {
+    const { payment, lawyer, link } = appointment;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // === HEADER ===
+    const addHeader = () => {
+      doc.setFillColor(26, 43, 66);
+      doc.rect(0, 0, pageWidth, 45, 'F');
+
+      // Logo
+      doc.addImage(logo, 'PNG', 15, 10, 25, 25);
+
+      // Company Info
+      const infoX = 45,
+        infoY = 14;
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(255, 255, 255);
+      const companyInfo = [
+        'AWS Legal Consultancy FZ-LLC',
+        'The H Hotel - office tower 1602',
+        'Sheikh Zayed Road, Dubai',
+        'United Arab Emirates',
+        'TRN 100487818500003',
+      ];
+      companyInfo.forEach((line, i) => {
+        doc.text(line, infoX, infoY + i * 5);
+      });
+
+      // Invoice Title
+      doc.setFontSize(26);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INVOICE', pageWidth - 20, 20, { align: 'right' });
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`Invoice #: INV-${payment?._id}`, pageWidth - 20, 28, { align: 'right' });
+
+      return 50;
+    };
+
+    let currentY = addHeader();
+
+    // === CLIENT INFO ===
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(11);
+    doc.text('Billed To:', 15, currentY + 15);
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+    doc.text(`${payment.name || link.name || '-'}`, 15, currentY + 22);
+    doc.text(`${payment.email || '-'}`, 15, currentY + 28);
+    doc.text(`${payment.phone || link.phone || '-'}`, 15, currentY + 34);
+
+    // === APPOINTMENT & PAYMENT INFO ===
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.text('Invoice Details:', pageWidth - 20, currentY + 10, { align: 'right' });
+
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(10);
+
+    const invoiceInfo = [
+      `Date Issued: ${new Date(payment.createdAt).toLocaleDateString()}`,
+      `Payment Status: ${payment.status}`,
+      `Payment Method: ${payment.paymentMethod}`,
+    ];
+
+    // Fixed X position (align everything on the right edge)
+    const rightMargin = pageWidth - 20;
+    const textWidth = Math.max(...invoiceInfo.map((line) => doc.getTextWidth(line)));
+    const startX = rightMargin - textWidth; // align all lines to same left edge
+
+    invoiceInfo.forEach((line, i) => {
+      doc.text(line, startX, currentY + 18 + i * 6);
+    });
+
+    currentY += 45;
+
+    // === PAYMENT SUMMARY TABLE ===
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('Payment Summary', 15, currentY);
+
+    currentY += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(200, 170, 90);
+    doc.text('Description', 15, currentY);
+    doc.text('Consultation Type', pageWidth / 2, currentY, { align: 'center' });
+    doc.text('Amount (AED)', pageWidth - 20, currentY, { align: 'right' });
+
+    // Line
+    doc.setDrawColor(0, 0, 0);
+    doc.line(15, currentY + 2, pageWidth - 15, currentY + 2);
+
+    // Row
+    currentY += 8;
+    doc.setTextColor(50, 50, 50);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${payment.serviceType} Consultation`, 15, currentY);
+    doc.text(`${payment.consultationType}`, pageWidth / 2, currentY, { align: 'center' });
+    doc.text(`${payment.amount}`, pageWidth - 20, currentY, { align: 'right' });
+
+    // Subtotal & Balance
+    currentY += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Sub Total:', pageWidth - 60, currentY);
+    doc.text(`AED ${payment.amount}`, pageWidth - 20, currentY, { align: 'right' });
+
+    currentY += 7;
+    doc.text('Balance Due:', pageWidth - 60, currentY);
+    doc.text(`${payment.status === 'paid' ? 'AED 0.00' : `AED ${payment.amount}`}`, pageWidth - 20, currentY, {
+      align: 'right',
+    });
+
+    // === LAWYER DETAILS ===
+    const marginLeft = 15;
+
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...dullBlackColor);
+    doc.text('Lawyer Details', marginLeft, currentY + 25);
+
+    doc.setFontSize(10);
+
+    currentY += 3;
+    const lawyerDetails = [
+      `Name: ${lawyer?.FkUserId?.UserName || 'N/A'}`,
+      `Email: ${lawyer?.FkUserId?.Email || 'N/A'}`,
+      `Phone: ${lawyer?.Contact || 'N/A'}`,
+      `Position: ${lawyer?.Position || 'N/A'}`,
+      `Experience: ${lawyer?.YearOfExperience ? lawyer.YearOfExperience + ' years' : 'N/A'}`,
+      `Expertise: ${lawyer?.Expertise || 'N/A'}`,
+      `Department: ${lawyer?.Department || 'N/A'}`,
+      `Language: ${lawyer?.Language || 'N/A'}`,
+      `Address: ${lawyer?.Address || 'N/A'}`,
+    ];
+
+    const lawyerStartY = currentY + 31;
+    const lineHeight = 8;
+
+    // step 1: find widest label
+    let maxLawyerLabelWidth = 0;
+    lawyerDetails.forEach((line) => {
+      const [label] = line.split(':');
+      const width = doc.getTextWidth(label.trim());
+      if (width > maxLawyerLabelWidth) maxLawyerLabelWidth = width;
+    });
+
+    // fixed position for values
+    const lawyerValueX = marginLeft + maxLawyerLabelWidth + 5;
+
+    // step 2: draw labels and values
+    lawyerDetails.forEach((line, i) => {
+      const y = lawyerStartY + i * lineHeight;
+      const [label, value] = line.split(':');
+
+      // label
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...dullBlackColor);
+      doc.text(label.trim(), marginLeft, y);
+
+      // value
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...dullBlackColor);
+      doc.text(value.trim(), lawyerValueX, y);
+    });
+
+    // === FOOTER ===
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(120, 120, 120);
+    doc.text('AWS Legal Consultancy!', pageWidth / 2, 280, {
+      align: 'center',
+    });
+
+    doc.save(`Invoice_${payment.name}.pdf`);
+  };
   // ✅ Fetch Data
   useEffect(() => {
     const fetchData = async () => {
@@ -1176,12 +1360,21 @@ export default function PaymentDashboard() {
 
                                   <StyledTableCell
                                     sx={{
+                                      minWidth: 150,
+                                      backgroundColor: lightTheme.textPrimary,
+                                      color: lightTheme.background,
+                                    }}
+                                  >
+                                    Invoice Amount
+                                  </StyledTableCell>
+                                  <StyledTableCell
+                                    sx={{
                                       minWidth: 120,
                                       backgroundColor: lightTheme.textPrimary,
                                       color: lightTheme.background,
                                     }}
                                   >
-                                    Amount
+                                    Invoice
                                   </StyledTableCell>
                                   <StyledTableCell
                                     sx={{
@@ -1312,6 +1505,28 @@ export default function PaymentDashboard() {
                                     >
                                       {item.payment?.amount ? `$${item.payment.amount}` : '—'}
                                     </StyledTableCell>
+                                    <StyledTableCell>
+                                      {item.payment ? (
+                                        <Button
+                                          variant="outlined"
+                                          size="small"
+                                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                                          onClick={() => generateInvoice(item)}
+                                        >
+                                          View Invoice
+                                        </Button>
+                                      ) : (
+                                        <Typography
+                                          sx={{
+                                            color: lightTheme.textSecondary,
+                                            fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                                          }}
+                                        >
+                                          —
+                                        </Typography>
+                                      )}
+                                    </StyledTableCell>
+
                                     <StyledTableCell
                                       sx={{
                                         color: lightTheme.textPrimary,
