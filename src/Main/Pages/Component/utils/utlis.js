@@ -91,9 +91,9 @@ export const theme = createTheme({
   },
 });
 
-// export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
+export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
-export const ApiEndPoint = 'http://localhost:5001/api/';
+//export const ApiEndPoint = 'http://localhost:5001/api/';
 
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
@@ -208,7 +208,14 @@ export const logout = (navigate) => {
   navigate('/login'); // Adjust this to your login route
 };
 export const isPublicRoute = (pathname) => {
-  const staticPublicRoutes = ['/', '/signup', '/forget-password', '/reset-password', '/client-consultation','/LFQ_ClientCaseEvaluationForm'];
+  const staticPublicRoutes = [
+    '/',
+    '/signup',
+    '/forget-password',
+    '/reset-password',
+    '/client-consultation',
+    '/LFQ_ClientCaseEvaluationForm',
+  ];
 
   // Remove query params from pathname for matching
   const cleanPath = pathname.split('?')[0];

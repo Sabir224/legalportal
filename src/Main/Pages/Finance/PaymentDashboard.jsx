@@ -112,6 +112,10 @@ export default function PaymentDashboard() {
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [methodFilter, setMethodFilter] = useState([]);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [clientFilter, setClientFilter] = useState([]);
+  const [phoneFilter, setPhoneFilter] = useState([]);
+  const [amountFilter, setAmountFilter] = useState([]);
+  const [emailFilter, setEmailFilter] = useState([]);
 
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
@@ -119,6 +123,9 @@ export default function PaymentDashboard() {
     consultation: '',
     lawyer: '',
     method: '',
+    phone: '',
+    client: '',
+    amount: '',
   });
 
   const theme = useTheme();
@@ -304,6 +311,33 @@ export default function PaymentDashboard() {
 
     doc.save(`Invoice_${payment.name}.pdf`);
   };
+  // Normalizers
+  const normalizeClient = (name) => {
+    if (!name) return 'blank';
+    return String(name).toLowerCase().trim();
+  };
+
+  const normalizePhone = (phone) => {
+    if (!phone) return 'blank';
+    // remove everything except digits
+    const digits = String(phone).replace(/\D/g, '');
+    return digits === '' ? 'blank' : digits;
+  };
+
+  const normalizeAmount = (amount) => {
+    if (amount === null || amount === undefined || amount === '') return 'blank';
+    return String(amount);
+  };
+
+  const normalizeMethod = (method) => {
+    if (!method) return 'blank';
+    return String(method).toLowerCase().trim();
+  };
+  const normalizeEmail = (email) => {
+    if (!email) return 'blank';
+    return email.trim().toLowerCase();
+  };
+
   // ✅ Fetch Data
   useEffect(() => {
     const fetchData = async () => {
@@ -318,34 +352,42 @@ export default function PaymentDashboard() {
         if (result.success && result.data) {
           setData(result.data);
 
-          // Default: select all filters initially
-          const allServices = [
-            ...new Set(result.data.map((i) => i.lawyer?.Expertise || 'blank').filter(Boolean)), // 🟡 include blank
-          ];
+          // Default: select all filters initially (normalized)
+          const allServices = [...new Set(result.data.map((i) => i.lawyer?.Expertise || 'blank').filter(Boolean))];
           const allConsultations = [
-            ...new Set(result.data.map((i) => i.payment?.consultationType || 'blank').filter(Boolean)), // 🟡 include blank
+            ...new Set(result.data.map((i) => i.payment?.consultationType || 'blank').filter(Boolean)),
           ];
-          const allStatuses = [
-            ...new Set(result.data.map((i) => i.payment?.status || 'no-booked').filter(Boolean)), // (already had no-booked)
-          ];
+          const allStatuses = [...new Set(result.data.map((i) => i.payment?.status || 'not-booked').filter(Boolean))];
           const allLawyers = [
             ...new Map(
               result.data.map((i) => {
-                if (i.lawyer && i.lawyer._id) {
-                  return [i.lawyer._id, i.lawyer];
-                }
-                return [BLANK_LAWYER._id, BLANK_LAWYER]; // 🟡 inject dummy lawyer
+                if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
+                return [BLANK_LAWYER._id, BLANK_LAWYER];
               })
             ).values(),
           ];
-          const allMethods = [...new Set(result.data.map((i) => i.payment?.paymentMethod || 'blank'))];
 
-          // ✅ Default select all methods
+          // normalized sets for new fields
+          const allClient = [
+            ...new Set(result.data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank'))),
+          ];
+          const allPhone = [
+            ...new Set(result.data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank'))),
+          ];
+          const allAmount = [...new Set(result.data.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
+          const allMethods = [...new Set(result.data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
+          const allEmails = [...new Set(result.data.map((i) => normalizeEmail(i.payment?.email || 'blank')))];
+
+          // set defaults (select all)
           setMethodFilter(allMethods);
           setServiceFilter(allServices);
           setConsultationTypeFilter(allConsultations);
           setStatusFilter(allStatuses);
-          setLawyerFilter(allLawyers.map((l) => l._id)); // 👈 only IDs
+          setLawyerFilter(allLawyers.map((l) => l._id));
+          setClientFilter(allClient);
+          setAmountFilter(allAmount);
+          setPhoneFilter(allPhone);
+          setEmailFilter(allEmails);
         } else {
           setError('API returned no data or unsuccessful result');
           setData([]);
@@ -365,49 +407,72 @@ export default function PaymentDashboard() {
   const filteredData = useMemo(() => {
     let filtered = data;
 
+    // require at least one selection in each filter group (your original behavior).
     if (
       statusFilter.length === 0 ||
       serviceFilter.length === 0 ||
       consultationTypeFilter.length === 0 ||
-      lawyerFilter.length === 0
+      lawyerFilter.length === 0 ||
+      amountFilter.length === 0 ||
+      clientFilter.length === 0 ||
+      phoneFilter.length === 0 ||
+      methodFilter.length === 0
     ) {
       return [];
     }
 
     if (searchTerm) {
+      const q = searchTerm.toLowerCase();
       filtered = filtered.filter((item) => {
-        const clientName = item.link?.name?.toLowerCase() || '';
-        const clientPhone = item.link?.phone || '';
+        const clientName = (item.link?.name || item.payment?.name || '').toLowerCase();
+        const clientPhone = String(item.link?.phone || item.payment?.phone || '');
         const lawyerName = item.lawyer?.FkUserId?.UserName?.toLowerCase() || '';
         const serviceType = item.lawyer?.Expertise?.toLowerCase() || '';
 
         return (
-          clientName.includes(searchTerm.toLowerCase()) ||
+          clientName.includes(q) ||
           clientPhone.includes(searchTerm) ||
-          lawyerName.includes(searchTerm.toLowerCase()) ||
-          serviceType.includes(searchTerm.toLowerCase())
+          lawyerName.includes(q) ||
+          serviceType.includes(q)
         );
       });
     }
 
     if (statusFilter.length > 0) {
-      filtered = filtered.filter((item) => statusFilter.includes(item.payment?.status || 'no-booked'));
+      filtered = filtered.filter((item) => statusFilter.includes(item.payment?.status || 'not-booked'));
     }
     if (serviceFilter.length > 0) {
-      filtered = filtered.filter(
-        (item) => serviceFilter.includes(item.lawyer?.Expertise || 'blank') // 🟡 include blank
-      );
+      filtered = filtered.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blank'));
     }
     if (consultationTypeFilter.length > 0) {
-      filtered = filtered.filter(
-        (item) => consultationTypeFilter.includes(item.payment?.consultationType || 'blank') // 🟡 include blank
-      );
+      filtered = filtered.filter((item) => consultationTypeFilter.includes(item.payment?.consultationType || 'blank'));
     }
     if (lawyerFilter.length > 0) {
       filtered = filtered.filter((item) => lawyerFilter.includes(item.lawyer?._id || BLANK_LAWYER._id));
     }
+
+    // methodFilter contains normalized strings
     if (methodFilter.length > 0) {
-      filtered = filtered.filter((item) => methodFilter.includes(item.payment?.paymentMethod || 'blank'));
+      filtered = filtered.filter((item) =>
+        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blank'))
+      );
+    }
+
+    // client / phone / amount comparisons use normalizers
+    if (clientFilter.length > 0) {
+      filtered = filtered.filter((item) =>
+        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blank'))
+      );
+    }
+
+    if (phoneFilter.length > 0) {
+      filtered = filtered.filter((item) =>
+        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blank'))
+      );
+    }
+
+    if (amountFilter.length > 0) {
+      filtered = filtered.filter((item) => amountFilter.includes(normalizeAmount(item.payment?.amount || 'blank')));
     }
 
     if (dateFilter.startDate) {
@@ -428,23 +493,41 @@ export default function PaymentDashboard() {
     }
 
     return filtered;
-  }, [data, searchTerm, statusFilter, serviceFilter, consultationTypeFilter, lawyerFilter, dateFilter]);
+  }, [
+    data,
+    searchTerm,
+    statusFilter,
+    serviceFilter,
+    consultationTypeFilter,
+    lawyerFilter,
+    methodFilter,
+    clientFilter,
+    phoneFilter,
+    amountFilter,
+    dateFilter,
+  ]);
 
   // ✅ Dynamic options with blank
   const getDynamicFilterOptions = (currentFilterType) => {
     let dynamicData = [...data];
 
+    // if any other filter (except current) is empty, follow existing logic and zero-out dynamicData
     if (
       (currentFilterType !== 'status' && statusFilter.length === 0) ||
       (currentFilterType !== 'service' && serviceFilter.length === 0) ||
       (currentFilterType !== 'consultation' && consultationTypeFilter.length === 0) ||
-      (currentFilterType !== 'lawyer' && lawyerFilter.length === 0)
+      (currentFilterType !== 'lawyer' && lawyerFilter.length === 0) ||
+      (currentFilterType !== 'method' && methodFilter.length === 0) ||
+      (currentFilterType !== 'client' && clientFilter.length === 0) ||
+      (currentFilterType !== 'phone' && phoneFilter.length === 0) ||
+      (currentFilterType !== 'amount' && amountFilter.length === 0)
     ) {
       dynamicData = [];
     }
 
+    // apply active filters (except the currentFilterType)
     if (currentFilterType !== 'status' && statusFilter.length > 0) {
-      dynamicData = dynamicData.filter((item) => statusFilter.includes(item.payment?.status || 'no-booked'));
+      dynamicData = dynamicData.filter((item) => statusFilter.includes(item.payment?.status || 'not-booked'));
     }
     if (currentFilterType !== 'service' && serviceFilter.length > 0) {
       dynamicData = dynamicData.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blank'));
@@ -458,102 +541,198 @@ export default function PaymentDashboard() {
       dynamicData = dynamicData.filter((item) => lawyerFilter.includes(item.lawyer?._id || 'blank'));
     }
     if (currentFilterType !== 'method' && methodFilter.length > 0) {
-      dynamicData = dynamicData.filter((item) => methodFilter.includes(item.payment?.paymentMethod || 'blank'));
+      dynamicData = dynamicData.filter((item) =>
+        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blank'))
+      );
     }
-    // ✅ ensure blank/no-booked always included
-    const availableServices = [...new Set(dynamicData.map((i) => i.lawyer?.Expertise || 'blank').filter(Boolean))];
+    if (currentFilterType !== 'client' && clientFilter.length > 0) {
+      dynamicData = dynamicData.filter((item) =>
+        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blank'))
+      );
+    }
+    if (currentFilterType !== 'phone' && phoneFilter.length > 0) {
+      dynamicData = dynamicData.filter((item) =>
+        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blank'))
+      );
+    }
+    if (currentFilterType !== 'amount' && amountFilter.length > 0) {
+      dynamicData = dynamicData.filter((item) =>
+        amountFilter.includes(normalizeAmount(item.payment?.amount || 'blank'))
+      );
+    }
+
+    // Build normalized available sets from dynamicData
+    const availableServices = [...new Set(dynamicData.map((i) => i.lawyer?.Expertise || 'blank'))];
     if (!availableServices.includes('blank')) availableServices.push('blank');
 
-    const availableConsultations = [
-      ...new Set(dynamicData.map((i) => i.payment?.consultationType || 'blank').filter(Boolean)),
-    ];
+    const availableConsultations = [...new Set(dynamicData.map((i) => i.payment?.consultationType || 'blank'))];
     if (!availableConsultations.includes('blank')) availableConsultations.push('blank');
 
-    const availableStatuses = [...new Set(dynamicData.map((i) => i.payment?.status || 'no-booked'))];
-    if (!availableStatuses.includes('no-booked')) availableStatuses.push('no-booked');
+    const availableStatuses = [...new Set(dynamicData.map((i) => i.payment?.status || 'not-booked'))];
+    if (!availableStatuses.includes('not-booked')) availableStatuses.push('not-booked');
 
     const availableLawyers = [
       ...new Map(
         dynamicData.map((i) => {
-          if (i.lawyer && i.lawyer._id) {
-            return [i.lawyer._id, i.lawyer];
-          }
+          if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
           return [BLANK_LAWYER._id, BLANK_LAWYER];
         })
       ).values(),
     ];
-    if (!availableLawyers.some((l) => l._id === BLANK_LAWYER._id)) {
-      availableLawyers.push(BLANK_LAWYER);
-    }
-    const availableMethods = [...new Set(dynamicData.map((i) => i.payment?.paymentMethod || 'blank'))];
+    if (!availableLawyers.some((l) => l._id === BLANK_LAWYER._id)) availableLawyers.push(BLANK_LAWYER);
+
+    const availableMethods = [...new Set(dynamicData.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
     if (!availableMethods.includes('blank')) availableMethods.push('blank');
 
-    const allServices = [...new Set(data.map((i) => i.lawyer?.Expertise || 'blank').filter(Boolean))];
-    const allConsultations = [...new Set(data.map((i) => i.payment?.consultationType || 'blank').filter(Boolean))];
-    const allStatuses = [...new Set(data.map((i) => i.payment?.status || 'no-booked'))];
+    const availableClient = [
+      ...new Set(dynamicData.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank'))),
+    ];
+    if (!availableClient.includes('blank')) availableClient.push('blank');
+
+    const availablePhone = [
+      ...new Set(dynamicData.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank'))),
+    ];
+    if (!availablePhone.includes('blank')) availablePhone.push('blank');
+
+    const availableAmount = [...new Set(dynamicData.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
+    if (!availableAmount.includes('blank')) availableAmount.push('blank');
+
+    // Build all* from full data (normalized) for "show all" lists in UI
+    const allServices = [...new Set(data.map((i) => i.lawyer?.Expertise || 'blank'))];
+    const allConsultations = [...new Set(data.map((i) => i.payment?.consultationType || 'blank'))];
+    const allStatuses = [...new Set(data.map((i) => i.payment?.status || 'not-booked'))];
     const allLawyers = [
       ...new Map(
         data.map((i) => {
-          if (i.lawyer && i.lawyer._id) {
-            return [i.lawyer._id, i.lawyer];
-          }
-          return [BLANK_LAWYER._id, BLANK_LAWYER]; // 🟡 inject dummy lawyer
+          if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
+          return [BLANK_LAWYER._id, BLANK_LAWYER];
         })
       ).values(),
     ];
-    const allMethods = [...new Set(data.map((i) => i.payment?.paymentMethod || 'blank'))];
+    const allMethods = [...new Set(data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
+    const allClient = [...new Set(data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank')))];
+    const allPhone = [...new Set(data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank')))];
+    const allAmount = [...new Set(data.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
 
+    // builders (return { value, available, selected })
     const buildServiceOptions = () => {
-      const baseOptions = currentFilterType === 'service' ? allServices : availableServices;
-      return baseOptions.map((service) => ({
-        value: service,
-        available: availableServices.includes(service),
-        selected: serviceFilter.includes(service),
+      const base = currentFilterType === 'service' ? allServices : availableServices;
+      return base.map((v) => ({
+        value: v,
+        available: availableServices.includes(v),
+        selected: serviceFilter.includes(v),
       }));
     };
 
     const buildConsultationOptions = () => {
-      const baseOptions = currentFilterType === 'consultation' ? allConsultations : availableConsultations;
-      return baseOptions.map((c) => ({
-        value: c,
-        available: availableConsultations.includes(c),
-        selected: consultationTypeFilter.includes(c),
+      const base = currentFilterType === 'consultation' ? allConsultations : availableConsultations;
+      return base.map((v) => ({
+        value: v,
+        available: availableConsultations.includes(v),
+        selected: consultationTypeFilter.includes(v),
       }));
     };
 
     const buildStatusOptions = () => {
-      const baseOptions = currentFilterType === 'status' ? allStatuses : availableStatuses;
-      return baseOptions.map((s) => ({
-        value: s,
-        available: availableStatuses.includes(s),
-        selected: statusFilter.includes(s),
+      const base = currentFilterType === 'status' ? allStatuses : availableStatuses;
+      return base.map((v) => ({
+        value: v,
+        available: availableStatuses.includes(v),
+        selected: statusFilter.includes(v),
       }));
     };
 
     const buildLawyerOptions = () => {
-      const baseOptions = currentFilterType === 'lawyer' ? allLawyers : availableLawyers;
-      return baseOptions.map((lawyer) => ({
-        value: lawyer,
-        available: availableLawyers.some((l) => l._id === lawyer._id),
-        selected: lawyerFilter.includes(lawyer._id),
+      const base = currentFilterType === 'lawyer' ? allLawyers : availableLawyers;
+      return base.map((l) => ({
+        value: l,
+        available: availableLawyers.some((x) => x._id === l._id),
+        selected: lawyerFilter.includes(l._id),
       }));
     };
+
     const buildMethodOptions = () => {
-      const baseOptions = currentFilterType === 'method' ? allMethods : availableMethods;
-      return baseOptions.map((m) => ({
+      const base = currentFilterType === 'method' ? allMethods : availableMethods;
+      return base.map((m) => ({
         value: m,
         available: availableMethods.includes(m),
         selected: methodFilter.includes(m),
       }));
     };
+
+    const buildClientOptions = () => {
+      const base = currentFilterType === 'client' ? allClient : availableClient;
+      return base.map((c) => ({
+        value: c,
+        available: availableClient.includes(c),
+        selected: clientFilter.includes(c),
+      }));
+    };
+
+    const buildPhoneOptions = () => {
+      const base = currentFilterType === 'phone' ? allPhone : availablePhone;
+      return base.map((p) => ({
+        value: p,
+        available: availablePhone.includes(p),
+        selected: phoneFilter.includes(p),
+      }));
+    };
+
+    const buildAmountOptions = () => {
+      const base = currentFilterType === 'amount' ? allAmount : availableAmount;
+      return base.map((a) => ({
+        value: a,
+        available: availableAmount.includes(a),
+        selected: amountFilter.includes(normalizeAmount(a)), // important: normalize here too
+      }));
+    };
+
     return {
       services: buildServiceOptions(),
       consultations: buildConsultationOptions(),
       statuses: buildStatusOptions(),
       lawyers: buildLawyerOptions(),
-      methods: buildMethodOptions(), // ✅ NEW
+      methods: buildMethodOptions(),
+      clients: buildClientOptions(),
+      phones: buildPhoneOptions(),
+      amounts: buildAmountOptions(),
     };
   };
+  // Get dynamic options for each filter
+  const statusOptions = getDynamicFilterOptions('status');
+  const serviceOptions = getDynamicFilterOptions('service');
+  const consultationOptions = getDynamicFilterOptions('consultation');
+  const lawyerOptions = getDynamicFilterOptions('lawyer');
+  const methodOptions = getDynamicFilterOptions('method');
+  const clientOptions = getDynamicFilterOptions('client');
+  const phoneOptions = getDynamicFilterOptions('phone');
+  const amountOptions = getDynamicFilterOptions('amount');
+  //  console.log('Services Options:', serviceOptions);
+  const handleToggleMethod = (value) => {
+    const norm = normalizeMethod(value);
+    setMethodFilter((prev) => (prev.includes(norm) ? prev.filter((i) => i !== norm) : [...prev, norm]));
+  };
+  const handleSelectAllMethod = (availableValues) => setMethodFilter(availableValues.map(normalizeMethod));
+  const handleClearAllMethod = () => setMethodFilter([]);
+  const handleToggleAmount = (value) => {
+    const norm = normalizeAmount(value);
+    setAmountFilter((prev) => (prev.includes(norm) ? prev.filter((i) => i !== norm) : [...prev, norm]));
+  };
+
+  const handleSelectAllAmount = (availableValues) => setAmountFilter(availableValues.map(normalizeAmount));
+  const handleToggleClient = (value) => {
+    const norm = normalizeClient(value);
+    setClientFilter((prev) => (prev.includes(norm) ? prev.filter((i) => i !== norm) : [...prev, norm]));
+  };
+  const handleSelectAllClient = (availableValues) => setClientFilter(availableValues.map(normalizeClient));
+  const handleClearAllClient = () => setClientFilter([]);
+  const handleClearAllAmount = () => setAmountFilter([]);
+  const handleTogglePhone = (value) => {
+    const norm = normalizePhone(value);
+    setPhoneFilter((prev) => (prev.includes(norm) ? prev.filter((i) => i !== norm) : [...prev, norm]));
+  };
+  const handleSelectAllPhone = (availableValues) => setPhoneFilter(availableValues.map(normalizePhone));
+  const handleClearAllPhone = () => setPhoneFilter([]);
 
   // Handler functions for FilterSection
   const handleSearchChange = (filterKey, value) => {
@@ -580,20 +759,6 @@ export default function PaymentDashboard() {
   const handleToggleLawyer = (value) => {
     setLawyerFilter((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
   };
-  // ✅ Toggle single method
-  const handleToggleMethod = (value) => {
-    setMethodFilter((prev) => (prev.includes(value) ? prev.filter((item) => item !== value) : [...prev, value]));
-  };
-
-  // ✅ Select all methods
-  const handleSelectAllMethod = (availableValues) => {
-    setMethodFilter(availableValues);
-  };
-
-  // ✅ Clear all methods
-  const handleClearAllMethod = () => {
-    setMethodFilter([]);
-  };
 
   const handleSelectAllStatus = (availableValues) => {
     setStatusFilter(availableValues);
@@ -611,61 +776,14 @@ export default function PaymentDashboard() {
     setLawyerFilter(availableValues);
   };
 
-  const handleClearAllStatus = () => setStatusFilter([]);
-  const handleClearAllService = () => setServiceFilter([]);
-  const handleClearAllConsultation = () => setConsultationTypeFilter([]);
-  const handleClearAllLawyer = () => setLawyerFilter([]);
-
-  // Get dynamic options for each filter
-  const statusOptions = getDynamicFilterOptions('status');
-  const serviceOptions = getDynamicFilterOptions('service');
-  const consultationOptions = getDynamicFilterOptions('consultation');
-  const lawyerOptions = getDynamicFilterOptions('lawyer');
-  const methodOptions = getDynamicFilterOptions('method');
-
-  // ✅ Filter handlers
-  const handleStatusFilterChange = (status) => {
-    setStatusFilter((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]));
-  };
-
-  const handleServiceFilterChange = (service) => {
-    setServiceFilter((prev) => (prev.includes(service) ? prev.filter((s) => s !== service) : [...prev, service]));
-  };
-
-  const handleConsultationTypeFilterChange = (type) => {
-    setConsultationTypeFilter((prev) => (prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type]));
-  };
-
-  const handleLawyerFilterChange = (lawyerId) => {
-    setLawyerFilter((prev) => (prev.includes(lawyerId) ? prev.filter((id) => id !== lawyerId) : [...prev, lawyerId]));
-  };
-
   const handleDateFilterChange = (field, value) => {
     setDateFilter((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleFilterSearch = (filterType, searchTerm) => {
-    setFilterSearchTerms((prev) => ({
-      ...prev,
-      [filterType]: searchTerm,
-    }));
-  };
-
-  const handleDeselectAllStatus = () => {
-    setStatusFilter([]);
-  };
-
-  const handleDeselectAllService = () => {
-    setServiceFilter([]);
-  };
-
-  const handleDeselectAllConsultation = () => {
-    setConsultationTypeFilter([]);
-  };
-
-  const handleDeselectAllLawyer = () => {
-    setLawyerFilter([]);
-  };
+  const handleClearAllStatus = () => setStatusFilter([]);
+  const handleClearAllService = () => setServiceFilter([]);
+  const handleClearAllConsultation = () => setConsultationTypeFilter([]);
+  const handleClearAllLawyer = () => setLawyerFilter([]);
 
   const handleOpenFilter = (columnKey, event) => {
     setOpenFilter(columnKey);
@@ -1310,7 +1428,14 @@ export default function PaymentDashboard() {
                             <Table stickyHeader sx={{ minWidth: 600 }}>
                               <TableHead>
                                 <TableRow>
-                                  <StyledTableCell
+                                  <FilterableHeaderCell
+                                    label="Client Name"
+                                    minWidth={150}
+                                    isActive={clientFilter.length > 0}
+                                    onClick={(e) => handleOpenFilter('client', e)}
+                                  />
+
+                                  {/* <StyledTableCell
                                     sx={{
                                       minWidth: 150,
                                       backgroundColor: lightTheme.textPrimary,
@@ -1318,8 +1443,16 @@ export default function PaymentDashboard() {
                                     }}
                                   >
                                     Client Name
-                                  </StyledTableCell>
-                                  <StyledTableCell
+                                  </StyledTableCell> */}
+
+                                  <FilterableHeaderCell
+                                    label="Phone"
+                                    minWidth={120}
+                                    isActive={phoneFilter.length > 0}
+                                    onClick={(e) => handleOpenFilter('phone', e)}
+                                  />
+
+                                  {/* <StyledTableCell
                                     sx={{
                                       minWidth: 120,
                                       backgroundColor: lightTheme.textPrimary,
@@ -1327,7 +1460,7 @@ export default function PaymentDashboard() {
                                     }}
                                   >
                                     Phone
-                                  </StyledTableCell>
+                                  </StyledTableCell> */}
                                   <StyledTableCell
                                     sx={{
                                       minWidth: 120,
@@ -1357,8 +1490,13 @@ export default function PaymentDashboard() {
                                     isActive={consultationTypeFilter.length > 0}
                                     onClick={(e) => handleOpenFilter('consultation', e)}
                                   />
-
-                                  <StyledTableCell
+                                  <FilterableHeaderCell
+                                    label="Invoice Amount"
+                                    minWidth={150}
+                                    isActive={amountFilter.length > 0}
+                                    onClick={(e) => handleOpenFilter('amount', e)}
+                                  />
+                                  {/* <StyledTableCell
                                     sx={{
                                       minWidth: 150,
                                       backgroundColor: lightTheme.textPrimary,
@@ -1366,7 +1504,7 @@ export default function PaymentDashboard() {
                                     }}
                                   >
                                     Invoice Amount
-                                  </StyledTableCell>
+                                  </StyledTableCell> */}
                                   <StyledTableCell
                                     sx={{
                                       minWidth: 120,
@@ -1376,34 +1514,19 @@ export default function PaymentDashboard() {
                                   >
                                     Invoice
                                   </StyledTableCell>
-                                  <StyledTableCell
-                                    sx={{
-                                      minWidth: 120,
-                                      backgroundColor: lightTheme.textPrimary,
-                                      color: lightTheme.background,
-                                    }}
-                                  >
-                                    Method
-                                  </StyledTableCell>
-                                  {/* <FilterableHeaderCell
+
+                                  <FilterableHeaderCell
                                     label="Method"
                                     minWidth={120}
                                     isActive={methodFilter.length > 0}
                                     onClick={(e) => handleOpenFilter('method', e)}
-                                  /> */}
+                                  />
 
                                   <FilterableHeaderCell
                                     label="Status"
                                     minWidth={120}
                                     isActive={statusFilter.length > 0}
                                     onClick={(e) => handleOpenFilter('status', e)}
-                                  />
-
-                                  <FilterableHeaderCell
-                                    label="Created At"
-                                    minWidth={160}
-                                    isActive={!!(dateFilter.startDate || dateFilter.endDate)}
-                                    onClick={(e) => handleOpenFilter('date', e)}
                                   />
                                 </TableRow>
                               </TableHead>
@@ -1538,21 +1661,6 @@ export default function PaymentDashboard() {
                                     </StyledTableCell>
                                     <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                       {getStatusChip(item.payment?.status)}
-                                    </StyledTableCell>
-                                    <StyledTableCell
-                                      sx={{
-                                        color: lightTheme.textPrimary,
-                                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                                        whiteSpace: 'nowrap',
-                                      }}
-                                    >
-                                      {item.link?.createdAt
-                                        ? new Date(item.link.createdAt).toLocaleDateString('en-US', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                          })
-                                        : 'N/A'}
                                     </StyledTableCell>
                                   </StyledTableRow>
                                 ))}
@@ -1712,6 +1820,53 @@ export default function PaymentDashboard() {
                         getLabel={(value) => (value === 'Blank' ? 'Blank' : value)}
                       />
                     </Box>
+                  )}
+                  {openFilter === 'client' && (
+                    <FilterSection
+                      title="Client"
+                      filterKey="client"
+                      filterData={clientOptions.clients}
+                      searchTerm={filterSearchTerms.client}
+                      onSearchChange={handleSearchChange}
+                      onSelectAll={handleSelectAllClient}
+                      onClearAll={handleClearAllClient}
+                      onToggle={handleToggleClient}
+                      selectedValues={clientFilter}
+                      isCurrentFilter={activeFilter === 'client'}
+                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                    />
+                  )}
+
+                  {openFilter === 'phone' && (
+                    <FilterSection
+                      title="Phone"
+                      filterKey="phone"
+                      filterData={phoneOptions.phones}
+                      searchTerm={filterSearchTerms.phone}
+                      onSearchChange={handleSearchChange}
+                      onSelectAll={handleSelectAllPhone}
+                      onClearAll={handleClearAllPhone}
+                      onToggle={handleTogglePhone}
+                      selectedValues={phoneFilter}
+                      isCurrentFilter={activeFilter === 'phone'}
+                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                    />
+                  )}
+
+                  {openFilter === 'amount' && (
+                    <FilterSection
+                      title="Amount"
+                      filterKey="amount"
+                      filterData={amountOptions.amounts}
+                      searchTerm={filterSearchTerms.amount}
+                      onSearchChange={handleSearchChange}
+                      onSelectAll={handleSelectAllAmount}
+                      onClearAll={handleClearAllAmount}
+                      onToggle={handleToggleAmount}
+                      selectedValues={amountFilter}
+                      isCurrentFilter={activeFilter === 'amount'}
+                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                    />
                   )}
 
                   {/* Date Filter */}
