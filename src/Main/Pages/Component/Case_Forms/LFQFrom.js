@@ -3400,6 +3400,10 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 { text: data.fixedFee || "-", style: "value" },
                             ],
                             [
+                                { text: "Scope of Work:", style: "label" },
+                                { text: data.ScopeOfWork || "-", style: "value" },
+                            ],
+                            [
                                 { text: "Special Terms / Considerations", style: "label" },
                                 { text: data.specialTerms || "-", style: "value" },
                             ],
