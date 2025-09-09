@@ -2333,6 +2333,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [generatedLink, setGeneratedLink] = useState("");
     const [showLinkGenerator, setShowLinkGenerator] = useState(true);
     const [isReEdit, setIsReEdit] = useState(false);
+    const [LinkcaseId, setLinkcaseId] = useState("");
 
     // Add state for confirmation modal
     const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -2366,6 +2367,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
                 if (caseId) {
                     setShowLinkGenerator(false);
+                    setLinkcaseId(caseId);
                     fetchLFQForm(caseId);
                 }
             } catch (err) {
@@ -2981,7 +2983,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             size = 320,
             mainText = "APPROVED",
             subText = "AWS LegalGroup",
-            mainColor = "#2E3A87", // Deep Blue
+            mainColor = "#12963a", // Deep Blue
             ringWidth = 10,
             rotation = -15 * Math.PI / 180 // default tilt: -15 degrees
         } = options;
@@ -3140,7 +3142,13 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
             if (res.status === 200 || res.status === 201) {
                 setIsEdit(false);
-                fetchLFQForm(caseInfo?._id);
+                if (LinkcaseId && !showLinkGenerator) {
+
+                    fetchLFQForm(LinkcaseId);
+                } else {
+
+                    fetchLFQForm(caseInfo?._id);
+                }
                 showSuccess("Form Approved successfully!");
             }
         } catch (error) {
@@ -3249,7 +3257,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
             },
             footer: (currentPage, pageCount) => {
                 const footerText =
-                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nAbu Dhabi: 2403, Tomouh Tower, Marina Square Jazeerat Al Reem\nTel: +971 (04) 332 5928, web: aws-legalgroup.com, email: info@awsadvocates.com";
+                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com, email: info@awsadvocates.com";
 
                 return {
                     stack: [
@@ -4174,17 +4182,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     </>
                                 )}
                             </div>
-                            <div className="mb-3">
-                                <label className="form-label fw-bold">Special Terms or Considerations:</label>
-                                <textarea
-                                    className="form-control"
-                                    rows="2"
-                                    placeholder="e.g. advance retainer, installment plan, success fee conditions"
-                                    value={specialTerms}
-                                    onChange={(e) => setSpecialTerms(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                ></textarea>
-                            </div>
+
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Scope of Work:</label>
                                 <textarea
@@ -4196,6 +4194,18 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     disabled={(dataFound || isclient)}
                                 ></textarea>
                             </div>
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Special Terms or Considerations:</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="e.g. advance retainer, installment plan, success fee conditions"
+                                    value={specialTerms}
+                                    onChange={(e) => setSpecialTerms(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Key Factors Affecting Fee:</label>
                                 <textarea
@@ -4399,7 +4409,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
                         </div>
                     }
-                    {(preparedBySign && isclient && approvedBySign && !LFQData?.isApproved) &&
+                    {(preparedBySign && (isclient || !showLinkGenerator) && approvedBySign && !LFQData?.isApproved) &&
                         <div className="d-flex justify-content-center gap-2 gap-md-3 mt-4 mb-4 flex-wrap">
                             <div className="btn btn-primary fw-bold px-4" onClick={handleAccept}>Accept</div>
                         </div>
