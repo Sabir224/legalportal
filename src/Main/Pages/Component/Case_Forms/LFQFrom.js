@@ -4182,17 +4182,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     </>
                                 )}
                             </div>
-                            <div className="mb-3">
-                                <label className="form-label fw-bold">Special Terms or Considerations:</label>
-                                <textarea
-                                    className="form-control"
-                                    rows="2"
-                                    placeholder="e.g. advance retainer, installment plan, success fee conditions"
-                                    value={specialTerms}
-                                    onChange={(e) => setSpecialTerms(e.target.value)}
-                                    disabled={(dataFound || isclient)}
-                                ></textarea>
-                            </div>
+
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Scope of Work:</label>
                                 <textarea
@@ -4204,6 +4194,18 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     disabled={(dataFound || isclient)}
                                 ></textarea>
                             </div>
+                            <div className="mb-3">
+                                <label className="form-label fw-bold">Special Terms or Considerations:</label>
+                                <textarea
+                                    className="form-control"
+                                    rows="2"
+                                    placeholder="e.g. advance retainer, installment plan, success fee conditions"
+                                    value={specialTerms}
+                                    onChange={(e) => setSpecialTerms(e.target.value)}
+                                    disabled={(dataFound || isclient)}
+                                ></textarea>
+                            </div>
+
                             <div className="mb-3">
                                 <label className="form-label fw-bold">Key Factors Affecting Fee:</label>
                                 <textarea
