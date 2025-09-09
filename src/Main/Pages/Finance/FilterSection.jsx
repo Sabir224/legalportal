@@ -39,6 +39,24 @@ export default function FilterSection({
   // Separate available and unavailable options
   const availableOptions = filterData.filter((item) => item.available);
   const unavailableOptions = filterData.filter((item) => !item.available);
+  // Utility function
+  const normalize = (str, type = 'text') => {
+    if (!str) return '';
+
+    if (type === 'phone') {
+      // keep only digits
+      return str.replace(/\D/g, '');
+    }
+
+    // for text
+    return str
+      .normalize('NFD') // split accents (é → e +  ́)
+      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .toLocaleLowerCase()
+      .replace(/[-_]/g, ' ') // treat - and _ as spaces
+      .replace(/\s+/g, ' ') // collapse multiple spaces
+      .trim();
+  };
 
   return (
     <>
@@ -100,9 +118,21 @@ export default function FilterSection({
       <FormGroup sx={{ maxHeight: '200px', overflowY: 'auto' }}>
         {[...availableOptions, ...(isCurrentFilter ? unavailableOptions : [])]
           .filter((item) => {
-            const label = getLabel(item.value) || '';
-            return searchTerm === '' || label.toLowerCase().includes(searchTerm.toLowerCase());
+            const rawLabel = getLabel(item.value) || '';
+            const label = normalize(rawLabel, 'text');
+            const search = normalize(searchTerm, /^\d+$/.test(searchTerm) ? 'phone' : 'text');
+
+            // Debug log
+            console.log('DEBUG FILTER:', {
+              rawLabel,
+              normalizedLabel: label,
+              rawSearch: searchTerm,
+              normalizedSearch: search,
+            });
+
+            return search === '' || label.includes(search);
           })
+
           .map((item) => {
             const valueKey = getValueKey(item.value);
             return (
@@ -129,7 +159,10 @@ export default function FilterSection({
                       fontStyle: item.available ? 'normal' : item.selected ? 'normal' : 'italic',
                     }}
                   >
-                    {getLabel(item.value)}
+                    {(() => {
+                      const raw = getLabel(item.value) || '';
+                      return raw.charAt(0).toUpperCase() + raw.slice(1);
+                    })()}
                     {!item.available && !item.selected && isCurrentFilter && (
                       <Typography component="span" sx={{ fontSize: '0.75rem', color: '#9ca3af', ml: 1 }}>
                         (no results)
