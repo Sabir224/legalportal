@@ -401,7 +401,7 @@ function LegalConsultationStepper() {
 
     setLoading(true);
     try {
-      const appointmentsRes = await axios.get(`${ApiEndPoint}appointments/${lawyerId}`);
+      const appointmentsRes = await axios.get(`${ApiEndPoint}getCrmAppointments/${lawyerId}`);
 
       if (!appointmentsRes.data || appointmentsRes.data.length === 0) {
         setError('No appointment data found.');
@@ -647,6 +647,7 @@ function LegalConsultationStepper() {
     console.group('🔵 handleConfirmPayment - Start');
 
     try {
+      // 🔹 Normalize payment method
       let normalizedPaymentMethod = paymentMethod;
       if (method === 'Online') {
         normalizedPaymentMethod = 'Card';
@@ -658,6 +659,7 @@ function LegalConsultationStepper() {
         }
       }
 
+      // 🔹 Prepare payment data
       const paymentData = {
         name: paymentForm?.name || confirmationData?.name || data?.payment?.name,
         phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone,
@@ -671,60 +673,45 @@ function LegalConsultationStepper() {
         appointmentLink: window.location.href,
       };
 
-      // InPerson consultation
+      // Helper: Confirm slot + send email + update payment
+      const finalizeBooking = async (paymentId) => {
+        await sendConfirmationEmails(paymentId);
+        await updateSlotBooking({
+          lawyerId: selectedLawyer?._id,
+          slotId: selectedSlot?._id,
+          isBooked: true,
+          publicBooking: {
+            name: paymentForm.name || confirmationData?.name,
+            phone: paymentForm.phone || confirmationData?.phone,
+          },
+          caseDescription: caseDiscription,
+        });
+        await axios.post(`${ApiEndPoint}payments/update-status`, {
+          paymentId,
+          meetingDetails: {
+            meetingUrl: 'meetingbooked',
+            date: selectedDate,
+            slot: selectedSlot,
+          },
+          caseDescription: caseDiscription,
+        });
+        setActiveStep(6);
+      };
+
+      // 🔹 Handle InPerson consultation
       if (method === 'InPerson') {
         if (normalizedPaymentMethod === 'PayInOffice') {
           console.log('⚙️ Processing InPerson PayInOffice flow');
 
           if (data?.payment?._id) {
-            console.log('📌 Existing PayInOffice payment found, skipping creation:', data?.payment?._id);
-            await sendConfirmationEmails(data?.payment?._id);
-            await updateSlotBooking({
-              lawyerId: selectedLawyer?._id,
-              slotId: selectedSlot?._id,
-              isBooked: true,
-              publicBooking: {
-                name: paymentForm.name || confirmationData?.name,
-                phone: paymentForm.phone || confirmationData?.phone,
-              },
-              caseDescription: caseDiscription,
-            });
-            await axios.post(`${ApiEndPoint}payments/update-status`, {
-              paymentId: data?.payment?._id,
-              meetingDetails: {
-                meetingUrl: 'meetingbooked',
-                date: selectedDate,
-                slot: selectedSlot,
-              },
-              caseDescription: caseDiscription,
-            });
-            setActiveStep(6);
+            console.log('📌 Existing PayInOffice payment found:', data?.payment?._id);
+            await finalizeBooking(data?.payment?._id);
           } else {
             await handlePayInOfficeFlow(paymentData);
           }
         } else if (normalizedPaymentMethod === 'Card') {
           if (data?.payment?.status === 'paid') {
-            await sendConfirmationEmails(data?.payment?._id);
-            await updateSlotBooking({
-              lawyerId: selectedLawyer?._id,
-              slotId: selectedSlot?._id,
-              isBooked: true,
-              publicBooking: {
-                name: paymentForm.name || confirmationData?.name,
-                phone: paymentForm.phone || confirmationData?.phone,
-              },
-              caseDescription: caseDiscription,
-            });
-            await axios.post(`${ApiEndPoint}payments/update-status`, {
-              paymentId: data?.payment?._id,
-              meetingDetails: {
-                meetingUrl: 'meetingbooked',
-                date: selectedDate,
-                slot: selectedSlot,
-              },
-              caseDescription: caseDiscription,
-            });
-            setActiveStep(6);
+            await finalizeBooking(data?.payment?._id);
           } else if (data?.payment?._id) {
             console.log('📌 Existing Card payment pending, confirming only');
             await handleCardPaymentFlow({ ...paymentData, paymentId: data?.payment?._id });
@@ -732,10 +719,32 @@ function LegalConsultationStepper() {
             await handleCardPaymentFlow(paymentData);
           }
         }
+
+        // 🔹 Handle Online consultation
+      } else if (method === 'Online') {
+        console.log('⚙️ Processing Online consultation');
+
+        if (normalizedPaymentMethod === 'Card') {
+          if (data?.payment?.status === 'paid') {
+            await finalizeBooking(data?.payment?._id);
+          } else if (data?.payment?._id) {
+            console.log('📌 Existing Online Card payment pending, confirming only');
+            await handleCardPaymentFlow({ ...paymentData, paymentId: data?.payment?._id });
+          } else {
+            await handleCardPaymentFlow(paymentData);
+          }
+        } else {
+          const errorMsg = `Unsupported Online payment method: ${paymentMethod}`;
+          console.log('❌', errorMsg);
+          setPaymentError(errorMsg);
+          throw new Error(errorMsg);
+        }
+
+        // 🔹 Unknown consultation type
       } else {
-        const errorMsg = `Unsupported combination: Consultation type ${method} with payment method ${paymentMethod}`;
+        const errorMsg = `Unsupported consultation type: ${method}`;
         console.log('❌', errorMsg);
-        setPaymentError('This payment method is not available for the selected consultation type');
+        setPaymentError(errorMsg);
         throw new Error(errorMsg);
       }
     } catch (err) {

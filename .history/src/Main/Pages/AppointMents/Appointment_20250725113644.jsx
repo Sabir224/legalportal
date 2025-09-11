@@ -544,7 +544,6 @@ const PublicAppointment = ({ token }) => {
     try {
       console.log('Fetching all booked appointments');
       const response = await axios.get(`${ApiEndPoint}GetAllBookAppointments`);
-      console.log('All Appointments');
 
       if (!response.data || response.data.length === 0) {
         throw new Error('No appointment data found');

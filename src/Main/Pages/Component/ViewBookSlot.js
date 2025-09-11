@@ -1,30 +1,23 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Modal, Nav, Tab } from "react-bootstrap";
-import { BsPerson, BsPostage, BsStackOverflow } from "react-icons/bs";
-import Contactprofile from "./images/dialer.png";
-import PhoneInput from "react-phone-input-2";
-import "react-phone-input-2/lib/style.css"; // Import phone input styles
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useRef, useState } from 'react';
+import { Modal, Nav, Tab } from 'react-bootstrap';
+import { BsPerson, BsPostage, BsStackOverflow } from 'react-icons/bs';
+import Contactprofile from './images/dialer.png';
+import PhoneInput from 'react-phone-input-2';
+import 'react-phone-input-2/lib/style.css'; // Import phone input styles
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 //import { useAuth } from "../Auth/AuthContext"; // Import your authentication context
 // import Warning, { ApiEndPoint } from "../components/utils/utlis";
-import loginStyle from "../../../../src/Component/contact.module.css";
+import loginStyle from '../../../../src/Component/contact.module.css';
 //  import defaultProfilePic from "";
-import defaultProfilePic from "./assets/icons/person.png";
+import defaultProfilePic from './assets/icons/person.png';
 
-import { MdOutlineAttachEmail } from "react-icons/md";
-import { GrContactInfo } from "react-icons/gr";
+import { MdOutlineAttachEmail } from 'react-icons/md';
+import { GrContactInfo } from 'react-icons/gr';
 // import ExcelUploadPopup from "./dropzonComponent";
 // import ExcelUploadPopup2 from "./dropzonComponent2";
-import {
-  FaAddressCard,
-  FaBusinessTime,
-  FaCamera,
-  FaEdit,
-  FaInfoCircle,
-  FaLock,
-} from "react-icons/fa";
-import { ApiEndPoint, formatPhoneNumber } from "./utils/utlis";
+import { FaAddressCard, FaBusinessTime, FaCamera, FaEdit, FaInfoCircle, FaLock } from 'react-icons/fa';
+import { ApiEndPoint, formatPhoneNumber } from './utils/utlis';
 
 import {
   faFileAlt,
@@ -50,10 +43,11 @@ import {
   faCheckCircle,
   faSpinner,
   faCalendar,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button, Card, Col, Row, Spinner, Tabs } from "react-bootstrap";
-import DragAndDrop from "./DragAndDrop";
+} from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { Button, Card, Col, Row, Spinner, Tabs } from 'react-bootstrap';
+import DragAndDrop from './DragAndDrop';
+import { Divider } from '@mui/material';
 
 // const ContactForm = ({ slotbookuserid }) => {
 //   const [email, setEmail] = useState("raheemakbar999@gmail.com");
@@ -538,92 +532,266 @@ import DragAndDrop from "./DragAndDrop";
 
 //------------------------------------------------------
 //---------------------------------------------------------
+// NEw Comented
+// const ContactForm = ({ slotbookuserid }) => {
+//   const [clientDetails, setClientDetails] = useState({});
+//   const [usersDetails, setUsersDetails] = useState({});
+//   const [lawyerDetails, setLawyersDetails] = useState(null);
+//   const [loading, setLoading] = useState(false);
+
+//   const fetchClientDetails = async () => {
+//     setLoading(true);
+//     let mail = null;
+
+//     let id = slotbookuserid?.lawyerId
+//       ? slotbookuserid?.lawyerId
+//       : slotbookuserid?.byBook;
+//     let fetchdata = slotbookuserid?.lawyerId
+//       ? "lawyerDetails"
+//       : "clientDetails";
+//     console.log("id", id);
+//     let apifuncation = slotbookuserid?.lawyerId
+//       ? "geLawyerDetails"
+//       : "getClientDetails";
+
+//     try {
+//       const response = await axios.get(`${ApiEndPoint}getUserById/${id}`);
+//       await setUsersDetails(response.data);
+//       await setClientDetails(response.data); // Set the API response to state
+//       console.log("User  Data:", response.data);
+//       mail = response.data?.Email;
+
+//       console.log("email", mail);
+//       setLoading(false);
+//     } catch (err) {
+//       console.error("Error fetching client details:", err);
+//       setLoading(false);
+//     }
+
+//     try {
+//       const response = await axios.get(
+//         `${ApiEndPoint}getUserById/${slotbookuserid?.FklawyerId}`
+//       );
+//       await setLawyersDetails(response.data);
+//       console.log("lawyers  Data:", response.data);
+//       setLoading(false);
+//     } catch (err) {
+//       console.error("Error fetching client details:", err);
+//       setLoading(false);
+//     }
+
+//     try {
+//       const response = await axios.get(`${ApiEndPoint}${apifuncation}/${mail}`);
+//       // API endpoint
+//       console.log("client data! ", response.data);
+//       setClientDetails(response.data[`${fetchdata}`]);
+//       setLoading(false);
+//     } catch (err) {
+//       setLoading(false);
+//     }
+//   };
+
+//   useEffect(() => {
+//     fetchClientDetails();
+//   }, [slotbookuserid]); // Added slotbookuserid as a dependency
+
+//   if (loading) {
+//     return (
+//       <div className="d-flex justify-content-center align-items-center p-5">
+//         <div className="spinner-border text-light" role="status">
+//           <span className="visually-hidden">Loading...</span>
+//         </div>
+//       </div>
+//     );
+//   }
+//   return (
+//     <div className="card border-0 shadow">
+//       <div
+//         className="card-body border-0 p-3 p-md-4"
+//         style={{ backgroundColor: "#16213e", color: "white" }}
+//       >
+//         {/* Header Section */}
+//         <div className="row mb-3">
+//           <div className="col-12 col-md-6 mb-2 mb-md-0">
+//             <h5 className="mb-1 fs-6 fs-md-5">
+//               {slotbookuserid?.lawyerId ? "Lawyer Name:" : "Client Name:"}
+//             </h5>
+//             <h5 className="mb-0 fs-6 fs-md-5">
+//               {usersDetails?.UserName &&
+//                 usersDetails.UserName.charAt(0).toUpperCase() +
+//                 usersDetails.UserName.slice(1)}
+//             </h5>
+//           </div>
+
+//           {lawyerDetails && (
+//             <div className="col-12 col-md-6">
+//               <h6 className="mb-1 fs-6">Lawyer Name:</h6>
+//               <h6 className="mb-0 fs-6">
+//                 {lawyerDetails?.UserName &&
+//                   lawyerDetails.UserName.charAt(0).toUpperCase() +
+//                   lawyerDetails.UserName.slice(1)}
+//               </h6>
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Contact Info */}
+//         <div className="mb-4">
+//           <div className="d-flex align-items-center mb-2 flex-wrap">
+//             <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+//             <a
+//               href={`mailto:${usersDetails?.Email}`}
+//               className="text-white text-break small"
+//             >
+//               {usersDetails?.Email}
+//             </a>
+//           </div>
+
+//           <div className="d-flex align-items-center mb-2 flex-wrap">
+//             <FontAwesomeIcon icon={faPhone} className="me-2" />
+//             <a
+//               href={`tel:${formatPhoneNumber(clientDetails?.Contact)}`}
+//               className="text-white small"
+//             >
+//               {formatPhoneNumber(clientDetails?.Contact)}
+//             </a>
+//           </div>
+
+//           <div className="d-flex align-items-start flex-wrap mb-3">
+//             <FontAwesomeIcon icon={faAddressCard} className="me-2 mt-1" />
+//             <a
+//               href={`http://maps.google.com/?q=${encodeURIComponent(
+//                 clientDetails?.Address
+//               )}`}
+//               target="_blank"
+//               rel="noopener noreferrer"
+//               className="text-white text-decoration-none small"
+//             >
+//               {clientDetails?.Address}
+//             </a>
+//           </div>
+//         </div>
+
+//         {/* Meeting Time */}
+//         <div className="d-flex align-items-center mb-4">
+//           <FontAwesomeIcon icon={faCalendar} className="me-2" />
+//           <span className="small">
+//             Meeting Time:{" "}
+//             <span className="text-white">
+//               {slotbookuserid.startTime} - {slotbookuserid.endTime}
+//             </span>
+//           </span>
+//         </div>
+
+//         {/* Join Button */}
+//         <div className="text-center">
+//           <a
+//             href={slotbookuserid?.meetingLink}
+//             target="_blank"
+//             rel="noopener noreferrer"
+//             className="btn d-inline-flex align-items-center py-1 px-3 fw-bold fs-6"
+//             style={{ color: "white", backgroundColor: "#d3b386" }}
+//           >
+
+//             <img
+//               src="https://play-lh.googleusercontent.com/jKU64njy8urP89V1O63eJxMtvWjDGETPlHVIhDv9WZAYzsSxRWyWZkUlBJZj_HbkHA=w480-h960-rw"
+//               alt="Microsoft Teams"
+//               style={{
+//                 width: '25px',
+//                 height: '25px',
+//                 borderRadius: '50%',
+//                 padding:2
+//               }}
+//             />
+//             Join Meeting
+//           </a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// };
 
 const ContactForm = ({ slotbookuserid }) => {
+  const [linkSlotData, setLinkSlotData] = useState(null); // new state for link/slot
   const [clientDetails, setClientDetails] = useState({});
   const [usersDetails, setUsersDetails] = useState({});
   const [lawyerDetails, setLawyersDetails] = useState(null);
   const [loading, setLoading] = useState(false);
-  // Removed unused states like email, subject, files, etc., for this display-focused version
-  // Add them back if this component also handles form inputs/file UI
 
-  const storedEmail = sessionStorage.getItem("Email"); // Make sure this is relevant and correctly used
+  // 👉 First: fetch link/slot details
+  const fetchLinkSlotData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get(
+        `${ApiEndPoint}payments/links/slot/${slotbookuserid?._id}` // assuming slot has _id
+      );
 
-  // File related constants (not used in the provided JSX but kept from your original code)
-  const fileIcons = {
-    /* ... your fileIcons mapping ... */
+      if (response.data?.success) {
+        setLinkSlotData(response.data.data);
+        setLoading(false);
+        return true; // success
+      } else {
+        setLoading(false);
+        return false; // fallback needed
+      }
+    } catch (err) {
+      if (err.response?.status === 404) {
+        console.warn('Slot not found in link API, falling back...');
+        return false;
+      }
+      console.error('Error fetching link/slot data:', err);
+      return false;
+    }
   };
-  const getFileTypeIcon = (fileName) => {
-    /* ... */
-  };
-  const getFileType = (fileName) => {
-    /* ... */
-  };
-  const sizeLimits = {
-    /* ... */
-  };
-  const validateFileSize = (file) => {
-    /* ... */
-  };
-  // ... other file handling functions (handleFileChange, handleFileUpload, etc.)
 
+  // 👉 Second: fetch old client details (fallback)
   const fetchClientDetails = async () => {
     setLoading(true);
     let mail = null;
-    // console.log(" enter api calling ", slotbookuserid);
-    let id = slotbookuserid?.lawyerId
-      ? slotbookuserid?.lawyerId
-      : slotbookuserid?.byBook;
-    let fetchdata = slotbookuserid?.lawyerId
-      ? "lawyerDetails"
-      : "clientDetails";
-    console.log("id", id);
-    let apifuncation = slotbookuserid?.lawyerId
-      ? "geLawyerDetails"
-      : "getClientDetails";
+
+    let id = slotbookuserid?.lawyerId ? slotbookuserid?.lawyerId : slotbookuserid?.byBook;
+
+    let fetchdata = slotbookuserid?.lawyerId ? 'lawyerDetails' : 'clientDetails';
+
+    let apifuncation = slotbookuserid?.lawyerId ? 'geLawyerDetails' : 'getClientDetails';
 
     try {
       const response = await axios.get(`${ApiEndPoint}getUserById/${id}`);
-      await setUsersDetails(response.data);
-      await setClientDetails(response.data); // Set the API response to state
-      console.log("User  Data:", response.data);
+      setUsersDetails(response.data);
+      setClientDetails(response.data);
       mail = response.data?.Email;
-
-      console.log("email", mail);
-      setLoading(false);
     } catch (err) {
-      console.error("Error fetching client details:", err);
-      setLoading(false);
+      console.error('Error fetching client details:', err);
     }
 
     try {
-      const response = await axios.get(
-        `${ApiEndPoint}getUserById/${slotbookuserid?.FklawyerId}`
-      );
-      await setLawyersDetails(response.data);
-      console.log("lawyers  Data:", response.data);
-      setLoading(false);
+      const response = await axios.get(`${ApiEndPoint}getUserById/${slotbookuserid?.FklawyerId}`);
+      setLawyersDetails(response.data);
     } catch (err) {
-      console.error("Error fetching client details:", err);
-      setLoading(false);
+      console.error('Error fetching lawyer details:', err);
     }
 
     try {
       const response = await axios.get(`${ApiEndPoint}${apifuncation}/${mail}`);
-      // API endpoint
-      // API endpoint
-
-      console.log("client data! ", response.data);
       setClientDetails(response.data[`${fetchdata}`]);
-      setLoading(false);
     } catch (err) {
-      setLoading(false);
+      console.error('Error fetching extended client data:', err);
     }
+
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchClientDetails();
-  }, [slotbookuserid]); // Added slotbookuserid as a dependency
+    const init = async () => {
+      const gotLinkData = await fetchLinkSlotData();
+      if (!gotLinkData) {
+        await fetchClientDetails();
+      }
+    };
+    if (slotbookuserid?._id) {
+      init();
+    }
+  }, [slotbookuserid]);
 
   if (loading) {
     return (
@@ -634,71 +802,118 @@ const ContactForm = ({ slotbookuserid }) => {
       </div>
     );
   }
+
+  // 👉 Decide what to render
+
+  const dataToShow = linkSlotData ? linkSlotData : { usersDetails, clientDetails, lawyerDetails };
+
   return (
     <div className="card border-0 shadow">
-      <div
-        className="card-body border-0 p-3 p-md-4"
-        style={{ backgroundColor: "#16213e", color: "white" }}
-      >
-        {/* Header Section */}
+      <div className="card-body border-0 p-3 p-md-4" style={{ backgroundColor: '#16213e', color: 'white' }}>
+        {linkSlotData && (
+          <div className="d-flex justify-content-center mb-2">
+            <h4>{dataToShow.payment.consultationType === 'InPerson' ? ' The Meeting is in Person' : ''}</h4>
+            <Divider
+              sx={{
+                color: 'white',
+              }}
+            ></Divider>
+          </div>
+        )}
         <div className="row mb-3">
-          <div className="col-12 col-md-6 mb-2 mb-md-0">
-            <h5 className="mb-1 fs-6 fs-md-5">
-              {slotbookuserid?.lawyerId ? "Lawyer Name:" : "Client Name:"}
+          {/* Client Column */}
+          <div className="col-12 col-md-6 mb-3 mb-md-0">
+            <h5 className="mb-1 fs-6 fs-md-5">Client Name:</h5>
+            <h5 className="mb-2 fs-6 fs-md-5">
+              {linkSlotData
+                ? dataToShow?.payment?.name &&
+                  dataToShow.payment.name.charAt(0).toUpperCase() + dataToShow.payment.name.slice(1)
+                : usersDetails?.UserName &&
+                  usersDetails.UserName.charAt(0).toUpperCase() + usersDetails.UserName.slice(1)}
             </h5>
-            <h5 className="mb-0 fs-6 fs-md-5">
-              {usersDetails?.UserName &&
-                usersDetails.UserName.charAt(0).toUpperCase() +
-                usersDetails.UserName.slice(1)}
-            </h5>
-          </div>
 
-          {lawyerDetails && (
-            <div className="col-12 col-md-6">
-              <h6 className="mb-1 fs-6">Lawyer Name:</h6>
-              <h6 className="mb-0 fs-6">
-                {lawyerDetails?.UserName &&
-                  lawyerDetails.UserName.charAt(0).toUpperCase() +
-                  lawyerDetails.UserName.slice(1)}
-              </h6>
+            {/* Client Contact */}
+            <div className="d-flex align-items-center mb-2 flex-wrap">
+              <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+              <a
+                href={`mailto:${linkSlotData ? dataToShow?.payment?.email : usersDetails?.Email}`}
+                className="text-white text-break text-decoration-none small"
+              >
+                {linkSlotData ? dataToShow?.payment?.email : usersDetails?.Email}
+              </a>
             </div>
-          )}
-        </div>
-
-        {/* Contact Info */}
-        <div className="mb-4">
-          <div className="d-flex align-items-center mb-2 flex-wrap">
-            <FontAwesomeIcon icon={faMailBulk} className="me-2" />
-            <a
-              href={`mailto:${usersDetails?.Email}`}
-              className="text-white text-break small"
-            >
-              {usersDetails?.Email}
-            </a>
+            <div className="d-flex align-items-center mb-2 flex-wrap">
+              <FontAwesomeIcon icon={faPhone} className="me-2" />
+              <a
+                href={`tel:${formatPhoneNumber(linkSlotData ? dataToShow?.payment?.phone : clientDetails?.Contact)}`}
+                className="text-white text-decoration-none small"
+              >
+                {formatPhoneNumber(linkSlotData ? dataToShow?.payment?.phone : clientDetails?.Contact)}
+              </a>
+            </div>
+            {(linkSlotData ? dataToShow?.payment?.address : clientDetails?.Address) && (
+              <div className="d-flex align-items-start flex-wrap">
+                <FontAwesomeIcon icon={faAddressCard} className="me-2 mt-1" />
+                <a
+                  href={`http://maps.google.com/?q=${encodeURIComponent(
+                    linkSlotData ? dataToShow?.payment?.address : clientDetails?.Address
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white text-decoration-none small"
+                >
+                  {linkSlotData ? dataToShow?.payment?.address : clientDetails?.Address}
+                </a>
+              </div>
+            )}
           </div>
 
-          <div className="d-flex align-items-center mb-2 flex-wrap">
-            <FontAwesomeIcon icon={faPhone} className="me-2" />
-            <a
-              href={`tel:${formatPhoneNumber(clientDetails?.Contact)}`}
-              className="text-white small"
-            >
-              {formatPhoneNumber(clientDetails?.Contact)}
-            </a>
-          </div>
+          {/* Lawyer Column */}
+          <div className="col-12 col-md-6">
+            <h5 className="mb-1 fs-6 fs-md-5">Lawyer Name:</h5>
+            <h5 className="mb-2 fs-6 fs-md-5">
+              {linkSlotData
+                ? dataToShow?.lawyer?.FkUserId?.UserName &&
+                  dataToShow.lawyer.FkUserId.UserName.charAt(0).toUpperCase() +
+                    dataToShow.lawyer.FkUserId.UserName.slice(1)
+                : lawyerDetails?.UserName &&
+                  lawyerDetails.UserName.charAt(0).toUpperCase() + lawyerDetails.UserName.slice(1)}
+            </h5>
 
-          <div className="d-flex align-items-start flex-wrap mb-3">
-            <FontAwesomeIcon icon={faAddressCard} className="me-2 mt-1" />
-            <a
-              href={`http://maps.google.com/?q=${encodeURIComponent(
-                clientDetails?.Address
-              )}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-white text-decoration-none small"
-            >
-              {clientDetails?.Address}
-            </a>
+            {/* Lawyer Contact */}
+            <div className="d-flex align-items-center mb-2 flex-wrap">
+              <FontAwesomeIcon icon={faMailBulk} className="me-2" />
+              <a
+                href={`mailto:${linkSlotData ? dataToShow?.lawyer?.FkUserId?.Email : lawyerDetails?.Email}`}
+                className="text-white text-break text-decoration-none  small"
+              >
+                {linkSlotData ? dataToShow?.lawyer?.FkUserId?.Email : lawyerDetails?.Email}
+              </a>
+            </div>
+            <div className="d-flex align-items-center mb-2 flex-wrap">
+              <FontAwesomeIcon icon={faPhone} className="me-2" />
+              <a
+                href={`tel:${formatPhoneNumber(linkSlotData ? dataToShow?.lawyer?.Contact : lawyerDetails?.Contact)}`}
+                className="text-white text-decoration-none small"
+              >
+                {formatPhoneNumber(linkSlotData ? dataToShow?.lawyer?.Contact : lawyerDetails?.Contact)}
+              </a>
+            </div>
+            {(linkSlotData ? dataToShow?.lawyer?.Address : lawyerDetails?.Address) && (
+              <div className="d-flex align-items-start flex-wrap">
+                <FontAwesomeIcon icon={faAddressCard} className="me-2 mt-1" />
+                <a
+                  href={`http://maps.google.com/?q=${encodeURIComponent(
+                    linkSlotData ? dataToShow?.lawyer?.Address : lawyerDetails?.Address
+                  )}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-white text-decoration-none small"
+                >
+                  {linkSlotData ? dataToShow?.lawyer?.Address : lawyerDetails?.Address}
+                </a>
+              </div>
+            )}
           </div>
         </div>
 
@@ -706,47 +921,50 @@ const ContactForm = ({ slotbookuserid }) => {
         <div className="d-flex align-items-center mb-4">
           <FontAwesomeIcon icon={faCalendar} className="me-2" />
           <span className="small">
-            Meeting Time:{" "}
+            Meeting Time:{' '}
             <span className="text-white">
-              {slotbookuserid.startTime} - {slotbookuserid.endTime}
+              {linkSlotData
+                ? `${dataToShow?.payment?.meetingDetails?.slot?.displayStartTime} - ${dataToShow?.payment?.meetingDetails?.slot?.displayEndTime}`
+                : `${slotbookuserid.startTime} - ${slotbookuserid.endTime}`}
             </span>
           </span>
         </div>
 
         {/* Join Button */}
-        <div className="text-center">
-          <a
-            href={slotbookuserid?.meetingLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn d-inline-flex align-items-center py-1 px-3 fw-bold fs-6"
-            style={{ color: "white", backgroundColor: "#d3b386" }}
-          >
-            {/* <img
-              src="https://cdn4.iconfinder.com/data/icons/logos-brands-in-colors/48/google-meet-512.png"
-              alt="Google Meet"
-              width="20"
-              height="20"
-              className="me-2"
-            /> */}
-
-            <img
-              src="https://play-lh.googleusercontent.com/jKU64njy8urP89V1O63eJxMtvWjDGETPlHVIhDv9WZAYzsSxRWyWZkUlBJZj_HbkHA=w480-h960-rw"
-              alt="Microsoft Teams"
-              style={{
-                width: '25px',
-                height: '25px',
-                borderRadius: '50%',
-                padding:2
-              }}
-            />
-            Join Meeting
-          </a>
-        </div>
+        {linkSlotData && linkSlotData.payment.consultationType === 'InPerson' ? (
+          ''
+        ) : (
+          <div className="text-center">
+            <a
+              href={
+                linkSlotData
+                  ? dataToShow?.payment?.meetingDetails?.meetingUrl || '#'
+                  : slotbookuserid?.meetingLink
+              }
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn d-inline-flex align-items-center py-1 px-3 fw-bold fs-6"
+              style={{ color: 'white', backgroundColor: '#d3b386' }}
+            >
+              <img
+                src="https://play-lh.googleusercontent.com/jKU64njy8urP89V1O63eJxMtvWjDGETPlHVIhDv9WZAYzsSxRWyWZkUlBJZj_HbkHA=w480-h960-rw"
+                alt="Microsoft Teams"
+                style={{
+                  width: '25px',
+                  height: '25px',
+                  borderRadius: '50%',
+                  padding: 2,
+                }}
+              />
+              Join Meeting
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
 };
+
 const ViewBookLawyerSlot = ({ isOpen, onClose, slotbookuserid }) => {
   // Create a ref for the modal to access Bootstrap's modal instance
   const modalRef = useRef(null);
@@ -757,32 +975,23 @@ const ViewBookLawyerSlot = ({ isOpen, onClose, slotbookuserid }) => {
   };
 
   return (
-    <Modal
-      ref={modalRef}
-      show={isOpen}
-      onHide={onClose}
-      centered
-      size="md"
-      contentClassName="border-0 rounded-4"
-    >
+    <Modal ref={modalRef} show={isOpen} onHide={onClose} centered size="md" contentClassName="border-0 rounded-4">
       <Modal.Header
         className="border-0 text-white position-relative rounded-top-3"
-        style={{ backgroundColor: "#16213e" }}
+        style={{ backgroundColor: '#16213e' }}
         closeButton={false}
       >
-        <Modal.Title className="visually-hidden">
-          Appointment Details
-        </Modal.Title>
+        <Modal.Title className="visually-hidden">Appointment Details</Modal.Title>
         <button
           type="button"
           className="position-absolute end-0 me-3 bg-transparent border-0"
           onClick={handleCloseClick}
           style={{
-            color: "red",
-            fontSize: "1.5rem",
-            lineHeight: "1",
-            padding: "0.5rem",
-            cursor: "pointer", // Ensure cursor changes to pointer
+            color: 'red',
+            fontSize: '1.5rem',
+            lineHeight: '1',
+            padding: '0.5rem',
+            cursor: 'pointer', // Ensure cursor changes to pointer
           }}
           aria-label="Close"
         >
@@ -790,17 +999,12 @@ const ViewBookLawyerSlot = ({ isOpen, onClose, slotbookuserid }) => {
         </button>
       </Modal.Header>
 
-      <Modal.Body
-        className="p-0 rounded-bottom-3"
-        style={{ backgroundColor: "#16213e" }}
-      >
+      <Modal.Body className="p-0 rounded-bottom-3" style={{ backgroundColor: '#16213e' }}>
         <div className="p-3">
           {slotbookuserid ? (
             <ContactForm slotbookuserid={slotbookuserid} />
           ) : (
-            <div className="text-white p-4 text-center">
-              No appointment details to display.
-            </div>
+            <div className="text-white p-4 text-center">No appointment details to display.</div>
           )}
         </div>
       </Modal.Body>
@@ -841,8 +1045,8 @@ export const UpdateForm = ({ user }) => {
     setIsEditing(false);
     setShow(true);
   }, [user]);
-  const handleSave = async () => { };
-  const handleDelete = async () => { };
+  const handleSave = async () => {};
+  const handleDelete = async () => {};
   const handleEdit = () => {
     setIsEditing(!isEditing);
   };
@@ -892,72 +1096,70 @@ export const UpdateForm = ({ user }) => {
   //   }
   // };
   const containerStyle = {
-    position: "relative",
-    display: "inline-block", // Ensure the container fits around the content
-    width: "100px",
-    height: "100px",
-    marginTop: "20px",
+    position: 'relative',
+    display: 'inline-block', // Ensure the container fits around the content
+    width: '100px',
+    height: '100px',
+    marginTop: '20px',
   };
 
   const profilePicStyle = {
-    width: "100%",
-    height: "100%",
-    border: "1px solid #d3b386",
-    borderRadius: "50%",
-    boxShadow: "#85929e 0px 2px 5px",
-    backgroundImage: pic
-      ? `url(${profilePicBase64})`
-      : `url(${Contactprofile})`,
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    backgroundColor: "#fff", // Fallback background color
-    position: "relative",
-    overflow: "hidden", // Ensure the camera icon stays within the rounded area
+    width: '100%',
+    height: '100%',
+    border: '1px solid #d3b386',
+    borderRadius: '50%',
+    boxShadow: '#85929e 0px 2px 5px',
+    backgroundImage: pic ? `url(${profilePicBase64})` : `url(${Contactprofile})`,
+    backgroundSize: 'cover',
+    backgroundRepeat: 'no-repeat',
+    backgroundColor: '#fff', // Fallback background color
+    position: 'relative',
+    overflow: 'hidden', // Ensure the camera icon stays within the rounded area
   };
 
   const cameraOverlayStyle = {
-    display: "none", // Hide the overlay by default
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)", // Center the icon
-    color: "#d3b386", // Color for the icon
-    fontSize: "24px", // Adjust size as needed
-    width: "100%",
-    height: "100%",
-    alignItems: "center",
-    justifyContent: "center",
-    background: "rgba(0, 0, 0, 0.3)", // Optional: Semi-transparent background
+    display: 'none', // Hide the overlay by default
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)', // Center the icon
+    color: '#d3b386', // Color for the icon
+    fontSize: '24px', // Adjust size as needed
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'rgba(0, 0, 0, 0.3)', // Optional: Semi-transparent background
     zIndex: 1,
   };
   const handleMouseEnter = (e) => {
-    e.currentTarget.querySelector(".camera-overlay").style.display = "flex";
+    e.currentTarget.querySelector('.camera-overlay').style.display = 'flex';
   };
 
   const handleMouseLeave = (e) => {
-    e.currentTarget.querySelector(".camera-overlay").style.display = "none";
+    e.currentTarget.querySelector('.camera-overlay').style.display = 'none';
   };
   const handleProfilePicClick = () => {
     if (isEditing) {
-      document.getElementById("profilePicUpdate").click();
+      document.getElementById('profilePicUpdate').click();
     }
   };
   return (
-    <center style={{ width: "100%", height: "100%", position: "relative" }}>
+    <center style={{ width: '100%', height: '100%', position: 'relative' }}>
       {/* Close Button at the Top Level */}
       {show && (
         <button
           title="Close"
           onClick={() => setShow(false)}
           style={{
-            position: "absolute",
-            top: "0px",
-            right: "10px",
-            background: "transparent",
-            border: "none",
-            fontSize: "1.5rem",
-            cursor: "pointer",
-            color: "#d3b386",
+            position: 'absolute',
+            top: '0px',
+            right: '10px',
+            background: 'transparent',
+            border: 'none',
+            fontSize: '1.5rem',
+            cursor: 'pointer',
+            color: '#d3b386',
           }}
         >
           &times;
@@ -965,7 +1167,7 @@ export const UpdateForm = ({ user }) => {
       )}
 
       {show ? (
-        <div style={{ width: "50%", position: "relative" }}>
+        <div style={{ width: '50%', position: 'relative' }}>
           {/* Profile Picture */}
           <div style={containerStyle}>
             <div
@@ -985,7 +1187,7 @@ export const UpdateForm = ({ user }) => {
               accept="image/*"
               id="profilePicUpdate"
               onChange={handleFileInputChange}
-              style={{ display: "none" }}
+              style={{ display: 'none' }}
             />
           </div>
           {/* Edit Icon */}
@@ -994,18 +1196,18 @@ export const UpdateForm = ({ user }) => {
               <FaLock
                 onClick={handleEdit}
                 style={{
-                  cursor: "pointer",
-                  marginTop: "10px",
-                  color: "#d3b386",
+                  cursor: 'pointer',
+                  marginTop: '10px',
+                  color: '#d3b386',
                 }}
               />
             ) : (
               <FaEdit
                 onClick={handleEdit}
                 style={{
-                  cursor: "pointer",
-                  marginTop: "10px",
-                  color: "#d3b386",
+                  cursor: 'pointer',
+                  marginTop: '10px',
+                  color: '#d3b386',
                 }}
               />
             )}
@@ -1018,24 +1220,21 @@ export const UpdateForm = ({ user }) => {
               <label
                 className="form-label fw-bold"
                 style={{
-                  marginBottom: "10px",
-                  fontSize: "1rem",
-                  marginLeft: "3px",
+                  marginBottom: '10px',
+                  fontSize: '1rem',
+                  marginLeft: '3px',
                 }}
               >
                 Name
               </label>
-              <div
-                className="input-group bg-soft-light rounded-2"
-                style={{ marginTop: "-10px" }}
-              >
+              <div className="input-group bg-soft-light rounded-2" style={{ marginTop: '-10px' }}>
                 <span className="input-group-text">
                   <BsPerson />
                 </span>
                 <input
                   style={{
-                    borderColor: "#18273e", // Green border for unfocused state
-                    boxShadow: "none", // Remove default Bootstrap shadow on focus
+                    borderColor: '#18273e', // Green border for unfocused state
+                    boxShadow: 'none', // Remove default Bootstrap shadow on focus
                   }}
                   className="form-control-md form-control"
                   value={username}
@@ -1048,10 +1247,10 @@ export const UpdateForm = ({ user }) => {
                   required
                   readOnly={!isEditing}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                    e.target.style.borderColor = '#d3b386'; // Orange border on focus
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                    e.target.style.borderColor = '#18273e'; // Green border on unfocus
                   }}
                 />
               </div>
@@ -1062,23 +1261,20 @@ export const UpdateForm = ({ user }) => {
               <label
                 className="form-label fw-bold"
                 style={{
-                  marginBottom: "10px",
-                  fontSize: "1rem",
-                  marginLeft: "3px",
+                  marginBottom: '10px',
+                  fontSize: '1rem',
+                  marginLeft: '3px',
                 }}
               >
                 Email
               </label>
-              <div
-                className="input-group bg-soft-light rounded-2"
-                style={{ marginTop: "-10px" }}
-              >
+              <div className="input-group bg-soft-light rounded-2" style={{ marginTop: '-10px' }}>
                 <span className="input-group-text">
                   <MdOutlineAttachEmail />
                 </span>
                 <input
                   className="form-control-md form-control"
-                  value={email || ""}
+                  value={email || ''}
                   onChange={(e) => setEmail(e.target.value)}
                   id="Email"
                   name="email"
@@ -1088,14 +1284,14 @@ export const UpdateForm = ({ user }) => {
                   title="Enter a valid email address"
                   readOnly={!isEditing}
                   style={{
-                    borderColor: "#18273e", // Green border for unfocused state
-                    boxShadow: "none", // Remove default Bootstrap shadow on focus
+                    borderColor: '#18273e', // Green border for unfocused state
+                    boxShadow: 'none', // Remove default Bootstrap shadow on focus
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                    e.target.style.borderColor = '#d3b386'; // Orange border on focus
                   }}
                   onBlur={(e) => {
-                    e.target.style.borderColor = "#18273e"; // Green border on unfocus
+                    e.target.style.borderColor = '#18273e'; // Green border on unfocus
                   }}
                 />
               </div>
@@ -1106,9 +1302,9 @@ export const UpdateForm = ({ user }) => {
               <label
                 className="form-label fw-bold"
                 style={{
-                  marginBottom: "-10px",
-                  fontSize: "1rem",
-                  marginLeft: "3px",
+                  marginBottom: '-10px',
+                  fontSize: '1rem',
+                  marginLeft: '3px',
                 }}
               >
                 WhatsApp Number
@@ -1117,26 +1313,26 @@ export const UpdateForm = ({ user }) => {
                 <PhoneInput
                   containerClass="form-control-md"
                   inputProps={{
-                    name: "phone",
+                    name: 'phone',
                     onBlur: (e) => {
-                      e.target.style.borderColor = "#18273e";
-                      e.target.style.boxShadow = "none";
+                      e.target.style.borderColor = '#18273e';
+                      e.target.style.boxShadow = 'none';
                     },
                     onFocus: (e) => {
-                      e.target.style.borderColor = "#d3b386"; // Orange border on focus
+                      e.target.style.borderColor = '#d3b386'; // Orange border on focus
                     },
                   }}
                   containerStyle={{
-                    borderRadius: "10px",
+                    borderRadius: '10px',
                   }}
                   disableSearchIcon={true}
                   inputStyle={{
-                    width: "100%",
-                    border: "1px solid #18273e",
-                    boxShadow: "none",
-                    height: "37px",
+                    width: '100%',
+                    border: '1px solid #18273e',
+                    boxShadow: 'none',
+                    height: '37px',
                   }}
-                  country={"ae"}
+                  country={'ae'}
                   value={phoneNumber}
                   onChange={(value) => setPhoneNumber(value)}
                   disabled={!isEditing} // Toggle editability based on isEditing state
@@ -1148,21 +1344,21 @@ export const UpdateForm = ({ user }) => {
             {isEditing && (
               <div
                 style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  width: "100%",
-                  marginTop: "10px",
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  width: '100%',
+                  marginTop: '10px',
                 }}
               >
                 <button
                   onClick={handleSave}
                   style={{
-                    width: "48%",
-                    color: "white",
-                    background: "#18273e",
-                    height: "40px",
-                    border: "none",
-                    borderRadius: "6px",
+                    width: '48%',
+                    color: 'white',
+                    background: '#18273e',
+                    height: '40px',
+                    border: 'none',
+                    borderRadius: '6px',
                     fontWeight: 500,
                   }}
                 >
@@ -1171,12 +1367,12 @@ export const UpdateForm = ({ user }) => {
                 <button
                   onClick={handleDelete}
                   style={{
-                    width: "48%",
-                    color: "white",
-                    background: "#d3b386",
-                    height: "40px",
-                    border: "none",
-                    borderRadius: "10px",
+                    width: '48%',
+                    color: 'white',
+                    background: '#d3b386',
+                    height: '40px',
+                    border: 'none',
+                    borderRadius: '10px',
                     fontWeight: 500,
                   }}
                 >
