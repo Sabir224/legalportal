@@ -102,19 +102,26 @@ export default function PaymentDashboard() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState([]);
-  const [serviceFilter, setServiceFilter] = useState([]);
-  const [consultationTypeFilter, setConsultationTypeFilter] = useState([]);
-  const [lawyerFilter, setLawyerFilter] = useState([]);
-  const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [openFilter, setOpenFilter] = useState(null);
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState([]);
+  const [StatusFilterLenght, setStatusFilterLenght] = useState(0);
+  const [serviceFilter, setServiceFilter] = useState([]);
+  const [serviceFilterLength, setFilterServiceLength] = useState(0);
+  const [consultationTypeFilter, setConsultationTypeFilter] = useState([]);
+  const [consultationTypeFilterLenght, setConsultationTypeFilterLength] = useState(0);
+  const [lawyerFilter, setLawyerFilter] = useState([]);
+  const [lawyerFilterLength, setLawyerFilterLength] = useState(0);
+  const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [methodFilter, setMethodFilter] = useState([]);
-  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [methodFilterLength, setMethodFilterLength] = useState(0);
   const [clientFilter, setClientFilter] = useState([]);
+  const [clientFilterLength, setClientFilterLength] = useState(0);
   const [phoneFilter, setPhoneFilter] = useState([]);
+  const [phoneFilterLength, setPhoneFilterLength] = useState(0);
   const [amountFilter, setAmountFilter] = useState([]);
+  const [amountFilterLength, setAmountFilterLength] = useState(0);
   const [emailFilter, setEmailFilter] = useState([]);
 
   const [filterSearchTerms, setFilterSearchTerms] = useState({
@@ -380,13 +387,22 @@ export default function PaymentDashboard() {
 
           // set defaults (select all)
           setMethodFilter(allMethods);
+          setMethodFilterLength(allMethods.length);
           setServiceFilter(allServices);
+          setFilterServiceLength(allServices.length);
           setConsultationTypeFilter(allConsultations);
+          setConsultationTypeFilterLength(allConsultations.length);
+          setStatusFilterLenght(allStatuses.length);
           setStatusFilter(allStatuses);
           setLawyerFilter(allLawyers.map((l) => l._id));
+          console.log(allLawyers.length);
+          setLawyerFilterLength(allLawyers.length);
           setClientFilter(allClient);
+          setClientFilterLength(allClient.length);
           setAmountFilter(allAmount);
+          setAmountFilterLength(allAmount.length);
           setPhoneFilter(allPhone);
+          setPhoneFilterLength(allPhone.length);
           setEmailFilter(allEmails);
         } else {
           setError('API returned no data or unsuccessful result');
@@ -812,7 +828,7 @@ export default function PaymentDashboard() {
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
 
   const getStatusChip = (status) => {
-    if (!status) return <Chip label="No Booked" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
+    if (!status) return <Chip label="Not Booked" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
 
     switch (status) {
       case 'paid':
@@ -1431,36 +1447,17 @@ export default function PaymentDashboard() {
                                   <FilterableHeaderCell
                                     label="Client Name"
                                     minWidth={150}
-                                    isActive={clientFilter.length > 0}
+                                    isActive={clientFilter.length < clientFilterLength}
                                     onClick={(e) => handleOpenFilter('client', e)}
                                   />
-
-                                  {/* <StyledTableCell
-                                    sx={{
-                                      minWidth: 150,
-                                      backgroundColor: lightTheme.textPrimary,
-                                      color: lightTheme.background,
-                                    }}
-                                  >
-                                    Client Name
-                                  </StyledTableCell> */}
 
                                   <FilterableHeaderCell
                                     label="Phone"
                                     minWidth={120}
-                                    isActive={phoneFilter.length > 0}
+                                    isActive={phoneFilter.length < phoneFilterLength}
                                     onClick={(e) => handleOpenFilter('phone', e)}
                                   />
 
-                                  {/* <StyledTableCell
-                                    sx={{
-                                      minWidth: 120,
-                                      backgroundColor: lightTheme.textPrimary,
-                                      color: lightTheme.background,
-                                    }}
-                                  >
-                                    Phone
-                                  </StyledTableCell> */}
                                   <StyledTableCell
                                     sx={{
                                       minWidth: 120,
@@ -1473,38 +1470,30 @@ export default function PaymentDashboard() {
                                   <FilterableHeaderCell
                                     label="Lawyer"
                                     minWidth={150}
-                                    isActive={lawyerFilter.length > 0}
+                                    isActive={lawyerFilter.length < lawyerFilterLength}
                                     onClick={(e) => handleOpenFilter('lawyer', e)}
                                   />
 
                                   <FilterableHeaderCell
                                     label="Service"
                                     minWidth={160}
-                                    isActive={serviceFilter.length > 0}
+                                    isActive={serviceFilter.length < serviceFilterLength}
                                     onClick={(e) => handleOpenFilter('service', e)}
                                   />
 
                                   <FilterableHeaderCell
                                     label="Consultation Type"
                                     minWidth={200}
-                                    isActive={consultationTypeFilter.length > 0}
+                                    isActive={consultationTypeFilter.length < consultationTypeFilterLenght}
                                     onClick={(e) => handleOpenFilter('consultation', e)}
                                   />
                                   <FilterableHeaderCell
                                     label="Invoice Amount"
                                     minWidth={150}
-                                    isActive={amountFilter.length > 0}
+                                    isActive={amountFilter.length < amountFilterLength}
                                     onClick={(e) => handleOpenFilter('amount', e)}
                                   />
-                                  {/* <StyledTableCell
-                                    sx={{
-                                      minWidth: 150,
-                                      backgroundColor: lightTheme.textPrimary,
-                                      color: lightTheme.background,
-                                    }}
-                                  >
-                                    Invoice Amount
-                                  </StyledTableCell> */}
+
                                   <StyledTableCell
                                     sx={{
                                       minWidth: 120,
@@ -1518,14 +1507,14 @@ export default function PaymentDashboard() {
                                   <FilterableHeaderCell
                                     label="Method"
                                     minWidth={120}
-                                    isActive={methodFilter.length > 0}
+                                    isActive={methodFilter.length < methodFilterLength}
                                     onClick={(e) => handleOpenFilter('method', e)}
                                   />
 
                                   <FilterableHeaderCell
                                     label="Status"
                                     minWidth={120}
-                                    isActive={statusFilter.length > 0}
+                                    isActive={statusFilter.length < StatusFilterLenght}
                                     onClick={(e) => handleOpenFilter('status', e)}
                                   />
                                 </TableRow>

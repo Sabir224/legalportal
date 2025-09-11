@@ -122,14 +122,6 @@ export default function FilterSection({
             const label = normalize(rawLabel, 'text');
             const search = normalize(searchTerm, /^\d+$/.test(searchTerm) ? 'phone' : 'text');
 
-            // Debug log
-            console.log('DEBUG FILTER:', {
-              rawLabel,
-              normalizedLabel: label,
-              rawSearch: searchTerm,
-              normalizedSearch: search,
-            });
-
             return search === '' || label.includes(search);
           })
 
