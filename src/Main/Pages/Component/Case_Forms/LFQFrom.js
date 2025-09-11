@@ -2270,7 +2270,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [clientContactphone, setclientContactphone] = useState('');
     const [dateValue, setDateValue] = useState('');
     const [localCounsel, setLocalCounsel] = useState("no");
-    const [matterReference, setMatterReference] = useState(caseInfo?.CaseNumber);
+    const [matterReference, setMatterReference] = useState(caseInfo?.CaseId);
     const [caseType, setCaseType] = useState(caseInfo?.CaseSubType); // default Civil
     const [jurisdiction, setJurisdiction] = useState("UAE Local Courts"); // default UAE Local Courts
     const [complexity, setComplexity] = useState(caseInfo?.Priority);
@@ -2982,7 +2982,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const {
             size = 320,
             mainText = "APPROVED",
-            subText = "AWS LegalGroup",
+            subText = "AWS Legal Consultancy",
             mainColor = "#12963a", // Deep Blue
             ringWidth = 10,
             rotation = -15 * Math.PI / 180 // default tilt: -15 degrees
@@ -3239,12 +3239,13 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                         {
                             columns: [
                                 logoBase64
-                                    ? { image: logoBase64, width: 40, height: 50, margin: [20, 15, 0, 0] }
+                                    ? { image: logoBase64, width: 60, height: 60, margin: [20, 5, 0, 0] }
                                     : {},
                                 {
                                     stack: [
-                                        { text: "SUHAD ALJUBOORI", fontSize: 14, bold: true, color: "#ffffff", margin: [0, 20, 0, 0] },
-                                        { text: "Advocates & Legal Consultants", fontSize: 12, color: "#ffffff", margin: [0, 5, 0, 0] },
+                                        { text: "LEGAL", fontSize: 16, bold: true, color: "#ffffff", margin: [0, 10, 0, 0] },
+                                        { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#ffffff", margin: [0, 5, 0, 0] },
+                                        { text: "Advocates & Legal Consultants", fontSize: 10, color: "#ffffff", margin: [0, 5, 0, 5] },
                                     ],
                                 },
                             ],
@@ -3461,40 +3462,45 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
-                { text: "Approvals", style: "header", margin: [0, 20, 0, 10] },
-                {
-                    table: {
-                        widths: ["50%", "50%"],
-                        body: [
-                            [
-                                {
-                                    stack: [
-                                        { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                                        { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
-                                        data.preparedBySignpath
-                                            ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
-                                            : { text: "Signature: ", style: "value" },
-                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                        { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
-                                    ],
-                                },
-                                {
-                                    stack: [
-                                        { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
-                                        approvedBySignBase64
-                                            ? { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] }
-                                            : { text: "Signature: ", style: "value" },
-                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                        { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
-                                    ],
-                                },
-                            ],
-                        ],
-                    },
-                    layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
-                }
+               { text: "Approvals", style: "header", margin: [0, 20, 0, 10] },
+{
+  table: {
+    widths: approvedBySignBase64 ? ["50%", "50%"] : ["100%"], // 👈 agar sign hai to 2 column, warna 1 column
+    body: [
+      [
+        {
+          stack: [
+            { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+            { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
+            data.preparedBySignpath
+              ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
+              : { text: "Signature: ", style: "value" },
+            { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+            { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
+          ],
+        },
+
+        // 👇 Approval wala stack sirf tabhi include hoga jab approvedBySignBase64 present ho
+        ...(approvedBySignBase64
+          ? [
+              {
+                stack: [
+                  { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                  { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
+                  { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
+                  { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+                  { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
+                ],
+              },
+            ]
+          : []),
+      ],
+    ],
+  },
+  layout: "lightHorizontalLines",
+  margin: [0, 10, 0, 20],
+}
+
             ],
             styles: {
                 pdfTitle: { fontSize: 16, bold: true, color: "#0d6efd" },
