@@ -3204,61 +3204,148 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const preparedBySignBase64 = data?.preparedBySignpath
             ? await getSignBase64FromServer(data.preparedBySignpath)
             : null;
+
         const FillpreparedBy = getAllOpsteam.find(op => op._id === data.preparedBy);
         const FillapprovedBy = getAllOpsteam.find(op => op._id === data.approvedBy);
         const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer?.name);
         const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer?.name);
-        let value = data.clientCategory[0]
 
-        console.log("Nmae=", data.clientName)
+        let value = data.clientCategory[0];
         let parsedArray = Array.isArray(value) ? value : JSON.parse(value);
         let formattedclientCategory = parsedArray.join(", ");
 
         const approvedBySignBase64 = data.approvedBySignpath
             ? await getSignBase64FromServer(data.approvedBySignpath)
             : null;
-        // const approvedBySignBase64 = data.approvedBySignpath
+
+        // ====== NEW: sidebar width so margins & background stay in sync ======
+        // === BRAND LOOK CONTROLS ===
+        // --- brand/layout controls ---
+        const sidebarWidth = 85;
+        const BAR_COLOR = "#8a96b2";
+        const AWS_FONT_SIZE = 74;
+        const AWS_OPACITY = 0.25;
+
+        // how tall is the header block (logo + 3 lines)?
+        const HEADER_HEIGHT = 90;   // adjust if you change logo/lines
+
         const docDefinition = {
-            pageMargins: [40, 100, 40, 60],
-            header: (currentPage, pageCount) => {
+            // ==== LEFT STRIP + REPEATING "AWS" ====
+            background: (currentPage, pageSize) => {
+                // const elems = [
+                //     // === Left side strip ===
+                //     {
+                //         canvas: [{
+                //             type: "rect",
+                //             x: 0,
+                //             y: 0,
+                //             w: sidebarWidth,
+                //             h: pageSize.height,
+                //             color: BAR_COLOR
+                //         }]
+                //     }
+                // ];
+
+                // // === Logo + Text in the strip ===
+                // if (logoBase64) {
+                //     elems.push({
+                //         image: logoBase64,
+                //         width: 50,
+                //         height: 50,
+                //         absolutePosition: { x: 15, y: 40 }
+                //     });
+                // }
+
+                // elems.push({
+                //     stack: [
+                //         { text: "LEGAL", fontSize: 16, bold: true, color: "#ffffff", margin: [0, 0, 0, 2] },
+                //         { text: "SUHAD ALJUBOORI", fontSize: 10, bold: true, color: "#ffffff", margin: [0, 0, 0, 2] },
+                //         { text: "Advocates & Legal Consultants", fontSize: 8, color: "#ffffff" }
+                //     ],
+                //     absolutePosition: { x: 15, y: 100 }
+                // });
+
+
+                 const elems = [
+                    {
+                        canvas: [{
+                            type: "rect",
+                            x: 0,
+                            y: 0,
+                            w: sidebarWidth,
+                            h: pageSize.height,
+                            color: BAR_COLOR
+                        }]
+                    }
+                ];
+
+                // place 6–8 "AWS" words down the strip
+                const startY = 90;                    // first word Y
+                const stepY = AWS_FONT_SIZE + 16;    // spacing
+                for (let i = 0; i < 8; i++) {
+                    elems.push({
+                        text: "AWS",
+                        bold: true,
+                        fontSize: AWS_FONT_SIZE,
+                        color: "#ffffff",
+                        opacity: AWS_OPACITY,
+                        absolutePosition: { x: 16, y: startY + i * stepY }
+                    });
+                }
+               
+                // === Centered faint background watermark ===
+                if (logoBase64) {
+                    const wmWidth = Math.min(360, pageSize.width * 0.45); // 45% of page width
+                    const wmX = (pageSize.width - wmWidth) / 2;
+                    const wmY = (pageSize.height - wmWidth) / 2;
+
+                    elems.push({
+                        image: logoBase64,
+                        width: wmWidth,
+                        opacity: 0.06, // faint look
+                        absolutePosition: { x: wmX, y: wmY }
+                    });
+                }
+
+                return elems;
+            },
+
+            // shift content to the right so it clears the strip
+            // content area starts 20 below header:
+            pageMargins: [sidebarWidth + 30, HEADER_HEIGHT + 20, 40, 60],
+
+
+            // ==== CLEAN HEADER (WHITE), LOGO + FIRM NAME ====
+            header: (currentPage, pageCount, pageSize) => {
                 return {
-                    margin: [0, 0, 0, 0],
-                    stack: [
-                        {
-                            canvas: [
-                                {
-                                    type: "rect",
-                                    x: 0,
-                                    y: 0,
-                                    w: 595,
-                                    h: 80,
-                                    color: "#1a2b42",
-                                },
-                            ],
-                        },
+                    margin: [sidebarWidth + 20, 15, 20, 0],
+                    columns: [
                         {
                             columns: [
                                 logoBase64
-                                    ? { image: logoBase64, width: 60, height: 60, margin: [20, 5, 0, 0] }
-                                    : {},
+                                    ? { image: logoBase64, width: 70, height: 70, margin: [0, 0, 10, 0] }
+                                    : { text: "" },
                                 {
+                                    // three-line stack
                                     stack: [
-                                        { text: "LEGAL", fontSize: 16, bold: true, color: "#ffffff", margin: [0, 10, 0, 0] },
-                                        { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#ffffff", margin: [0, 5, 0, 0] },
-                                        { text: "Advocates & Legal Consultants", fontSize: 10, color: "#ffffff", margin: [0, 5, 0, 5] },
-                                    ],
-                                },
+                                        { text: "LEGAL", fontSize: 22, bold: true, color: "#576583", margin: [0, 6, 0, 0], lineHeight: 1.1 },
+                                        { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#576583", margin: [0, 2, 0, 0], lineHeight: 1.1 },
+                                        // FIX: use characterSpacing instead of letterSpacing so it actually renders
+                                        {
+                                            text: "ADVOCATES & LEGAL CONSULTANTS", fontSize: 9, color: "#8a96b2",
+                                            margin: [0, 2, 0, 0], characterSpacing: 1, lineHeight: 1.15
+                                        }
+                                    ]
+                                }
                             ],
-                            columnGap: 30,
-                            margin: [20, -70, 0, 0],
-                            alignment: "left",
-                        },
+                            width: "*"
+                        }
                     ],
                 };
             },
-            footer: (currentPage, pageCount) => {
+            footer: (currentPage, pageCount, pageSize) => {
                 const footerText =
-                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com, email: info@awsadvocates.com";
+                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com";
 
                 return {
                     stack: [
@@ -3268,7 +3355,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                     type: "rect",
                                     x: 0,
                                     y: 0,
-                                    w: 595,
+                                    w: pageSize.width,
                                     h: 70,
                                     color: "#f5f5f5",
                                 },
@@ -3299,9 +3386,10 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             ],
                         },
                     ],
-                    margin: [0, -10, 0, 0],
+                    margin: [sidebarWidth, -10, 0, 0],
                 };
             },
+
             content: [
                 { text: "Client & Case Information", style: "header", margin: [0, 10, 0, 10] },
                 {
@@ -3325,6 +3413,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
+
                 { text: "Case Complexity & Stakes", style: "header", margin: [0, 20, 0, 10] },
                 {
                     table: {
@@ -3344,6 +3433,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
+
                 { text: "Client Profile & Relationship", style: "header", margin: [0, 20, 0, 10] },
                 {
                     table: {
@@ -3352,71 +3442,41 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             [
                                 { text: "Client Category", style: "label" },
                                 {
-                                    text: Array.isArray(data.clientCategory) && data.clientCategory.length > 0
-                                        ? formattedclientCategory
-                                        : "-",
-                                    style: "value"
-                                }
+                                    text:
+                                        Array.isArray(data.clientCategory) && data.clientCategory.length > 0
+                                            ? formattedclientCategory
+                                            : "-",
+                                    style: "value",
+                                },
                             ],
-                            [
-                                { text: "Referred By", style: "label" },
-                                { text: data.referredBy || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Retainer Details", style: "label" },
-                                { text: data.retainerDetails || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Communication Needs", style: "label" },
-                                { text: data.communicationNeeds || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Notes on Client Personality / Expectations", style: "label" },
-                                { text: data.clientNotes || "-", style: "value" },
-                            ],
+                            [{ text: "Referred By", style: "label" }, { text: data.referredBy || "-", style: "value" }],
+                            [{ text: "Retainer Details", style: "label" }, { text: data.retainerDetails || "-", style: "value" }],
+                            [{ text: "Communication Needs", style: "label" }, { text: data.communicationNeeds || "-", style: "value" }],
+                            [{ text: "Notes on Client Personality / Expectations", style: "label" }, { text: data.clientNotes || "-", style: "value" }],
                         ],
                     },
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
+
                 { text: "Fee Proposal & Pricing", style: "header", margin: [0, 10, 0, 10] },
                 {
                     table: {
                         widths: ["35%", "65%"],
                         body: [
-                            [
-                                { text: "Proposed Fee Structure", style: "label" },
-                                { text: data.feeStructure || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Other Fee (if applicable)", style: "label" },
-                                { text: data.otherFee || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Hourly Rates (if Hourly)", style: "label" },
-                                { text: data.hourlyRates || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Fixed Fee Amount (if Fixed Fee)", style: "label" },
-                                { text: data.fixedFee || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Scope of Work:", style: "label" },
-                                { text: data.ScopeOfWork || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Special Terms / Considerations", style: "label" },
-                                { text: data.specialTerms || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Key Factors Affecting Fee", style: "label" },
-                                { text: data.keyFactors || "-", style: "value" },
-                            ],
+                            [{ text: "Proposed Fee Structure", style: "label" }, { text: data.feeStructure || "-", style: "value" }],
+                            [{ text: "Other Fee (if applicable)", style: "label" }, { text: data.otherFee || "-", style: "value" }],
+                            [{ text: "Hourly Rates (if Hourly)", style: "label" }, { text: data.hourlyRates || "-", style: "value" }],
+                            [{ text: "Fixed Fee Amount (if Fixed Fee)", style: "label" }, { text: data.fixedFee || "-", style: "value" }],
+                            [{ text: "Scope of Work:", style: "label" }, { text: data.ScopeOfWork || "-", style: "value" }],
+                            [{ text: "Special Terms / Considerations", style: "label" }, { text: data.specialTerms || "-", style: "value" }],
+                            [{ text: "Key Factors Affecting Fee", style: "label" }, { text: data.keyFactors || "-", style: "value" }],
                         ],
                     },
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
+
                 { text: "Resource & Effort Estimation", style: "header", margin: [0, 20, 0, 10] },
                 {
                     table: {
@@ -3427,81 +3487,62 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 { text: "Name / Role", style: "tableHeader" },
                                 { text: "Est. Hours", style: "tableHeader" },
                             ],
-                            [
-                                { text: "Senior Lawyer", style: "label" },
-                                { text: FillseniorLawyer?.UserName || "-", style: "value" },
-                                { text: data.seniorLawyer?.estHours || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Associate Lawyer(s)", style: "label" },
-                                { text: FillassociateLawyer?.UserName || "-", style: "value" },
-                                { text: data.associateLawyer?.estHours || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Local Counsel", style: "label" },
-                                { text: data.resourceLocalCounsel?.name || "-", style: "value" },
-                                { text: data.resourceLocalCounsel?.estHours || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Paralegal / Support Staff", style: "label" },
-                                { text: data.paralegalSupport?.role || "-", style: "value" },
-                                { text: data.paralegalSupport?.estHours || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Other Resources", style: "label" },
-                                { text: data.otherResources?.description || "-", style: "value" },
-                                { text: data.otherResources?.estHours || "-", style: "value" },
-                            ],
-                            [
-                                { text: "Total Estimated Hours", style: "labelBold" },
-                                { text: "", style: "value" },
-                                { text: data.totalEstimatedHours || "-", style: "labelBold" },
-                            ],
+                            [{ text: "Senior Lawyer", style: "label" }, { text: FillseniorLawyer?.UserName || "-", style: "value" }, { text: data.seniorLawyer?.estHours || "-", style: "value" }],
+                            [{ text: "Associate Lawyer(s)", style: "label" }, { text: FillassociateLawyer?.UserName || "-", style: "value" }, { text: data.associateLawyer?.estHours || "-", style: "value" }],
+                            [{ text: "Local Counsel", style: "label" }, { text: data.resourceLocalCounsel?.name || "-", style: "value" }, { text: data.resourceLocalCounsel?.estHours || "-", style: "value" }],
+                            [{ text: "Paralegal / Support Staff", style: "label" }, { text: data.paralegalSupport?.role || "-", style: "value" }, { text: data.paralegalSupport?.estHours || "-", style: "value" }],
+                            [{ text: "Other Resources", style: "label" }, { text: data.otherResources?.description || "-", style: "value" }, { text: data.otherResources?.estHours || "-", style: "value" }],
+                            [{ text: "Total Estimated Hours", style: "labelBold" }, { text: "", style: "value" }, { text: data.totalEstimatedHours || "-", style: "labelBold" }],
                         ],
                     },
                     layout: "lightHorizontalLines",
                     margin: [0, 10, 0, 20],
                 },
-               { text: "Approvals", style: "header", margin: [0, 20, 0, 10] },
-{
-  table: {
-    widths: approvedBySignBase64 ? ["50%", "50%"] : ["100%"], // 👈 agar sign hai to 2 column, warna 1 column
-    body: [
-      [
-        {
-          stack: [
-            { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-            { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
-            data.preparedBySignpath
-              ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
-              : { text: "Signature: ", style: "value" },
-            { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-            { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
-          ],
-        },
 
-        // 👇 Approval wala stack sirf tabhi include hoga jab approvedBySignBase64 present ho
-        ...(approvedBySignBase64
-          ? [
-              {
-                stack: [
-                  { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                  { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
-                  { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
-                  { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                  { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
-                ],
-              },
-            ]
-          : []),
-      ],
-    ],
-  },
-  layout: "lightHorizontalLines",
-  margin: [0, 10, 0, 20],
-}
+                {
+                    unbreakable: true,
+                    stack: [
+                        { text: "Approvals", style: "header", margin: [0, 20, 0, 10] },
+                        {
+                            table: {
+                                widths: approvedBySignBase64 ? ["50%", "50%"] : ["100%"],
+                                body: [
+                                    [
+                                        {
+                                            stack: [
+                                                { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                                { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
+                                                data.preparedBySignpath
+                                                    ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
+                                                    : { text: "Signature: ", style: "value" },
+                                                { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+                                                { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
+                                            ],
+                                        },
+                                        ...(approvedBySignBase64
+                                            ? [
+                                                {
+                                                    stack: [
+                                                        { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
+                                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
+                                                        { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
+                                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+                                                        { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
+                                                    ],
+                                                },
+                                            ]
+                                            : []),
+                                    ],
+                                ],
+                            },
+                            layout: "lightHorizontalLines",
+                            margin: [0, 10, 0, 20],
+                        },
 
+                    ]
+                }
             ],
+
             styles: {
                 pdfTitle: { fontSize: 16, bold: true, color: "#0d6efd" },
                 header: { fontSize: 18, bold: true, margin: [0, 0, 0, 10], color: "#0d6efd" },
@@ -3509,12 +3550,14 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 label: { bold: true, fontSize: 11, color: "#000", margin: [0, 3, 0, 3] },
                 labelBold: { bold: true, fontSize: 12, color: "#0d6efd", margin: [0, 3, 0, 3] },
                 value: { fontSize: 11, color: "#333", margin: [0, 3, 0, 3] },
+                subHeader: { italics: true, color: "#333" }
             },
             defaultStyle: { fontSize: 10 },
         };
 
         pdfMake.createPdf(docDefinition).download(`Legal_Fee_Quotation_(${data?.clientName}).pdf`);
     };
+
 
     return (
         <div
