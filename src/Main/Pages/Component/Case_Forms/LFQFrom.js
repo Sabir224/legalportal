@@ -1505,9 +1505,9 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                             {getDrafts?.map((data, index) => (
                                                 <Dropdown.Item key={index} onClick={() => {
                                                     setSelectedDrafts(data)
-                                                    setClientName(data.clientName || "");
-                                                    setclientContactInfo(data.clientEmail || "");
-                                                    setclientContactphone(data.clientContactphone || "");
+                                                    // setClientName(data.clientName || "");
+                                                    // setclientContactInfo(data.clientEmail || "");
+                                                    // setclientContactphone(data.clientContactphone || "");
                                                     if (data.dateOfClientMeeting) {
                                                         const date = new Date(data.dateOfClientMeeting);
                                                         setDateValue(
