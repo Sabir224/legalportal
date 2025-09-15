@@ -59,7 +59,8 @@ const AddCase = () => {
     "Financial Case",
     "Public Law",
     "Consumer Case",
-    "Environmental Case"
+    "Environmental Case",
+    "Rental Law"
 
   ]
   const COURT_STAGES = [
@@ -72,7 +73,8 @@ const AddCase = () => {
     "Appeals",
     "Execution",
     "Specialized Stages",
-    "Under Review"
+    "Under Review",
+    "Cassation"
   ];
   // const Subtypelist = [
   //   "Alternative Dispute Resolution (ADR)",

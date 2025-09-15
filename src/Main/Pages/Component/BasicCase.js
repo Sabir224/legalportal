@@ -117,7 +117,8 @@ const BasicCase = ({ token }) => {
     "Appeals",
     "Execution",
     "Specialized Stages",
-    "Under Review"
+    "Under Review",
+    "Cassation"
   ];
 
   const UpdateSubtypelist = [
@@ -134,7 +135,8 @@ const BasicCase = ({ token }) => {
     "Financial Case",
     "Public Law",
     "Consumer Case",
-    "Environmental Case"
+    "Environmental Case",
+    "Rental Law"
   ]
 
 
@@ -1172,6 +1174,12 @@ const BasicCase = ({ token }) => {
                 maxWidth: '150px',
                 minWidth: '150px',
                 color: 'white'
+              }}>ClientName</span>
+
+              <span className=" text-start" style={{
+                maxWidth: '150px',
+                minWidth: '150px',
+                color: 'white'
               }}>Request Number</span>
 
 
@@ -1649,6 +1657,11 @@ const BasicCase = ({ token }) => {
                         {item.CaseNumber}
                       </span>
 
+                      {/* REQUEST NUMBER */}
+                      <span className=" text-start" style={{
+                        maxWidth: '150px',
+                        minWidth: '150px',
+                      }}>{item.ClientName}</span>
                       {/* REQUEST NUMBER */}
                       <span className=" text-start" style={{
                         maxWidth: '150px',
