@@ -12,6 +12,7 @@ import { Dropdown, Form, InputGroup, Modal, Button } from "react-bootstrap";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logo from "../../../Pages/Images/logo.png";
+import Stamp from "../../../Pages/Component/assets/Stamp.png";
 import { height } from "@mui/system";
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
@@ -367,7 +368,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
         if (RejectMessage && reject && (token?._id === preparedBy || token?._id === approvedBy)) {
 
-            showError("Form Rejected By Client Please Check Your Mail")
+            showError("The LFQ Form has been rejected by the client, please make the changes for resubmission")
         }
 
 
@@ -1049,9 +1050,10 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         let parsedArray = Array.isArray(value) ? value : JSON.parse(value);
         let formattedclientCategory = parsedArray.join(", ");
 
-        const approvedBySignBase64 = data.approvedBySignpath
-            ? await getSignBase64FromServer(data.approvedBySignpath)
-            : null;
+        const approvedBySignBase64 = data.isApproved ? await getBase64ImageFromUrl(Stamp) : null;
+        // data.approvedBySignpath
+        //     ? await getSignBase64FromServer(data.approvedBySignpath)
+        //     : null;
 
         // ====== NEW: sidebar width so margins & background stay in sync ======
         // === BRAND LOOK CONTROLS ===
@@ -1358,8 +1360,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                             ? [
                                                 {
                                                     stack: [
-                                                        { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
+                                                        { text: `Name: ${FillapprovedBy?.UserName || "Admin"}`, style: "value", margin: [0, 0, 0, 4] },
+                                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : new Date(data.preparedDate).toLocaleDateString()}`, style: "value" },
                                                         { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
                                                         { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
                                                         { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
@@ -2201,25 +2203,28 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         </div>
                                     </div>
                                 </div>
-                                {((approvedBySign || "admin" === token?.Role) && dataFound) && (
+
+
+
+                                {(LFQData?.isApproved && dataFound) && (
                                     <div className="col-md-6">
                                         <div className="card shadow-sm border-0 rounded-3 mb-4">
                                             <div className="card-body">
                                                 <h5 className="fw-bold mb-4">Reviewed & Approved by (Chairman)</h5>
                                                 <div className="row g-3 align-items-start">
                                                     <div className="col-12 mb-3">
-                                                        <label className="form-label fw-semibold">Name:</label>
-                                                        <select
-                                                            className="form-select"
-                                                            value={approvedBy}
-                                                            onChange={(e) => setApprovedBy(e.target.value)}
-                                                            disabled={true}
-                                                        >
-                                                            <option value="">Select Chairman</option>
-                                                            {getAllOpsteam.map((name, index) => (
-                                                                <option key={index} value={name?._id}>{name?.UserName}</option>
-                                                            ))}
-                                                        </select>
+                                                        <label className="form-label fw-semibold">Name: Admin</label>
+                                                        {/* <select
+                                                        className="form-select"
+                                                        value={approvedBy}
+                                                        onChange={(e) => setApprovedBy(e.target.value)}
+                                                        disabled={true}
+                                                    >
+                                                        <option value="">Select Chairman</option>
+                                                        {getAllOpsteam.map((name, index) => (
+                                                            <option key={index} value={name?._id}>{name?.UserName}</option>
+                                                        ))}
+                                                    </select> */}
                                                     </div>
                                                     {/* <div className="col-12 mb-3">
                                                         <label className="form-label fw-semibold">Signature:</label>
@@ -2240,59 +2245,79 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
 
                                                     <div className="col-12 mb-3">
-                                                        <label className="form-label fw-semibold">Signature:</label>
+                                                        <label className="form-label fw-semibold">Stamp:</label>
 
                                                         {/* Agar signature approve nahi hua aur local bhi nahi hai */}
-                                                        {((!isclient && !approvedBySign) || islocal) && (
-                                                            <div className="text-center mt-2">
-                                                                <button
-                                                                    className="btn btn-success"
-                                                                    onClick={() => {
-                                                                        const selected = getAllOpsteam.find(x => x._id === approvedBy);
-                                                                        handleSignatureSave(createApprovedSeal(selected?.UserName || ""))
-                                                                    }}
-                                                                >
-                                                                    Approve
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                        {/* {((!isclient && !approvedBySign) || islocal) && (
+                                                        <div className="text-center mt-2">
+                                                            <button
+                                                                className="btn btn-success"
+                                                                onClick={() => {
+                                                                    const selected = getAllOpsteam.find(x => x._id === approvedBy);
+                                                                    handleSignatureSave(createApprovedSeal(selected?.UserName || ""))
+                                                                }}
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                        </div>
+                                                    )} */}
 
                                                         {/* Agar signature already approved hai */}
-                                                        {approvedBySign && (
-                                                            <div className="mt-2 text-center">
-                                                                {approvedBySign === "Approved" ? (
+                                                        {/* {approvedBySign && ( */}
+                                                        <div className="mt-2 text-center">
+                                                            {/* {approvedBySign === "Approved" ? (
                                                                     <span className="badge bg-success fs-6 px-3 py-2">
                                                                         ✅ Approved
-                                                                    </span>
-                                                                ) : (
-                                                                    <img
-                                                                        src={approvedBySign}
-                                                                        alt="Chairman Signature"
-                                                                        className="img-fluid border rounded"
-                                                                        style={{ maxHeight: "150px" }}
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                    </span> */}
+                                                            {/* ) : ( */}
+                                                            <img
+                                                                src={Stamp}
+                                                                alt="Chairman Signature"
+                                                                className="img-fluid border rounded"
+                                                                style={{ maxHeight: "150px" }}
+                                                            />
+                                                            {/* )} */}
+                                                        </div>
+                                                        {/* )} */}
 
                                                     </div>
+
+                                                    {/* <div className="col-12">
+                                                    <label className="form-label fw-semibold">Date:</label>
+                                                    <DatePicker
+                                                        selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                        onChange={(date) => {
+                                                            if (date) {
+                                                                const day = String(date.getDate()).padStart(2, "0");
+                                                                const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                const year = date.getFullYear();
+                                                                setApprovedDate(`${day}/${month}/${year}`);
+                                                            }
+                                                        }}
+                                                        dateFormat="dd/MM/yyyy"
+                                                        className="form-control"
+                                                        placeholderText="dd/mm/yyyy"
+                                                        disabled={(approvedBySign && !islocal)}
+                                                    />
+                                                </div> */}
+
 
                                                     <div className="col-12">
                                                         <label className="form-label fw-semibold">Date:</label>
                                                         <DatePicker
-                                                            selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                            selected={preparedDate ? new Date(preparedDate.split("/").reverse().join("-")) : null}
                                                             onChange={(date) => {
                                                                 if (date) {
                                                                     const day = String(date.getDate()).padStart(2, "0");
                                                                     const month = String(date.getMonth() + 1).padStart(2, "0");
                                                                     const year = date.getFullYear();
-                                                                    setApprovedDate(`${day}/${month}/${year}`);
+                                                                    setPreparedDate(`${day}/${month}/${year}`);
                                                                 }
                                                             }}
+                                                            disabled={(dataFound || isclient)}
                                                             dateFormat="dd/MM/yyyy"
                                                             className="form-control"
                                                             placeholderText="dd/mm/yyyy"
-                                                            disabled={(approvedBySign && !islocal)}
                                                         />
                                                     </div>
                                                 </div>
@@ -2329,7 +2354,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
                         </div>
                     }
-                    {(preparedBySign && (isclient || !showLinkGenerator) && approvedBySign && !LFQData?.isApproved && !LFQData?.isReject) &&
+                    {(preparedBySign && (isclient || !showLinkGenerator) && !LFQData?.isApproved && !LFQData?.isReject) &&
                         <div className="d-flex justify-content-center gap-2 mt-2">
                             <div className="d-flex justify-content-center" style={{
                                 backgroundColor: "#16213e",

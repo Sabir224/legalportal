@@ -1125,17 +1125,27 @@ const BasicCase = ({ token }) => {
                 zIndex: 10,
               }}
             >
-              {/* CASE NUMBER Filter */}
-              <span
-                ref={caseNumberRef}
-                className="d-flex gap-2 text-start"
+
+              <span className="d-flex gap-2 text-start"
                 style={{
                   maxWidth: "150px",
                   minWidth: "150px",
                   position: "sticky",
                   left: 0,
+                  paddingLeft: 20,
+                  height: 35,
+                  // marginBottom:10,
                   zIndex: 2,
                   background: "#18273e",
+                }}>
+                ClientName</span>
+              {/* CASE NUMBER Filter */}
+              <span
+                ref={caseNumberRef}
+                className="d-flex gap-2 text-start" style={{
+                  maxWidth: '150px',
+                  minWidth: '150px',
+                  color: 'white'
                 }}
               >
                 Case Number
@@ -1170,14 +1180,11 @@ const BasicCase = ({ token }) => {
 
 
               {/* REQUEST NUMBER Headings */}
-              <span className=" text-start" style={{
-                maxWidth: '150px',
-                minWidth: '150px',
-                color: 'white'
-              }}>ClientName</span>
+
 
               <span className=" text-start" style={{
                 maxWidth: '150px',
+                height: 33,
                 minWidth: '150px',
                 color: 'white'
               }}>Request Number</span>
@@ -1430,6 +1437,7 @@ const BasicCase = ({ token }) => {
               <span className=" text-start" style={{
                 maxWidth: '250px',
                 minWidth: '250px',
+                height: 33,
                 color: 'white'
               }}>Purpose</span>
 
@@ -1437,6 +1445,8 @@ const BasicCase = ({ token }) => {
               <span className=" text-end" style={{
                 maxWidth: '100px',
                 minWidth: '100px',
+                height: 33,
+
                 color: 'white'
               }}>Action</span>
             </div>
@@ -1654,14 +1664,14 @@ const BasicCase = ({ token }) => {
                           paddingLeft: "1rem",
                         }}
                       >
-                        {item.CaseNumber}
+                        {item.ClientName}
                       </span>
 
                       {/* REQUEST NUMBER */}
                       <span className=" text-start" style={{
                         maxWidth: '150px',
                         minWidth: '150px',
-                      }}>{item.ClientName}</span>
+                      }}>{item.CaseNumber}</span>
                       {/* REQUEST NUMBER */}
                       <span className=" text-start" style={{
                         maxWidth: '150px',
