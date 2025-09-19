@@ -36,6 +36,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { isPublicRoute } from './Main/Pages/Component/utils/utlis';
 import RescheduleConfirm from './Main/Pages/AppointMents/AppointmentReschedule';
 import LFQ_ClientCaseEvaluationForm from './Main/Pages/Component/Case_Forms/LFQFrom';
+import BookConsultation from './Main/Pages/AppointMents/GenerateBookLinkForwebiste';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -110,7 +111,7 @@ const GlobalTokenValidator = () => {
       '/forget-password',
       '/reset-password',
       '/client-consultation',
-      "/LFQ_ClientCaseEvaluationForm",
+      '/LFQ_ClientCaseEvaluationForm',
       '/clientAppointMent/:phone/:name',
       '/reschedule',
     ];
@@ -124,7 +125,6 @@ const GlobalTokenValidator = () => {
     if (location.pathname === redirectPath) return;
 
     const handleInteraction = () => {
-      
       validateToken();
     };
 
@@ -157,7 +157,7 @@ function App() {
 
   return (
     <BrowserRouter>
-       <GlobalTokenValidator />
+      <GlobalTokenValidator />
       <Routes>
         {/* Public routes */}
         <Route path="/" element={<SignIn />} />
@@ -168,6 +168,7 @@ function App() {
         {/* <Route path="/" element={<CaseSummary />} />*/}
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgotPassword />} />
+        <Route path="/book" element={<BookConsultation />} />
         <Route
           path="/clientAppointMent/:phone/:name"
           element={
