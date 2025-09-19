@@ -588,31 +588,6 @@ function LegalConsultationStepper() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const UpdateSubtypelist = [
-    'Civil Case',
-    'Commercial Law',
-    'Criminal Case',
-    'Family Law',
-    'Real Estate Case',
-    'Labor Case',
-    'Construction Case',
-    'Maritime Case',
-    'Personal Injury Case',
-    ,
-    'Technology Case',
-    'Financial Case',
-    'Public Law',
-    'Consumer Case',
-    'Environmental Case',
-  ];
-  const handleChangeCaseDiscription = (e) => {
-    const value = e.target.value;
-    // Basic validation if needed (like max length)
-    if (value.length <= 1024) {
-      setDiscription(value);
-    }
-  };
-
   React.useEffect(() => {
     console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
     let isMounted = true;
@@ -740,7 +715,7 @@ function LegalConsultationStepper() {
 
             return matchesExpertise && hasSlots;
           });
-
+          console.log('Check Lawyer:', filteredLawyers);
           setLawyers(filteredLawyers);
         }
       } catch (err) {
@@ -1995,22 +1970,27 @@ function LegalConsultationStepper() {
                             label="Location"
                             value={lawyer.address.split(',')[0]}
                           />
+                          <DetailItem
+                            icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Availability"
+                            value={lawyer.availablity || 'N/A'}
+                          />
                         </Box>
-
                         {lawyer.bio && (
                           <Typography
                             variant="caption"
                             sx={{
-                              color: 'rgba(255, 255, 255, 0.65)',
+                              color: 'rgba(255, 255, 255, 0.75)',
                               display: '-webkit-box',
-                              WebkitLineClamp: 2,
+                              WebkitLineClamp: 3,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               lineHeight: 1.4,
+                              mt: 1,
                             }}
                           >
-                            {lawyer.bio}
+                            {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
                           </Typography>
                         )}
                       </Box>
