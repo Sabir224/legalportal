@@ -1590,7 +1590,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         onChange={(e) => setClientName(e.target.value)}
                                         value={clientName}
                                         placeholder="Enter client name"
-                                        disabled={true}
+                                        disabled={(dataFound || isclient)}
                                     />
                                 </div>
                                 <div className="col-md-6 mb-3">
@@ -1601,7 +1601,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         onChange={(e) => setclientContactInfo(e.target.value)}
                                         value={clientContactInfo}
                                         placeholder="Email"
-                                        disabled={true}
+                                        disabled={(dataFound || isclient)}
                                     />
                                 </div>
                                 <div className="col-md-6 mb-3">
@@ -1612,7 +1612,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         onChange={(e) => setclientContactphone(e.target.value)}
                                         value={clientContactphone}
                                         placeholder="Phone Number"
-                                        disabled={true}
+                                        disabled={(dataFound || isclient)}
                                     />
                                 </div>
                                 <div className="col-md-6 mb-3">
@@ -2425,10 +2425,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                         </Form.Group>
                     </Form>
                 </Modal.Body>
-                <Modal.Footer>
+                <Modal.Footer className="justify-content-center gap-2">
                     <Button variant="secondary" onClick={handleClose}>Cancel</Button>
                     <Button variant="danger" onClick={handleReject}>Submit Rejection</Button>
                 </Modal.Footer>
+
             </Modal>
         </div>
     );

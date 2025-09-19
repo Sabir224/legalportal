@@ -418,6 +418,13 @@ const Case_details = ({ token }) => {
         throw new Error("No case ID available");
       }
 
+      const casedata = await axios.get(
+        `${ApiEndPoint}getCaseById/${caseIdToUse}`,
+        { withCredentials: true }
+      );
+
+      console.log("link with mails", casedata?.data.clientCase)
+      dispatch(Caseinfo(casedata?.data.clientCase))
       const caseResponse = await axios.get(
         `${ApiEndPoint}getCaseDetail/${caseIdToUse}`,
         { withCredentials: true }
