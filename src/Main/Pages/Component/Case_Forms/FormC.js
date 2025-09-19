@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import backgroundImage from "../../../Pages/Images/bg.jpg";
 import { ApiEndPoint } from "../utils/utlis";
 import SuccessModal from "../../AlertModels/SuccessModal";
@@ -7,6 +6,7 @@ import { useAlert } from "../../../../Component/AlertContext";
 import { FaCross, FaDiscord, FaRemoveFormat } from "react-icons/fa";
 import { useSelector } from "react-redux";
 import axios from "axios";
+
 import {
   Form,
   Button,
@@ -15,17 +15,18 @@ import {
   Row,
   Col,
   Dropdown,
+  DropdownButton,
   InputGroup,
 } from "react-bootstrap";
 
 const ClientConsultationForm = ({ token }) => {
-  const FormCDetails = useSelector((state) => state.screen.FormCDetails);
 
+
+  const FormCDetails = useSelector((state) => state.screen.FormCDetails);
   const [fileName, setFileName] = useState(null);
   const [encryptedLink, setEncryptedLink] = useState("");
   const [copied, setCopied] = useState(false);
   const [showLinkGenerator, setShowLinkGenerator] = useState(true); // To control whether the link generator is shown or not
-
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const { showLoading, showSuccess, showError } = useAlert();
@@ -381,32 +382,23 @@ const ClientConsultationForm = ({ token }) => {
                 </Form.Group>
 
                 {/* Phone Number - Fixed with InputGroup */}
+
                 <Form.Group className="mb-3">
                   <Form.Label>
                     Phone Number <span className="text-danger">*</span>
                   </Form.Label>
                   <InputGroup>
-                    <Dropdown>
-                      <Dropdown.Toggle
-                        variant="outline-secondary"
-                        id="dropdown-country-code"
-                        style={{ maxWidth: "120px" }}
-                        disabled={isDisabled}
-                      >
-                        {countryCode}
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu>
-                        <Dropdown.Item onClick={() => setCountryCode("+92")}>
-                          +92
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => setCountryCode("+1")}>
-                          +1
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={() => setCountryCode("+44")}>
-                          +44
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
+                    <Form.Select
+                      value={countryCode}
+                      onChange={(e) => setCountryCode(e.target.value)}
+                      style={{ maxWidth: "120px" }}
+                      disabled={isDisabled}
+                    >
+                      <option value="+92">+92</option>
+                      <option value="+1">+1</option>
+                      <option value="+44">+44</option>
+                    </Form.Select>
+
                     <Form.Control
                       type="tel"
                       value={phoneNumber}
@@ -416,6 +408,7 @@ const ClientConsultationForm = ({ token }) => {
                     />
                   </InputGroup>
                 </Form.Group>
+
 
                 <Form.Group className="mb-3">
                   <Form.Label>

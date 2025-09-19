@@ -12,6 +12,7 @@ import { Dropdown, Form, InputGroup, Modal, Button } from "react-bootstrap";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logo from "../../../Pages/Images/logo.png";
+import Stamp from "../../../Pages/Component/assets/Stamp.png";
 import { height } from "@mui/system";
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
@@ -367,7 +368,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
         if (RejectMessage && reject && (token?._id === preparedBy || token?._id === approvedBy)) {
 
-            showError("Form Rejected By Client Please Check Your Mail")
+            showError("The LFQ Form has been rejected by the client, please make the changes for resubmission")
         }
 
 
@@ -1045,158 +1046,153 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const FillseniorLawyer = getAllOpsteam.find(op => op._id === data.seniorLawyer?.name);
         const FillassociateLawyer = getAllOpsteam.find(op => op._id === data.associateLawyer?.name);
 
-        let value = data.clientCategory[0];
-        let parsedArray = Array.isArray(value) ? value : JSON.parse(value);
-        let formattedclientCategory = parsedArray.join(", ");
+        let value = data.clientCategory?.[0];
+        let parsedArray = Array.isArray(value) ? value : (value ? JSON.parse(value) : []);
+        let formattedclientCategory = Array.isArray(parsedArray) ? parsedArray.join(", ") : "-";
 
-        const approvedBySignBase64 = data.approvedBySignpath
-            ? await getSignBase64FromServer(data.approvedBySignpath)
-            : null;
+        const approvedBySignBase64 = data.isApproved ? await getBase64ImageFromUrl(Stamp) : null;
 
-        // ====== NEW: sidebar width so margins & background stay in sync ======
-        // === BRAND LOOK CONTROLS ===
-        // --- brand/layout controls ---
+        // === BRAND/LAYOUT CONTROLS ===
         const sidebarWidth = 85;
         const BAR_COLOR = "#8a96b2";
-        const AWS_FONT_SIZE = 74;
-        const AWS_OPACITY = 0.25;
 
-        // how tall is the header block (logo + 3 lines)?
-        const HEADER_HEIGHT = 90;   // adjust if you change logo/lines
+        // Big watermark settings (center of page)
+        const WM_OPACITY = 0.06;
+
+        // Side "AWS" word settings for header/bottom only
+        const AWS_SIDE_FONT = 32;    // smaller so we can fit 3/4 comfortably
+        const AWS_SIDE_OPACITY = 0.8;
+        const AWS_SIDE_X = 16;       // inside the strip
+
+        // Header sizing (logo + 3 lines)
+        const HEADER_HEIGHT = 90;
 
         const docDefinition = {
-            // ==== LEFT STRIP + REPEATING "AWS" ====
+            // LEFT strip and FAINT center watermark only (no mid "AWS" now)
             background: (currentPage, pageSize) => {
-                // const elems = [
-                //     // === Left side strip ===
-                //     {
-                //         canvas: [{
-                //             type: "rect",
-                //             x: 0,
-                //             y: 0,
-                //             w: sidebarWidth,
-                //             h: pageSize.height,
-                //             color: BAR_COLOR
-                //         }]
-                //     }
-                // ];
-
-                // // === Logo + Text in the strip ===
-                // if (logoBase64) {
-                //     elems.push({
-                //         image: logoBase64,
-                //         width: 50,
-                //         height: 50,
-                //         absolutePosition: { x: 15, y: 40 }
-                //     });
-                // }
-
-                // elems.push({
-                //     stack: [
-                //         { text: "LEGAL", fontSize: 16, bold: true, color: "#ffffff", margin: [0, 0, 0, 2] },
-                //         { text: "SUHAD ALJUBOORI", fontSize: 10, bold: true, color: "#ffffff", margin: [0, 0, 0, 2] },
-                //         { text: "Advocates & Legal Consultants", fontSize: 8, color: "#ffffff" }
-                //     ],
-                //     absolutePosition: { x: 15, y: 100 }
-                // });
-
-
                 const elems = [
+                    // Left strip
                     {
                         canvas: [{
                             type: "rect",
-                            x: 0,
-                            y: 0,
-                            w: sidebarWidth,
-                            h: pageSize.height,
-                            color: BAR_COLOR
+                            x: 0, y: 0, w: sidebarWidth, h: pageSize.height, color: BAR_COLOR
                         }]
                     }
                 ];
 
-                // place 6–8 "AWS" words down the strip
-                const startY = 90;                    // first word Y
-                const stepY = AWS_FONT_SIZE + 16;    // spacing
-                for (let i = 0; i < 8; i++) {
-                    elems.push({
-                        text: "AWS",
-                        bold: true,
-                        fontSize: AWS_FONT_SIZE,
-                        color: "#ffffff",
-                        opacity: AWS_OPACITY,
-                        absolutePosition: { x: 16, y: startY + i * stepY }
-                    });
-                }
-
-                // === Centered faint background watermark ===
+                // Center faint watermark (logo)
                 if (logoBase64) {
-                    const wmWidth = Math.min(360, pageSize.width * 0.45); // 45% of page width
+                    const wmWidth = Math.min(360, pageSize.width * 0.45);
                     const wmX = (pageSize.width - wmWidth) / 2;
                     const wmY = (pageSize.height - wmWidth) / 2;
 
                     elems.push({
                         image: logoBase64,
                         width: wmWidth,
-                        opacity: 0.06, // faint look
+                        opacity: WM_OPACITY,
                         absolutePosition: { x: wmX, y: wmY }
+                    });
+                }
+
+                // --- NEW: Bottom-left strip "AWS" (4 times) drawn in BACKGROUND so they don't get clipped ---
+                const bottomPadding = 8;
+                const stepY = AWS_SIDE_FONT + 0; // keep your spacing
+                // Start so that 4 items fit above the bottom edge, inside the strip
+                const totalHeight = AWS_SIDE_FONT + stepY * 3; // height from first to last (4 items)
+                const bottomStartY = pageSize.height - bottomPadding - totalHeight - AWS_SIDE_FONT * 0.05;
+
+                for (let i = 0; i < 4; i++) {
+                    elems.push({
+                        text: "AWS",
+                        bold: true,
+                        fontSize: AWS_SIDE_FONT,
+                        color: "#ffffff",
+                        opacity: AWS_SIDE_OPACITY,
+                        absolutePosition: { x: AWS_SIDE_X, y: bottomStartY + i * stepY }
                     });
                 }
 
                 return elems;
             },
 
-            // shift content to the right so it clears the strip
-            // content area starts 20 below header:
-            pageMargins: [sidebarWidth + 30, HEADER_HEIGHT + 20, 40, 60],
 
+            // Shift content right & below header
+            pageMargins: [sidebarWidth + 30, HEADER_HEIGHT + 35, 40, 60],
 
-            // ==== CLEAN HEADER (WHITE), LOGO + FIRM NAME ====
+            // HEADER (clean, white) + put "AWS" on the left strip (HEADER AREA ONLY, 3 times)
             header: (currentPage, pageCount, pageSize) => {
+                // compute Y positions for 3 "AWS" words inside header band
+                const headerBandTop = 0;                        // page top
+                const startY = headerBandTop + 0;              // little padding
+                const stepY = AWS_SIDE_FONT + 8;                // spacing
+                const headerAWS = [];
+                for (let i = 0; i < 3; i++) {
+                    headerAWS.push({
+                        text: "AWS",
+                        bold: true,
+                        fontSize: AWS_SIDE_FONT,
+                        color: "#c0a262",
+                        opacity: AWS_SIDE_OPACITY,
+                        absolutePosition: { x: AWS_SIDE_X, y: startY + i * stepY }
+                    });
+                }
+
                 return {
                     margin: [sidebarWidth + 20, 15, 20, 0],
-                    columns: [
+                    stack: [
+                        // left-strip header AWS (absolute positioned)
+                        ...headerAWS,
+
+                        // logo + firm name to the right of the strip
                         {
                             columns: [
                                 logoBase64
                                     ? { image: logoBase64, width: 70, height: 70, margin: [0, 0, 10, 0] }
                                     : { text: "" },
                                 {
-                                    // three-line stack
                                     stack: [
                                         { text: "LEGAL", fontSize: 22, bold: true, color: "#576583", margin: [0, 6, 0, 0], lineHeight: 1.1 },
                                         { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#576583", margin: [0, 2, 0, 0], lineHeight: 1.1 },
-                                        // FIX: use characterSpacing instead of letterSpacing so it actually renders
                                         {
-                                            text: "ADVOCATES & LEGAL CONSULTANTS", fontSize: 9, color: "#8a96b2",
-                                            margin: [0, 2, 0, 0], characterSpacing: 1, lineHeight: 1.15
+                                            text: "ADVOCATES & LEGAL CONSULTANTS",
+                                            fontSize: 9,
+                                            color: "#8a96b2",
+                                            margin: [0, 2, 0, 0],
+                                            characterSpacing: 1,
+                                            lineHeight: 1.15
                                         }
                                     ]
                                 }
-                            ],
-                            width: "*"
+                            ]
                         }
-                    ],
+                    ]
                 };
             },
+
+            // FOOTER + put "AWS" on the left strip (BOTTOM AREA ONLY, 4 times)
             footer: (currentPage, pageCount, pageSize) => {
+                const footerHeight = 70;
+
                 const footerText =
                     "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com";
 
                 return {
+                    margin: [0, -10, 0, 0],
                     stack: [
+                        // Gray footer bar that does NOT cover the left strip
                         {
                             canvas: [
                                 {
                                     type: "rect",
-                                    x: 0,
+                                    x: sidebarWidth,
                                     y: 0,
-                                    w: pageSize.width,
-                                    h: 70,
-                                    color: "#f5f5f5",
-                                },
-                            ],
-                            margin: [0, 0, 0, 0],
+                                    w: pageSize.width - sidebarWidth,
+                                    h: footerHeight,
+                                    color: "#f5f5f5"
+                                }
+                            ]
                         },
+                        // Footer content on the right
                         {
                             columns: [
                                 { width: "*", text: "" },
@@ -1207,23 +1203,24 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                             alignment: "center",
                                             fontSize: 7,
                                             color: "#333333",
-                                            margin: [0, -60, 0, 0],
-                                        },
-                                    ],
+                                            margin: [0, -60, 0, 0]
+                                        }
+                                    ]
                                 },
                                 {
                                     text: `Page ${currentPage} of ${pageCount}`,
                                     alignment: "right",
                                     margin: [0, -60, 40, 0],
                                     fontSize: 8,
-                                    color: "#333333",
-                                },
-                            ],
-                        },
-                    ],
-                    margin: [sidebarWidth, -10, 0, 0],
+                                    color: "#333333"
+                                }
+                            ]
+                        }
+                    ]
                 };
             },
+
+
 
             content: [
                 { text: "Client & Case Information", style: "header", margin: [0, 10, 0, 10] },
@@ -1236,17 +1233,17 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             [{ text: "Client Contact Number", style: "label" }, { text: data?.clientContactphone || "-", style: "value" }],
                             [
                                 { text: "Date of Meeting", style: "label" },
-                                { text: data.dateOfClientMeeting ? new Date(data.dateOfClientMeeting).toLocaleDateString() : "-", style: "value" },
+                                { text: data?.dateOfClientMeeting ? new Date(data.dateOfClientMeeting).toLocaleDateString() : "-", style: "value" }
                             ],
-                            [{ text: "Matter / Case Reference", style: "label" }, { text: data.matterReference || "-", style: "value" }],
-                            [{ text: "Case Type", style: "label" }, { text: data.caseType || "-", style: "value" }],
-                            [{ text: "Jurisdiction", style: "label" }, { text: data.jurisdiction || "-", style: "value" }],
-                            [{ text: "Local Counsel Required", style: "label" }, { text: data.localCounselRequired || "-", style: "value" }],
-                            [{ text: "Est. Local Counsel Hours", style: "label" }, { text: data.estLocalCounselHours || "-", style: "value" }],
-                        ],
+                            [{ text: "Matter / Case Reference", style: "label" }, { text: data?.matterReference || "-", style: "value" }],
+                            [{ text: "Case Type", style: "label" }, { text: data?.caseType || "-", style: "value" }],
+                            [{ text: "Jurisdiction", style: "label" }, { text: data?.jurisdiction || "-", style: "value" }],
+                            [{ text: "Local Counsel Required", style: "label" }, { text: data?.localCounselRequired || "-", style: "value" }],
+                            [{ text: "Est. Local Counsel Hours", style: "label" }, { text: data?.estLocalCounselHours || "-", style: "value" }]
+                        ]
                     },
                     layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
+                    margin: [0, 10, 0, 20]
                 },
 
                 { text: "Case Complexity & Stakes", style: "header", margin: [0, 20, 0, 10] },
@@ -1254,19 +1251,19 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     table: {
                         widths: ["35%", "65%"],
                         body: [
-                            [{ text: "Case Complexity Level", style: "label" }, { text: data.complexityLevel || "-", style: "value" }],
+                            [{ text: "Case Complexity Level", style: "label" }, { text: data?.complexityLevel || "-", style: "value" }],
                             [
                                 { text: "Amount at Stake (Claim/Defense Value)", style: "label" },
-                                { text: `${data.amountAtStake || "-"} AED`, style: "value" },
+                                { text: `${data?.amountAtStake || "-"} AED`, style: "value" }
                             ],
                             [
                                 { text: "Estimated Case Duration", style: "label" },
-                                { text: data.estimatedCaseDuration || "-", style: "value" },
-                            ],
-                        ],
+                                { text: data?.estimatedCaseDuration || "-", style: "value" }
+                            ]
+                        ]
                     },
                     layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
+                    margin: [0, 10, 0, 20]
                 },
 
                 { text: "Client Profile & Relationship", style: "header", margin: [0, 20, 0, 10] },
@@ -1278,20 +1275,20 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 { text: "Client Category", style: "label" },
                                 {
                                     text:
-                                        Array.isArray(data.clientCategory) && data.clientCategory.length > 0
+                                        Array.isArray(data?.clientCategory) && data.clientCategory.length > 0
                                             ? formattedclientCategory
                                             : "-",
-                                    style: "value",
-                                },
+                                    style: "value"
+                                }
                             ],
-                            [{ text: "Referred By", style: "label" }, { text: data.referredBy || "-", style: "value" }],
-                            [{ text: "Retainer Details", style: "label" }, { text: data.retainerDetails || "-", style: "value" }],
-                            [{ text: "Communication Needs", style: "label" }, { text: data.communicationNeeds || "-", style: "value" }],
-                            [{ text: "Notes on Client Personality / Expectations", style: "label" }, { text: data.clientNotes || "-", style: "value" }],
-                        ],
+                            [{ text: "Referred By", style: "label" }, { text: data?.referredBy || "-", style: "value" }],
+                            [{ text: "Retainer Details", style: "label" }, { text: data?.retainerDetails || "-", style: "value" }],
+                            [{ text: "Communication Needs", style: "label" }, { text: data?.communicationNeeds || "-", style: "value" }],
+                            [{ text: "Notes on Client Personality / Expectations", style: "label" }, { text: data?.clientNotes || "-", style: "value" }]
+                        ]
                     },
                     layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
+                    margin: [0, 10, 0, 20]
                 },
 
                 { text: "Fee Proposal & Pricing", style: "header", margin: [0, 10, 0, 10] },
@@ -1299,17 +1296,17 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     table: {
                         widths: ["35%", "65%"],
                         body: [
-                            [{ text: "Proposed Fee Structure", style: "label" }, { text: data.feeStructure || "-", style: "value" }],
-                            [{ text: "Other Fee (if applicable)", style: "label" }, { text: data.otherFee || "-", style: "value" }],
-                            [{ text: "Hourly Rates (if Hourly)", style: "label" }, { text: data.hourlyRates || "-", style: "value" }],
-                            [{ text: "Fixed Fee Amount (if Fixed Fee)", style: "label" }, { text: data.fixedFee || "-", style: "value" }],
-                            [{ text: "Scope of Work:", style: "label" }, { text: data.ScopeOfWork || "-", style: "value" }],
-                            [{ text: "Special Terms / Considerations", style: "label" }, { text: data.specialTerms || "-", style: "value" }],
-                            [{ text: "Key Factors Affecting Fee", style: "label" }, { text: data.keyFactors || "-", style: "value" }],
-                        ],
+                            [{ text: "Proposed Fee Structure", style: "label" }, { text: data?.feeStructure || "-", style: "value" }],
+                            [{ text: "Other Fee (if applicable)", style: "label" }, { text: data?.otherFee || "-", style: "value" }],
+                            [{ text: "Hourly Rates (if Hourly)", style: "label" }, { text: data?.hourlyRates || "-", style: "value" }],
+                            [{ text: "Fixed Fee Amount (if Fixed Fee)", style: "label" }, { text: data?.fixedFee || "-", style: "value" }],
+                            [{ text: "Scope of Work:", style: "label" }, { text: data?.ScopeOfWork || "-", style: "value" }],
+                            [{ text: "Special Terms / Considerations", style: "label" }, { text: data?.specialTerms || "-", style: "value" }],
+                            [{ text: "Key Factors Affecting Fee", style: "label" }, { text: data?.keyFactors || "-", style: "value" }]
+                        ]
                     },
                     layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
+                    margin: [0, 10, 0, 20]
                 },
 
                 { text: "Resource & Effort Estimation", style: "header", margin: [0, 20, 0, 10] },
@@ -1320,18 +1317,18 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             [
                                 { text: "Resource Type", style: "tableHeader" },
                                 { text: "Name / Role", style: "tableHeader" },
-                                { text: "Est. Hours", style: "tableHeader" },
+                                { text: "Est. Hours", style: "tableHeader" }
                             ],
-                            [{ text: "Senior Lawyer", style: "label" }, { text: FillseniorLawyer?.UserName || "-", style: "value" }, { text: data.seniorLawyer?.estHours || "-", style: "value" }],
-                            [{ text: "Associate Lawyer(s)", style: "label" }, { text: FillassociateLawyer?.UserName || "-", style: "value" }, { text: data.associateLawyer?.estHours || "-", style: "value" }],
-                            [{ text: "Local Counsel", style: "label" }, { text: data.resourceLocalCounsel?.name || "-", style: "value" }, { text: data.resourceLocalCounsel?.estHours || "-", style: "value" }],
-                            [{ text: "Paralegal / Support Staff", style: "label" }, { text: data.paralegalSupport?.role || "-", style: "value" }, { text: data.paralegalSupport?.estHours || "-", style: "value" }],
-                            [{ text: "Other Resources", style: "label" }, { text: data.otherResources?.description || "-", style: "value" }, { text: data.otherResources?.estHours || "-", style: "value" }],
-                            [{ text: "Total Estimated Hours", style: "labelBold" }, { text: "", style: "value" }, { text: data.totalEstimatedHours || "-", style: "labelBold" }],
-                        ],
+                            [{ text: "Senior Lawyer", style: "label" }, { text: FillseniorLawyer?.UserName || "-", style: "value" }, { text: data?.seniorLawyer?.estHours || "-", style: "value" }],
+                            [{ text: "Associate Lawyer(s)", style: "label" }, { text: FillassociateLawyer?.UserName || "-", style: "value" }, { text: data?.associateLawyer?.estHours || "-", style: "value" }],
+                            [{ text: "Local Counsel", style: "label" }, { text: data?.resourceLocalCounsel?.name || "-", style: "value" }, { text: data?.resourceLocalCounsel?.estHours || "-", style: "value" }],
+                            [{ text: "Paralegal / Support Staff", style: "label" }, { text: data?.paralegalSupport?.role || "-", style: "value" }, { text: data?.paralegalSupport?.estHours || "-", style: "value" }],
+                            [{ text: "Other Resources", style: "label" }, { text: data?.otherResources?.description || "-", style: "value" }, { text: data?.otherResources?.estHours || "-", style: "value" }],
+                            [{ text: "Total Estimated Hours", style: "labelBold" }, { text: "", style: "value" }, { text: data?.totalEstimatedHours || "-", style: "labelBold" }]
+                        ]
                     },
                     layout: "lightHorizontalLines",
-                    margin: [0, 10, 0, 20],
+                    margin: [0, 10, 0, 20]
                 },
 
                 {
@@ -1346,34 +1343,37 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         {
                                             stack: [
                                                 { text: `Name: ${FillpreparedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                                                { text: `Date: ${data.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
-                                                data.preparedBySignpath
+                                                { text: `Date: ${data?.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-"}`, style: "value" },
+                                                data?.preparedBySignpath
                                                     ? { image: preparedBySignBase64, width: 120, height: 60, margin: [0, 5, 0, 2] }
                                                     : { text: "Signature: ", style: "value" },
                                                 { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                                { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] },
-                                            ],
+                                                { text: "Prepared by Senior Lawyer", style: "subHeader", margin: [0, 0, 0, 8] }
+                                            ]
                                         },
                                         ...(approvedBySignBase64
-                                            ? [
-                                                {
-                                                    stack: [
-                                                        { text: `Name: ${FillapprovedBy?.UserName || "-"}`, style: "value", margin: [0, 0, 0, 4] },
-                                                        { text: `Date: ${data.approvedDate ? new Date(data.approvedDate).toLocaleDateString() : "-"}`, style: "value" },
-                                                        { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
-                                                        { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                                        { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] },
-                                                    ],
-                                                },
-                                            ]
-                                            : []),
-                                    ],
-                                ],
+                                            ? [{
+                                                stack: [
+                                                    { text: `Name: ${FillapprovedBy?.UserName || "Admin"}`, style: "value", margin: [0, 0, 0, 4] },
+                                                    {
+                                                        text: `Date: ${data?.approvedDate
+                                                            ? new Date(data.approvedDate).toLocaleDateString()
+                                                            : (data?.preparedDate ? new Date(data.preparedDate).toLocaleDateString() : "-")
+                                                            }`,
+                                                        style: "value"
+                                                    },
+                                                    { image: approvedBySignBase64, width: 60, height: 60, margin: [0, 5, 0, 2] },
+                                                    { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
+                                                    { text: "Reviewed & Approved by Chairman", style: "subHeader", margin: [0, 0, 0, 8] }
+                                                ]
+                                            }]
+                                            : [])
+                                    ]
+                                ]
                             },
                             layout: "lightHorizontalLines",
-                            margin: [0, 10, 0, 20],
-                        },
-
+                            margin: [0, 10, 0, 20]
+                        }
                     ]
                 }
             ],
@@ -1387,11 +1387,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 value: { fontSize: 11, color: "#333", margin: [0, 3, 0, 3] },
                 subHeader: { italics: true, color: "#333" }
             },
-            defaultStyle: { fontSize: 10 },
+            defaultStyle: { fontSize: 10 }
         };
 
-        pdfMake.createPdf(docDefinition).download(`Legal_Fee_Quotation_(${data?.clientName}).pdf`);
+        pdfMake.createPdf(docDefinition).download(`Legal_Fee_Quotation_(${data?.clientName || "Client"}).pdf`);
     };
+
 
 
     return (
@@ -1505,9 +1506,9 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                             {getDrafts?.map((data, index) => (
                                                 <Dropdown.Item key={index} onClick={() => {
                                                     setSelectedDrafts(data)
-                                                    setClientName(data.clientName || "");
-                                                    setclientContactInfo(data.clientEmail || "");
-                                                    setclientContactphone(data.clientContactphone || "");
+                                                    // setClientName(data.clientName || "");
+                                                    // setclientContactInfo(data.clientEmail || "");
+                                                    // setclientContactphone(data.clientContactphone || "");
                                                     if (data.dateOfClientMeeting) {
                                                         const date = new Date(data.dateOfClientMeeting);
                                                         setDateValue(
@@ -2201,25 +2202,28 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                         </div>
                                     </div>
                                 </div>
-                                {((approvedBySign || "admin" === token?.Role) && dataFound) && (
+
+
+
+                                {(LFQData?.isApproved && dataFound) && (
                                     <div className="col-md-6">
                                         <div className="card shadow-sm border-0 rounded-3 mb-4">
                                             <div className="card-body">
                                                 <h5 className="fw-bold mb-4">Reviewed & Approved by (Chairman)</h5>
                                                 <div className="row g-3 align-items-start">
                                                     <div className="col-12 mb-3">
-                                                        <label className="form-label fw-semibold">Name:</label>
-                                                        <select
-                                                            className="form-select"
-                                                            value={approvedBy}
-                                                            onChange={(e) => setApprovedBy(e.target.value)}
-                                                            disabled={true}
-                                                        >
-                                                            <option value="">Select Chairman</option>
-                                                            {getAllOpsteam.map((name, index) => (
-                                                                <option key={index} value={name?._id}>{name?.UserName}</option>
-                                                            ))}
-                                                        </select>
+                                                        <label className="form-label fw-semibold">Name: Admin</label>
+                                                        {/* <select
+                                                        className="form-select"
+                                                        value={approvedBy}
+                                                        onChange={(e) => setApprovedBy(e.target.value)}
+                                                        disabled={true}
+                                                    >
+                                                        <option value="">Select Chairman</option>
+                                                        {getAllOpsteam.map((name, index) => (
+                                                            <option key={index} value={name?._id}>{name?.UserName}</option>
+                                                        ))}
+                                                    </select> */}
                                                     </div>
                                                     {/* <div className="col-12 mb-3">
                                                         <label className="form-label fw-semibold">Signature:</label>
@@ -2240,59 +2244,79 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
 
                                                     <div className="col-12 mb-3">
-                                                        <label className="form-label fw-semibold">Signature:</label>
+                                                        <label className="form-label fw-semibold">Stamp:</label>
 
                                                         {/* Agar signature approve nahi hua aur local bhi nahi hai */}
-                                                        {((!isclient && !approvedBySign) || islocal) && (
-                                                            <div className="text-center mt-2">
-                                                                <button
-                                                                    className="btn btn-success"
-                                                                    onClick={() => {
-                                                                        const selected = getAllOpsteam.find(x => x._id === approvedBy);
-                                                                        handleSignatureSave(createApprovedSeal(selected?.UserName || ""))
-                                                                    }}
-                                                                >
-                                                                    Approve
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                        {/* {((!isclient && !approvedBySign) || islocal) && (
+                                                        <div className="text-center mt-2">
+                                                            <button
+                                                                className="btn btn-success"
+                                                                onClick={() => {
+                                                                    const selected = getAllOpsteam.find(x => x._id === approvedBy);
+                                                                    handleSignatureSave(createApprovedSeal(selected?.UserName || ""))
+                                                                }}
+                                                            >
+                                                                Approve
+                                                            </button>
+                                                        </div>
+                                                    )} */}
 
                                                         {/* Agar signature already approved hai */}
-                                                        {approvedBySign && (
-                                                            <div className="mt-2 text-center">
-                                                                {approvedBySign === "Approved" ? (
+                                                        {/* {approvedBySign && ( */}
+                                                        <div className="mt-2 text-center">
+                                                            {/* {approvedBySign === "Approved" ? (
                                                                     <span className="badge bg-success fs-6 px-3 py-2">
                                                                         ✅ Approved
-                                                                    </span>
-                                                                ) : (
-                                                                    <img
-                                                                        src={approvedBySign}
-                                                                        alt="Chairman Signature"
-                                                                        className="img-fluid border rounded"
-                                                                        style={{ maxHeight: "150px" }}
-                                                                    />
-                                                                )}
-                                                            </div>
-                                                        )}
+                                                                    </span> */}
+                                                            {/* ) : ( */}
+                                                            <img
+                                                                src={Stamp}
+                                                                alt="Chairman Signature"
+                                                                className="img-fluid border rounded"
+                                                                style={{ maxHeight: "150px" }}
+                                                            />
+                                                            {/* )} */}
+                                                        </div>
+                                                        {/* )} */}
 
                                                     </div>
+
+                                                    {/* <div className="col-12">
+                                                    <label className="form-label fw-semibold">Date:</label>
+                                                    <DatePicker
+                                                        selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                        onChange={(date) => {
+                                                            if (date) {
+                                                                const day = String(date.getDate()).padStart(2, "0");
+                                                                const month = String(date.getMonth() + 1).padStart(2, "0");
+                                                                const year = date.getFullYear();
+                                                                setApprovedDate(`${day}/${month}/${year}`);
+                                                            }
+                                                        }}
+                                                        dateFormat="dd/MM/yyyy"
+                                                        className="form-control"
+                                                        placeholderText="dd/mm/yyyy"
+                                                        disabled={(approvedBySign && !islocal)}
+                                                    />
+                                                </div> */}
+
 
                                                     <div className="col-12">
                                                         <label className="form-label fw-semibold">Date:</label>
                                                         <DatePicker
-                                                            selected={approvedDate ? new Date(approvedDate.split("/").reverse().join("-")) : null}
+                                                            selected={preparedDate ? new Date(preparedDate.split("/").reverse().join("-")) : null}
                                                             onChange={(date) => {
                                                                 if (date) {
                                                                     const day = String(date.getDate()).padStart(2, "0");
                                                                     const month = String(date.getMonth() + 1).padStart(2, "0");
                                                                     const year = date.getFullYear();
-                                                                    setApprovedDate(`${day}/${month}/${year}`);
+                                                                    setPreparedDate(`${day}/${month}/${year}`);
                                                                 }
                                                             }}
+                                                            disabled={(dataFound || isclient)}
                                                             dateFormat="dd/MM/yyyy"
                                                             className="form-control"
                                                             placeholderText="dd/mm/yyyy"
-                                                            disabled={(approvedBySign && !islocal)}
                                                         />
                                                     </div>
                                                 </div>
@@ -2329,7 +2353,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             <div className="btn btn-primary fw-bold px-4" onClick={handleUpdateSignature}>Save and Submit Signature</div>
                         </div>
                     }
-                    {(preparedBySign && (isclient || !showLinkGenerator) && approvedBySign && !LFQData?.isApproved && !LFQData?.isReject) &&
+                    {(preparedBySign && (isclient || !showLinkGenerator) && !LFQData?.isApproved && !LFQData?.isReject) &&
                         <div className="d-flex justify-content-center gap-2 mt-2">
                             <div className="d-flex justify-content-center" style={{
                                 backgroundColor: "#16213e",
