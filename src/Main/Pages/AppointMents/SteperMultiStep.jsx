@@ -137,6 +137,7 @@ function LegalConsultationStepper() {
   const [bookingData, setBookingData] = useState(null);
   const [caseDiscription, setDiscription] = useState('');
   const [errors, setErrors] = useState({});
+  const hasRedirected = React.useRef(false);
 
   const dateOptions = {
     timeZone: 'Asia/Dubai',
@@ -548,21 +549,83 @@ function LegalConsultationStepper() {
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
       ];
 
-      const invalidFile = Array.from(files).find((file) => !allowedTypes.includes(file.type));
+      const sizeLimits = {
+        image: 20 * 1024 * 1024, // 20MB
+        document: 20 * 1024 * 1024, // 20MB
+      };
 
-      if (invalidFile) {
+      const fileArray = Array.from(files);
+
+      // 🔹 Merge with already stored files
+      const existingFiles = answers[question] || [];
+      let combinedFiles = [...existingFiles, ...fileArray];
+
+      let errorsForFiles = [];
+
+      combinedFiles.forEach((file) => {
+        // 🔹 Type validation
+        if (!allowedTypes.includes(file.type)) {
+          errorsForFiles.push(`Invalid type: ${file.name} (Only JPG, PNG, PDF, DOC, DOCX allowed)`);
+          return;
+        }
+
+        // 🔹 Filename length validation
+        if (file.name.length > 40) {
+          errorsForFiles.push(`File name too long (max 40 chars): ${file.name}`);
+          return;
+        }
+
+        // 🔹 Size validation
+        if (['image/jpeg', 'image/png'].includes(file.type)) {
+          if (file.size > sizeLimits.image) {
+            errorsForFiles.push(
+              `File too large: ${file.name} (Max ${(sizeLimits.image / (1024 * 1024)).toFixed(1)}MB)`
+            );
+            return;
+          }
+        }
+
+        if (
+          [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ].includes(file.type)
+        ) {
+          if (file.size > sizeLimits.document) {
+            errorsForFiles.push(
+              `File too large: ${file.name} (Max ${(sizeLimits.document / (1024 * 1024)).toFixed(1)}MB)`
+            );
+            return;
+          }
+        }
+      });
+
+      if (errorsForFiles.length > 0) {
+        // 🚫 If any invalid files
         setErrors((prev) => ({
           ...prev,
-          [question]: 'Only JPG, PNG, PDF, DOC, DOCX files are allowed',
+          [question]: errorsForFiles, // store array of errors
         }));
         return;
       }
 
+      // 🔹 Limit max 5 files
+      if (combinedFiles.length > 5) {
+        setErrors((prev) => ({
+          ...prev,
+          [question]: [`You can upload a maximum of 5 files.`],
+        }));
+        combinedFiles = combinedFiles.slice(0, 5);
+      } else {
+        setErrors((prev) => ({ ...prev, [question]: [] }));
+      }
+
+      // ✅ If valid, save merged files
       setAnswers((prev) => ({
         ...prev,
-        [question]: Array.from(files), // ✅ store multiple files
+        [question]: combinedFiles,
       }));
-      setErrors((prev) => ({ ...prev, [question]: '' }));
     }
   };
 
@@ -586,6 +649,33 @@ function LegalConsultationStepper() {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+  // generate and redirect (manual or auto when ref missing)
+  // generate and redirect (manual or auto when ref missing)
+  const regenerateAndRedirect = async () => {
+    try {
+      const body = {};
+
+      if (phone) body.phone = phone;
+      if (name) body.name = name;
+
+      // If no ref -> force source = website when missing
+      if (!ref) {
+        body.source = source || 'website';
+      } else if (source) {
+        body.source = source;
+      }
+
+      const res = await axios.post(`${ApiEndPoint}generateLink`, body);
+
+      if (res.data?.success && res.data?.fullUrl) {
+        window.location.href = res.data.fullUrl; // redirect to new link
+      } else {
+        console.error('Failed to generate new link:', res.data);
+      }
+    } catch (err) {
+      console.error('Error generating link:', err);
+    }
   };
 
   React.useEffect(() => {
@@ -676,7 +766,6 @@ function LegalConsultationStepper() {
                 }
               } else {
                 // Not paid yet - go to payment step
-
                 setActiveStep(4); // Payment
               }
             }
@@ -692,12 +781,128 @@ function LegalConsultationStepper() {
       }
     };
 
-    if (ref) fetchData();
+    if (ref) {
+      fetchData();
+    } else if (!hasRedirected.current) {
+      hasRedirected.current = true; // prevent double redirect
+      regenerateAndRedirect();
+    }
 
     return () => {
       isMounted = false;
     };
   }, [ref]);
+
+  // React.useEffect(() => {
+  //   console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
+  //   let isMounted = true;
+
+  //   const fetchData = async () => {
+  //     try {
+  //       const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
+
+  //       if (!isMounted) return;
+
+  //       if (responseData?.success && responseData.data) {
+  //         setData(responseData.data);
+  //         const { payment, lawyer, linkData } = responseData.data;
+  //         setLinkData(linkData);
+
+  //         // Always set available data
+  //         if (payment) {
+  //           setService(payment.serviceType || '');
+  //           setMethod(payment.consultationType || '');
+  //           setPaymentMethod(payment.paymentMethod || 'Card');
+  //           //console.log('Description:', payment?.caseDescription);
+  //           setDiscription(payment?.caseDescription);
+  //         }
+
+  //         if (lawyer) setSelectedLawyer(lawyer);
+
+  //         // Determine step based on payment method and status
+  //         if (payment) {
+  //           // Case 1: Pay at Office - skip to confirmation if meeting details exist
+  //           if (payment.paymentMethod === 'PayInOffice') {
+  //             if (payment.meetingDetails) {
+  //               setConfirmationData({
+  //                 lawyer: lawyer,
+  //                 service: payment.serviceType,
+  //                 phone: payment.phone,
+  //                 email: payment.email,
+  //                 method: payment?.consultationType,
+  //                 paymentMethod: payment?.paymentMethod,
+  //                 date: new Date(payment.meetingDetails.date),
+  //                 slot: payment.meetingDetails.slot,
+  //                 meetingLink: payment.meetingDetails.meetingUrl,
+  //               });
+  //               setPaymentId(payment?._id);
+  //               setActiveStep(6); // Confirmation
+  //             } else {
+  //               // No meeting details yet - proceed to scheduling
+  //               setActiveStep(2); // Date & Time selection
+  //             }
+  //           }
+  //           // Case 2: Online Payment - check payment status
+  //           else if (payment.paymentMethod === 'Card') {
+  //             if (payment.status === 'paid') {
+  //               if (payment.meetingDetails) {
+  //                 // Complete booking - show confirmation
+  //                 setConfirmationData({
+  //                   lawyer: lawyer,
+  //                   service: payment?.serviceType,
+  //                   phone: payment?.phone,
+  //                   email: payment?.email,
+  //                   status: payment?.status,
+  //                   method: payment?.consultationType,
+  //                   paymentMethod: payment?.paymentMethod,
+  //                   date: new Date(payment?.meetingDetails?.date),
+  //                   slot: payment?.meetingDetails?.slot,
+  //                   meetingLink: payment?.meetingDetails?.meetingUrl,
+  //                 });
+  //                 setPaymentId(payment?._id);
+  //                 setActiveStep(6); // Confirmation
+  //               } else {
+  //                 setConfirmationData({
+  //                   lawyer: lawyer,
+  //                   service: payment?.serviceType,
+  //                   phone: payment?.phone,
+  //                   email: payment?.email,
+  //                   status: payment?.status,
+  //                   method: payment?.consultationType,
+  //                   paymentMethod: payment?.paymentMethod,
+  //                   date: payment?.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
+  //                   slot: payment?.meetingDetails?.slot || null,
+  //                   meetingLink: payment?.meetingDetails?.meetingUrl || null,
+  //                   confirmed: !!payment?.meetingDetails, // true if meeting exists
+  //                 });
+  //                 // Paid but no meeting - skip to date/time selection
+  //                 setPaymentId(payment?._id);
+  //                 setActiveStep(2); // Date & Time
+  //               }
+  //             } else {
+  //               // Not paid yet - go to payment step
+
+  //               setActiveStep(4); // Payment
+  //             }
+  //           }
+  //         } else {
+  //           // No payment record - start from beginning
+  //           setActiveStep(0); // Service selection
+  //         }
+  //       }
+  //     } catch (error) {
+  //       if (isMounted) console.log('Failed to load payment data:', error);
+  //     } finally {
+  //       if (isMounted) setInitialDataLoaded(true);
+  //     }
+  //   };
+
+  //   if (ref) fetchData();
+
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [ref]);
 
   React.useEffect(() => {
     const fetchLawyers = async () => {
@@ -819,31 +1024,31 @@ function LegalConsultationStepper() {
     setAppointmentSlots([]);
     setClientMessage('');
   };
-  const regenerateAndRedirect = async () => {
-    try {
-      // Call your API to generate new link
-      const res = await axios.post(`${ApiEndPoint}generateLink`, {
-        phone,
-        name,
-      });
+  // const regenerateAndRedirect = async () => {
+  //   try {
+  //     // Call your API to generate new link
+  //     const res = await axios.post(`${ApiEndPoint}generateLink`, {
+  //       phone,
+  //       name,
+  //     });
 
-      if (res.data?.success && res.data?.fullUrl) {
-        let redirectUrl = res.data.fullUrl;
+  //     if (res.data?.success && res.data?.fullUrl) {
+  //       let redirectUrl = res.data.fullUrl;
 
-        if (source === 'website') {
-          // Append &source=website
-          redirectUrl += redirectUrl.includes('?') ? '&source=website' : '?source=website';
-        }
+  //       if (source === 'website') {
+  //         // Append &source=website
+  //         redirectUrl += redirectUrl.includes('?') ? '&source=website' : '?source=website';
+  //       }
 
-        // Redirect to new link
-        window.location.href = redirectUrl;
-      } else {
-        console.error('Failed to generate new link:', res.data);
-      }
-    } catch (err) {
-      console.error('Error generating link:', err);
-    }
-  };
+  //       // Redirect to new link
+  //       window.location.href = redirectUrl;
+  //     } else {
+  //       console.error('Failed to generate new link:', res.data);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error generating link:', err);
+  //   }
+  // };
 
   const onResetClick = async () => {
     await regenerateAndRedirect(); // This will reload the page to new URL
@@ -1345,11 +1550,26 @@ function LegalConsultationStepper() {
       // ======================
       // 2. Send Client Email (if exists)
       // ======================
-      let rescheduleLink =
-        `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+      // let rescheduleLink =
+      //   `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+      // if (source === 'website') rescheduleLink += '&source=website';
+
+      let rescheduleLink = `https://portal.aws-legalgroup.com/reschedule`;
+
+      // add phone if available
+      if (phone) rescheduleLink += `/${phone}`;
+
+      // add name if available (sanitize if present)
+      if (name) rescheduleLink += `/${name.replace(/\s+/g, '-')}`;
+
+      // always add ref
+      rescheduleLink += `?ref=${ref}`;
+
+      // add source=website if applicable
       if (source === 'website') rescheduleLink += '&source=website';
 
       const clientEmail = paymentForm.email || confirmationData?.email || data?.payment?.email;
+      console.log('Sending Client Email:', clientEmail);
 
       if (clientEmail) {
         console.log('🔄 Sending Client Email');

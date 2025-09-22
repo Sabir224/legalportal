@@ -60,6 +60,7 @@ import FilterSection from './FilterSection';
 import FilterableHeaderCell from './FilterableHeaderCell';
 import { minWidth } from '@mui/system';
 import { CheckCircleIcon } from 'lucide-react';
+import PaymentConfirmationDialog from './PaymentConfirmationDailog';
 
 // Styled components with white and gold theme
 const ElegantCard = styled(Card)(({ theme }) => ({
@@ -126,6 +127,9 @@ export default function PaymentDashboard() {
   const [amountFilterLength, setAmountFilterLength] = useState(0);
   const [emailFilter, setEmailFilter] = useState([]);
   const [loadingId, setLoadingId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
     service: '',
@@ -136,6 +140,13 @@ export default function PaymentDashboard() {
     client: '',
     amount: '',
   });
+  const labelMap = {
+    InPerson: 'In Person',
+    Online: 'Online',
+    'InPerson/Online': 'In Person / Online',
+    PayInOffice: 'Pay In Office',
+    Card: 'Card',
+  };
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -176,7 +187,30 @@ export default function PaymentDashboard() {
       throw error; // rethrow so caller knows
     }
   };
+  const handleOpenConfirm = (appointment) => {
+    setSelectedAppointment(appointment);
+    setConfirmOpen(true);
+  };
 
+  const handleCancel = () => {
+    if (!loadingPayment) {
+      setConfirmOpen(false);
+      setSelectedAppointment(null);
+    }
+  };
+
+  const handleConfirm = async () => {
+    setLoadingPayment(true);
+    try {
+      await markPaymentPaid(selectedAppointment); // your API function
+      setConfirmOpen(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
   const viewInvoice = async (paymentId) => {
     setLoadingId(paymentId);
 
@@ -295,7 +329,7 @@ export default function PaymentDashboard() {
 
   const normalizeMethod = (method) => {
     if (!method) return 'blank';
-    return String(method).toLowerCase().trim();
+    return String(method);
   };
   const normalizeEmail = (email) => {
     if (!email) return 'blank';
@@ -1659,7 +1693,7 @@ export default function PaymentDashboard() {
                                     <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                       {getStatusChip(
                                         item.payment?.status,
-                                        () => markPaymentPaid(item),
+                                        () => handleOpenConfirm(item),
                                         item.payment?.hasInvoice
                                       )}
                                     </StyledTableCell>
@@ -1779,11 +1813,28 @@ export default function PaymentDashboard() {
                         onToggle={handleToggleConsultation}
                         selectedValues={consultationTypeFilter}
                         isCurrentFilter={activeFilter === 'consultation'}
-                        getLabel={(value) => value}
+                        getLabel={(value) => labelMap[value] || value}
                       />
                     </Box>
                   )}
 
+                  {openFilter === 'method' && (
+                    <Box sx={{ mb: 3 }}>
+                      <FilterSection
+                        title="Method"
+                        filterKey="method"
+                        filterData={methodOptions.methods} // replace with your method options from getDynamicFilterOptions
+                        searchTerm={filterSearchTerms.method}
+                        onSearchChange={handleSearchChange}
+                        onSelectAll={handleSelectAllMethod} // implement this function similar to others
+                        onClearAll={handleClearAllMethod} // implement this function similar to others
+                        onToggle={handleToggleMethod} // implement this function similar to others
+                        selectedValues={methodFilter}
+                        isCurrentFilter={activeFilter === 'method'}
+                        getLabel={(value) => labelMap[value] || value}
+                      />
+                    </Box>
+                  )}
                   {openFilter === 'lawyer' && (
                     <Box
                       sx={{ mb: 3 }}
@@ -1802,23 +1853,6 @@ export default function PaymentDashboard() {
                         selectedValues={lawyerFilter}
                         isCurrentFilter={activeFilter === 'lawyer'}
                         getLabel={(lawyer) => lawyer.FkUserId?.UserName || lawyer.UserName || 'Unknown Lawyer'}
-                      />
-                    </Box>
-                  )}
-                  {openFilter === 'method' && (
-                    <Box sx={{ mb: 3 }}>
-                      <FilterSection
-                        title="Method"
-                        filterKey="method"
-                        filterData={methodOptions.methods} // replace with your method options from getDynamicFilterOptions
-                        searchTerm={filterSearchTerms.method}
-                        onSearchChange={handleSearchChange}
-                        onSelectAll={handleSelectAllMethod} // implement this function similar to others
-                        onClearAll={handleClearAllMethod} // implement this function similar to others
-                        onToggle={handleToggleMethod} // implement this function similar to others
-                        selectedValues={methodFilter}
-                        isCurrentFilter={activeFilter === 'method'}
-                        getLabel={(value) => (value === 'Blank' ? 'Blank' : value)}
                       />
                     </Box>
                   )}
@@ -1955,6 +1989,7 @@ export default function PaymentDashboard() {
             )}
           </Box>
         </Container>
+        <PaymentConfirmationDialog open={confirmOpen} onCancel={handleCancel} onConfirm={handleConfirm} />
       </Box>
     </LocalizationProvider>
   );

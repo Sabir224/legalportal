@@ -112,7 +112,7 @@ const GlobalTokenValidator = () => {
       '/reset-password',
       '/client-consultation',
       '/LFQ_ClientCaseEvaluationForm',
-      '/clientAppointMent/:phone/:name',
+      '/clientAppointMent',
       '/reschedule',
     ];
     const pathname = location.pathname;
@@ -170,7 +170,7 @@ function App() {
         <Route path="/forget-password" element={<ForgotPassword />} />
         <Route path="/book" element={<BookConsultation />} />
         <Route
-          path="/clientAppointMent/:phone/:name"
+          path="/clientAppointMent"
           element={
             <Elements stripe={stripePromise}>
               <LegalConsultationStepper />

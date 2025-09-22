@@ -72,7 +72,16 @@ const AddUser = () => {
   const servicesDropdownRef = useRef(null);
   const availabilityDropdownRef = useRef(null);
   const [focusedIndex, setFocusedIndex] = useState({ role: -1, services: -1, availability: -1 });
-  const availabilityOptions = ['InPerson', 'Online', 'InPerson/Online'];
+  // Options with DB value -> Human-readable label
+  // DB values in array (for order + index navigation)
+  const availabilityValues = ['InPerson', 'Online', 'InPerson/Online'];
+
+  const availabilityOptions = {
+    InPerson: 'In Person',
+    Online: 'Online',
+    'InPerson/Online': 'In Person & Online',
+  };
+
   const roleOptions = ['client', 'lawyer', 'finance', 'receptionist', 'paralegal'];
 
   const handleAvailabilitySelect = (option) => {
@@ -487,7 +496,7 @@ const AddUser = () => {
                   </div>
                 </div>
               ))}
-            <div className="col-12 col-sm-6 col-lg-4">
+            {/* <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label
                   className="form-label fw-semibold mb-2 d-block"
@@ -497,7 +506,7 @@ const AddUser = () => {
                 </label>
                 <LanguageDropdown selectedLanguages={language} setSelectedLanguages={setLanguage} />
               </div>
-            </div>
+            </div> */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label className="form-label fw-medium" style={{ color: '#18273e' }}>
@@ -613,8 +622,8 @@ const AddUser = () => {
                               cursor: 'pointer',
                               backgroundColor:
                                 index === focusedIndex.role ? '#f5e9d9' : role === selectedRole ? '#F8D4A1' : 'white',
-                              border: 'none',
-                              borderBottom: '1px solid #f0f0f0',
+
+                              borderBottom: index !== roleOptions.length - 1 ? '1px solid black' : 'none', // divider
                               fontSize: '0.95rem',
                             }}
                             onClick={() => handleRoleClick(role)}
@@ -756,12 +765,17 @@ const AddUser = () => {
                           aria-expanded={availabilityDropdownOpen}
                           aria-haspopup="listbox"
                         >
-                          <span>{selectedAvailability || 'Select Availability'}</span>
+                          <span>
+                            {selectedAvailability
+                              ? availabilityOptions[selectedAvailability] // show label
+                              : 'Select Availability'}
+                          </span>
                           <FaChevronDown
                             className={`transition-all fs-6 ${availabilityDropdownOpen ? 'rotate-180' : ''}`}
                             style={{ color: '#18273e' }}
                           />
                         </button>
+
                         {availabilityDropdownOpen && (
                           <ul
                             className="list-group position-absolute w-100 mt-1 shadow-sm"
@@ -774,28 +788,28 @@ const AddUser = () => {
                             }}
                             role="listbox"
                           >
-                            {availabilityOptions.map((option, index) => (
+                            {Object.entries(availabilityOptions).map(([value, label], index) => (
                               <li
-                                key={option}
+                                key={value}
                                 className="list-group-item list-group-item-action px-3 py-2"
                                 style={{
                                   cursor: 'pointer',
                                   backgroundColor:
                                     index === focusedIndex.availability
                                       ? '#f5e9d9'
-                                      : option === selectedAvailability
+                                      : value === selectedAvailability
                                       ? '#F8D4A1'
                                       : 'white',
                                   border: 'none',
                                   borderBottom: '1px solid #f0f0f0',
                                   fontSize: '0.95rem',
                                 }}
-                                onClick={() => handleAvailabilitySelect(option)}
+                                onClick={() => handleAvailabilitySelect(value)} // store DB value
                                 onMouseEnter={() => setFocusedIndex({ ...focusedIndex, availability: index })}
                                 role="option"
-                                aria-selected={option === selectedAvailability}
+                                aria-selected={value === selectedAvailability}
                               >
-                                {option}
+                                {label} {/* show human-readable label */}
                               </li>
                             ))}
                           </ul>
