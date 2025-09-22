@@ -619,7 +619,7 @@ const Case_details = ({ token }) => {
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
 
-          ...((isclientAssigned)
+          ...((isclientAssigned ? true : true)
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
             : []),
 

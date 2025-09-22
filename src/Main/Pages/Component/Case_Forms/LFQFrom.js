@@ -12,6 +12,7 @@ import { Dropdown, Form, InputGroup, Modal, Button } from "react-bootstrap";
 import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logo from "../../../Pages/Images/logo.png";
+import AWSSideLogo from "../../../Pages/Component/assets/AWSSideLogo.png";
 import Stamp from "../../../Pages/Component/assets/Stamp.png";
 import { height } from "@mui/system";
 
@@ -1036,6 +1037,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     const downloadCasePdf = async (data) => {
         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
+        const AWSSideLogoBase64 = logo ? await getBase64ImageFromUrl(AWSSideLogo) : null;
 
         const preparedBySignBase64 = data?.preparedBySignpath
             ? await getSignBase64FromServer(data.preparedBySignpath)
@@ -1054,21 +1056,20 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
         // === BRAND/LAYOUT CONTROLS ===
         const sidebarWidth = 85;
-        const BAR_COLOR = "#8a96b2";
+        const BAR_COLOR = "#18273e";
 
         // Big watermark settings (center of page)
         const WM_OPACITY = 0.06;
 
         // Side "AWS" word settings for header/bottom only
-        const AWS_SIDE_FONT = 32;    // smaller so we can fit 3/4 comfortably
+        const AWS_SIDE_FONT = 46;    // smaller so we can fit 3/4 comfortably
         const AWS_SIDE_OPACITY = 0.8;
-        const AWS_SIDE_X = 16;       // inside the strip
+        const AWS_SIDE_X = 1;       // inside the strip
 
         // Header sizing (logo + 3 lines)
         const HEADER_HEIGHT = 90;
 
         const docDefinition = {
-            // LEFT strip and FAINT center watermark only (no mid "AWS" now)
             background: (currentPage, pageSize) => {
                 const elems = [
                     // Left strip
@@ -1094,11 +1095,10 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     });
                 }
 
-                // --- NEW: Bottom-left strip "AWS" (4 times) drawn in BACKGROUND so they don't get clipped ---
+                // Bottom-left strip "AWS" (4 times)
                 const bottomPadding = 8;
-                const stepY = AWS_SIDE_FONT + 0; // keep your spacing
-                // Start so that 4 items fit above the bottom edge, inside the strip
-                const totalHeight = AWS_SIDE_FONT + stepY * 3; // height from first to last (4 items)
+                const stepY = AWS_SIDE_FONT  -6;
+                const totalHeight = AWS_SIDE_FONT + stepY * 3;
                 const bottomStartY = pageSize.height - bottomPadding - totalHeight - AWS_SIDE_FONT * 0.05;
 
                 for (let i = 0; i < 4; i++) {
@@ -1108,42 +1108,55 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                         fontSize: AWS_SIDE_FONT,
                         color: "#ffffff",
                         opacity: AWS_SIDE_OPACITY,
-                        absolutePosition: { x: AWS_SIDE_X, y: bottomStartY + i * stepY }
+                        absolutePosition: { x: AWS_SIDE_X-10, y: bottomStartY + i * stepY }
                     });
                 }
 
                 return elems;
             },
 
-
             // Shift content right & below header
             pageMargins: [sidebarWidth + 30, HEADER_HEIGHT + 35, 40, 60],
 
-            // HEADER (clean, white) + put "AWS" on the left strip (HEADER AREA ONLY, 3 times)
+            // HEADER (with side-strip logo added)
             header: (currentPage, pageCount, pageSize) => {
-                // compute Y positions for 3 "AWS" words inside header band
-                const headerBandTop = 0;                        // page top
-                const startY = headerBandTop + 0;              // little padding
-                const stepY = AWS_SIDE_FONT + 8;                // spacing
+                // existing AWS text in the strip (header area)
+                const headerBandTop = 0;
+                const startY = headerBandTop + 0;
+                const stepY = AWS_SIDE_FONT + 8;
                 const headerAWS = [];
-                for (let i = 0; i < 3; i++) {
-                    headerAWS.push({
-                        text: "AWS",
-                        bold: true,
-                        fontSize: AWS_SIDE_FONT,
-                        color: "#c0a262",
-                        opacity: AWS_SIDE_OPACITY,
-                        absolutePosition: { x: AWS_SIDE_X, y: startY + i * stepY }
-                    });
-                }
+                // for (let i = 0; i < 3; i++) {
+                //     headerAWS.push({
+                //         text: "AWS",
+                //         bold: true,
+                //         fontSize: AWS_SIDE_FONT,
+                //         color: "#c0a262",
+                //         opacity: AWS_SIDE_OPACITY,
+                //         absolutePosition: { x: AWS_SIDE_X, y: startY + i * stepY }
+                //     });
+                // }
+
+                // >>> NEW: logo inside the LEFT strip at the top (centered)
+                const STRIP_LOGO_SIZE = 85;                            // adjust if needed
+                const stripLogoX = Math.round((sidebarWidth - STRIP_LOGO_SIZE) / 2);
+                const stripLogoY = 10;                                 // distance from page top
+                const stripLogo = (AWSSideLogo
+                    ? {
+                        image: AWSSideLogoBase64,
+                        width: STRIP_LOGO_SIZE,
+                        height: STRIP_LOGO_SIZE + 20,
+                        absolutePosition: { x: stripLogoX, y: stripLogoY }
+                    }
+                    : { text: "" });
 
                 return {
                     margin: [sidebarWidth + 20, 15, 20, 0],
                     stack: [
-                        // left-strip header AWS (absolute positioned)
+                        // absolute elements placed on the strip
+                        stripLogo,
                         ...headerAWS,
 
-                        // logo + firm name to the right of the strip
+                        // right side: firm mark (unchanged)
                         {
                             columns: [
                                 logoBase64
@@ -1168,7 +1181,6 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     ]
                 };
             },
-
             // FOOTER + put "AWS" on the left strip (BOTTOM AREA ONLY, 4 times)
             footer: (currentPage, pageCount, pageSize) => {
                 const footerHeight = 70;
