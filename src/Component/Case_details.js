@@ -600,10 +600,10 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "lawyer"
             ? [{ label: "View lawyer", onClick: handleViewDetails }]
             : []),
-          ...[{ label: "View Folder", onClick: handleViewFolders }],
+          ...(reduxCaseInfo?.CaseSubType  ? [{ label: "View Folder", onClick: handleViewFolders }] : []),
           ...[{ label: "Case Update", onClick: handleCaseUpdate }],
 
-          ...(token?.Role !== "client"
+          ...(token?.Role !== "client" &&  reduxCaseInfo?.ClientId
             ? [{ label: "View Client", onClick: handleViewClientDetails }]
             : []),
           ...(token?.Role !== "client"
