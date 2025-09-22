@@ -13,6 +13,7 @@ import pdfMake from "pdfmake/build/pdfmake";
 import pdfFonts from "pdfmake/build/vfs_fonts";
 import logo from "../../../Pages/Images/logo.png";
 import AWSSideLogo from "../../../Pages/Component/assets/AWSSideLogo.png";
+import AWSSideLogo1 from "../../../Pages/Component/assets/AWSSideLogo2.png";
 import Stamp from "../../../Pages/Component/assets/Stamp.png";
 import { height } from "@mui/system";
 
@@ -1038,6 +1039,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const downloadCasePdf = async (data) => {
         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
         const AWSSideLogoBase64 = logo ? await getBase64ImageFromUrl(AWSSideLogo) : null;
+        const AWSSideLogo1Base64 = logo ? await getBase64ImageFromUrl(AWSSideLogo1) : null;
 
         const preparedBySignBase64 = data?.preparedBySignpath
             ? await getSignBase64FromServer(data.preparedBySignpath)
@@ -1096,21 +1098,33 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 }
 
                 // Bottom-left strip "AWS" (4 times)
+                // Replace the 4x loop with a single bottom-left logo
                 const bottomPadding = 8;
-                const stepY = AWS_SIDE_FONT  -6;
-                const totalHeight = AWS_SIDE_FONT + stepY * 3;
-                const bottomStartY = pageSize.height - bottomPadding - totalHeight - AWS_SIDE_FONT * 0.05;
+                const AWS_SIDE_LOGO_SIZE = 96; // adjust size as needed
+                const AWS_SIDE_LOGO_width = 87; // adjust size as needed
+                // place it a bit above bottom with small left offset (matches previous AWS_SIDE_X-10)
+                const bottomY = pageSize.height - bottomPadding - AWS_SIDE_LOGO_SIZE - 6;
 
-                for (let i = 0; i < 4; i++) {
+                if (AWSSideLogo1Base64) {
+                    elems.push({
+                        image: AWSSideLogo1Base64,
+                        width: AWS_SIDE_LOGO_width,
+                        height: AWS_SIDE_LOGO_SIZE,
+                        opacity: AWS_SIDE_OPACITY,
+                        absolutePosition: { x: AWS_SIDE_X, y: bottomY }
+                    });
+                } else {
+                    // fallback text if no logo
                     elems.push({
                         text: "AWS",
                         bold: true,
                         fontSize: AWS_SIDE_FONT,
                         color: "#ffffff",
                         opacity: AWS_SIDE_OPACITY,
-                        absolutePosition: { x: AWS_SIDE_X-10, y: bottomStartY + i * stepY }
+                        absolutePosition: { x: AWS_SIDE_X - 10, y: bottomY }
                     });
                 }
+
 
                 return elems;
             },
