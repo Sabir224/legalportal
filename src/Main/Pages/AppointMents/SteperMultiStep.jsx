@@ -37,6 +37,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Checkbox,
+  FormGroup,
 } from '@mui/material';
 
 import {
@@ -134,6 +136,8 @@ function LegalConsultationStepper() {
   const [oldpaymentId, setPaymentId] = useState('');
   const [bookingData, setBookingData] = useState(null);
   const [caseDiscription, setDiscription] = useState('');
+  const [errors, setErrors] = useState({});
+  const hasRedirected = React.useRef(false);
 
   const dateOptions = {
     timeZone: 'Asia/Dubai',
@@ -154,7 +158,7 @@ function LegalConsultationStepper() {
   // Stripe hooks
   const stripe = useStripe();
   const elements = useElements();
-  const { phone, name } = useParams();
+
   const [paymentForm, setPaymentForm] = React.useState({
     name: '',
     email: '',
@@ -166,7 +170,10 @@ function LegalConsultationStepper() {
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
+  const { phone, name } = useParams();
   const ref = searchParams.get('ref');
+  const source = searchParams.get('source');
+  console.log('source:', source);
   // Popup states
   const [isPopupVisible, setIsPopupVisible] = React.useState(false);
   const [popupcolor, setPopupcolor] = React.useState('popup');
@@ -176,46 +183,498 @@ function LegalConsultationStepper() {
   const [isPopupVisiblecancel, setIsPopupVisiblecancel] = React.useState(true);
   const [linkData, setLinkData] = React.useState(null);
   const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
-
+  const [answers, setAnswers] = useState({});
   const services = [
-    { name: 'Civil Case', description: 'Civil Case related legal services' },
-    { name: 'Commercial Law', description: 'Commercial Law related legal services' },
-    { name: 'Criminal Case', description: 'Criminal Case related legal services' },
-    { name: 'Family Law', description: 'Family Law related legal services' },
-    { name: 'Real Estate Case', description: 'Real Estate Case related legal services' },
-    { name: 'Labor Case', description: 'Labor Case related legal services' },
-    { name: 'Construction Case', description: 'Construction Case related legal services' },
-    { name: 'Maritime Case', description: 'Maritime Case related legal services' },
-    { name: 'Personal Injury Case', description: 'Personal Injury Case related legal services' },
-    { name: 'Technology Case', description: 'Technology Case related legal services' },
-    { name: 'Financial Case', description: 'Financial Case related legal services' },
-    { name: 'Public Law', description: 'Public Law related legal services' },
-    { name: 'Consumer Case', description: 'Consumer Case related legal services' },
-    { name: 'Environmental Case', description: 'Environmental Case related legal services' },
+    { name: 'Civil Law', description: 'Civil law related legal services' },
+    { name: 'Commercial Law', description: 'Commercial law related legal services' },
+    { name: 'Criminal Law', description: 'Criminal law related legal services' },
+    { name: 'Family Law', description: 'Family law related legal services' },
+    { name: 'Real Estate Law', description: 'Real estate law related legal services' },
+    { name: 'Labour Law', description: 'Labour law related legal services' },
+    { name: 'Construction Law', description: 'Construction law related legal services' },
+    { name: 'Maritime Law', description: 'Maritime law related legal services' },
+    { name: 'Personal Injury Law', description: 'Personal injury law related legal services' },
+    { name: 'Technology Law', description: 'Technology law related legal services' },
+    { name: 'Financial Law', description: 'Financial law related legal services' },
+    { name: 'Public Law', description: 'Public law related legal services' },
+    { name: 'Consumer Law', description: 'Consumer law related legal services' },
+    { name: 'Environmental Law', description: 'Environmental law related legal services' },
+    {
+      name: 'Estate / Succession / Inheritance Law',
+      description: 'Estate, succession, and inheritance legal services',
+    },
+    { name: 'Insurance Law', description: 'Insurance-related legal services' },
+    { name: 'Banking and Investment Law', description: 'Banking and investment related legal services' },
+    { name: 'Tax Law', description: 'Tax-related legal services' },
+    { name: 'Rental Law', description: 'Rental and tenancy-related legal services' },
+    { name: 'Intellectual Property Law', description: 'Intellectual property legal services' },
+    { name: 'Debt Collection Law', description: 'Debt collection related legal services' },
+    { name: 'Capital Funds Law', description: 'Capital funds and investment-related legal services' },
   ];
 
-  const UpdateSubtypelist = [
-    'Civil Case',
-    'Commercial Law',
-    'Criminal Case',
-    'Family Law',
-    'Real Estate Case',
-    'Labor Case',
-    'Construction Case',
-    'Maritime Case',
-    'Personal Injury Case',
-    ,
-    'Technology Case',
-    'Financial Case',
-    'Public Law',
-    'Consumer Case',
-    'Environmental Case',
-  ];
-  const handleChangeCaseDiscription = (e) => {
-    const value = e.target.value;
-    // Basic validation if needed (like max length)
-    if (value.length <= 1024) {
-      setDiscription(value);
+  const questionsConfig = {
+    'Civil Law': [
+      { type: 'checkbox', question: 'Is the client the plaintiff or defendant?', options: ['Plaintiff', 'Defendant'] },
+      {
+        type: 'text',
+        question:
+          'Please describe the nature of the dispute (breach of contract, damage to property, unpaid debt, etc.)',
+      },
+      { type: 'text', question: 'Who are the other party/parties involved, and what is your relationship to them?' },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Family Law': [
+      { type: 'text', question: 'Current marital or relationship status' },
+      {
+        type: 'text',
+        question: 'Relevant legal actions already taken (separation agreement, court filings, restraining orders).',
+      },
+      { type: 'checkbox', question: 'Religion', options: ['Muslim', 'Non-Muslim'] },
+      {
+        type: 'text',
+        question:
+          'Please confirm where your marriage took place? And if there are children involved? If yes, list their full names, birth dates, and current living arrangements.',
+      },
+      {
+        type: 'text',
+        question:
+          'Legal service required - issues you need assistance with, and what outcome are you seeking? (sole custody, equal parenting time, spousal support, asset division, protection order, etc.)',
+      },
+    ],
+    'Commercial Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of the legal issue or service you are seeking? (incorporation, shareholder agreement, business sale, contract drafting/review, partnership dispute, regulatory compliance, etc.)',
+      },
+      {
+        type: 'file',
+        question: 'Attach relevant documents (if any)',
+      },
+    ],
+    'Criminal Law': [
+      { type: 'checkbox', question: 'Is the client the plaintiff or defendant?', options: ['Plaintiff', 'Defendant'] },
+      {
+        type: 'text',
+        question:
+          'Have you been charged, arrested, or are you currently under investigation? (Please specify the alleged offence(s), date(s), and law enforcement agency involved)',
+      },
+      {
+        type: 'text',
+        question:
+          'What stage is your case currently at? (not yet charged, bail hearing scheduled, awaiting trial, sentencing, probation violation, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Estate / Succession / Inheritance Law': [
+      {
+        type: 'text',
+        question: 'Please define the legal service you are seeking. (Planning, managing or disputing an estate.)',
+      },
+      {
+        type: 'text',
+        question:
+          'If this concerns a deceased person, what is the relationship? (Include known details about the will’s location or probate status if available.)',
+      },
+      {
+        type: 'text',
+        question:
+          'What assets, debts, or disputes (if any) are involved in the estate? (real estate, businesses, bank accounts, inheritance conflicts, missing beneficiaries.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Real Estate Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of your real estate matter? (purchase, sale, lease, construction defect, title problem, etc.)',
+      },
+      { type: 'text', question: 'Are there any contracts, offers, or legal proceedings currently in progress?' },
+      {
+        type: 'text',
+        question:
+          'Who are the other parties involved (buyer, seller, tenant, developer, municipality), and are there any disputes, deadlines, or financial concerns?',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Labour Law': [
+      {
+        type: 'text',
+        question:
+          'Please describe the nature of the employment relationship (full-time, part-time, contract, unionized) and how long it has existed.',
+      },
+      {
+        type: 'text',
+        question:
+          'What is the specific issue you are seeking legal advice for? (termination, unpaid salary, harassment, contract review, discrimination, etc.)',
+      },
+      {
+        type: 'text',
+        question:
+          'Have any formal actions been taken to date (written warnings, termination letter, complaint to HR, labour board complaint)?',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Construction Law': [
+      {
+        type: 'text',
+        question:
+          'What type of construction issue is involved? (contract dispute, defect, payment issue, project delay, safety concern, etc.)',
+      },
+      { type: 'text', question: 'Who are the parties involved (contractor, subcontractor, owner, municipality)?' },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Maritime Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of the maritime issue? (shipping dispute, cargo damage, vessel arrest, seafarer employment, marine insurance, etc.)',
+      },
+      { type: 'text', question: 'What parties are involved (shipowner, charterer, insurer, port authority, crew)?' },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Personal Injury Law': [
+      {
+        type: 'text',
+        question:
+          'What type of personal injury occurred? (car accident, workplace injury, medical negligence, slip and fall, etc.)',
+      },
+      { type: 'text', question: 'When and where did the injury occur?' },
+      { type: 'file', question: 'Attach relevant medical/legal documents (if any)' },
+    ],
+    'Technology Law': [
+      {
+        type: 'text',
+        question:
+          'What type of technology matter is involved? (data privacy, software licensing, cybersecurity, IT contracts, AI compliance, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant agreements/policies (if any)' },
+      {
+        type: 'text',
+        question: 'What outcome are you seeking? (compliance, damages, contract negotiation, dispute resolution)',
+      },
+    ],
+    'Financial Law': [
+      {
+        type: 'text',
+        question:
+          'What type of financial issue is involved? (fraud, misrepresentation, banking dispute, unauthorized transactions, etc.)',
+      },
+      { type: 'text', question: 'What financial institutions or parties are involved?' },
+      { type: 'text', question: 'What actions have been taken so far (complaints, regulatory filings, lawsuits)?' },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Public Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of the public law matter? (constitutional challenge, administrative law, judicial review, regulatory compliance)',
+      },
+      { type: 'text', question: 'Which public authority, regulator, or government body is involved?' },
+      { type: 'text', question: 'What outcome or relief are you seeking?' },
+    ],
+    'Consumer Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of your consumer issue? (defective product, false advertising, unfair contract, service dispute, fraud)',
+      },
+      { type: 'text', question: 'Who is the seller, manufacturer, or service provider involved?' },
+      {
+        type: 'text',
+        question: 'What steps have been taken so far (complaints, refund request, consumer protection filing)?',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Environmental Law': [
+      {
+        type: 'text',
+        question:
+          'What is the nature of the environmental matter? (pollution, land use, regulatory compliance, environmental assessment, climate dispute)',
+      },
+      {
+        type: 'text',
+        question: 'What authority or organization is involved? (EPA, local municipality, private corporation, NGO)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Insurance Law': [
+      {
+        type: 'checkbox',
+        question: 'Type of Insurance Involved',
+        options: ['Auto', 'Home', 'Commercial', 'Life', 'Disability', 'Liability', 'Other'],
+      },
+      {
+        type: 'text',
+        question:
+          'What is the issue or dispute you’re facing with the insurer? (denied claim, delayed payout, coverage dispute, policy cancellation, insurer bad faith, etc.)',
+      },
+      { type: 'text', question: 'Please describe the event or loss that gave rise to the insurance claim.' },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Banking and Investment Law': [
+      { type: 'checkbox', question: 'Nature of the Matter', options: ['Banking', 'Investment', 'Both'] },
+      {
+        type: 'text',
+        question:
+          'Please describe the product or service involved and the institution(s) concerned. (mortgage, line of credit, brokerage account, investment fund, crypto platform, financial advisor, etc.)',
+      },
+      {
+        type: 'text',
+        question:
+          'What is the issue or dispute you are facing? (unauthorized transactions, misrepresentation, frozen account, advisor negligence, margin call, regulatory violation, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Tax Law': [
+      { type: 'checkbox', question: 'Type of Taxpayer', options: ['Individual', 'Corporation', 'Trust', 'Other'] },
+      {
+        type: 'text',
+        question:
+          'What is the nature of the tax issue you are facing? (audit, reassessment, unpaid taxes, penalty dispute, voluntary disclosure, tax planning, CRA communication, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Rental Law': [
+      { type: 'checkbox', question: 'Client is the:', options: ['Landlord', 'Tenant'] },
+      { type: 'checkbox', question: 'Type of Lease:', options: ['Residential', 'Commercial'] },
+      {
+        type: 'text',
+        question:
+          'Please describe the legal issue or dispute you are facing. (non-payment of rent, eviction notice, lease violation, repair issues, lease review, deposit dispute, illegal occupancy, etc.)',
+      },
+      {
+        type: 'text',
+        question:
+          'What is the current status of the lease and occupancy? (active lease, notice given/received, tenant still in possession, rent arrears, abandoned property, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Intellectual Property Law': [
+      {
+        type: 'checkbox',
+        question: 'Type of Intellectual Property Involved',
+        options: ['Trademark', 'Copyright', 'Patent', 'Trade Secret', 'Other'],
+      },
+      {
+        type: 'text',
+        question:
+          'What specific IP asset or issue do you need help with? (registering a trademark, enforcing copyright, patent application, defending against infringement, licensing, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+    'Debt Collection Law': [
+      {
+        type: 'checkbox',
+        question: 'Is the client the',
+        options: ['Creditor (seeking to collect a debt)', 'Debtor (responding to a debt or enforcement action)'],
+      },
+      {
+        type: 'text',
+        question:
+          'What is the amount and nature of the debt? (unpaid invoice, loan, service contract, promissory note — include amount, due date, and whether it is disputed.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+      {
+        type: 'text',
+        question:
+          'Who are the other party/parties involved, and do you have any relevant agreements or communications? (Provide names and business relationships)',
+      },
+    ],
+    'Capital Funds Law': [
+      {
+        type: 'checkbox',
+        question: 'Client Role',
+        options: ['Fund Manager', 'Investor', 'Company Seeking Investment', 'Advisor/Other'],
+      },
+      {
+        type: 'text',
+        question:
+          'What specific legal assistance are you seeking? (fund formation, drafting investor agreements, securities compliance, LP/GP structuring, dispute resolution, fundraising support, etc.)',
+      },
+      { type: 'file', question: 'Attach relevant documents (if any)' },
+    ],
+  };
+
+  // 🔹 Auto-generate Case Description when answers change
+  React.useEffect(() => {
+    if (service) {
+      const qs = questionsConfig[service] || [];
+      let description = qs
+        .map((q) => {
+          const ans = answers[q.question];
+          if (!ans || ans.length === 0) return null;
+
+          if (q.type === 'checkbox') {
+            // ✅ ab single value hai, array nahi
+            return `${q.question}: ${ans}`;
+          }
+          if (q.type === 'text') {
+            return `${q.question}: ${ans}`;
+          }
+          if (q.type === 'file') {
+            return `${q.question}: ${ans.name || 'File attached'}`;
+          }
+          return null;
+        })
+        .filter(Boolean)
+        .join('\n\n');
+
+      setDiscription(description); // 👈 merge into caseDescription state
+    }
+  }, [answers, service]);
+
+  const handleAnswerChange = (question, value) => {
+    setAnswers((prev) => ({ ...prev, [question]: value }));
+    setErrors((prev) => ({ ...prev, [question]: false }));
+  };
+
+  const handleCheckboxChange = (question, option) => {
+    setAnswers((prev) => {
+      const current = prev[question];
+      // ✅ agar already selected hai to unselect kar do, warna naya option set karo
+      const updated = current === option ? '' : option;
+      return { ...prev, [question]: updated };
+    });
+    setErrors((prev) => ({ ...prev, [question]: false }));
+  };
+
+  const handleFileChange = (question, files) => {
+    if (files && files.length > 0) {
+      const allowedTypes = [
+        'image/jpeg',
+        'image/png',
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      ];
+
+      const sizeLimits = {
+        image: 20 * 1024 * 1024, // 20MB
+        document: 20 * 1024 * 1024, // 20MB
+      };
+
+      const fileArray = Array.from(files);
+
+      // 🔹 Merge with already stored files
+      const existingFiles = answers[question] || [];
+      let combinedFiles = [...existingFiles, ...fileArray];
+
+      let errorsForFiles = [];
+
+      combinedFiles.forEach((file) => {
+        // 🔹 Type validation
+        if (!allowedTypes.includes(file.type)) {
+          errorsForFiles.push(`Invalid type: ${file.name} (Only JPG, PNG, PDF, DOC, DOCX allowed)`);
+          return;
+        }
+
+        // 🔹 Filename length validation
+        if (file.name.length > 40) {
+          errorsForFiles.push(`File name too long (max 40 chars): ${file.name}`);
+          return;
+        }
+
+        // 🔹 Size validation
+        if (['image/jpeg', 'image/png'].includes(file.type)) {
+          if (file.size > sizeLimits.image) {
+            errorsForFiles.push(
+              `File too large: ${file.name} (Max ${(sizeLimits.image / (1024 * 1024)).toFixed(1)}MB)`
+            );
+            return;
+          }
+        }
+
+        if (
+          [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          ].includes(file.type)
+        ) {
+          if (file.size > sizeLimits.document) {
+            errorsForFiles.push(
+              `File too large: ${file.name} (Max ${(sizeLimits.document / (1024 * 1024)).toFixed(1)}MB)`
+            );
+            return;
+          }
+        }
+      });
+
+      if (errorsForFiles.length > 0) {
+        // 🚫 If any invalid files
+        setErrors((prev) => ({
+          ...prev,
+          [question]: errorsForFiles, // store array of errors
+        }));
+        return;
+      }
+
+      // 🔹 Limit max 5 files
+      if (combinedFiles.length > 5) {
+        setErrors((prev) => ({
+          ...prev,
+          [question]: [`You can upload a maximum of 5 files.`],
+        }));
+        combinedFiles = combinedFiles.slice(0, 5);
+      } else {
+        setErrors((prev) => ({ ...prev, [question]: [] }));
+      }
+
+      // ✅ If valid, save merged files
+      setAnswers((prev) => ({
+        ...prev,
+        [question]: combinedFiles,
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    let newErrors = {};
+    if (!service) newErrors.service = 'Please select a service';
+
+    const qs = questionsConfig[service] || [];
+    qs.forEach((q) => {
+      if (q.required !== false) {
+        if (q.type === 'text' && !answers[q.question]) {
+          newErrors[q.question] = 'This field is required';
+        }
+        if (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)) {
+          newErrors[q.question] = 'Please select at least one option';
+        }
+      }
+    });
+
+    if (!caseDiscription) newErrors.caseDescription = 'Case description is required';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  // generate and redirect (manual or auto when ref missing)
+  // generate and redirect (manual or auto when ref missing)
+  const regenerateAndRedirect = async () => {
+    try {
+      const body = {};
+
+      if (phone) body.phone = phone;
+      if (name) body.name = name;
+
+      // If no ref -> force source = website when missing
+      if (!ref) {
+        body.source = source || 'website';
+      } else if (source) {
+        body.source = source;
+      }
+
+      const res = await axios.post(`${ApiEndPoint}generateLink`, body);
+
+      if (res.data?.success && res.data?.fullUrl) {
+        window.location.href = res.data.fullUrl; // redirect to new link
+      } else {
+        console.error('Failed to generate new link:', res.data);
+      }
+    } catch (err) {
+      console.error('Error generating link:', err);
     }
   };
 
@@ -307,7 +766,6 @@ function LegalConsultationStepper() {
                 }
               } else {
                 // Not paid yet - go to payment step
-
                 setActiveStep(4); // Payment
               }
             }
@@ -323,45 +781,129 @@ function LegalConsultationStepper() {
       }
     };
 
-    if (ref) fetchData();
+    if (ref) {
+      fetchData();
+    } else if (!hasRedirected.current) {
+      hasRedirected.current = true; // prevent double redirect
+      regenerateAndRedirect();
+    }
 
     return () => {
       isMounted = false;
     };
   }, [ref]);
 
-  // Debug effect for state changes
   // React.useEffect(() => {
-  //   console.groupCollapsed('[State Debug] Current State');
-  //   console.log('Active Step:', activeStep);
-  //   console.log('Method:', method);
-  //   console.log('Service:', service);
-  //   console.log(
-  //     'Selected Lawyer:',
-  //     selectedLawyer
-  //       ? {
-  //           id: selectedLawyer._id,
-  //           name: selectedLawyer.UserName,
-  //           specialty: selectedLawyer.specialty,
+  //   console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
+  //   let isMounted = true;
+
+  //   const fetchData = async () => {
+  //     try {
+  //       const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
+
+  //       if (!isMounted) return;
+
+  //       if (responseData?.success && responseData.data) {
+  //         setData(responseData.data);
+  //         const { payment, lawyer, linkData } = responseData.data;
+  //         setLinkData(linkData);
+
+  //         // Always set available data
+  //         if (payment) {
+  //           setService(payment.serviceType || '');
+  //           setMethod(payment.consultationType || '');
+  //           setPaymentMethod(payment.paymentMethod || 'Card');
+  //           //console.log('Description:', payment?.caseDescription);
+  //           setDiscription(payment?.caseDescription);
   //         }
-  //       : null
-  //   );
-  //   console.log('Confirmation Data:', confirmationData);
-  //   console.log('Meeting Link:', meetingLink);
-  //   console.log('Initial Data Loaded:', initialDataLoaded);
-  //   console.log(
-  //     'API Data:',
-  //     data
-  //       ? {
-  //           paymentStatus: data.payment?.status,
-  //           hasMeeting: !!data.payment?.meetingDetails,
-  //           lawyerName: data.lawyer?.UserName,
+
+  //         if (lawyer) setSelectedLawyer(lawyer);
+
+  //         // Determine step based on payment method and status
+  //         if (payment) {
+  //           // Case 1: Pay at Office - skip to confirmation if meeting details exist
+  //           if (payment.paymentMethod === 'PayInOffice') {
+  //             if (payment.meetingDetails) {
+  //               setConfirmationData({
+  //                 lawyer: lawyer,
+  //                 service: payment.serviceType,
+  //                 phone: payment.phone,
+  //                 email: payment.email,
+  //                 method: payment?.consultationType,
+  //                 paymentMethod: payment?.paymentMethod,
+  //                 date: new Date(payment.meetingDetails.date),
+  //                 slot: payment.meetingDetails.slot,
+  //                 meetingLink: payment.meetingDetails.meetingUrl,
+  //               });
+  //               setPaymentId(payment?._id);
+  //               setActiveStep(6); // Confirmation
+  //             } else {
+  //               // No meeting details yet - proceed to scheduling
+  //               setActiveStep(2); // Date & Time selection
+  //             }
+  //           }
+  //           // Case 2: Online Payment - check payment status
+  //           else if (payment.paymentMethod === 'Card') {
+  //             if (payment.status === 'paid') {
+  //               if (payment.meetingDetails) {
+  //                 // Complete booking - show confirmation
+  //                 setConfirmationData({
+  //                   lawyer: lawyer,
+  //                   service: payment?.serviceType,
+  //                   phone: payment?.phone,
+  //                   email: payment?.email,
+  //                   status: payment?.status,
+  //                   method: payment?.consultationType,
+  //                   paymentMethod: payment?.paymentMethod,
+  //                   date: new Date(payment?.meetingDetails?.date),
+  //                   slot: payment?.meetingDetails?.slot,
+  //                   meetingLink: payment?.meetingDetails?.meetingUrl,
+  //                 });
+  //                 setPaymentId(payment?._id);
+  //                 setActiveStep(6); // Confirmation
+  //               } else {
+  //                 setConfirmationData({
+  //                   lawyer: lawyer,
+  //                   service: payment?.serviceType,
+  //                   phone: payment?.phone,
+  //                   email: payment?.email,
+  //                   status: payment?.status,
+  //                   method: payment?.consultationType,
+  //                   paymentMethod: payment?.paymentMethod,
+  //                   date: payment?.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
+  //                   slot: payment?.meetingDetails?.slot || null,
+  //                   meetingLink: payment?.meetingDetails?.meetingUrl || null,
+  //                   confirmed: !!payment?.meetingDetails, // true if meeting exists
+  //                 });
+  //                 // Paid but no meeting - skip to date/time selection
+  //                 setPaymentId(payment?._id);
+  //                 setActiveStep(2); // Date & Time
+  //               }
+  //             } else {
+  //               // Not paid yet - go to payment step
+
+  //               setActiveStep(4); // Payment
+  //             }
+  //           }
+  //         } else {
+  //           // No payment record - start from beginning
+  //           setActiveStep(0); // Service selection
   //         }
-  //       : null
-  //   );
-  //   console.groupEnd();
-  // }, [activeStep, method, service, selectedLawyer, confirmationData, meetingLink, initialDataLoaded, data]);
-  // Fetch lawyers from API
+  //       }
+  //     } catch (error) {
+  //       if (isMounted) console.log('Failed to load payment data:', error);
+  //     } finally {
+  //       if (isMounted) setInitialDataLoaded(true);
+  //     }
+  //   };
+
+  //   if (ref) fetchData();
+
+  //   return () => {
+  //     isMounted = false;
+  //   };
+  // }, [ref]);
+
   React.useEffect(() => {
     const fetchLawyers = async () => {
       setLoading(true);
@@ -378,7 +920,7 @@ function LegalConsultationStepper() {
 
             return matchesExpertise && hasSlots;
           });
-
+          console.log('Check Lawyer:', filteredLawyers);
           setLawyers(filteredLawyers);
         }
       } catch (err) {
@@ -482,24 +1024,32 @@ function LegalConsultationStepper() {
     setAppointmentSlots([]);
     setClientMessage('');
   };
-  const regenerateAndRedirect = async () => {
-    try {
-      // Call your API to generate new link
-      const res = await axios.post(`${ApiEndPoint}generateLink`, {
-        phone,
-        name,
-      });
+  // const regenerateAndRedirect = async () => {
+  //   try {
+  //     // Call your API to generate new link
+  //     const res = await axios.post(`${ApiEndPoint}generateLink`, {
+  //       phone,
+  //       name,
+  //     });
 
-      if (res.data?.success && res.data?.link) {
-        // Redirect to new link in same window
-        window.location.href = res.data.link;
-      } else {
-        console.error('Failed to generate new link:', res.data);
-      }
-    } catch (err) {
-      console.error('Error generating link:', err);
-    }
-  };
+  //     if (res.data?.success && res.data?.fullUrl) {
+  //       let redirectUrl = res.data.fullUrl;
+
+  //       if (source === 'website') {
+  //         // Append &source=website
+  //         redirectUrl += redirectUrl.includes('?') ? '&source=website' : '?source=website';
+  //       }
+
+  //       // Redirect to new link
+  //       window.location.href = redirectUrl;
+  //     } else {
+  //       console.error('Failed to generate new link:', res.data);
+  //     }
+  //   } catch (err) {
+  //     console.error('Error generating link:', err);
+  //   }
+  // };
+
   const onResetClick = async () => {
     await regenerateAndRedirect(); // This will reload the page to new URL
     //The rest of handleReset() won't run because page reloads
@@ -928,16 +1478,22 @@ function LegalConsultationStepper() {
   };
 
   // Helper function to send confirmation emails
-  const sendConfirmationEmails = async (paymentId) => {
+  // sendConfirmationEmails now accepts meetingUrl param
+  const sendConfirmationEmails = async (paymentId, meetingUrl) => {
     console.group('📧 Sending Confirmation Emails');
+
     const formattedDate = selectedDate
       ? `${selectedDate.getDate()} ${selectedDate.toLocaleString('default', {
           month: 'long',
         })}, ${selectedDate.getFullYear()}`
       : '';
+
     try {
-      // Send lawyer email
+      // ======================
+      // 1. Send Lawyer Email
+      // ======================
       console.log('🔄 Sending Lawyer Email');
+
       const lawyerEmailPayload = {
         to: selectedLawyer?.Email,
         subject: `New ${method === 'Online' ? 'Online' : 'In-Person'} Appointment with ${
@@ -951,53 +1507,120 @@ function LegalConsultationStepper() {
             Phone: paymentForm.phone || data?.payment?.phone || phone,
             Email: paymentForm.email || data?.payment?.email,
           },
-          selectedTime: selectedTime,
-          formattedDate: formattedDate,
+          selectedTime,
+          formattedDate,
           clientMessage,
-          isInPerson: method || confirmationData.method === 'InPerson',
+          // isInPerson is boolean-like: keep value or fallback
+          isInPerson: method === 'InPerson' || confirmationData?.method === 'InPerson',
           officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-          ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
+          // Always include meetingUrl (dummy when not provided)
+          meetingLink: meetingUrl || 'meetingbooked',
         },
         caseDescription: caseDiscription,
         isClientEmail: false,
       };
 
-      const lawyerEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, lawyerEmailPayload, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      // Build FormData for lawyer (so attachments can be sent)
+      const lawyerFormData = new FormData();
+      Object.entries(lawyerEmailPayload).forEach(([key, value]) => {
+        // stringify objects so backend can parse
+        if (typeof value === 'object') {
+          lawyerFormData.append(key, JSON.stringify(value));
+        } else {
+          // append even nullish values as empty string (backend handles)
+          lawyerFormData.append(key, value ?? '');
+        }
       });
+
+      // Attach files (answers may contain File or array of Files)
+      Object.entries(answers).forEach(([question, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach((file) => file instanceof File && lawyerFormData.append('files', file));
+        } else if (value instanceof File) {
+          lawyerFormData.append('files', value);
+        }
+      });
+
+      const lawyerEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, lawyerFormData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
       console.log('✅ Lawyer Email Response:', lawyerEmailResponse.data);
 
-      // Send client email if email provided
-      const rescheduleLink =
-        `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
-      console.log('Built link:', rescheduleLink);
-      if (paymentForm.email || confirmationData?.email || data?.payment?.email) {
+      // ======================
+      // 2. Send Client Email (if exists)
+      // ======================
+      // let rescheduleLink =
+      //   `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
+      // if (source === 'website') rescheduleLink += '&source=website';
+
+      let rescheduleLink = `https://portal.aws-legalgroup.com/reschedule`;
+
+      // add phone if available
+      if (phone) rescheduleLink += `/${phone}`;
+
+      // add name if available (sanitize if present)
+      if (name) rescheduleLink += `/${name.replace(/\s+/g, '-')}`;
+
+      // always add ref
+      rescheduleLink += `?ref=${ref}`;
+
+      // add source=website if applicable
+      if (source === 'website') rescheduleLink += '&source=website';
+
+      const clientEmail = paymentForm.email || confirmationData?.email || data?.payment?.email;
+      console.log('Sending Client Email:', clientEmail);
+
+      if (clientEmail) {
         console.log('🔄 Sending Client Email');
-        const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
-          to: paymentForm?.email || confirmationData?.email || data?.payment?.email,
+
+        const clientEmailPayload = {
+          to: clientEmail,
           subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
           text: 'Appointment details',
-          clientWhatsApp: phone,
+          // send null / empty when from website (so backend sees empty)
+          clientWhatsApp: source === 'website' ? '' : phone,
           mailmsg: {
             lawyerDetails: selectedLawyer,
             clientDetails: {
               UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
               Phone: paymentForm.phone || data?.payment?.phone || phone,
-              Email: paymentForm.email || data?.payment?.email,
+              Email: clientEmail,
             },
-            selectedTime: selectedTime,
-            formattedDate: formattedDate,
+            selectedTime,
+            formattedDate,
             clientMessage,
-            isInPerson: method || confirmationData.method === 'InPerson',
+            isInPerson: method === 'InPerson' || confirmationData?.method === 'InPerson',
             officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-            rescheduleLink: rescheduleLink,
-            ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
+            rescheduleLink,
+            meetingLink: meetingUrl || 'meetingbooked',
           },
           caseDescription: caseDiscription,
           isClientEmail: true,
+        };
+
+        const clientFormData = new FormData();
+        Object.entries(clientEmailPayload).forEach(([key, value]) => {
+          if (typeof value === 'object') {
+            clientFormData.append(key, JSON.stringify(value));
+          } else {
+            clientFormData.append(key, value ?? '');
+          }
         });
+
+        // Attach files for client too
+        Object.entries(answers).forEach(([question, value]) => {
+          if (Array.isArray(value)) {
+            value.forEach((file) => file instanceof File && clientFormData.append('files', file));
+          } else if (value instanceof File) {
+            clientFormData.append('files', value);
+          }
+        });
+
+        const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, clientFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+
         console.log('✅ Client Email Sent:', clientEmailResponse.data);
       } else {
         console.log('ℹ️ No client email provided - skipping client email');
@@ -1007,21 +1630,20 @@ function LegalConsultationStepper() {
         error: emailErr.message,
         response: emailErr.response?.data,
       });
-      // Continue even if email fails
+      // continue
+    } finally {
+      console.groupEnd();
     }
-    console.groupEnd();
   };
 
+  // -------------------------------
+  // handleConfirm (call sendConfirmationEmails with meetingUrl)
+  // -------------------------------
   const handleConfirm = async () => {
     if (!selectedLawyer || !selectedDate || !selectedSlot) {
-      console.error('❌ Missing required data for booking:', {
-        selectedLawyer,
-        selectedDate,
-        selectedSlot,
-      });
+      console.error('❌ Missing required data for booking:', { selectedLawyer, selectedDate, selectedSlot });
       return;
     }
-
     if (selectedSlot?.isBooked) {
       setPopupcolor('popupconfirm');
       setPopupmessage('This slot has already been booked. Please choose another one.');
@@ -1042,38 +1664,30 @@ function LegalConsultationStepper() {
       const meetingDate = new Date(selectedDate.getTime() - selectedDate.getTimezoneOffset() * 60000)
         .toISOString()
         .split('T')[0];
-
       const startTime24 = convertTo24Hour(selectedSlot.startTime);
       const endTime24 = convertTo24Hour(selectedSlot.endTime);
+
       const formattedDate = selectedDate
         ? `${selectedDate.getDate()} ${selectedDate.toLocaleString('default', {
             month: 'long',
           })}, ${selectedDate.getFullYear()}`
         : '';
-      console.log('Selected Slot:', selectedDate);
-      console.log('Formated Date:', formattedDate);
 
       let startDateTime = new Date(`${meetingDate}T${startTime24}:00Z`);
       let endDateTime = new Date(`${meetingDate}T${endTime24}:00Z`);
+      if (endDateTime <= startDateTime) endDateTime.setDate(endDateTime.getDate() + 1);
 
-      if (endDateTime <= startDateTime) {
-        endDateTime.setDate(endDateTime.getDate() + 1);
-      }
-
-      const meetingDetails = {
-        summary: 'Legal Consultation',
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
-        timeZone: 'Asia/Dubai',
-      };
-
-      // 🔹 Step 1: Create Teams Meeting
+      // Create team meeting
       try {
         console.group('📅 Creating Microsoft Teams Meeting');
-
-        const meetingResponse = await axios.post(`${ApiEndPoint}CreateTeamMeeting`, meetingDetails);
+        const meetingResponse = await axios.post(`${ApiEndPoint}CreateTeamMeeting`, {
+          summary: 'Legal Consultation',
+          startTime: startDateTime.toISOString(),
+          endTime: endDateTime.toISOString(),
+          timeZone: 'Asia/Dubai',
+        });
         meetingCreated = true;
-        meetingUrl = meetingResponse.data.meetingLink;
+        meetingUrl = meetingResponse.data.meetingLink || 'meetingbooked';
         setMeetingLink(meetingUrl);
         console.log('✅ Meeting created:', meetingUrl);
         console.groupEnd();
@@ -1081,150 +1695,35 @@ function LegalConsultationStepper() {
         console.group('❌ Meeting Creation Failed');
         console.error('Error:', err.response?.data || err.message);
         console.groupEnd();
+        // If you want to continue for InPerson, you can set meetingUrl = 'meetingbooked' instead of throwing.
+        // But based on your flow, throw:
         throw new Error('Failed to create meeting link.');
       }
-      const rescheduleLink =
-        `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
-      // 🔹 Step 2: Send Email
-      const emailData = {
-        to: selectedLawyer?.Email,
-        subject: `New Appointment Booking - ${service}`,
-        clientMessage: clientMessage || 'No additional message provided',
-        meetingDetails: {
-          lawyerName: selectedLawyer?.UserName,
-          service: service,
-          date: selectedDate.toLocaleDateString('en-US', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-          }),
-          time: selectedSlot.startTime,
-          meetingLink: meetingUrl,
-        },
-        lawyerDetails: {
-          _id: selectedLawyer?._id,
-          UserName: selectedLawyer?.UserName,
-        },
-        clientDetails: {
-          UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
-          Phone: paymentForm.phone || data?.payment?.phone || phone,
-          Email: paymentForm.email || data?.payment?.email,
-        },
-        selectedTime: selectedSlot.startTime,
-        formattedDate: formattedDate,
-        rescheduleLink: rescheduleLink,
-      };
 
-      const requestBody = {
-        to: selectedLawyer?.Email,
-        subject: `New Appointment Booking - ${service}`,
-        client: {
-          user: {
-            UserName: paymentForm.name || confirmationData?.name || name,
-            Phone: paymentForm.phone || phone,
-            Email: paymentForm.email || confirmationData?.email,
-          },
-        },
-        caseDescription: caseDiscription,
-        mailmsg: emailData,
-        text: '',
-        html: null,
-      };
-      try {
-        console.group('📧 Sending Email Notification');
-        const emailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, requestBody);
-        emailSent = true;
-        console.log('✅ Lawyer  Email sent:', emailResponse.data);
-        if (paymentForm.email || confirmationData?.email) {
-          // const rescheduleLink =
-          //   `https://portal.aws-legalgroup.com/reschedule/${phone}/${name.replace(/\s+/g, '-')}` + `?ref=${ref}`;
-          // console.log('Built link:', rescheduleLink);
-          console.log('🔄 Sending Client Email');
-          const clientEmailResponse = await axios.post(`${ApiEndPoint}crm-meeting`, {
-            to: paymentForm?.email || confirmationData.email || data?.payment?.email,
-            subject: `Your ${method === 'Online' ? 'Online' : 'In-Person'} Appointment Confirmation`,
-            clientWhatsApp: phone,
-            text: 'Appointment details',
-            mailmsg: {
-              lawyerDetails: selectedLawyer,
-              clientDetails: {
-                UserName: paymentForm.name || confirmationData?.name || data?.payment?.name || name,
-                Phone: paymentForm.phone || data?.payment?.phone || phone,
-                Email: paymentForm.email || data?.payment?.email,
-              },
-              meetingLink: meetingUrl,
-              selectedTime: selectedSlot.startTime,
-              formattedDate: formattedDate,
-              clientMessage,
-              isInPerson: method === 'InPerson',
-              officeAddress: '1602, H Hotel, Sheikh Zayed Road, Dubai',
-              rescheduleLink: rescheduleLink,
-              ...(method === 'Online' && { meetingUrl: 'Will be sent separately' }),
-            },
-            caseDescription: caseDiscription,
-            isClientEmail: true,
-          });
-          console.log('✅ Client Email Sent:', clientEmailResponse.data);
-          console.groupEnd();
-        }
-      } catch (emailErr) {
-        console.group('⚠️ Email Failed');
-        console.warn('Email error:', emailErr.response?.data || emailErr.message);
-        console.groupEnd();
-      }
+      // Step 2: Send Emails (pass meetingUrl)
+      await sendConfirmationEmails(oldpaymentId || data?.payment?._id, meetingUrl);
+      emailSent = true;
 
-      // 🔹 Step 3: Update Appointment Slot
+      // Step 3: Update slot
       const slotId = selectedSlot?._id;
-      if (!slotId) throw new Error('Missing slot ID');
+      if (!slotId || !selectedLawyer?._id) throw new Error('Missing slotId or lawyerId');
 
-      try {
-        console.group('🛠 DEBUG: Updating Slot Booking');
+      const updatedSlot = {
+        slot: slotId,
+        isBooked: true,
+        publicBooking: { name: paymentForm.name, phone },
+        meetingLink: meetingUrl,
+      };
 
-        console.log('📌 Selected Lawyer ID:', selectedLawyer?._id);
-        console.log('📌 Slot ID:', slotId);
-        console.log('📌 Meeting URL:', meetingUrl);
-        console.log('📌 Payment Form:', paymentForm);
-        console.log('📌 Phone:', phone);
+      const responseupdate = await axios.patch(
+        `${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`,
+        updatedSlot
+      );
+      slotUpdated = true;
+      console.log('✅ Slot updated successfully:', responseupdate.data);
 
-        if (!slotId || !selectedLawyer?._id) {
-          console.error('❌ Missing required data to update slot');
-          throw new Error(`Missing data: slotId=${slotId}, lawyerId=${selectedLawyer?._id}`);
-        }
-
-        const updatedSlot = {
-          slot: slotId,
-          isBooked: true,
-          publicBooking: {
-            name: paymentForm.name,
-            phone: phone,
-          },
-          meetingLink: meetingUrl,
-        };
-
-        console.log('📤 PATCH URL:', `${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`);
-        console.log('📦 PATCH BODY:', updatedSlot);
-
-        const responseupdate = await axios.patch(
-          `${ApiEndPoint}crmBookappointments/${selectedLawyer._id}/${slotId}`,
-          updatedSlot
-        );
-
-        slotUpdated = true;
-        console.log('✅ Slot updated successfully:', responseupdate.data);
-
-        console.groupEnd();
-      } catch (err) {
-        console.group('❌ DEBUG: Slot Update Failed');
-        console.error('❌ Error Response Data:', err.response?.data);
-        console.error('❌ Error Message:', err.message);
-        console.error('❌ Full Error Object:', err);
-        console.groupEnd();
-        throw new Error('Failed to update slot');
-      }
-
-      // 🔹 Step 4: Store Confirmation
-      const confirmation = {
+      // Store confirmation
+      setConfirmationData({
         lawyer: selectedLawyer,
         service,
         method,
@@ -1232,58 +1731,43 @@ function LegalConsultationStepper() {
         slot: selectedSlot,
         meetingLink: meetingUrl,
         clientMessage,
-      };
-      setConfirmationData(confirmation);
-      // 🔹 Step 5: Payment Update
+      });
+
+      // Payment update
       try {
-        console.group('💰 Updating Payment Status');
         await axios.post(`${ApiEndPoint}payments/update-status`, {
           paymentId: oldpaymentId || data?.payment?._id,
-          meetingDetails: {
-            meetingUrl: meetingUrl,
-            date: selectedDate,
-            slot: selectedSlot,
-          },
+          meetingDetails: { meetingUrl, date: selectedDate, slot: selectedSlot },
           caseDescription: caseDiscription,
         });
         console.log('✅ Payment status updated');
-        console.groupEnd();
       } catch (err) {
-        console.group('⚠️ Payment Update Failed');
         console.error('Payment update error:', err.response?.data || err.message);
-        console.groupEnd();
       }
 
-      // Final popup message
+      // success popup
       setIsEmailSent(true);
       setPopupcolor('popupconfirm');
       setPopupmessage(emailSent ? 'Meeting scheduled successfully!' : 'Meeting scheduled, but email was not sent.');
-
       setTimeout(() => {
         setIsPopupVisible(false);
-        // Optionally move to a success step
-        setActiveStep(6); // If you have a success step
+        setActiveStep(6);
       }, 2000);
 
-      console.groupEnd(); // End main booking group
+      console.groupEnd();
     } catch (err) {
       console.group('❌ Booking Process Failed');
       console.error('General Error:', err.message, err.stack);
       console.groupEnd();
 
       let errorMsg = 'Failed to book appointment. Please try again.';
-      if (slotUpdated && !emailSent) {
-        errorMsg = 'Slot was booked, but confirmation email failed to send.';
-      } else if (meetingCreated && !slotUpdated) {
-        errorMsg = 'Meeting was created, but slot booking failed.';
-      }
+      if (slotUpdated && !emailSent) errorMsg = 'Slot was booked, but confirmation email failed to send.';
+      else if (meetingCreated && !slotUpdated) errorMsg = 'Meeting was created, but slot booking failed.';
 
       setError(errorMsg);
       setPopupcolor('popupconfirm');
       setPopupmessage(errorMsg);
-      setTimeout(() => {
-        setIsPopupVisible(false);
-      }, 3000);
+      setTimeout(() => setIsPopupVisible(false), 3000);
     } finally {
       setIsLoading(false);
       console.log('📤 Booking process completed (success or error).');
@@ -1367,7 +1851,10 @@ function LegalConsultationStepper() {
               </InputLabel>
               <Select
                 value={service}
-                onChange={(e) => setService(e.target.value)}
+                onChange={(e) => {
+                  setService(e.target.value);
+                  setAnswers({});
+                }}
                 displayEmpty
                 label="Select a service"
                 sx={{
@@ -1411,71 +1898,148 @@ function LegalConsultationStepper() {
                     },
                   },
                 }}
+                error={!!errors.service}
               >
-                {services.map((service) => (
-                  <MenuItem key={service.name} value={service.name}>
+                {services.map((srv) => (
+                  <MenuItem key={srv.name} value={srv.name}>
                     <Box>
-                      <Typography fontWeight="medium" sx={{ color: 'inherit !important' }}>
-                        {service.name}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7) !important' }}>
-                        {service.description}
+                      <Typography fontWeight="medium">{srv.name}</Typography>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        {srv.description}
                       </Typography>
                     </Box>
                   </MenuItem>
                 ))}
               </Select>
-              <Box sx={{ position: 'relative', marginTop: '10px' }}>
-                <TextField
-                  label="Case Description (Required)"
-                  name="casediscription"
-                  value={caseDiscription}
-                  onChange={handleChangeCaseDiscription}
-                  required // 🔥 make it required
-                  multiline
-                  minRows={1}
-                  maxRows={4}
-                  inputProps={{
-                    maxLength: 1024,
-                  }}
-                  InputLabelProps={{
-                    sx: {
-                      color: '#d4af37 !important',
-                      '&.Mui-focused': { color: '#d4af37 !important' },
-                    },
-                  }}
-                  InputProps={{
-                    style: {
-                      color: 'white',
-                      backgroundColor: '#18273e',
-                      overflowY: 'auto',
-                      paddingBottom: '25px',
-                    },
-                  }}
-                  sx={{
-                    width: '100%',
-                    '& .MuiOutlinedInput-root': {
-                      backgroundColor: '#18273e !important',
-                      '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                      '&:hover fieldset': { borderColor: '#d4af37' },
-                      '&.Mui-focused fieldset': { borderColor: '#d4af37' },
-                      '&.Mui-error fieldset': { borderColor: '#f44336' },
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
-                    '& .MuiFormHelperText-root': {
-                      color: caseDiscription.length > 1024 ? '#f44336' : 'rgba(255, 255, 255, 0.7)',
-                    },
-                  }}
-                  helperText={
-                    caseDiscription.length === 0
-                      ? 'Case description is required'
-                      : caseDiscription.length > 1024
-                      ? 'Maximum 1024 characters exceeded'
-                      : ''
-                  }
-                />
-              </Box>
+              {errors.service && (
+                <Typography sx={{ color: 'red', fontSize: '12px', mt: 1 }}>{errors.service}</Typography>
+              )}
             </FormControl>
+
+            {service && (
+              <Box sx={{ mt: 3 }}>
+                <Typography variant="subtitle1" sx={{ color: '#d4af37' }}>
+                  Please answer the following:
+                </Typography>
+                {questionsConfig[service]?.map((q, idx) => (
+                  <Box key={idx} sx={{ mt: 2 }}>
+                    <Typography sx={{ color: 'white', mb: 1 }}>{q.question}</Typography>
+                    {q.type === 'text' && (
+                      <TextField
+                        fullWidth
+                        multiline
+                        minRows={1}
+                        maxRows={4}
+                        value={answers[q.question] || ''}
+                        onChange={(e) => handleAnswerChange(q.question, e.target.value)}
+                        error={!!errors[q.question]}
+                        helperText={errors[q.question] || ''}
+                        InputProps={{
+                          style: { color: 'white', backgroundColor: '#18273e' },
+                        }}
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            backgroundColor: '#18273e !important',
+                            '& fieldset': { borderColor: 'rgba(255,255,255,0.23)' },
+                            '&:hover fieldset': { borderColor: '#d4af37' },
+                            '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                          },
+                        }}
+                      />
+                    )}
+                    {q.type === 'checkbox' && (
+                      <FormGroup>
+                        {q.options.map((option) => (
+                          <FormControlLabel
+                            key={option}
+                            control={
+                              <Checkbox
+                                checked={answers[q.question] === option} // ✅ sirf ek option store hoga
+                                onChange={() => handleCheckboxChange(q.question, option)}
+                                sx={{ color: 'white', '&.Mui-checked': { color: '#d4af37' } }}
+                              />
+                            }
+                            label={<Typography sx={{ color: 'white' }}>{option}</Typography>}
+                          />
+                        ))}
+                        {errors[q.question] && (
+                          <Typography sx={{ color: 'red', fontSize: '12px', mt: 1 }}>{errors[q.question]}</Typography>
+                        )}
+                      </FormGroup>
+                    )}
+
+                    {q.type === 'file' && (
+                      <Box>
+                        <Button
+                          variant="contained"
+                          component="label"
+                          sx={{
+                            backgroundColor: '#d4af37',
+                            color: '#18273e',
+                            '&:hover': { backgroundColor: '#b9972e' },
+                          }}
+                        >
+                          Upload Files
+                          <input
+                            type="file"
+                            hidden
+                            multiple // ✅ allow multiple selection
+                            accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+                            onChange={(e) => handleFileChange(q.question, e.target.files)}
+                          />
+                        </Button>
+
+                        {/* Show selected files */}
+                        {answers[q.question] && Array.isArray(answers[q.question]) && (
+                          <Box sx={{ mt: 1 }}>
+                            {answers[q.question].map((file, idx) => (
+                              <Typography key={idx} sx={{ color: 'white', fontSize: '14px' }}>
+                                Selected: {file.name}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
+
+                        {errors[q.question] && (
+                          <Typography sx={{ color: 'red', fontSize: '12px', mt: 1 }}>{errors[q.question]}</Typography>
+                        )}
+                      </Box>
+                    )}
+                  </Box>
+                ))}
+
+                <Box sx={{ mt: 3 }}>
+                  <TextField
+                    label="Case Description (Required)"
+                    value={caseDiscription}
+                    onChange={(e) => setDiscription(e.target.value)}
+                    required
+                    multiline
+                    minRows={2}
+                    maxRows={6}
+                    inputProps={{ maxLength: 1024 }}
+                    error={!!errors.caseDescription}
+                    helperText={errors.caseDescription || ''}
+                    InputProps={{
+                      readOnly: true,
+                      style: { color: 'white', backgroundColor: '#18273e' },
+                    }}
+                    InputLabelProps={{
+                      sx: { color: '#d4af37 !important' },
+                    }}
+                    sx={{
+                      width: '100%',
+                      '& .MuiOutlinedInput-root': {
+                        backgroundColor: '#18273e !important',
+                        '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                        '&:hover fieldset': { borderColor: '#d4af37' },
+                        '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                      },
+                    }}
+                  />
+                </Box>
+              </Box>
+            )}
           </Box>
         );
 
@@ -1626,22 +2190,27 @@ function LegalConsultationStepper() {
                             label="Location"
                             value={lawyer.address.split(',')[0]}
                           />
+                          <DetailItem
+                            icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                            label="Availability"
+                            value={lawyer.availablity || 'N/A'}
+                          />
                         </Box>
-
                         {lawyer.bio && (
                           <Typography
                             variant="caption"
                             sx={{
-                              color: 'rgba(255, 255, 255, 0.65)',
+                              color: 'rgba(255, 255, 255, 0.75)',
                               display: '-webkit-box',
-                              WebkitLineClamp: 2,
+                              WebkitLineClamp: 3,
                               WebkitBoxOrient: 'vertical',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               lineHeight: 1.4,
+                              mt: 1,
                             }}
                           >
-                            {lawyer.bio}
+                            {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
                           </Typography>
                         )}
                       </Box>
@@ -3058,9 +3627,21 @@ function LegalConsultationStepper() {
                 onClick={handleNext}
                 disabled={
                   loading ||
-                  (activeStep === 0 && (!service || !caseDiscription.trim())) || // 🔥 now also requires description
+                  // Step 0: Service + Required Questions + Description
+                  (activeStep === 0 &&
+                    (!service ||
+                      !caseDiscription.trim() ||
+                      (questionsConfig[service] || []).some(
+                        (q) =>
+                          q.required !== false && // ❌ only check required ones
+                          ((q.type === 'text' && !answers[q.question]) ||
+                            (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)))
+                      ))) ||
+                  // Step 1: Select lawyer
                   (activeStep === 1 && !selectedLawyer) ||
+                  // Step 2: Date + Slot
                   (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
+                  // Step 3: Consultation Method
                   (activeStep === 3 && !method)
                 }
                 sx={{

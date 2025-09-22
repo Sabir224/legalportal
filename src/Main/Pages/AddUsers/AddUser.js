@@ -23,6 +23,7 @@ import {
   FaUserTag,
   FaCalendarAlt,
   FaDollarSign,
+  FaAccessibleIcon,
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ApiEndPoint } from '../Component/utils/utlis';
@@ -31,6 +32,8 @@ import { screenChange } from '../../../REDUX/sliece';
 import { BsPerson } from 'react-icons/bs';
 import { useAlert } from '../../../Component/AlertContext';
 import PhoneInput from 'react-phone-input-2';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
+import LanguageDropdown from './widgets/LanguageSelection';
 
 const AddUser = () => {
   const dispatch = useDispatch();
@@ -42,7 +45,6 @@ const AddUser = () => {
   const [servicesDropdownOpen, setServicesDropdownOpen] = useState(false);
 
   // Form fields
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [contactNumber, setContactNumber] = useState('');
@@ -57,41 +59,213 @@ const AddUser = () => {
   const [bio, setBio] = useState('');
   const [experience, setExperience] = useState('');
   const [fee, setFee] = useState('');
+  const [avialability, setAvailabilty] = useState('');
   const dropdownRef = useRef(null);
   const { showLoading, showSuccess, showError } = useAlert();
+  const [availabilityDropdownOpen, setAvailabilityDropdownOpen] = useState(false);
+  const [selectedAvailability, setSelectedAvailability] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingRole, setPendingRole] = useState(null);
+
+  // Refs for dropdowns
+  const roleDropdownRef = useRef(null);
+  const servicesDropdownRef = useRef(null);
+  const availabilityDropdownRef = useRef(null);
+  const [focusedIndex, setFocusedIndex] = useState({ role: -1, services: -1, availability: -1 });
+  // Options with DB value -> Human-readable label
+  // DB values in array (for order + index navigation)
+  const availabilityValues = ['InPerson', 'Online', 'InPerson/Online'];
+
+  const availabilityOptions = {
+    InPerson: 'In Person',
+    Online: 'Online',
+    'InPerson/Online': 'In Person & Online',
+  };
+
+  const roleOptions = ['client', 'lawyer', 'finance', 'receptionist', 'paralegal'];
+
+  const handleAvailabilitySelect = (option) => {
+    setSelectedAvailability(option);
+    setAvailabilityDropdownOpen(false);
+  };
   const services = [
-    { name: 'Civil Case', description: 'Civil Case related legal services' },
-    { name: 'Commercial Law', description: 'Commercial Law related legal services' },
-    { name: 'Criminal Case', description: 'Criminal Case related legal services' },
-    { name: 'Family Law', description: 'Family Law related legal services' },
-    { name: 'Real Estate Case', description: 'Real Estate Case related legal services' },
-    { name: 'Labor Case', description: 'Labor Case related legal services' },
-    { name: 'Construction Case', description: 'Construction Case related legal services' },
-    { name: 'Maritime Case', description: 'Maritime Case related legal services' },
-    { name: 'Personal Injury Case', description: 'Personal Injury Case related legal services' },
-    { name: 'Technology Case', description: 'Technology Case related legal services' },
-    { name: 'Financial Case', description: 'Financial Case related legal services' },
-    { name: 'Public Law', description: 'Public Law related legal services' },
-    { name: 'Consumer Case', description: 'Consumer Case related legal services' },
-    { name: 'Environmental Case', description: 'Environmental Case related legal services' },
+    { name: 'Civil Law', description: 'Civil law related legal services' },
+    { name: 'Commercial Law', description: 'Commercial law related legal services' },
+    { name: 'Criminal Law', description: 'Criminal law related legal services' },
+    { name: 'Family Law', description: 'Family law related legal services' },
+    { name: 'Real Estate Law', description: 'Real estate law related legal services' },
+    { name: 'Labour Law', description: 'Labour law related legal services' },
+    { name: 'Construction Law', description: 'Construction law related legal services' },
+    { name: 'Maritime Law', description: 'Maritime law related legal services' },
+    { name: 'Personal Injury Law', description: 'Personal injury law related legal services' },
+    { name: 'Technology Law', description: 'Technology law related legal services' },
+    { name: 'Financial Law', description: 'Financial law related legal services' },
+    { name: 'Public Law', description: 'Public law related legal services' },
+    { name: 'Consumer Law', description: 'Consumer law related legal services' },
+    { name: 'Environmental Law', description: 'Environmental law related legal services' },
+    {
+      name: 'Estate / Succession / Inheritance Law',
+      description: 'Estate, succession, and inheritance legal services',
+    },
+    { name: 'Insurance Law', description: 'Insurance-related legal services' },
+    { name: 'Banking and Investment Law', description: 'Banking and investment related legal services' },
+    { name: 'Tax Law', description: 'Tax-related legal services' },
+    { name: 'Rental Law', description: 'Rental and tenancy-related legal services' },
+    { name: 'Intellectual Property Law', description: 'Intellectual property legal services' },
+    { name: 'Debt Collection Law', description: 'Debt collection related legal services' },
+    { name: 'Capital Funds Law', description: 'Capital funds and investment-related legal services' },
   ];
 
   const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
+  // Handle keyboard navigation for dropdowns
+  const handleKeyDown = (dropdownType, e) => {
+    if (!['ArrowDown', 'ArrowUp', 'Enter', 'Escape'].includes(e.key)) return;
 
-  const toggleRoleDropdown = (e) => {
-    e.preventDefault(); // Prevent form submission
-    setRoleDropdownOpen(!roleDropdownOpen);
-    setServicesDropdownOpen(false); // Close other dropdown when opening this one
+    e.preventDefault();
+    const options = {
+      role: roleOptions,
+      services: services.map((s) => s.name),
+      availability: availabilityOptions,
+    }[dropdownType];
+
+    let newIndex = focusedIndex[dropdownType];
+
+    switch (e.key) {
+      case 'ArrowDown':
+        newIndex = (newIndex + 1) % options.length;
+        break;
+      case 'ArrowUp':
+        newIndex = (newIndex - 1 + options.length) % options.length;
+        break;
+      case 'Enter':
+        if (newIndex >= 0) {
+          handleDropdownSelect(dropdownType, options[newIndex]);
+        }
+        return;
+      case 'Escape':
+        closeDropdown(dropdownType);
+        return;
+      default:
+        return;
+    }
+
+    setFocusedIndex({ ...focusedIndex, [dropdownType]: newIndex });
   };
+  const handleDropdownSelect = (dropdownType, value) => {
+    switch (dropdownType) {
+      case 'role':
+        handleRoleClick(value);
+        break;
+      case 'services':
+        handleServiceSelect(value);
+        break;
+      case 'availability':
+        handleAvailabilitySelect(value);
+        break;
+      default:
+        break;
+    }
+  };
+  const closeDropdown = (dropdownType) => {
+    switch (dropdownType) {
+      case 'role':
+        setRoleDropdownOpen(false);
+        break;
+      case 'services':
+        setServicesDropdownOpen(false);
+        break;
+      case 'availability':
+        setAvailabilityDropdownOpen(false);
+        break;
+      default:
+        break;
+    }
+    setFocusedIndex({ ...focusedIndex, [dropdownType]: -1 });
+  };
+  const toggleRoleDropdown = (e) => {
+    e.preventDefault();
+    const newState = !roleDropdownOpen;
+    setRoleDropdownOpen(newState);
+    setServicesDropdownOpen(false);
+    setAvailabilityDropdownOpen(false);
+
+    if (newState) {
+      const currentIndex = roleOptions.indexOf(selectedRole);
+      setFocusedIndex({ ...focusedIndex, role: currentIndex >= 0 ? currentIndex : 0 });
+    }
+  };
+  const toggleServicesDropdown = (e) => {
+    e.preventDefault();
+    const newState = !servicesDropdownOpen;
+    setServicesDropdownOpen(newState);
+    setRoleDropdownOpen(false);
+    setAvailabilityDropdownOpen(false);
+
+    if (newState) {
+      const currentIndex = services.findIndex((s) => s.name === expertise);
+      setFocusedIndex({ ...focusedIndex, services: currentIndex >= 0 ? currentIndex : 0 });
+    }
+  };
+  const toggleAvailabilityDropdown = (e) => {
+    e.preventDefault();
+    const newState = !availabilityDropdownOpen;
+    setAvailabilityDropdownOpen(newState);
+    setRoleDropdownOpen(false);
+    setServicesDropdownOpen(false);
+
+    if (newState) {
+      const currentIndex = availabilityOptions.indexOf(selectedAvailability);
+      setFocusedIndex({ ...focusedIndex, availability: currentIndex >= 0 ? currentIndex : 0 });
+    }
+  };
+  const handleRoleClick = (role) => {
+    setPendingRole(role);
+    setConfirmOpen(true);
+  };
+
   const handleServiceSelect = (serviceName) => {
     setExpertise(serviceName);
-    setServicesDropdownOpen(false); // Close the dropdown after selection
+    setServicesDropdownOpen(false);
+    setFocusedIndex({ ...focusedIndex, services: -1 });
   };
 
-  const toggleServicesDropdown = (e) => {
-    e.preventDefault(); // Prevent form submission
-    setServicesDropdownOpen(!servicesDropdownOpen);
-    setRoleDropdownOpen(false); // Close other dropdown when opening this one
+  const handleConfirm = () => {
+    setSelectedRole(pendingRole);
+    setConfirmOpen(false);
+    setRoleDropdownOpen(false);
+  };
+
+  const handleCancel = () => {
+    setPendingRole(null);
+    setConfirmOpen(false);
+  };
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (roleDropdownRef.current && !roleDropdownRef.current.contains(event.target)) {
+        setRoleDropdownOpen(false);
+        setFocusedIndex({ ...focusedIndex, role: -1 });
+      }
+      if (servicesDropdownRef.current && !servicesDropdownRef.current.contains(event.target)) {
+        setServicesDropdownOpen(false);
+        setFocusedIndex({ ...focusedIndex, services: -1 });
+      }
+      if (availabilityDropdownRef.current && !availabilityDropdownRef.current.contains(event.target)) {
+        setAvailabilityDropdownOpen(false);
+        setFocusedIndex({ ...focusedIndex, availability: -1 });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [focusedIndex]);
+
+  const handleAvailbilityeSelect = (available) => {
+    setSelectedAvailability(available);
+    setRoleDropdownOpen(false);
   };
 
   const handleRoleSelect = (role) => {
@@ -128,6 +302,7 @@ const AddUser = () => {
       formData.append('Expertise', expertise);
       formData.append('Department', department);
       formData.append('Location', location); // If needed in backend
+      formData.append('Availability', selectedAvailability);
 
       if (selectedFile) {
         formData.append('file', selectedFile);
@@ -159,6 +334,7 @@ const AddUser = () => {
       setExpertise('');
       setDepartment('');
       setLocation('');
+      setSelectedAvailability('');
       setFee('');
     } catch (error) {
       showError('❌ Failed to Add User! Check Console.');
@@ -267,12 +443,7 @@ const AddUser = () => {
                 state: address,
                 setState: setAddress,
               },
-              {
-                label: 'Language',
-                icon: <FaGlobe />,
-                state: language,
-                setState: setLanguage,
-              },
+
               selectedRole !== 'client' && {
                 label: 'Location',
                 icon: <FaMapMarkedAlt />,
@@ -325,6 +496,17 @@ const AddUser = () => {
                   </div>
                 </div>
               ))}
+            {/* <div className="col-12 col-sm-6 col-lg-4">
+              <div className="mb-3">
+                <label
+                  className="form-label fw-semibold mb-2 d-block"
+                  style={{ color: '#18273e', fontSize: '0.95rem' }}
+                >
+                  Languages <span className="text-danger">*</span>
+                </label>
+                <LanguageDropdown selectedLanguages={language} setSelectedLanguages={setLanguage} />
+              </div>
+            </div> */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label className="form-label fw-medium" style={{ color: '#18273e' }}>
@@ -381,7 +563,7 @@ const AddUser = () => {
                 </div>
               </div>
             </div>
-            {/* Role Dropdown */}
+
             {/* Role Dropdown */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
@@ -395,7 +577,7 @@ const AddUser = () => {
                 >
                   Role <span className="text-danger">*</span>
                 </label>
-                <div className="input-group">
+                <div className="input-group" ref={roleDropdownRef}>
                   <div className="position-relative w-100">
                     <button
                       type="button"
@@ -406,12 +588,11 @@ const AddUser = () => {
                         borderRadius: '6px',
                         backgroundColor: 'white',
                         boxShadow: 'none',
-                        height: 'auto',
                         minHeight: '42px',
                         fontSize: '0.95rem',
-                        transition: 'all 0.2s ease',
                       }}
                       onClick={toggleRoleDropdown}
+                      onKeyDown={(e) => handleKeyDown('role', e)}
                       aria-expanded={roleDropdownOpen}
                       aria-haspopup="listbox"
                     >
@@ -428,31 +609,27 @@ const AddUser = () => {
                           zIndex: 1000,
                           border: '1px solid #d3b386',
                           borderRadius: '6px',
-                          overflow: 'hidden',
                           maxHeight: '200px',
                           overflowY: 'auto',
                         }}
                         role="listbox"
                       >
-                        {['client', 'lawyer', 'finance', 'receptionist', 'paralegal'].map((role) => (
+                        {roleOptions.map((role, index) => (
                           <li
                             key={role}
                             className="list-group-item list-group-item-action px-3 py-2"
                             style={{
                               cursor: 'pointer',
-                              backgroundColor: role === selectedRole ? '#F8D4A1' : 'white',
-                              border: 'none',
-                              borderBottom: '1px solid #f0f0f0',
-                              transition: 'all 0.2s ease',
+                              backgroundColor:
+                                index === focusedIndex.role ? '#f5e9d9' : role === selectedRole ? '#F8D4A1' : 'white',
+
+                              borderBottom: index !== roleOptions.length - 1 ? '1px solid black' : 'none', // divider
                               fontSize: '0.95rem',
                             }}
-                            onClick={() => handleRoleSelect(role)}
+                            onClick={() => handleRoleClick(role)}
+                            onMouseEnter={() => setFocusedIndex({ ...focusedIndex, role: index })}
                             role="option"
                             aria-selected={role === selectedRole}
-                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5e9d9')}
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.backgroundColor = role === selectedRole ? '#F8D4A1' : 'white')
-                            }
                           >
                             {role.charAt(0).toUpperCase() + role.slice(1)}
                           </li>
@@ -464,6 +641,7 @@ const AddUser = () => {
               </div>
             </div>
 
+            {/* Services Dropdown (for non-client roles) */}
             {selectedRole !== 'client' && (
               <div className="col-12 col-sm-6 col-lg-4">
                 <div className="mb-3">
@@ -477,7 +655,7 @@ const AddUser = () => {
                   >
                     Services
                   </label>
-                  <div className="input-group">
+                  <div className="input-group" ref={servicesDropdownRef}>
                     <div className="position-relative w-100">
                       <button
                         type="button"
@@ -494,6 +672,7 @@ const AddUser = () => {
                           transition: 'all 0.2s ease',
                         }}
                         onClick={toggleServicesDropdown}
+                        onKeyDown={(e) => handleKeyDown('services', e)}
                         aria-expanded={servicesDropdownOpen}
                         aria-haspopup="listbox"
                       >
@@ -516,26 +695,27 @@ const AddUser = () => {
                           }}
                           role="listbox"
                         >
-                          {services.map((service) => (
+                          {services.map((service, index) => (
                             <li
                               key={service.name}
                               className="list-group-item list-group-item-action px-3 py-2"
                               style={{
                                 cursor: 'pointer',
-                                backgroundColor: service.name === expertise ? '#F8D4A1' : 'white',
+                                backgroundColor:
+                                  index === focusedIndex.services
+                                    ? '#f5e9d9'
+                                    : service.name === expertise
+                                    ? '#F8D4A1'
+                                    : 'white',
                                 border: 'none',
                                 borderBottom: '1px solid #f0f0f0',
                                 transition: 'all 0.2s ease',
                                 fontSize: '0.95rem',
                               }}
-                              onClick={() => handleServiceSelect(service.name)} // Use the new handler
+                              onClick={() => handleServiceSelect(service.name)}
+                              onMouseEnter={() => setFocusedIndex({ ...focusedIndex, services: index })}
                               role="option"
                               aria-selected={service.name === expertise}
-                              onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f5e9d9')}
-                              onMouseLeave={(e) =>
-                                (e.currentTarget.style.backgroundColor =
-                                  service.name === expertise ? '#F8D4A1' : 'white')
-                              }
                             >
                               {service.name}
                             </li>
@@ -553,74 +733,91 @@ const AddUser = () => {
           {selectedRole && selectedRole !== 'client' && (
             <div className="row g-3 mt-2">
               {/* Lawyer-specific fields */}
+
               {selectedRole === 'lawyer' && (
-                <>
-                  <div className="col-12 col-md-6">
-                    <div className="mb-3">
-                      <label htmlFor="experience-input" className="form-label fw-medium" style={{ color: '#18273e' }}>
-                        Years of Experience
-                      </label>
-                      <div className="input-group">
-                        <span
-                          className="input-group-text d-flex align-items-center justify-content-center"
+                <div className="col-12 col-md-4">
+                  <div className="mb-3">
+                    <label
+                      className="form-label fw-medium mb-2 d-block"
+                      style={{
+                        color: '#18273e',
+                        fontSize: '0.95rem',
+                        letterSpacing: '0.3px',
+                      }}
+                    >
+                      Availability <span className="text-danger">*</span>
+                    </label>
+                    <div className="input-group" ref={availabilityDropdownRef}>
+                      <div className="position-relative w-100">
+                        <button
+                          type="button"
+                          className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
                           style={{
-                            backgroundColor: '#18273e',
-                            color: '#d4af37',
-                            borderColor: '#18273e',
-                            width: '45px',
-                            padding: '0.375rem',
+                            cursor: 'pointer',
+                            border: '1px solid #18273e',
+                            borderRadius: '6px',
+                            backgroundColor: 'white',
+                            height: '42px',
+                            fontSize: '0.95rem',
                           }}
+                          onClick={toggleAvailabilityDropdown}
+                          onKeyDown={(e) => handleKeyDown('availability', e)}
+                          aria-expanded={availabilityDropdownOpen}
+                          aria-haspopup="listbox"
                         >
-                          <FaCalendarAlt style={{ fontSize: '1rem' }} />
-                        </span>
-                        <input
-                          type="number"
-                          className="form-control"
-                          id="experience-input"
-                          value={experience}
-                          style={{
-                            borderColor: '#18273e',
-                          }}
-                          onChange={(e) => setExperience(e.target.value)}
-                          min="0"
-                        />
+                          <span>
+                            {selectedAvailability
+                              ? availabilityOptions[selectedAvailability] // show label
+                              : 'Select Availability'}
+                          </span>
+                          <FaChevronDown
+                            className={`transition-all fs-6 ${availabilityDropdownOpen ? 'rotate-180' : ''}`}
+                            style={{ color: '#18273e' }}
+                          />
+                        </button>
+
+                        {availabilityDropdownOpen && (
+                          <ul
+                            className="list-group position-absolute w-100 mt-1 shadow-sm"
+                            style={{
+                              zIndex: 1000,
+                              border: '1px solid #d3b386',
+                              borderRadius: '6px',
+                              maxHeight: '200px',
+                              overflowY: 'auto',
+                            }}
+                            role="listbox"
+                          >
+                            {Object.entries(availabilityOptions).map(([value, label], index) => (
+                              <li
+                                key={value}
+                                className="list-group-item list-group-item-action px-3 py-2"
+                                style={{
+                                  cursor: 'pointer',
+                                  backgroundColor:
+                                    index === focusedIndex.availability
+                                      ? '#f5e9d9'
+                                      : value === selectedAvailability
+                                      ? '#F8D4A1'
+                                      : 'white',
+                                  border: 'none',
+                                  borderBottom: '1px solid #f0f0f0',
+                                  fontSize: '0.95rem',
+                                }}
+                                onClick={() => handleAvailabilitySelect(value)} // store DB value
+                                onMouseEnter={() => setFocusedIndex({ ...focusedIndex, availability: index })}
+                                role="option"
+                                aria-selected={value === selectedAvailability}
+                              >
+                                {label} {/* show human-readable label */}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="col-12 col-md-6">
-                    <div className="mb-3">
-                      <label htmlFor="fee-input" className="form-label fw-medium" style={{ color: '#18273e' }}>
-                        Consultation Fee
-                      </label>
-                      <div className="input-group">
-                        <span
-                          className="input-group-text d-flex align-items-center justify-content-center"
-                          style={{
-                            backgroundColor: '#18273e',
-                            color: '#d4af37',
-                            borderColor: '#18273e',
-                            width: '45px',
-                            padding: '0.375rem',
-                            fontSize: '1rem',
-                          }}
-                        >
-                          <FaDollarSign />
-                        </span>
-                        <input
-                          type="number"
-                          className="form-control"
-                          id="fee-input"
-                          value={fee}
-                          style={{
-                            borderColor: '#18273e',
-                          }}
-                          onChange={(e) => setFee(e.target.value)}
-                          min="0"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </>
+                </div>
               )}
 
               {/* Bio Field */}
@@ -662,6 +859,70 @@ const AddUser = () => {
           </div>
         </form>
       </div>
+
+      <Dialog
+        open={confirmOpen}
+        onClose={handleCancel}
+        aria-labelledby="confirm-dialog-title"
+        PaperProps={{
+          sx: {
+            textAlign: 'center',
+            p: 3,
+            borderRadius: '12px',
+            border: '2px solid #d4af37',
+            backgroundColor: 'rgba(24, 39, 62, 0.95)', // dark blue bg
+            color: 'white', // white text
+          },
+        }}
+      >
+        <DialogTitle id="confirm-dialog-title" sx={{ fontWeight: 'bold', textAlign: 'center', color: '#d4af37' }}>
+          Confirm Role Selection
+        </DialogTitle>
+
+        <DialogContent>
+          <DialogContentText
+            sx={{
+              textAlign: 'center',
+              fontSize: '1rem',
+              color: 'white',
+              mb: 2,
+            }}
+          >
+            Are you sure you want to add this as{' '}
+            <b style={{ color: '#d4af37' }}>
+              {pendingRole && pendingRole.charAt(0).toUpperCase() + pendingRole.slice(1)}
+            </b>
+            ?
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions sx={{ justifyContent: 'center', gap: 2 }}>
+          <Button
+            onClick={handleCancel}
+            variant="outlined"
+            sx={{
+              borderColor: '#d4af37',
+              color: '#d4af37',
+              '&:hover': { borderColor: '#fff', color: '#fff' },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            variant="contained"
+            sx={{
+              backgroundColor: '#d4af37',
+              color: '#18273e',
+              fontWeight: 'bold',
+              '&:hover': { backgroundColor: '#b8962f' },
+            }}
+            autoFocus
+          >
+            Yes, Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };

@@ -117,6 +117,16 @@ export default function FilterSection({
       {/* Options */}
       <FormGroup sx={{ maxHeight: '200px', overflowY: 'auto' }}>
         {[...availableOptions, ...(isCurrentFilter ? unavailableOptions : [])]
+          // sort blank first, then alphabetically
+          .sort((a, b) => {
+            const valA = getLabel(getValueKey(a.value)) || '';
+            const valB = getLabel(getValueKey(b.value)) || '';
+
+            if (!valA || valA.toLowerCase() === 'blank') return -1;
+            if (!valB || valB.toLowerCase() === 'blank') return 1;
+
+            return valA.localeCompare(valB);
+          })
           .filter((item) => {
             const rawLabel = getLabel(item.value) || '';
             const label = normalize(rawLabel, 'text');
@@ -124,7 +134,6 @@ export default function FilterSection({
 
             return search === '' || label.includes(search);
           })
-
           .map((item) => {
             const valueKey = getValueKey(item.value);
             return (
@@ -153,7 +162,7 @@ export default function FilterSection({
                   >
                     {(() => {
                       const raw = getLabel(item.value) || '';
-                      return raw.charAt(0).toUpperCase() + raw.slice(1);
+                      return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Blank'; // ✅ show "Blank" nicely
                     })()}
                     {!item.available && !item.selected && isCurrentFilter && (
                       <Typography component="span" sx={{ fontSize: '0.75rem', color: '#9ca3af', ml: 1 }}>

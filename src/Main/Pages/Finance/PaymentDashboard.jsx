@@ -31,6 +31,7 @@ import {
   Popover,
   FormGroup,
   Checkbox,
+  Stack,
 } from '@mui/material';
 import {
   CalendarToday,
@@ -58,6 +59,8 @@ import StatCard from './StatCard';
 import FilterSection from './FilterSection';
 import FilterableHeaderCell from './FilterableHeaderCell';
 import { minWidth } from '@mui/system';
+import { CheckCircleIcon } from 'lucide-react';
+import PaymentConfirmationDialog from './PaymentConfirmationDailog';
 
 // Styled components with white and gold theme
 const ElegantCard = styled(Card)(({ theme }) => ({
@@ -123,7 +126,10 @@ export default function PaymentDashboard() {
   const [amountFilter, setAmountFilter] = useState([]);
   const [amountFilterLength, setAmountFilterLength] = useState(0);
   const [emailFilter, setEmailFilter] = useState([]);
-
+  const [loadingId, setLoadingId] = useState(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [loadingPayment, setLoadingPayment] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
     service: '',
@@ -134,77 +140,172 @@ export default function PaymentDashboard() {
     client: '',
     amount: '',
   });
+  const labelMap = {
+    InPerson: 'In Person',
+    Online: 'Online',
+    'InPerson/Online': 'In Person / Online',
+    PayInOffice: 'Pay In Office',
+    Card: 'Card',
+  };
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [activeFilter, setActiveFilter] = useState(null);
   const dullBlackColor = [50, 50, 50];
+  // track which action is loading
+  const markPaymentPaid = async (appointment) => {
+    const { payment } = appointment;
+
+    try {
+      const response = await fetch(`${ApiEndPoint}invoices/markPaid/${payment?._id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: payment?.amount,
+          paymentMode: 'Stripe',
+          updates: {
+            status: 'paid',
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark payment as paid: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setData((prev) =>
+        prev.map((item) =>
+          item.payment && item.payment._id === payment._id
+            ? { ...item, payment: { ...item.payment, status: 'paid' } }
+            : item
+        )
+      );
+      return data; // return parsed response for caller
+    } catch (error) {
+      console.error('❌ Error in markPaymentPaid:', error);
+      throw error; // rethrow so caller knows
+    }
+  };
+  const handleOpenConfirm = (appointment) => {
+    setSelectedAppointment(appointment);
+    setConfirmOpen(true);
+  };
+
+  const handleCancel = () => {
+    if (!loadingPayment) {
+      setConfirmOpen(false);
+      setSelectedAppointment(null);
+    }
+  };
+
+  const handleConfirm = async () => {
+    setLoadingPayment(true);
+    try {
+      await markPaymentPaid(selectedAppointment); // your API function
+      setConfirmOpen(false);
+      setSelectedAppointment(null);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoadingPayment(false);
+    }
+  };
+  const viewInvoice = async (paymentId) => {
+    setLoadingId(paymentId);
+
+    try {
+      const url = `${ApiEndPoint}downloadInvoice/${paymentId}`;
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Failed to download invoice: ${response.statusText}`);
+      }
+
+      // Convert to Blob
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+
+      // Trigger download
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.setAttribute('download', `invoice-${paymentId}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+
+      // Cleanup
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      console.error('❌ Error downloading invoice:', err);
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  // Update local data state for a specific payment
+  const updatePaymentHasInvoice = (paymentId, hasInvoice) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item?.payment && item?.payment?._id === paymentId ? { ...item, payment: { ...item.payment, hasInvoice } } : item
+      )
+    );
+  };
 
   const generateInvoice = async (appointment) => {
-    const { payment, lawyer, link } = appointment;
-    console.log('Booked Appointment:', appointment);
-
-    // defensive checks
-    if (!appointment || !appointment.payment) {
+    const { payment } = appointment;
+    if (!appointment || !payment) {
       throw new Error('Invalid appointment object: missing payment info.');
     }
 
-    // ensure ApiEndPoint ends with a slash or include it here
-    const url = `${ApiEndPoint}createZohoInvoice`;
+    setLoadingId(payment._id);
 
-    // timeout using AbortController
     const controller = new AbortController();
-    const timeoutMs = 20000; // 20 seconds
+    const timeoutMs = 20000;
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
     try {
-      const res = await fetch(url, {
+      const res = await fetch(`${ApiEndPoint}createZohoInvoice`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(appointment),
         signal: controller.signal,
       });
 
       clearTimeout(timeoutId);
 
-      // try to parse JSON (some error responses may not be JSON)
-      let payload;
-      try {
-        payload = await res.json();
-      } catch (parseErr) {
-        payload = null;
-      }
+      const data = await res.json().catch(() => null);
 
       if (!res.ok) {
-        const errInfo = payload || { message: res.statusText || 'Request failed', status: res.status };
-        console.error('Error creating Zoho invoice:', errInfo);
-        throw errInfo;
+        throw data || { message: res.statusText, status: res.status };
       }
 
-      // success
-      const data = payload;
+      if (!data?.alreadyExists) {
+        // ✅ Update hasInvoice = true in DB
 
-      if (data?.alreadyExists) {
-        console.log('Invoice already exists for this paymentId:', data.invoice?.invoice_number || '(unknown)');
-        // optionally show UI notification
-      } else {
-        console.log('Invoice created:', data.invoice?.invoice_number || data.url || data);
+        await fetch(`${ApiEndPoint}payments/${payment._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasInvoice: true }),
+        });
+        setData((prev) =>
+          prev.map((item) =>
+            item.payment && item.payment._id === payment._id
+              ? { ...item, payment: { ...item.payment, hasInvoice: true } }
+              : item
+          )
+        );
       }
-
       return data;
+      // console.log('Invoice created:', payload.invoice?.invoice_number || payload.url || payload);
     } catch (err) {
-      // AbortError when timeout occurs
       if (err.name === 'AbortError') {
-        const timeoutErr = { message: `Request timed out after ${timeoutMs}ms` };
-        console.error('Error creating Zoho invoice:', timeoutErr);
-        throw timeoutErr;
+        console.error(`Request timed out after ${timeoutMs}ms`);
+      } else {
+        console.error('Error creating Zoho invoice:', err);
       }
-
-      // network or other errors may arrive here
-      console.error('Error creating Zoho invoice:', err);
-      throw err;
+    } finally {
+      setLoadingId(null);
     }
   };
 
@@ -228,7 +329,7 @@ export default function PaymentDashboard() {
 
   const normalizeMethod = (method) => {
     if (!method) return 'blank';
-    return String(method).toLowerCase().trim();
+    return String(method);
   };
   const normalizeEmail = (email) => {
     if (!email) return 'blank';
@@ -717,16 +818,42 @@ export default function PaymentDashboard() {
     .filter((item) => item.payment?.status === 'paid')
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
 
-  const getStatusChip = (status) => {
-    if (!status) return <Chip label="Not Booked" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
+  const getStatusChip = (status, onMarkPaid, hasInvoice) => {
+    if (!status) {
+      return <Chip label="Not Booked" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
+    }
 
     switch (status) {
       case 'paid':
         return <Chip label="Paid" color="success" size="small" sx={{ fontWeight: 600 }} />;
+
       case 'pending':
-        return <Chip label="Pending" color="warning" size="small" sx={{ fontWeight: 600 }} />;
+        // ✅ Only clickable if hasInvoice = true
+        if (hasInvoice) {
+          return (
+            <Chip
+              label="Pending"
+              color="warning"
+              size="small"
+              onClick={onMarkPaid}
+              sx={{
+                fontWeight: 600,
+                cursor: 'pointer',
+                '&:hover': {
+                  backgroundColor: 'success.light',
+                  color: 'white',
+                },
+              }}
+            />
+          );
+        } else {
+          // ❌ Non-clickable version
+          return <Chip label="Pending" color="warning" size="small" sx={{ fontWeight: 600, opacity: 0.6 }} />;
+        }
+
       case 'failed':
         return <Chip label="Failed" color="error" size="small" sx={{ fontWeight: 600 }} />;
+
       default:
         return <Chip label={status} variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
     }
@@ -1244,7 +1371,11 @@ export default function PaymentDashboard() {
                                     >
                                       {item.link?.name || 'N/A'}
                                     </Typography>
-                                    {getStatusChip(item.payment?.status)}
+                                    {getStatusChip(
+                                      item.payment?.status,
+                                      () => markPaymentPaid(item),
+                                      item.payment?.hasInvoice
+                                    )}
                                   </Box>
 
                                   <Box display="flex" flexDirection="column" gap={1}>
@@ -1509,18 +1640,39 @@ export default function PaymentDashboard() {
                                     </StyledTableCell>
                                     <StyledTableCell>
                                       {item.payment ? (
-                                        <Button
-                                          variant="outlined"
-                                          size="small"
-                                          sx={{ textTransform: 'none', borderRadius: 2 }}
-                                          onClick={() => generateInvoice(item)}
-                                        >
-                                          View Invoice
-                                        </Button>
+                                        item.payment.hasInvoice ? (
+                                          <Button
+                                            variant="outlined"
+                                            size="small"
+                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                            onClick={() => viewInvoice(item.payment._id)}
+                                            disabled={loadingId === item.payment._id}
+                                          >
+                                            {loadingId === item.payment._id ? (
+                                              <CircularProgress size={18} />
+                                            ) : (
+                                              'View Invoice'
+                                            )}
+                                          </Button>
+                                        ) : (
+                                          <Button
+                                            variant="contained"
+                                            size="small"
+                                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                                            onClick={() => generateInvoice(item)}
+                                            disabled={loadingId === item.payment._id}
+                                          >
+                                            {loadingId === item.payment._id ? (
+                                              <CircularProgress size={18} color="inherit" />
+                                            ) : (
+                                              'Create Invoice'
+                                            )}
+                                          </Button>
+                                        )
                                       ) : (
                                         <Typography
                                           sx={{
-                                            color: lightTheme.textSecondary,
+                                            color: 'text.secondary',
                                             fontSize: { xs: '0.75rem', sm: '0.875rem' },
                                           }}
                                         >
@@ -1539,7 +1691,11 @@ export default function PaymentDashboard() {
                                       {item.payment?.paymentMethod || '—'}
                                     </StyledTableCell>
                                     <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
-                                      {getStatusChip(item.payment?.status)}
+                                      {getStatusChip(
+                                        item.payment?.status,
+                                        () => handleOpenConfirm(item),
+                                        item.payment?.hasInvoice
+                                      )}
                                     </StyledTableCell>
                                   </StyledTableRow>
                                 ))}
@@ -1657,11 +1813,28 @@ export default function PaymentDashboard() {
                         onToggle={handleToggleConsultation}
                         selectedValues={consultationTypeFilter}
                         isCurrentFilter={activeFilter === 'consultation'}
-                        getLabel={(value) => value}
+                        getLabel={(value) => labelMap[value] || value}
                       />
                     </Box>
                   )}
 
+                  {openFilter === 'method' && (
+                    <Box sx={{ mb: 3 }}>
+                      <FilterSection
+                        title="Method"
+                        filterKey="method"
+                        filterData={methodOptions.methods} // replace with your method options from getDynamicFilterOptions
+                        searchTerm={filterSearchTerms.method}
+                        onSearchChange={handleSearchChange}
+                        onSelectAll={handleSelectAllMethod} // implement this function similar to others
+                        onClearAll={handleClearAllMethod} // implement this function similar to others
+                        onToggle={handleToggleMethod} // implement this function similar to others
+                        selectedValues={methodFilter}
+                        isCurrentFilter={activeFilter === 'method'}
+                        getLabel={(value) => labelMap[value] || value}
+                      />
+                    </Box>
+                  )}
                   {openFilter === 'lawyer' && (
                     <Box
                       sx={{ mb: 3 }}
@@ -1680,23 +1853,6 @@ export default function PaymentDashboard() {
                         selectedValues={lawyerFilter}
                         isCurrentFilter={activeFilter === 'lawyer'}
                         getLabel={(lawyer) => lawyer.FkUserId?.UserName || lawyer.UserName || 'Unknown Lawyer'}
-                      />
-                    </Box>
-                  )}
-                  {openFilter === 'method' && (
-                    <Box sx={{ mb: 3 }}>
-                      <FilterSection
-                        title="Method"
-                        filterKey="method"
-                        filterData={methodOptions.methods} // replace with your method options from getDynamicFilterOptions
-                        searchTerm={filterSearchTerms.method}
-                        onSearchChange={handleSearchChange}
-                        onSelectAll={handleSelectAllMethod} // implement this function similar to others
-                        onClearAll={handleClearAllMethod} // implement this function similar to others
-                        onToggle={handleToggleMethod} // implement this function similar to others
-                        selectedValues={methodFilter}
-                        isCurrentFilter={activeFilter === 'method'}
-                        getLabel={(value) => (value === 'Blank' ? 'Blank' : value)}
                       />
                     </Box>
                   )}
@@ -1833,6 +1989,7 @@ export default function PaymentDashboard() {
             )}
           </Box>
         </Container>
+        <PaymentConfirmationDialog open={confirmOpen} onCancel={handleCancel} onConfirm={handleConfirm} />
       </Box>
     </LocalizationProvider>
   );
