@@ -8808,40 +8808,65 @@ const LEA_Form = ({ token }) => {
 
         return (
             <div
-                className="d-flex justify-content-center align-items-center mt-4 mb-4 px-3"
+                className="d-flex justify-content-center align-items-center mt-4 gap-2 mb-4 px-3"
                 data-html2canvas-ignore="true"
             >
                 {/* Reject button */}
-                <button
-                    className="btn btn-danger fw-bold me-3"
+                <div
+                    // className="btn btn-danger fw-bold me-3"
                     onClick={() => setShowRejectModal(true)}
-                    style={{ width: "150px" }}
+                    style={{
+
+                        backgroundColor: "#16213e",
+                        color: "white",
+                        width: "150px",
+                        minWidth: "100px",
+                        maxWidth: "200px",
+                        padding: "8px 20px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        textAlign: "center",
+                        border: "2px solid #16213e",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        fontWeight: "500",
+                    }}
                 >
                     Reject LFA
-                </button>
+                </div>
 
                 {/* Accept button */}
-                <button
-                    className="btn fw-bold"
+                <div
+                    // className="btn fw-bold"
                     style={{
-                        width: "150px",
-                        backgroundColor: "#001f54",
+                        backgroundColor: "#16213e",
                         color: "white",
-                        border: "none",
-                        transition: "all 0.3s ease-in-out"
+                        width: "150px",
+                        minWidth: "100px",
+                        maxWidth: "200px",
+                        padding: "8px 20px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        textAlign: "center",
+                        border: "2px solid #16213e",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        fontWeight: "500",
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = "#c0a262";
                         e.currentTarget.style.color = "black";
                     }}
                     onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = "#001f54";
+                        e.currentTarget.style.backgroundColor = "#16213e";
                         e.currentTarget.style.color = "white";
                     }}
                     onClick={handleAcceptLFA}
                 >
                     Accept LFA
-                </button>
+                </div>
             </div>
         );
     };
@@ -8867,36 +8892,71 @@ const LEA_Form = ({ token }) => {
                 </Modal.Body>
                 <Modal.Footer className="justify-content-center">
                     <div className="d-flex gap-3">
-                        <Button
+                        <div
                             style={{
-                                backgroundColor: "#001f54", // Dark Blue
+                                backgroundColor: "#16213e",
                                 color: "white",
-                                border: "none",
-                                transition: "all 0.3s ease-in-out"
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = "#c0a262"; // Golden on hover
                                 e.currentTarget.style.color = "black";
                             }}
                             onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = "#001f54"; // Back to Dark Blue
+                                e.currentTarget.style.backgroundColor = "#16213e"; // Back to Dark Blue
                                 e.currentTarget.style.color = "white";
                             }}
                             onClick={() => setShowRejectModal(false)}
                         >
                             Cancel
-                        </Button>
+                        </div>
 
-                        <Button
+                        <div
                             variant="danger"
+
+                            style={{
+                                backgroundColor: "#16213e",
+                                color: "white",
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = "#c0a262"; // Golden on hover
+                                e.currentTarget.style.color = "black";
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = "#16213e"; // Back to Dark Blue
+                                e.currentTarget.style.color = "white";
+                            }}
                             onClick={handleRejectLFA}
                             disabled={isSubmittingRejection}
                         >
                             {isSubmittingRejection ? "Submitting..." : "Submit Rejection"}
-                        </Button>
+                        </div>
                     </div>
                 </Modal.Footer>
-            </Modal>
+            </Modal >
         );
     };
 
@@ -8967,7 +9027,7 @@ const LEA_Form = ({ token }) => {
             {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
             {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
             <div
-                className="d-flex justify-content-end mb-3 px-3 py-2"
+                className="d-flex justify-content-end mb-3 gap-2 px-3 py-2"
                 data-html2canvas-ignore="true"
                 style={{
                     marginTop: '10px'
@@ -8975,50 +9035,69 @@ const LEA_Form = ({ token }) => {
             >
                 {/* Only show Generate Link button to lawyer and admin */}
                 {(token?.Role === "lawyer" || token?.Role === "admin") && (
-                    <button
-                        className="btn btn-primary me-3 px-4 py-2 fw-medium"
+                    <div
+                        // className="btn btn-primary me-3 px-4 py-2 fw-medium"
                         onClick={handleGenerateLink}
                         style={{
-                            backgroundColor: "#001f54",
+                            backgroundColor: "#16213e",
                             color: "white",
-                            border: "none",
-                            transition: "all 0.3s ease-in-out"
+                            width: "150px",
+                            minWidth: "100px",
+                            maxWidth: "200px",
+                            padding: "8px 20px",
+                            borderRadius: "4px",
+                            fontSize: "14px",
+                            cursor: "pointer",
+                            textAlign: "center",
+                            border: "2px solid #16213e",
+                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                            transition: "all 0.3s ease",
+                            fontWeight: "500",
                         }}
                         onMouseOver={(e) => {
                             e.currentTarget.style.backgroundColor = "#c0a262";
                             e.currentTarget.style.color = "black";
                         }}
                         onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = "#001f54";
+                            e.currentTarget.style.backgroundColor = "#16213e";
                             e.currentTarget.style.color = "white";
                         }}
                     >
                         Generate Form Link
-                    </button>
+                    </div>
                 )}
 
-                <button
-                    className="btn fw-medium d-flex align-items-center"
+                <div
+                    // className="btn fw-medium d-flex align-items-center"
                     onClick={handleDownload}
                     style={{
-                        padding: "8px 16px",
-                        backgroundColor: "#001f54",
+                        backgroundColor: "#16213e",
                         color: "white",
-                        border: "none",
-                        transition: "all 0.3s ease-in-out"
+                        width: "150px",
+                        minWidth: "100px",
+                        maxWidth: "200px",
+                        padding: "8px 20px",
+                        borderRadius: "4px",
+                        fontSize: "14px",
+                        cursor: "pointer",
+                        textAlign: "center",
+                        border: "2px solid #16213e",
+                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                        transition: "all 0.3s ease",
+                        fontWeight: "500",
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = "#c0a262";
                         e.currentTarget.style.color = "black";
                     }}
                     onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = "#001f54";
+                        e.currentTarget.style.backgroundColor = "#16213e";
                         e.currentTarget.style.color = "white";
                     }}
                 >
                     <BsDownload className="me-2" />
                     Download PDF
-                </button>
+                </div>
             </div>
             {(!isclient || isFormFilled) ? (
                 // IMPORTANT: key={draftKey} forces remount so new draft values appear

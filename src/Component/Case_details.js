@@ -54,6 +54,7 @@ const Case_details = ({ token }) => {
   const [sections, setsections] = useState([]); // Track button states by ID
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isLawyersAssigned, setLawyersAssigned] = useState(false);
   const [error, setError] = useState("");
   const [caseData, setCaseData] = useState("");
   const [user, setUser] = useState("");
@@ -410,6 +411,18 @@ const Case_details = ({ token }) => {
     } finally {
       setLoading(false);
     }
+    try {
+      setLoading(true);
+      const res = await axios.get(`${ApiEndPoint}getCaseClientAndLawyerIds/${reduxCaseInfo?._id}`);
+      console.log("res.data.result= ", res.data.result)
+     if(res.data?.LawyerId){
+      setLawyersAssigned(true)
+     }
+    } catch (err) {
+      console.error("Error fetching Lawyer and client form:", err);
+    } finally {
+      setLoading(false);
+    }
 
 
     try {
@@ -597,7 +610,7 @@ const Case_details = ({ token }) => {
     return (
       <>
         {[
-          ...(token?.Role !== "lawyer"
+          ...(token?.Role !== "lawyer" && isLawyersAssigned
             ? [{ label: "View lawyer", onClick: handleViewDetails }]
             : []),
           ...(reduxCaseInfo?.CaseSubType  ? [{ label: "View Folder", onClick: handleViewFolders }] : []),
@@ -606,10 +619,10 @@ const Case_details = ({ token }) => {
           ...(token?.Role !== "client" &&  reduxCaseInfo?.ClientId
             ? [{ label: "View Client", onClick: handleViewClientDetails }]
             : []),
-          ...(token?.Role !== "client"
+          ...(token?.Role !== "client"  && isLawyersAssigned
             ? [{ label: "View Task", onClick: handleViewTask }]
             : []),
-          ...(token?.Role !== "client"
+          ...(token?.Role !== "client" && isLawyersAssigned
             ? [{ label: "Add Task", onClick: handleAddTask }]
             : []),
           ...((token?.Role !== "client" && isclientAssigned)
@@ -619,9 +632,12 @@ const Case_details = ({ token }) => {
             ? [{ label: "Form MOM", onClick: handleFormMOM }]
             : []),
 
-          ...((isclientAssigned ? true : true)
+          ...((isLawyersAssigned)
             ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
             : []),
+          // ...((isclientAssigned ? true : true)
+          //   ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
+          //   : []),
 
           ...((isLFQISfilled && isclientAssigned)
             ? [{ label: "Form LFA", onClick: handleFormLFA }]
