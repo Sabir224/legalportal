@@ -37,6 +37,8 @@ import { isPublicRoute } from './Main/Pages/Component/utils/utlis';
 import RescheduleConfirm from './Main/Pages/AppointMents/AppointmentReschedule';
 import LFQ_ClientCaseEvaluationForm from './Main/Pages/Component/Case_Forms/LFQFrom';
 import BookConsultation from './Main/Pages/AppointMents/GenerateBookLinkForwebiste';
+import { jwtDecode } from 'jwt-decode';
+import LEA_Form from './Main/Pages/Component/Case_Forms/LFA_form';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -112,6 +114,7 @@ const GlobalTokenValidator = () => {
       '/reset-password',
       '/client-consultation',
       '/LFQ_ClientCaseEvaluationForm',
+      "/LFA_Form",
       '/clientAppointMent',
       '/reschedule',
     ];
@@ -140,6 +143,8 @@ const GlobalTokenValidator = () => {
 };
 
 function App() {
+
+  
   useEffect(() => {
     if (!SocketService.socket || !SocketService.socket.connected) {
       console.log('🔌 Connecting to socket...');
@@ -204,6 +209,16 @@ function App() {
           element={
             <AlertProvider>
               <LFQ_ClientCaseEvaluationForm />
+              <GlobalAlert />
+            </AlertProvider>
+          }
+        />
+
+        <Route
+          path="/LFA_Form"
+          element={
+            <AlertProvider>
+              <LEA_Form  />
               <GlobalAlert />
             </AlertProvider>
           }

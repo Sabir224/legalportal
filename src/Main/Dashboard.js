@@ -204,6 +204,41 @@ const Dashboard = () => {
   //   return () => clearInterval(interval);
   // }, []);
   const hasRun = useRef(false);
+
+
+  useEffect(() => {
+    // Retrieve any stored caseId, userId, screenIndex and formType from localStorage
+    const pendingCaseId = localStorage.getItem('pendingCaseId');
+    const pendingUserId = localStorage.getItem('pendingUserId');
+    const pendingScreenIndex = localStorage.getItem('pendingScreenIndex');
+    const pendingFormType = localStorage.getItem('pendingFormType');
+
+    console.log("Pending values:", { pendingCaseId, pendingScreenIndex, pendingFormType });
+
+    // If all values exist and it's an LFA form, dispatch screenChange
+    if (pendingCaseId && pendingScreenIndex && pendingFormType === 'lfa') {
+      console.log("Redirecting to LFA form for case:", pendingCaseId);
+
+      // Also store the caseId in a way that the LFA form can access it
+      localStorage.setItem('lfaCaseId', pendingCaseId);
+
+      // Set the current screen to LFA form (screen 27)
+      handlescreen2(27);
+      setCurrentScreen(
+        <AlertProvider>
+          <LEA_Form token={decodedToken} />
+          <GlobalAlert />
+        </AlertProvider>
+      );
+
+      // Clear the stored values
+      localStorage.removeItem("pendingCaseId");
+      localStorage.removeItem("pendingUserId");
+      localStorage.removeItem("pendingScreenIndex");
+      localStorage.removeItem("pendingFormType");
+    }
+  }, [dispatch]);
+  
   useEffect(() => {
     // Retrieve any stored caseId, userId, and screenIndex from localStorage
     const pendingCaseId = localStorage.getItem('pendingCaseId');
