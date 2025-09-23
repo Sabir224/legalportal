@@ -170,9 +170,13 @@ function LegalConsultationStepper() {
   const [paymentLoading, setPaymentLoading] = React.useState(false);
   const [searchParams] = useSearchParams();
   const [data, setData] = useState(null);
-  const { phone, name } = useParams();
+  const phone = searchParams.get('phone');
+  const name = searchParams.get('name');
   const ref = searchParams.get('ref');
   const source = searchParams.get('source');
+  console.log('phone:', phone);
+  console.log('name:', name);
+  console.log('ref:', ref);
   console.log('source:', source);
   // Popup states
   const [isPopupVisible, setIsPopupVisible] = React.useState(false);
@@ -538,6 +542,19 @@ function LegalConsultationStepper() {
     });
     setErrors((prev) => ({ ...prev, [question]: false }));
   };
+  const formatAvailability = (value) => {
+    console.log('Availablility value:', value);
+    switch (value) {
+      case 'InPerson':
+        return 'In Person';
+      case 'Online':
+        return 'Online';
+      case 'InPerson/Online':
+        return 'In Person and Online Both';
+      default:
+        return value || 'N/A';
+    }
+  };
 
   const handleFileChange = (question, files) => {
     if (files && files.length > 0) {
@@ -650,7 +667,6 @@ function LegalConsultationStepper() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  // generate and redirect (manual or auto when ref missing)
   // generate and redirect (manual or auto when ref missing)
   const regenerateAndRedirect = async () => {
     try {
@@ -1013,6 +1029,26 @@ function LegalConsultationStepper() {
     }
   };
   const handleBack = () => setActiveStep((prev) => prev - 1);
+  // NEW function (always generates new link)
+  const forceGenerateAndRedirect = async () => {
+    try {
+      const body = {};
+
+      if (phone) body.phone = phone;
+      if (name) body.name = name;
+      if (source) body.source = source; // only add if it exists
+
+      const res = await axios.post(`${ApiEndPoint}generateLink`, body);
+
+      if (res.data?.success && res.data?.fullUrl) {
+        window.location.href = res.data.fullUrl;
+      } else {
+        console.error('Failed to generate new link:', res.data);
+      }
+    } catch (err) {
+      console.error('Error generating link:', err);
+    }
+  };
 
   const handleReset = () => {
     setActiveStep(0);
@@ -1051,7 +1087,7 @@ function LegalConsultationStepper() {
   // };
 
   const onResetClick = async () => {
-    await regenerateAndRedirect(); // This will reload the page to new URL
+    await forceGenerateAndRedirect(); // This will reload the page to new URL
     //The rest of handleReset() won't run because page reloads
   };
   // Navigation handlers
@@ -2193,25 +2229,33 @@ function LegalConsultationStepper() {
                           <DetailItem
                             icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
                             label="Availability"
-                            value={lawyer.availablity || 'N/A'}
+                            value={formatAvailability(lawyer.availablity) || 'N/A'}
                           />
                         </Box>
                         {lawyer.bio && (
-                          <Typography
-                            variant="caption"
+                          <Box
                             sx={{
-                              color: 'rgba(255, 255, 255, 0.75)',
-                              display: '-webkit-box',
-                              WebkitLineClamp: 3,
-                              WebkitBoxOrient: 'vertical',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              lineHeight: 1.4,
-                              mt: 1,
+                              borderTop: '1px solid rgba(255,255,255,0.15)', // thin subtle line
+                              mt: 2, // space before line
+                              pt: 1.5, // space after line before bio
                             }}
                           >
-                            {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
-                          </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: 'rgba(255, 255, 255, 0.75)',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 3,
+                                WebkitBoxOrient: 'vertical',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                lineHeight: 1.4,
+                                whiteSpace: 'pre-line', // respects \n new lines if present
+                              }}
+                            >
+                              {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
+                            </Typography>
+                          </Box>
                         )}
                       </Box>
                     </Box>

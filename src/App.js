@@ -177,7 +177,7 @@ function App() {
             </Elements>
           }
         />
-        <Route path="/reschedule/:phone/:name" element={<RescheduleConfirm />} />
+        <Route path="/reschedule" element={<RescheduleConfirm />} />
 
         {/* Protected routes */}
         <Route

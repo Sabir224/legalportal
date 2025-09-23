@@ -27,9 +27,10 @@ export default function RescheduleConfirm() {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [paymentId, setPaymentId] = useState('');
   const [caseDiscription, setDiscription] = useState('');
-
-  const { phone, name } = useParams();
+  const phone = searchParams.get('phone');
+  const name = searchParams.get('name');
   const ref = searchParams.get('ref');
+  const source = searchParams.get('source');
 
   const convertTo12HourFormat = (time) => {
     if (!time) return '';
@@ -110,10 +111,50 @@ export default function RescheduleConfirm() {
     if (ref) fetchAppointmentData();
   }, [ref]);
 
-  const handleReschedule = () => {
-    if (!canReschedule) return;
-    setShowConfirmDialog(true);
-  };
+  // const confirmReschedule = async () => {
+  //   try {
+  //     // 1. Update appointment slot (if needed)
+  //     if (confirmationData.slot?._id && confirmationData.lawyer?._id) {
+  //       const updatedSlot = {
+  //         slot: confirmationData.slot._id,
+  //         isBooked: false,
+  //       };
+  //       const slotUpdateResponse = await axios.patch(
+  //         `${ApiEndPoint}crmBookappointments/${confirmationData.lawyer._id}/${confirmationData.slot._id}`,
+  //         updatedSlot
+  //       );
+  //       // console.log('slotUpdateResponse', slotUpdateResponse.data);
+  //       if (slotUpdateResponse.status !== 200) {
+  //         throw new Error('Failed to update appointment slot');
+  //       }
+  //     }
+
+  //     // 2. Update payment status
+  //     //  console.log('Payment ID:', confirmationData);
+  //     const paymentUpdateResponse = await axios.post(`${ApiEndPoint}payments/update-status`, {
+  //       paymentId: confirmationData?.payment,
+  //       meetingDetails: null,
+  //     });
+  //     console.log('Payment Link Data:', paymentUpdateResponse.data);
+  //     if (paymentUpdateResponse.status !== 200) {
+  //       throw new Error('Failed to update payment status');
+  //     }
+
+  //     // 3. Close dialog & navigate
+  //     setShowConfirmDialog(false);
+  //     navigate(
+  //       `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(name.replace(/\s+/g, '-'))}?ref=${ref}`
+  //     );
+
+  //     // Force a full reload after navigation
+  //     setTimeout(() => {
+  //       window.location.reload();
+  //     }, 0);
+  //   } catch (error) {
+  //     console.error('❌ Error during confirm reschedule:', error);
+  //     // Optionally show an error message to the user
+  //   }
+  // };
 
   const confirmReschedule = async () => {
     try {
@@ -127,28 +168,34 @@ export default function RescheduleConfirm() {
           `${ApiEndPoint}crmBookappointments/${confirmationData.lawyer._id}/${confirmationData.slot._id}`,
           updatedSlot
         );
-        // console.log('slotUpdateResponse', slotUpdateResponse.data);
         if (slotUpdateResponse.status !== 200) {
           throw new Error('Failed to update appointment slot');
         }
       }
 
       // 2. Update payment status
-      //  console.log('Payment ID:', confirmationData);
       const paymentUpdateResponse = await axios.post(`${ApiEndPoint}payments/update-status`, {
         paymentId: confirmationData?.payment,
         meetingDetails: null,
       });
-      console.log('Payment Link Data:', paymentUpdateResponse.data);
       if (paymentUpdateResponse.status !== 200) {
         throw new Error('Failed to update payment status');
       }
 
-      // 3. Close dialog & navigate
+      // 3. Build reschedule link (keep sequence: phone → name → ref → source)
+      let rescheduleLink = `/clientAppointMent?`;
+
+      if (phone) rescheduleLink += `phone=${encodeURIComponent(phone)}&`;
+      if (name) rescheduleLink += `name=${encodeURIComponent(name.replace(/\s+/g, '-'))}&`;
+
+      // ref always exists
+      rescheduleLink += `ref=${encodeURIComponent(ref)}`;
+
+      if (source) rescheduleLink += `&source=${encodeURIComponent(source)}`;
+
+      // Navigate to new link
       setShowConfirmDialog(false);
-      navigate(
-        `/clientAppointMent/${encodeURIComponent(phone)}/${encodeURIComponent(name.replace(/\s+/g, '-'))}?ref=${ref}`
-      );
+      navigate(rescheduleLink);
 
       // Force a full reload after navigation
       setTimeout(() => {
@@ -156,10 +203,13 @@ export default function RescheduleConfirm() {
       }, 0);
     } catch (error) {
       console.error('❌ Error during confirm reschedule:', error);
-      // Optionally show an error message to the user
     }
   };
 
+  const handleReschedule = () => {
+    if (!canReschedule) return;
+    setShowConfirmDialog(true);
+  };
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 6 }}>

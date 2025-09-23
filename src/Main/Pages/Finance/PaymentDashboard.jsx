@@ -79,7 +79,7 @@ const BLANK_LAWYER = {
   _id: 'blank',
   FkUserId: {
     _id: 'blank-user',
-    UserName: '(Blank)',
+    UserName: 'blank',
     Email: '',
     Role: 'lawyer',
     CanManageEverything: false,
@@ -1554,7 +1554,7 @@ export default function PaymentDashboard() {
                                           whiteSpace: 'nowrap',
                                         }}
                                       >
-                                        {item.link?.name || 'N/A'}
+                                        {item.link?.name || item.payment?.name || 'N/A'}
                                       </Typography>
                                     </StyledTableCell>
                                     <StyledTableCell
@@ -1564,7 +1564,7 @@ export default function PaymentDashboard() {
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
-                                      {item.link?.phone || 'N/A'}
+                                      {item.link?.phone || item.payment?.phone || 'N/A'}
                                     </StyledTableCell>
                                     <StyledTableCell
                                       sx={{

@@ -33,28 +33,22 @@ export default function FilterSection({
   isCurrentFilter,
   getLabel = (v) => v, // default label renderer
 }) {
-  // Helper to handle object vs string
   const getValueKey = (val) => (val && typeof val === 'object' && val._id ? val._id : val);
 
-  // Separate available and unavailable options
   const availableOptions = filterData.filter((item) => item.available);
   const unavailableOptions = filterData.filter((item) => !item.available);
-  // Utility function
+
   const normalize = (str, type = 'text') => {
     if (!str) return '';
-
     if (type === 'phone') {
-      // keep only digits
-      return str.replace(/\D/g, '');
+      return str.replace(/\D/g, ''); // keep only digits
     }
-
-    // for text
     return str
-      .normalize('NFD') // split accents (é → e +  ́)
-      .replace(/[\u0300-\u036f]/g, '') // remove diacritics
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
       .toLocaleLowerCase()
-      .replace(/[-_]/g, ' ') // treat - and _ as spaces
-      .replace(/\s+/g, ' ') // collapse multiple spaces
+      .replace(/[-_]/g, ' ')
+      .replace(/\s+/g, ' ')
       .trim();
   };
 
@@ -117,25 +111,32 @@ export default function FilterSection({
       {/* Options */}
       <FormGroup sx={{ maxHeight: '200px', overflowY: 'auto' }}>
         {[...availableOptions, ...(isCurrentFilter ? unavailableOptions : [])]
-          // sort blank first, then alphabetically
           .sort((a, b) => {
-            const valA = getLabel(getValueKey(a.value)) || '';
-            const valB = getLabel(getValueKey(b.value)) || '';
+            const labelA = (getLabel(a.value) || '').trim();
+            const labelB = (getLabel(b.value) || '').trim();
 
-            if (!valA || valA.toLowerCase() === 'blank') return -1;
-            if (!valB || valB.toLowerCase() === 'blank') return 1;
+            const clean = (val) => (val || '').toLowerCase().replace(/[()]/g, '').trim();
 
-            return valA.localeCompare(valB);
+            const isBlankA = !clean(labelA) || clean(labelA) === 'blank';
+            const isBlankB = !clean(labelB) || clean(labelB) === 'blank';
+
+            if (isBlankA && !isBlankB) return -1; // Blank always first
+            if (!isBlankA && isBlankB) return 1;
+
+            return labelA.localeCompare(labelB);
           })
+
           .filter((item) => {
             const rawLabel = getLabel(item.value) || '';
             const label = normalize(rawLabel, 'text');
             const search = normalize(searchTerm, /^\d+$/.test(searchTerm) ? 'phone' : 'text');
-
             return search === '' || label.includes(search);
           })
           .map((item) => {
             const valueKey = getValueKey(item.value);
+            const raw = getLabel(item.value) || '';
+            const isBlank = !raw || raw.toLowerCase().replace(/[()]/g, '').trim() === 'blank';
+
             return (
               <FormControlLabel
                 key={valueKey}
@@ -160,10 +161,7 @@ export default function FilterSection({
                       fontStyle: item.available ? 'normal' : item.selected ? 'normal' : 'italic',
                     }}
                   >
-                    {(() => {
-                      const raw = getLabel(item.value) || '';
-                      return raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : 'Blank'; // ✅ show "Blank" nicely
-                    })()}
+                    {isBlank ? 'Blank' : raw.charAt(0).toUpperCase() + raw.slice(1)}
                     {!item.available && !item.selected && isCurrentFilter && (
                       <Typography component="span" sx={{ fontSize: '0.75rem', color: '#9ca3af', ml: 1 }}>
                         (no results)

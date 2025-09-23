@@ -214,8 +214,14 @@ const AddUser = () => {
     setServicesDropdownOpen(false);
 
     if (newState) {
-      const currentIndex = availabilityOptions.indexOf(selectedAvailability);
-      setFocusedIndex({ ...focusedIndex, availability: currentIndex >= 0 ? currentIndex : 0 });
+      // Convert object to array of keys
+      const keys = Object.keys(availabilityOptions); // ["InPerson", "Online", "InPerson/Online"]
+      const currentIndex = keys.findIndex((key) => key === selectedAvailability);
+
+      setFocusedIndex({
+        ...focusedIndex,
+        availability: currentIndex >= 0 ? currentIndex : 0, // fallback to first option
+      });
     }
   };
   const handleRoleClick = (role) => {
@@ -596,7 +602,7 @@ const AddUser = () => {
                       aria-expanded={roleDropdownOpen}
                       aria-haspopup="listbox"
                     >
-                      <span>{selectedRole || 'Select Role'}</span>
+                      <span>{selectedRole.charAt(0).toUpperCase() + selectedRole.slice(1) || 'Select Role'}</span>
                       <FaChevronDown
                         className={`transition-all fs-6 ${roleDropdownOpen ? 'rotate-180' : ''}`}
                         style={{ color: '#18273e' }}
@@ -623,7 +629,7 @@ const AddUser = () => {
                               backgroundColor:
                                 index === focusedIndex.role ? '#f5e9d9' : role === selectedRole ? '#F8D4A1' : 'white',
 
-                              borderBottom: index !== roleOptions.length - 1 ? '1px solid black' : 'none', // divider
+                              borderBottom: index !== roleOptions.length - 1 ? '1.5px solid #18273e' : 'none', // divider
                               fontSize: '0.95rem',
                             }}
                             onClick={() => handleRoleClick(role)}
