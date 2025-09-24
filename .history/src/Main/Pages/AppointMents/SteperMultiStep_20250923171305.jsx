@@ -543,6 +543,7 @@ function LegalConsultationStepper() {
     setErrors((prev) => ({ ...prev, [question]: false }));
   };
   const formatAvailability = (value) => {
+    console.log('Availablility value:', value);
     switch (value) {
       case 'InPerson':
         return 'In Person';
