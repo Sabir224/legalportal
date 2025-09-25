@@ -1434,12 +1434,15 @@ const BasicCase = ({ token }) => {
 
 
               {/* LFQ Heading */}
-              <span className=" text-start" style={{
+              {/* <span className=" text-start" style={{
                 maxWidth: '200px',
                 minWidth: '200px',
                 height: 33,
                 color: 'white'
-              }}>Legal Fee Quatation</span>
+              }}>Legal Fee Quatation</span> */}
+
+
+
               {/* LFA Heading */}
               <span className=" text-start" style={{
                 maxWidth: '200px',
@@ -1708,7 +1711,7 @@ const BasicCase = ({ token }) => {
                       }}>{item.CaseType}</span>
 
                       {/* LFQ */}
-                      <div
+                      {/* <div
                         className="text-start"
                         style={{
                           maxWidth: "200px",
@@ -1724,9 +1727,10 @@ const BasicCase = ({ token }) => {
                         }}
                       >
                         Go To LFQ
-                      </div>
+                      </div> */}
 
                       {/* LFA */}
+
                       <div
                         className="text-start"
                         style={{
@@ -1742,8 +1746,9 @@ const BasicCase = ({ token }) => {
                           dispatch(screenChange(27));
                         }}
                       >
-                        Go To LFA
+                        {item?.IsLFA ? "Go To LFA" : ""}
                       </div>
+
 
 
                       {/* PURPOSE (Editable Notes) */}
