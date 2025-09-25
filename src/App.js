@@ -114,18 +114,23 @@ const GlobalTokenValidator = () => {
       '/reset-password',
       '/client-consultation',
       '/LFQ_ClientCaseEvaluationForm',
-      "/LFA_Form",
+      '/LFA_Form',
       '/clientAppointMent',
       '/reschedule',
     ];
+
     const pathname = location.pathname;
+
+    // Helper function to check if route is public
+    const isPublicRoute = (path) => publicRoutes.includes(path);
+
     // Don't validate on public routes
     if (isPublicRoute(pathname)) return;
 
     const redirectPath = localStorage.getItem('redirectPath');
 
     // Don't validate if user is on the redirect path
-    if (location.pathname === redirectPath) return;
+    if (pathname === redirectPath) return;
 
     const handleInteraction = () => {
       validateToken();
@@ -142,9 +147,10 @@ const GlobalTokenValidator = () => {
   return null;
 };
 
+
 function App() {
 
-  
+
   useEffect(() => {
     if (!SocketService.socket || !SocketService.socket.connected) {
       console.log('🔌 Connecting to socket...');
@@ -193,7 +199,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
+        <Route path="/case/:caseId/?:userId" element={<CaseRedirectHandler />} />
         <Route path="/acknowledgeCaseHandover/:caseId/:userId" element={<AcknowledgeCaseHandoverRedirectHandler />} />
         <Route
           path="/client-consultation"
@@ -218,7 +224,7 @@ function App() {
           path="/LFA_Form"
           element={
             <AlertProvider>
-              <LEA_Form  />
+              <LEA_Form />
               <GlobalAlert />
             </AlertProvider>
           }

@@ -9022,367 +9022,365 @@ const LEA_Form = ({ token }) => {
 
             {/* toolbar */}
 
-
-            {/* toolbar - MODIFIED: Removed card styling and aligned button to right */}
-            {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
-            {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
-            <div
-                className="d-flex justify-content-end mb-3 gap-2 px-3 py-2"
-                data-html2canvas-ignore="true"
-                style={{
-                    marginTop: '10px'
-                }}
-            >
-                {/* Only show Generate Link button to lawyer and admin */}
-                {(token?.Role === "lawyer" || token?.Role === "admin") && (
+            {(token?.Role === "lawyer" || isFormFilled) ? (
+                <>
                     <div
-                        // className="btn btn-primary me-3 px-4 py-2 fw-medium"
-                        onClick={handleGenerateLink}
+                        className="d-flex justify-content-end mb-3 gap-2 px-3 py-2"
+                        data-html2canvas-ignore="true"
                         style={{
-                            backgroundColor: "#16213e",
-                            color: "white",
-                            width: "150px",
-                            minWidth: "100px",
-                            maxWidth: "200px",
-                            padding: "8px 20px",
-                            borderRadius: "4px",
-                            fontSize: "14px",
-                            cursor: "pointer",
-                            textAlign: "center",
-                            border: "2px solid #16213e",
-                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                            transition: "all 0.3s ease",
-                            fontWeight: "500",
-                        }}
-                        onMouseOver={(e) => {
-                            e.currentTarget.style.backgroundColor = "#c0a262";
-                            e.currentTarget.style.color = "black";
-                        }}
-                        onMouseOut={(e) => {
-                            e.currentTarget.style.backgroundColor = "#16213e";
-                            e.currentTarget.style.color = "white";
+                            marginTop: '10px'
                         }}
                     >
-                        Generate Form Link
-                    </div>
-                )}
-
-                <div
-                    // className="btn fw-medium d-flex align-items-center"
-                    onClick={handleDownload}
-                    style={{
-                        backgroundColor: "#16213e",
-                        color: "white",
-                        width: "150px",
-                        minWidth: "100px",
-                        maxWidth: "200px",
-                        padding: "8px 20px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        textAlign: "center",
-                        border: "2px solid #16213e",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                        transition: "all 0.3s ease",
-                        fontWeight: "500",
-                    }}
-                    onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = "#c0a262";
-                        e.currentTarget.style.color = "black";
-                    }}
-                    onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = "#16213e";
-                        e.currentTarget.style.color = "white";
-                    }}
-                >
-                    <BsDownload className="me-2" />
-                    Download PDF
-                </div>
-            </div>
-            {(!isclient || isFormFilled) ? (
-                // IMPORTANT: key={draftKey} forces remount so new draft values appear
-                <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef} key={draftKey} style={isEmailLinkAccess ? { backgroundColor: "white", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" } : {}}>
-                    {/* Header */}
-                    <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
-                        <img
-                            src="logo.png"
-                            alt="Logo"
-                            className="me-2 me-md-3 mb-2 mb-md-0"
-                            style={{ height: "50px" }}
-                        />
-                        <h1 className="mb-0 h4 h3-md fw-bold text-break" style={isEmailLinkAccess ? { color: "black" } : {}}>Legal Fee Agreement</h1>
-                    </div>
-
-                    {token?.Role !== "client" && (
-                        <Form.Group className="mb-3">
-                            <Form.Label>Drafts</Form.Label>
-
-                            <Dropdown className="w-100">
-                                <Dropdown.Toggle
-                                    variant="outline-secondary"
-                                    disabled={isFormFilled}
-                                    id="dropdown-practice-area"
-                                    className="w-100 text-start d-flex justify-content-between align-items-center"
-                                >
-                                    {selectedDrafts === "Select Draft"
-                                        ? "Select Draft"
-                                        : `${selectedDrafts?.CaseNumber}`}
-                                </Dropdown.Toggle>
-
-                                <Dropdown.Menu className="w-100" disabled={isFormFilled}>
-                                    {getDrafts?.map((data, index) => (
-                                        <Dropdown.Item key={index} onClick={() => handlePickDraft(data)}>
-                                            {data?.CaseNumber}
-                                        </Dropdown.Item>
-                                    ))}
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        </Form.Group>
-                    )}
-
-                    {/* NEW: Show status message */}
-                    {lfaStatus && (
-                        <div className={`alert ${lfaStatus === "accepted" ? "alert-success" : lfaStatus === "rejected" ? "alert-danger" : "alert-info"} mb-3`}>
-                            {lfaStatus === "accepted" ? "You have accepted this LFA." :
-                                lfaStatus === "rejected" ? "You have rejected this LFA. Your feedback has been sent to the lawyer." :
-                                    "LFA is pending your decision."}
-                        </div>
-                    )}
-
-                    <div className="card p-2 p-md-4 shadow-sm mb-4">
-                        <label className="form-label fw-bold fs-5 text-break">Agreement</label>
-                        {editMode && !isclient && !savedClientSignature ? (
-                            <div className="form-control p-3" style={{ minHeight: "300px", whiteSpace: "pre-wrap", textAlign: "justify" }}>
-                                {agreement?.fixedParts?.map((part, index) => (
-                                    <React.Fragment key={index}>
-                                        <span>{part}</span>
-                                        {index < agreement.editableValues.length && (
-                                            <p
-                                                ref={(el) => {
-                                                    if (el && !el.innerHTML.trim()) {
-                                                        el.innerHTML = agreement.editableValues[index] || "\u00A0";
-                                                    }
-                                                }}
-                                                contentEditable
-                                                suppressContentEditableWarning
-                                                onInput={(e) => {
-                                                    const html = e.currentTarget.innerHTML;
-                                                    handleEditableChange(index, html);
-                                                }}
-                                                onKeyDown={(e) => {
-                                                    if (e.ctrlKey && e.key.toLowerCase() === "b") {
-                                                        e.preventDefault();
-                                                        document.execCommand("bold");
-                                                    }
-                                                    if (e.key === "Tab") {
-                                                        e.preventDefault();
-                                                        const selection = window.getSelection();
-                                                        if (!selection.rangeCount) return;
-                                                        const range = selection.getRangeAt(0);
-                                                        const tabSpaces = "\u00A0".repeat(8);
-                                                        const spaceNode = document.createTextNode(tabSpaces);
-                                                        range.insertNode(spaceNode);
-                                                        range.setStartAfter(spaceNode);
-                                                        selection.removeAllRanges();
-                                                        selection.addRange(range);
-                                                    }
-                                                }}
-                                                onBlur={(e) => {
-                                                    if (!e.currentTarget.textContent.trim()) {
-                                                        e.currentTarget.innerHTML = "\u00A0";
-                                                    }
-                                                }}
-                                                style={{
-                                                    display: "inline",
-                                                    minWidth: "2ch",
-                                                    maxWidth: "100%",
-                                                    outline: "none",
-                                                    background: "transparent",
-                                                    verticalAlign: "middle",
-                                                    whiteSpace: "pre-wrap",
-                                                    wordBreak: "break-word",
-                                                    fontFamily: "inherit",
-                                                    fontSize: "inherit",
-                                                    padding: "0 2px",
-                                                    boxSizing: "border-box",
-                                                    textDecoration: "underline",
-                                                    textDecorationSkipInk: "none",
-                                                    textAlign: "justify",
-                                                }}
-                                            />
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="form-control bg-white p-3" style={{ whiteSpace: "pre-wrap", minHeight: "300px", textAlign: "justify" }}>
-                                {agreement?.fixedParts?.map((part, index) => (
-                                    <React.Fragment key={index}>
-                                        <span>{part}</span>
-                                        {index < agreement.editableValues.length && (
-                                            <span dangerouslySetInnerHTML={{ __html: agreement.editableValues[index] }} />
-                                        )}
-                                    </React.Fragment>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Fixed Headings */}
-                    {renderHeadings(fixedHeadings, setFixedHeadings, true)}
-
-                    {/* Custom Headings */}
-                    {/* {renderHeadings(headings, setHeadings, false)} */}
-
-                    {/* NEW: Client decision buttons */}
-                    {renderClientDecisionButtons()}
-
-                    {/* NEW: Signature pad for client after acceptance */}
-                    {showSignaturePad && (
-                        <div style={{ padding: 20 }} data-html2canvas-ignore="true">
-                            <h2>Client Signature</h2>
-                            <Form_SignaturePad height={250} onSave={handleClientSignatureSave} />
-                        </div>
-                    )}
-
-                    {(isFormFilled && savedClientSignature && !isclient && IsLocalLawyerSign && token?.Role === "lawyer") && (
-                        <div style={{ padding: 20 }} data-html2canvas-ignore="true">
-                            <h2>Lawyer Signature</h2>
-                            <Form_SignaturePad height={250} onSave={handleSignatureSave} />
-                        </div>
-                    )}
-
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            gap: "20px",
-                            width: "100%",
-                        }}
-                    >
-                        {savedSignature && (
-                            <div>
-                                <h4>Lawyer Signature:</h4>
-                                <img
-                                    src={savedSignature}
-                                    alt="Lawyer Signature"
-                                    style={{
-                                        maxWidth: "220px",
-                                        maxHeight: "300px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                    }}
-                                />
-                            </div>
-                        )}
-
-                        {/* ADDED: Stamp between signatures when both are present */}
-                        {savedSignature && savedClientSignature && (
-                            <div style={{
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                flexDirection: "column"
-                            }}>
-                                <img
-                                    src={logoiA}
-                                    alt="Stamp"
-                                    style={{
-                                        width: "120px",
-                                        height: "120px",
-                                        opacity: 0.8,
-                                        margin: "0 20px"
-                                    }}
-                                />
-                                <span style={{ fontSize: "12px", marginTop: "5px", fontStyle: "italic" }}>
-                                    Verified and Authenticated
-                                </span>
-                            </div>
-                        )}
-
-                        {savedClientSignature && (
-                            <div>
-                                <h4>Client Signature:</h4>
-                                <img
-                                    src={savedClientSignature}
-                                    alt="Client Signature"
-                                    style={{
-                                        maxWidth: "220px",
-                                        border: "1px solid #ccc",
-                                        borderRadius: "4px",
-                                    }}
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap" data-html2canvas-ignore="true">
-                        {(!isclient && savedClientSignature && savedLawyerSignature) && (
-                            <button
-                                className="btn btn-sm btn-primary fw-bold"
-                                onClick={handleUpdateLawyerSubmit}
-                                style={{ width: "150px" }}
-                                data-html2canvas-ignore="true"
+                        {/* Only show Generate Link button to lawyer and admin */}
+                        {(token?.Role === "lawyer" || token?.Role === "admin") && (
+                            <div
+                                // className="btn btn-primary me-3 px-4 py-2 fw-medium"
+                                onClick={handleGenerateLink}
+                                style={{
+                                    backgroundColor: "#16213e",
+                                    color: "white",
+                                    width: "150px",
+                                    minWidth: "100px",
+                                    maxWidth: "200px",
+                                    padding: "8px 20px",
+                                    borderRadius: "4px",
+                                    fontSize: "14px",
+                                    cursor: "pointer",
+                                    textAlign: "center",
+                                    border: "2px solid #16213e",
+                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                    transition: "all 0.3s ease",
+                                    fontWeight: "500",
+                                }}
+                                onMouseOver={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#c0a262";
+                                    e.currentTarget.style.color = "black";
+                                }}
+                                onMouseOut={(e) => {
+                                    e.currentTarget.style.backgroundColor = "#16213e";
+                                    e.currentTarget.style.color = "white";
+                                }}
                             >
-                                Save & Update Agreement
-                            </button>
+                                Generate Form Link
+                            </div>
                         )}
 
-                        {editMode ? (
-                            <>
-                                {(!isFormFilled && !savedClientSignature) ? (
-                                    <button
-                                        className="btn btn-sm btn-primary fw-bold"
-                                        onClick={token?.Role !== "client" ? handleLawyerSubmit : handleClientSubmit}
-                                        style={{ width: "150px" }}
-                                        data-html2canvas-ignore="true"
-                                    >
-                                        Save & Submit Agreement
-                                    </button>
-                                ) : (
-                                    <button
-                                        className="btn btn-sm btn-primary fw-bold"
-                                        onClick={handleUpdateLawyerSubmit}
-                                        style={{ width: "150px" }}
-                                        data-html2canvas-ignore="true"
-                                    >
-                                        Save & Update Agreement
-                                    </button>
-                                )}
-                            </>
-                        ) : (
-                            <>
-                                {(isclient && savedClientSignature && lfaStatus === "accepted" && !signatureSubmitted) && (
-                                    <button
-                                        className="btn btn-sm btn-primary fw-bold"
-                                        onClick={handleUpdateLawyerSubmit}
-                                        style={{ width: "150px" }}
-                                        data-html2canvas-ignore="true"
-                                    >
-                                        Save & Submit Signature
-                                    </button>
-                                )}
+                        <div
+                            // className="btn fw-medium d-flex align-items-center"
+                            onClick={handleDownload}
+                            style={{
+                                backgroundColor: "#16213e",
+                                color: "white",
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = "#c0a262";
+                                e.currentTarget.style.color = "black";
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = "#16213e";
+                                e.currentTarget.style.color = "white";
+                            }}
+                        >
+                            <BsDownload className="me-2" />
+                            Download PDF
+                        </div>
+                    </div>
 
-                                {(!isclient && !savedClientSignature && token?.Role === "lawyer") && (
-                                    <button
-                                        className="btn btn-sm btn-primary fw-bold"
-                                        onClick={() => setEditMode(true)}
-                                        style={{ width: "150px" }}
-                                        data-html2canvas-ignore="true"
+                    <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef} key={draftKey} style={isEmailLinkAccess ? { backgroundColor: "white", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" } : {}}>
+                        {/* Header */}
+                        <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
+                            <img
+                                src="logo.png"
+                                alt="Logo"
+                                className="me-2 me-md-3 mb-2 mb-md-0"
+                                style={{ height: "50px" }}
+                            />
+                            <h1 className="mb-0 h4 h3-md fw-bold text-break" style={isEmailLinkAccess ? { color: "black" } : {}}>Legal Fee Agreement</h1>
+                        </div>
+
+                        {token?.Role !== "client" && (
+                            <Form.Group className="mb-3">
+                                <Form.Label>Drafts</Form.Label>
+
+                                <Dropdown className="w-100">
+                                    <Dropdown.Toggle
+                                        variant="outline-secondary"
+                                        disabled={isFormFilled}
+                                        id="dropdown-practice-area"
+                                        className="w-100 text-start d-flex justify-content-between align-items-center"
                                     >
-                                        Edit Agreement
-                                    </button>
-                                )}
-                            </>
+                                        {selectedDrafts === "Select Draft"
+                                            ? "Select Draft"
+                                            : `${selectedDrafts?.CaseNumber}`}
+                                    </Dropdown.Toggle>
+
+                                    <Dropdown.Menu className="w-100" disabled={isFormFilled}>
+                                        {getDrafts?.map((data, index) => (
+                                            <Dropdown.Item key={index} onClick={() => handlePickDraft(data)}>
+                                                {data?.CaseNumber}
+                                            </Dropdown.Item>
+                                        ))}
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </Form.Group>
+                        )}
+
+                        {/* NEW: Show status message */}
+                        {lfaStatus && (
+                            <div className={`alert ${lfaStatus === "accepted" ? "alert-success" : lfaStatus === "rejected" ? "alert-danger" : "alert-info"} mb-3`}>
+                                {lfaStatus === "accepted" ? "You have accepted this LFA." :
+                                    lfaStatus === "rejected" ? "You have rejected this LFA. Your feedback has been sent to the lawyer." :
+                                        "LFA is pending your decision."}
+                            </div>
+                        )}
+
+                        <div className="card p-2 p-md-4 shadow-sm mb-4">
+                            <label className="form-label fw-bold fs-5 text-break">Agreement</label>
+                            {editMode && !isclient && !savedClientSignature ? (
+                                <div className="form-control p-3" style={{ minHeight: "300px", whiteSpace: "pre-wrap", textAlign: "justify" }}>
+                                    {agreement?.fixedParts?.map((part, index) => (
+                                        <React.Fragment key={index}>
+                                            <span>{part}</span>
+                                            {index < agreement.editableValues.length && (
+                                                <p
+                                                    ref={(el) => {
+                                                        if (el && !el.innerHTML.trim()) {
+                                                            el.innerHTML = agreement.editableValues[index] || "\u00A0";
+                                                        }
+                                                    }}
+                                                    contentEditable
+                                                    suppressContentEditableWarning
+                                                    onInput={(e) => {
+                                                        const html = e.currentTarget.innerHTML;
+                                                        handleEditableChange(index, html);
+                                                    }}
+                                                    onKeyDown={(e) => {
+                                                        if (e.ctrlKey && e.key.toLowerCase() === "b") {
+                                                            e.preventDefault();
+                                                            document.execCommand("bold");
+                                                        }
+                                                        if (e.key === "Tab") {
+                                                            e.preventDefault();
+                                                            const selection = window.getSelection();
+                                                            if (!selection.rangeCount) return;
+                                                            const range = selection.getRangeAt(0);
+                                                            const tabSpaces = "\u00A0".repeat(8);
+                                                            const spaceNode = document.createTextNode(tabSpaces);
+                                                            range.insertNode(spaceNode);
+                                                            range.setStartAfter(spaceNode);
+                                                            selection.removeAllRanges();
+                                                            selection.addRange(range);
+                                                        }
+                                                    }}
+                                                    onBlur={(e) => {
+                                                        if (!e.currentTarget.textContent.trim()) {
+                                                            e.currentTarget.innerHTML = "\u00A0";
+                                                        }
+                                                    }}
+                                                    style={{
+                                                        display: "inline",
+                                                        minWidth: "2ch",
+                                                        maxWidth: "100%",
+                                                        outline: "none",
+                                                        background: "transparent",
+                                                        verticalAlign: "middle",
+                                                        whiteSpace: "pre-wrap",
+                                                        wordBreak: "break-word",
+                                                        fontFamily: "inherit",
+                                                        fontSize: "inherit",
+                                                        padding: "0 2px",
+                                                        boxSizing: "border-box",
+                                                        textDecoration: "underline",
+                                                        textDecorationSkipInk: "none",
+                                                        textAlign: "justify",
+                                                    }}
+                                                />
+                                            )}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="form-control bg-white p-3" style={{ whiteSpace: "pre-wrap", minHeight: "300px", textAlign: "justify" }}>
+                                    {agreement?.fixedParts?.map((part, index) => (
+                                        <React.Fragment key={index}>
+                                            <span>{part}</span>
+                                            {index < agreement.editableValues.length && (
+                                                <span dangerouslySetInnerHTML={{ __html: agreement.editableValues[index] }} />
+                                            )}
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Fixed Headings */}
+                        {renderHeadings(fixedHeadings, setFixedHeadings, true)}
+
+                        {/* Custom Headings */}
+                        {/* {renderHeadings(headings, setHeadings, false)} */}
+
+                        {/* NEW: Client decision buttons */}
+                        {renderClientDecisionButtons()}
+
+                        {/* NEW: Signature pad for client after acceptance */}
+                        {showSignaturePad && (
+                            <div style={{ padding: 20 }} data-html2canvas-ignore="true">
+                                <h2>Client Signature</h2>
+                                <Form_SignaturePad height={250} onSave={handleClientSignatureSave} />
+                            </div>
+                        )}
+
+                        {(isFormFilled && savedClientSignature && !isclient && IsLocalLawyerSign && token?.Role === "lawyer") && (
+                            <div style={{ padding: 20 }} data-html2canvas-ignore="true">
+                                <h2>Lawyer Signature</h2>
+                                <Form_SignaturePad height={250} onSave={handleSignatureSave} />
+                            </div>
+                        )}
+
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "row",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                gap: "20px",
+                                width: "100%",
+                            }}
+                        >
+                            {savedSignature && (
+                                <div>
+                                    <h4>Lawyer Signature:</h4>
+                                    <img
+                                        src={savedSignature}
+                                        alt="Lawyer Signature"
+                                        style={{
+                                            maxWidth: "220px",
+                                            maxHeight: "300px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                </div>
+                            )}
+
+                            {/* ADDED: Stamp between signatures when both are present */}
+                            {savedSignature && savedClientSignature && (
+                                <div style={{
+                                    display: "flex",
+                                    justifyContent: "center",
+                                    alignItems: "center",
+                                    flexDirection: "column"
+                                }}>
+                                    <img
+                                        src={logoiA}
+                                        alt="Stamp"
+                                        style={{
+                                            width: "120px",
+                                            height: "120px",
+                                            opacity: 0.8,
+                                            margin: "0 20px"
+                                        }}
+                                    />
+                                    <span style={{ fontSize: "12px", marginTop: "5px", fontStyle: "italic" }}>
+                                        Verified and Authenticated
+                                    </span>
+                                </div>
+                            )}
+
+                            {savedClientSignature && (
+                                <div>
+                                    <h4>Client Signature:</h4>
+                                    <img
+                                        src={savedClientSignature}
+                                        alt="Client Signature"
+                                        style={{
+                                            maxWidth: "220px",
+                                            border: "1px solid #ccc",
+                                            borderRadius: "4px",
+                                        }}
+                                    />
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap" data-html2canvas-ignore="true">
+                            {(!isclient && savedClientSignature && savedLawyerSignature) && (
+                                <button
+                                    className="btn btn-sm btn-primary fw-bold"
+                                    onClick={handleUpdateLawyerSubmit}
+                                    style={{ width: "150px" }}
+                                    data-html2canvas-ignore="true"
+                                >
+                                    Save & Update Agreement
+                                </button>
+                            )}
+
+                            {editMode ? (
+                                <>
+                                    {(!isFormFilled && !savedClientSignature) ? (
+                                        <button
+                                            className="btn btn-sm btn-primary fw-bold"
+                                            onClick={token?.Role !== "client" ? handleLawyerSubmit : handleClientSubmit}
+                                            style={{ width: "150px" }}
+                                            data-html2canvas-ignore="true"
+                                        >
+                                            Save & Submit Agreement
+                                        </button>
+                                    ) : (
+                                        <button
+                                            className="btn btn-sm btn-primary fw-bold"
+                                            onClick={handleUpdateLawyerSubmit}
+                                            style={{ width: "150px" }}
+                                            data-html2canvas-ignore="true"
+                                        >
+                                            Save & Update Agreement
+                                        </button>
+                                    )}
+                                </>
+                            ) : (
+                                <>
+                                    {(isclient && savedClientSignature && lfaStatus === "accepted" && !signatureSubmitted) && (
+                                        <button
+                                            className="btn btn-sm btn-primary fw-bold"
+                                            onClick={handleUpdateLawyerSubmit}
+                                            style={{ width: "150px" }}
+                                            data-html2canvas-ignore="true"
+                                        >
+                                            Save & Submit Signature
+                                        </button>
+                                    )}
+
+                                    {(!isclient && !savedClientSignature && token?.Role === "lawyer") && (
+                                        <button
+                                            className="btn btn-sm btn-primary fw-bold"
+                                            onClick={() => setEditMode(true)}
+                                            style={{ width: "150px" }}
+                                            data-html2canvas-ignore="true"
+                                        >
+                                            Edit Agreement
+                                        </button>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                        {/* Add this at the end of the form content */}
+                        {isEmailLinkAccess && (signatureSubmitted || savedClientSignature) && (
+                            <ThankYouMessage />
                         )}
                     </div>
-                    {/* Add this at the end of the form content */}
-                    {isEmailLinkAccess && (signatureSubmitted || savedClientSignature) && (
-                        <ThankYouMessage />
-                    )}
-                </div>
+                </>
             ) : (
                 <div className="text-center text-black py-5">No LFA Form Available.</div>
             )}

@@ -1433,6 +1433,23 @@ const BasicCase = ({ token }) => {
 
 
 
+              {/* LFQ Heading */}
+              {/* <span className=" text-start" style={{
+                maxWidth: '200px',
+                minWidth: '200px',
+                height: 33,
+                color: 'white'
+              }}>Legal Fee Quatation</span> */}
+
+
+
+              {/* LFA Heading */}
+              <span className=" text-start" style={{
+                maxWidth: '200px',
+                minWidth: '200px',
+                height: 33,
+                color: 'white'
+              }}>Legal Fee Agreement</span>
               {/* PURPOSE Heading */}
               <span className=" text-start" style={{
                 maxWidth: '250px',
@@ -1639,16 +1656,16 @@ const BasicCase = ({ token }) => {
                     </div>
 
                     {/* Desktop View - Horizontal Layout */}
+
                     <div
-                      className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3"
-                      style={{ cursor: "pointer", background: 'white' }}
+                      className="d-none d-md-flex justify-content-between align-items-center gap-2 p-1"
+                      style={{ cursor: "pointer", backgroundColor: "#ffffff" }}
                       onClick={(e) => {
                         if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
                           handleClick(1, item);
                         }
                       }}
                     >
-
                       {/* CASE NUMBER */}
                       <span
                         className="text-start d-flex align-items-center"
@@ -1656,9 +1673,10 @@ const BasicCase = ({ token }) => {
                           maxWidth: "150px",
                           minWidth: "150px",
                           position: "sticky",
-                          left: 0, // ✅ exactly after Status column width
+                          height: "11vh",
+                          left: 0,
+                          backgroundColor: "#ffffff",
                           zIndex: 2,
-                          background: "#ffffff",
                           borderRight: "1px solid #ccc",
                           boxShadow: "2px 0 4px rgba(0, 0, 0, 0.03)",
                           paddingLeft: "1rem",
@@ -1666,6 +1684,8 @@ const BasicCase = ({ token }) => {
                       >
                         {item.ClientName}
                       </span>
+
+
 
                       {/* REQUEST NUMBER */}
                       <span className=" text-start" style={{
@@ -1689,6 +1709,47 @@ const BasicCase = ({ token }) => {
                         maxWidth: '200px',
                         minWidth: '200px',
                       }}>{item.CaseType}</span>
+
+                      {/* LFQ */}
+                      {/* <div
+                        className="text-start"
+                        style={{
+                          maxWidth: "200px",
+                          minWidth: "200px",
+                          color: "#007bff", // 🔵 blue clickable color
+                          cursor: "pointer", // hand pointer
+                          textDecoration: "underline" // underline like a link
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(Caseinfo(item));
+                          dispatch(screenChange(28));
+                        }}
+                      >
+                        Go To LFQ
+                      </div> */}
+
+                      {/* LFA */}
+
+                      <div
+                        className="text-start"
+                        style={{
+                          maxWidth: "200px",
+                          minWidth: "200px",
+                          color: "#007bff",
+                          cursor: "pointer",
+                          textDecoration: "underline"
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(Caseinfo(item));
+                          dispatch(screenChange(27));
+                        }}
+                      >
+                        {item?.IsLFA ? "Go To LFA" : ""}
+                      </div>
+
+
 
                       {/* PURPOSE (Editable Notes) */}
                       <div className="" style={{

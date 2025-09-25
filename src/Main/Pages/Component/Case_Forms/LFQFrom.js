@@ -301,6 +301,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 setOtherResources(data.otherResources?.description || "");
                 setOtherResourceHours(data.otherResources?.estHours || "");
                 setTotalHours(data.totalEstimatedHours || "");
+                setMatterReference(data.matterReference || "");
+                setCaseType(data.caseType || "");
 
                 if (Array.isArray(data.clientCategory) && data.clientCategory.length > 0) {
                     try {
