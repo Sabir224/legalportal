@@ -54,7 +54,7 @@ import { styled } from '@mui/material/styles';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
-import { ApiEndPoint } from '../Component/utils/utlis';
+import { ApiEndPoint, formatAvailability } from '../Component/utils/utlis';
 import StatCard from './StatCard';
 import FilterSection from './FilterSection';
 import FilterableHeaderCell from './FilterableHeaderCell';
@@ -1403,7 +1403,7 @@ export default function PaymentDashboard() {
                                     <Box display="flex" alignItems="center" gap={1}>
                                       <Description fontSize="small" sx={{ color: lightTheme.accentColor }} />
                                       <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
-                                        {item.payment?.consultationType || '—'}
+                                        {formatAvailability(item.payment?.consultationType) || '—'}
                                       </Typography>
                                     </Box>
 
@@ -1627,7 +1627,7 @@ export default function PaymentDashboard() {
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
-                                      {item.payment?.consultationType || '—'}
+                                      {formatAvailability(item.payment?.consultationType) || '—'}
                                     </StyledTableCell>
                                     <StyledTableCell
                                       sx={{
@@ -1688,7 +1688,7 @@ export default function PaymentDashboard() {
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
-                                      {item.payment?.paymentMethod || '—'}
+                                      {formatAvailability(item.payment?.paymentMethod) || '—'}
                                     </StyledTableCell>
                                     <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                       {getStatusChip(
