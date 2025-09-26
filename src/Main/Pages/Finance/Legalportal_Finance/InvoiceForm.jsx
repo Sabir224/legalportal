@@ -1,5 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, Trash2, Save, ChevronDown, User, Mail, Phone, FileText, Calendar, DollarSign } from 'lucide-react';
+import {
+  Plus,
+  Trash2,
+  Save,
+  ChevronDown,
+  User,
+  Mail,
+  Phone,
+  FileText,
+  Calendar,
+  DollarSign,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from 'lucide-react';
 import {
   Box,
   Button,
@@ -14,16 +28,16 @@ import {
   Alert,
   Divider,
   Chip,
-  Card,
-  CardContent,
   InputAdornment,
   Fade,
   Popper,
   ClickAwayListener,
-  MenuItem,
-  Select,
-  FormControl,
-  InputLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Card,
+  CardContent,
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 
@@ -45,6 +59,578 @@ const COLORS = {
   },
 };
 
+// Custom Dropdown Component
+const CustomDropdown = ({
+  options,
+  value,
+  onChange,
+  label,
+  placeholder,
+  error,
+  icon: Icon,
+  anchorRef,
+  isOpen,
+  onToggle,
+  dropdownKey,
+}) => {
+  const getDisplayValue = () => {
+    if (!value) return '';
+    return typeof options[value] === 'object' ? options[value].label : options[value];
+  };
+
+  const handleOptionSelect = (optionValue) => {
+    onChange(optionValue);
+    onToggle(null);
+  };
+
+  return (
+    <Box sx={{ width: '100%', position: 'relative' }}>
+      <TextField
+        fullWidth
+        label={label}
+        value={getDisplayValue()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(dropdownKey);
+        }}
+        placeholder={placeholder}
+        error={!!error}
+        helperText={error}
+        InputProps={{
+          readOnly: true,
+          startAdornment: Icon && (
+            <InputAdornment position="start">
+              <Icon size={20} color={COLORS.navy.main} />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <ChevronDown
+              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              style={{ color: COLORS.navy.main, cursor: 'pointer' }}
+              size={20}
+            />
+          ),
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1,
+            cursor: 'pointer',
+            backgroundColor: 'white',
+            transition: 'all 0.2s',
+            '&:hover': {
+              borderColor: COLORS.navy.main,
+            },
+          },
+        }}
+      />
+
+      <Popper
+        open={isOpen}
+        anchorEl={anchorRef?.current}
+        placement="bottom-start"
+        style={{
+          zIndex: 1300,
+          width: anchorRef?.current ? anchorRef.current.offsetWidth : 'auto',
+        }}
+        modifiers={[
+          {
+            name: 'flip',
+            enabled: true,
+            options: {
+              altBoundary: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        transition
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper
+              sx={{
+                width: '100%',
+                maxHeight: 200,
+                overflow: 'auto',
+                border: `1px solid ${COLORS.gold.main}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                borderRadius: 1,
+                mt: 0.5,
+              }}
+            >
+              {Object.entries(options).map(([optionValue, optionData]) => {
+                const label = typeof optionData === 'object' ? optionData.label : optionData;
+                const color = typeof optionData === 'object' ? optionData.color : 'default';
+
+                return (
+                  <Box
+                    key={optionValue}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOptionSelect(optionValue);
+                    }}
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      cursor: 'pointer',
+                      backgroundColor: optionValue === value ? alpha(COLORS.navy.main, 0.08) : 'background.paper',
+                      '&:hover': {
+                        backgroundColor: alpha(COLORS.navy.main, 0.12),
+                      },
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      '&:last-child': { borderBottom: 'none' },
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    {typeof optionData === 'object' ? (
+                      <Chip
+                        label={label}
+                        size="small"
+                        color={color}
+                        variant={optionValue === value ? 'filled' : 'outlined'}
+                        sx={{ minWidth: 80 }}
+                      />
+                    ) : (
+                      <Typography variant="body2" color="text.primary">
+                        {label}
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              })}
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </Box>
+  );
+};
+const actionItemOptions = {
+  prepare_contract: 'Prepare Contract',
+  review_document: 'Review Document',
+  client_meeting: 'Client Meeting',
+  court_hearing: 'Court Hearing',
+  filing: 'Filing',
+  follow_up: 'Follow Up',
+  payment_collection: 'Payment Collection',
+  consultation: 'Client Consultation',
+  draft_agreement: 'Draft Agreement',
+  legal_research: 'Legal Research',
+};
+// Action Items Dropdown Component
+const ActionItemsDropdown = ({
+  value,
+  onChange,
+  error,
+  anchorRef,
+  isOpen,
+  onToggle,
+  dropdownKey,
+  onAddCustomAction,
+}) => {
+  const actionOptions = {
+    prepare_contract: { label: 'Prepare Contract', icon: FileText, status: 'pending' },
+    review_documents: { label: 'Review Documents', icon: FileText, status: 'pending' },
+    client_meeting: { label: 'Schedule Client Meeting', icon: Calendar, status: 'pending' },
+    payment_followup: { label: 'Payment Follow-up', icon: DollarSign, status: 'pending' },
+    legal_research: { label: 'Legal Research', icon: FileText, status: 'pending' },
+    draft_agreement: { label: 'Draft Agreement', icon: FileText, status: 'pending' },
+    file_court_docs: { label: 'File Court Documents', icon: FileText, status: 'pending' },
+  };
+
+  const [customAction, setCustomAction] = useState('');
+
+  const handleOptionSelect = (optionValue) => {
+    onChange(optionValue);
+    onToggle(null);
+  };
+
+  const handleAddCustomAction = () => {
+    if (customAction.trim()) {
+      onAddCustomAction(customAction.trim());
+      setCustomAction('');
+      onToggle(null);
+    }
+  };
+
+  const getDisplayValue = () => {
+    if (!value) return '';
+    return actionOptions[value]?.label || value;
+  };
+
+  const getIcon = (iconName) => {
+    const icons = {
+      FileText: FileText,
+      Calendar: Calendar,
+      DollarSign: DollarSign,
+    };
+    return icons[iconName] || FileText;
+  };
+
+  return (
+    <Box sx={{ width: '100%', position: 'relative' }}>
+      <TextField
+        fullWidth
+        label="Action Item"
+        value={getDisplayValue()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(dropdownKey);
+        }}
+        placeholder="Select or add an action item"
+        error={!!error}
+        helperText={error}
+        InputProps={{
+          readOnly: true,
+          startAdornment: (
+            <InputAdornment position="start">
+              <CheckCircle size={20} color={COLORS.navy.main} />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <ChevronDown
+              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              style={{ color: COLORS.navy.main, cursor: 'pointer' }}
+              size={20}
+            />
+          ),
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1,
+            cursor: 'pointer',
+            backgroundColor: 'white',
+            transition: 'all 0.2s',
+            '&:hover': {
+              borderColor: COLORS.navy.main,
+            },
+          },
+        }}
+      />
+
+      <Popper
+        open={isOpen}
+        anchorEl={anchorRef?.current}
+        placement="bottom-start"
+        style={{
+          zIndex: 1300,
+          width: anchorRef?.current ? anchorRef.current.offsetWidth : 'auto',
+        }}
+        modifiers={[
+          {
+            name: 'flip',
+            enabled: true,
+            options: {
+              altBoundary: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        transition
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper
+              sx={{
+                width: '100%',
+                maxHeight: 300,
+                overflow: 'auto',
+                border: `1px solid ${COLORS.gold.main}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                borderRadius: 1,
+                mt: 0.5,
+              }}
+            >
+              {/* Predefined Actions */}
+              {Object.entries(actionOptions).map(([optionValue, optionData]) => {
+                const IconComponent = getIcon(optionData.icon.name);
+                return (
+                  <Box
+                    key={optionValue}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleOptionSelect(optionValue);
+                    }}
+                    sx={{
+                      px: 2,
+                      py: 1.5,
+                      cursor: 'pointer',
+                      backgroundColor: optionValue === value ? alpha(COLORS.navy.main, 0.08) : 'background.paper',
+                      '&:hover': {
+                        backgroundColor: alpha(COLORS.navy.main, 0.12),
+                      },
+                      borderBottom: '1px solid',
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                    }}
+                  >
+                    <IconComponent size={16} color={COLORS.navy.main} />
+                    <Typography variant="body2" color="text.primary">
+                      {optionData.label}
+                    </Typography>
+                  </Box>
+                );
+              })}
+
+              {/* Custom Action Input */}
+              <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  Add Custom Action
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                  <TextField
+                    size="small"
+                    placeholder="Enter custom action..."
+                    value={customAction}
+                    onChange={(e) => setCustomAction(e.target.value)}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleAddCustomAction();
+                      }
+                    }}
+                    sx={{ flex: 1 }}
+                  />
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={handleAddCustomAction}
+                    disabled={!customAction.trim()}
+                    sx={{
+                      backgroundColor: COLORS.navy.main,
+                      '&:hover': {
+                        backgroundColor: COLORS.navy.dark,
+                      },
+                    }}
+                  >
+                    Add
+                  </Button>
+                </Box>
+              </Box>
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </Box>
+  );
+};
+
+// Completed Actions Section Component
+const CompletedActionsSection = ({ completedActions, onMoveBackToPending }) => {
+  if (!completedActions || completedActions.length === 0) return null;
+
+  return (
+    <Box sx={{ mt: 4 }}>
+      <Box display="flex" alignItems="center" gap={2} mb={2}>
+        <CheckCircle color={COLORS.gold.main} size={24} />
+        <Typography variant="h6" fontWeight="600" color={COLORS.gold.main}>
+          Completed Actions
+        </Typography>
+        <Chip label={completedActions.length} size="small" sx={{ backgroundColor: COLORS.gold.light }} />
+      </Box>
+
+      <Card variant="outlined" sx={{ borderColor: COLORS.gold.light }}>
+        <CardContent>
+          <List dense>
+            {completedActions.map((action, index) => (
+              <ListItem
+                key={index}
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    size="small"
+                    onClick={() => onMoveBackToPending(index)}
+                    title="Move back to pending"
+                  >
+                    <Clock size={16} />
+                  </IconButton>
+                }
+              >
+                <ListItemIcon>
+                  <CheckCircle color={COLORS.gold.main} size={20} />
+                </ListItemIcon>
+                <ListItemText
+                  primary={action.label || action}
+                  primaryTypographyProps={{
+                    sx: { textDecoration: 'line-through', color: 'text.secondary' },
+                  }}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </CardContent>
+      </Card>
+    </Box>
+  );
+};
+
+// Service Dropdown Component
+const ServiceDropdown = ({ serviceIndex, value, onChange, error, anchorRef, isOpen, onToggle, dropdownKey }) => {
+  const serviceOptions = {
+    company_formation: 'Company Formation',
+    legal_consultation: 'Legal Consultation',
+    document_review: 'Document Review',
+    business_registration: 'Business Registration',
+    tax_advisory: 'Tax Advisory',
+    compliance: 'Compliance Services',
+  };
+
+  const handleOptionSelect = (optionValue) => {
+    onChange(optionValue);
+    onToggle(null);
+  };
+
+  const getDisplayValue = () => {
+    if (!value) return '';
+    return serviceOptions[value] || '';
+  };
+
+  return (
+    <Box sx={{ width: '100%', position: 'relative' }}>
+      <TextField
+        fullWidth
+        label="Service Type"
+        value={getDisplayValue()}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(dropdownKey);
+        }}
+        placeholder="Select service type"
+        error={!!error}
+        helperText={error}
+        InputProps={{
+          readOnly: true,
+          startAdornment: (
+            <InputAdornment position="start">
+              <FileText size={20} color={COLORS.navy.main} />
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <ChevronDown
+              className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+              style={{ color: COLORS.navy.main, cursor: 'pointer' }}
+              size={20}
+            />
+          ),
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1,
+            cursor: 'pointer',
+            backgroundColor: 'white',
+            transition: 'all 0.2s',
+            '&:hover': {
+              borderColor: COLORS.navy.main,
+            },
+          },
+        }}
+      />
+
+      <Popper
+        open={isOpen}
+        anchorEl={anchorRef?.current}
+        placement="bottom-start"
+        style={{
+          zIndex: 1300,
+          width: anchorRef?.current ? anchorRef.current.offsetWidth : 'auto',
+        }}
+        modifiers={[
+          {
+            name: 'flip',
+            enabled: true,
+            options: {
+              altBoundary: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+          {
+            name: 'preventOverflow',
+            enabled: true,
+            options: {
+              altAxis: true,
+              altBoundary: true,
+              tether: true,
+              rootBoundary: 'document',
+              padding: 8,
+            },
+          },
+        ]}
+        transition
+      >
+        {({ TransitionProps }) => (
+          <Fade {...TransitionProps} timeout={200}>
+            <Paper
+              sx={{
+                width: '100%',
+                maxHeight: 200,
+                overflow: 'auto',
+                border: `1px solid ${COLORS.gold.main}`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                borderRadius: 1,
+                mt: 0.5,
+              }}
+            >
+              {Object.entries(serviceOptions).map(([optionValue, label]) => (
+                <Box
+                  key={optionValue}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleOptionSelect(optionValue);
+                  }}
+                  sx={{
+                    px: 2,
+                    py: 1.5,
+                    cursor: 'pointer',
+                    backgroundColor: optionValue === value ? alpha(COLORS.navy.main, 0.08) : 'background.paper',
+                    '&:hover': {
+                      backgroundColor: alpha(COLORS.navy.main, 0.12),
+                    },
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                    '&:last-child': { borderBottom: 'none' },
+                  }}
+                >
+                  <Typography variant="body2" color="text.primary">
+                    {label}
+                  </Typography>
+                </Box>
+              ))}
+            </Paper>
+          </Fade>
+        )}
+      </Popper>
+    </Box>
+  );
+};
+
 const InvoiceForm = () => {
   const [formData, setFormData] = useState({
     caseId: '',
@@ -55,26 +641,23 @@ const InvoiceForm = () => {
     LFA: '',
     hasInvoice: false,
     actionItem: '',
+    actionItemStatus: 'pending', // 'pending' or 'completed'
     services: [],
   });
 
+  const [completedActions, setCompletedActions] = useState([]);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
-
-  // Dropdown states
-  const [dropdownStates, setDropdownStates] = useState({
-    status: false,
-    lfa: false,
-    services: {},
-  });
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   // Refs for dropdowns
   const statusAnchorRef = useRef(null);
   const lfaAnchorRef = useRef(null);
+  const actionItemAnchorRef = useRef(null);
   const serviceAnchorRefs = useRef({});
 
-  // Dropdown options with icons and colors
+  // Dropdown options
   const statusOptions = {
     unpaid: { label: 'Unpaid', color: 'error' },
     paid: { label: 'Paid', color: 'success' },
@@ -89,15 +672,6 @@ const InvoiceForm = () => {
     partnership: 'Partnership Agreement',
     employment: 'Employment Contract',
     nda: 'NDA Agreement',
-  };
-
-  const serviceOptions = {
-    company_formation: 'Company Formation',
-    legal_consultation: 'Legal Consultation',
-    document_review: 'Document Review',
-    business_registration: 'Business Registration',
-    tax_advisory: 'Tax Advisory',
-    compliance: 'Compliance Services',
   };
 
   // Enhanced Phone Input Component
@@ -147,238 +721,66 @@ const InvoiceForm = () => {
     );
   };
 
-  // Fixed Custom Dropdown Component with proper positioning
-  const CustomDropdown = ({
-    options,
-    value,
-    onChange,
-    placeholder,
-    error,
-    isOpen,
-    onToggle,
-    anchorRef,
-    label,
-    icon: Icon,
-  }) => {
-    const getDisplayValue = () => {
-      if (!value) return '';
-      return typeof options[value] === 'object' ? options[value].label : options[value];
-    };
-
-    return (
-      <Box ref={anchorRef} sx={{ width: '100%', position: 'relative' }}>
-        <TextField
-          fullWidth
-          label={label}
-          value={getDisplayValue()}
-          onClick={onToggle}
-          placeholder={placeholder}
-          error={!!error}
-          helperText={error}
-          InputProps={{
-            readOnly: true,
-            startAdornment: Icon && (
-              <InputAdornment position="start">
-                <Icon size={20} color={COLORS.navy.main} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <ChevronDown
-                className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                style={{ color: COLORS.navy.main, cursor: 'pointer' }}
-                size={20}
-              />
-            ),
-          }}
-          sx={{
-            '& .MuiOutlinedInput-root': {
-              borderRadius: 1,
-              cursor: 'pointer',
-              backgroundColor: 'white',
-              transition: 'all 0.2s',
-              '&:hover': {
-                borderColor: COLORS.navy.main,
-              },
-            },
-          }}
-        />
-
-        <Popper
-          open={isOpen}
-          anchorEl={anchorRef.current}
-          placement="bottom-start"
-          style={{ zIndex: 1300 }}
-          transition
-          modifiers={[
-            {
-              name: 'preventOverflow',
-              enabled: true,
-              options: {
-                boundary: 'viewport',
-                padding: 8,
-              },
-            },
-            {
-              name: 'flip',
-              enabled: true,
-              options: {
-                boundary: 'viewport',
-                padding: 8,
-              },
-            },
-          ]}
-        >
-          {({ TransitionProps }) => (
-            <Fade {...TransitionProps} timeout={200}>
-              <Paper
-                sx={{
-                  width: anchorRef.current ? anchorRef.current.clientWidth : 'auto',
-                  maxHeight: 200,
-                  overflow: 'auto',
-                  border: `1px solid ${COLORS.gold.main}`,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  borderRadius: 1,
-                  mt: 0.5,
-                }}
-              >
-                {Object.entries(options).map(([optionValue, optionData]) => {
-                  const label = typeof optionData === 'object' ? optionData.label : optionData;
-                  const color = typeof optionData === 'object' ? optionData.color : 'default';
-
-                  return (
-                    <Box
-                      key={optionValue}
-                      onClick={() => {
-                        onChange(optionValue);
-                        onToggle();
-                      }}
-                      sx={{
-                        px: 2,
-                        py: 1.5,
-                        cursor: 'pointer',
-                        backgroundColor: optionValue === value ? alpha(COLORS.navy.main, 0.08) : 'background.paper',
-                        '&:hover': {
-                          backgroundColor: alpha(COLORS.navy.main, 0.12),
-                        },
-                        borderBottom: '1px solid',
-                        borderColor: 'divider',
-                        '&:last-child': { borderBottom: 'none' },
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      {typeof optionData === 'object' ? (
-                        <Chip
-                          label={label}
-                          size="small"
-                          color={color}
-                          variant={optionValue === value ? 'filled' : 'outlined'}
-                          sx={{ minWidth: 80 }}
-                        />
-                      ) : (
-                        <Typography variant="body2" color="text.primary">
-                          {label}
-                        </Typography>
-                      )}
-                    </Box>
-                  );
-                })}
-              </Paper>
-            </Fade>
-          )}
-        </Popper>
-      </Box>
-    );
-  };
-
-  // Simple Select Dropdown (Alternative approach)
-  const SimpleSelect = ({ options, value, onChange, label, error, icon: Icon }) => {
-    return (
-      <FormControl fullWidth error={!!error}>
-        <InputLabel>{label}</InputLabel>
-        <Select
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          label={label}
-          startAdornment={
-            Icon && (
-              <InputAdornment position="start" sx={{ ml: 1 }}>
-                <Icon size={20} color={COLORS.navy.main} />
-              </InputAdornment>
-            )
-          }
-          sx={{
-            borderRadius: 1,
-            '& .MuiOutlinedInput-notchedOutline': {
-              borderColor: COLORS.navy.main,
-            },
-          }}
-        >
-          {Object.entries(options).map(([key, optionData]) => {
-            const label = typeof optionData === 'object' ? optionData.label : optionData;
-            return (
-              <MenuItem key={key} value={key}>
-                {typeof optionData === 'object' ? (
-                  <Chip
-                    label={label}
-                    size="small"
-                    color={optionData.color}
-                    variant={key === value ? 'filled' : 'outlined'}
-                  />
-                ) : (
-                  label
-                )}
-              </MenuItem>
-            );
-          })}
-        </Select>
-        {error && (
-          <Typography variant="caption" color="error">
-            {error}
-          </Typography>
-        )}
-      </FormControl>
-    );
-  };
-
-  // Handle dropdown toggles
-  const toggleDropdown = (type, serviceIndex = null) => {
-    setDropdownStates((prev) => {
-      if (type === 'service') {
-        const newServicesState = Object.keys(prev.services).reduce(
-          (acc, key) => ({
-            ...acc,
-            [key]: false,
-          }),
-          {}
-        );
-
-        return {
-          status: false,
-          lfa: false,
-          services: {
-            ...newServicesState,
-            [serviceIndex]: !prev.services[serviceIndex],
-          },
-        };
-      } else {
-        return {
-          status: type === 'status' ? !prev.status : false,
-          lfa: type === 'lfa' ? !prev.lfa : false,
-          services: {},
-        };
-      }
-    });
-  };
-
   // Close dropdown when clicking outside
   const handleClickAway = () => {
-    setDropdownStates({
-      status: false,
-      lfa: false,
-      services: {},
-    });
+    setOpenDropdown(null);
+  };
+
+  const handleToggleDropdown = (dropdownKey) => {
+    setOpenDropdown(openDropdown === dropdownKey ? null : dropdownKey);
+  };
+
+  // Store service dropdown refs
+  useEffect(() => {
+    return () => {
+      serviceAnchorRefs.current = {};
+    };
+  }, []);
+
+  const getServiceAnchorRef = (index) => {
+    if (!serviceAnchorRefs.current[index]) {
+      serviceAnchorRefs.current[index] = React.createRef();
+    }
+    return serviceAnchorRefs.current[index];
+  };
+
+  // Action Items Handlers
+  const handleActionItemChange = (value) => {
+    setFormData((prev) => ({
+      ...prev,
+      actionItem: value,
+      actionItemStatus: 'pending',
+    }));
+    if (errors.actionItem) {
+      setErrors((prev) => ({ ...prev, actionItem: '' }));
+    }
+  };
+
+  const handleAddCustomAction = (customAction) => {
+    handleActionItemChange(customAction);
+  };
+
+  const handleMarkActionCompleted = () => {
+    if (formData.actionItem) {
+      setCompletedActions((prev) => [
+        ...prev,
+        {
+          label: formData.actionItem,
+          completedAt: new Date().toISOString(),
+        },
+      ]);
+      setFormData((prev) => ({ ...prev, actionItem: '', actionItemStatus: 'pending' }));
+    }
+  };
+
+  const handleMoveBackToPending = (index) => {
+    const actionToMove = completedActions[index];
+    setFormData((prev) => ({
+      ...prev,
+      actionItem: actionToMove.label,
+      actionItemStatus: 'pending',
+    }));
+    setCompletedActions((prev) => prev.filter((_, i) => i !== index));
   };
 
   // Validation function
@@ -419,7 +821,7 @@ const InvoiceForm = () => {
         newErrors[`service_${index}_value`] = 'Service value must be greater than 0';
       }
 
-      // Validate sub-items (guard if subItems missing)
+      // Validate sub-items
       const subItems = Array.isArray(service.subItems) ? service.subItems : [];
       subItems.forEach((subItem, subIndex) => {
         if (!subItem.dueDate) {
@@ -447,7 +849,7 @@ const InvoiceForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handlers
+  // Other handlers remain the same...
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
@@ -486,13 +888,6 @@ const InvoiceForm = () => {
     const errorKey = `service_${index}_${field === 'serviceName' ? 'name' : 'value'}`;
     if (errors[errorKey]) {
       setErrors((prev) => ({ ...prev, [errorKey]: '' }));
-    }
-
-    if (field === 'serviceName') {
-      setDropdownStates((prev) => ({
-        ...prev,
-        services: { ...prev.services, [index]: false },
-      }));
     }
   };
 
@@ -570,7 +965,6 @@ const InvoiceForm = () => {
     setSuccessMessage('');
 
     try {
-      // simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 2000));
       console.log('Submitting form data:', formData);
       setSuccessMessage('Case submitted successfully!');
@@ -584,9 +978,12 @@ const InvoiceForm = () => {
         LFA: '',
         hasInvoice: false,
         actionItem: '',
+        actionItemStatus: 'pending',
         services: [],
       });
+      setCompletedActions([]);
       setErrors({});
+      setOpenDropdown(null);
     } catch (error) {
       console.error('Error submitting form:', error);
       setErrors({ submit: 'Error submitting case. Please try again.' });
@@ -598,7 +995,7 @@ const InvoiceForm = () => {
   return (
     <ClickAwayListener onClickAway={handleClickAway}>
       <Container
-        maxWidth="md" // Changed from lg to md for better layout
+        maxWidth="md"
         sx={{
           py: 4,
           maxHeight: '84vh',
@@ -686,7 +1083,6 @@ const InvoiceForm = () => {
                 </Box>
 
                 <Grid container spacing={2}>
-                  {/* Only 2 fields per row */}
                   <Grid item xs={12} md={6}>
                     <TextField
                       fullWidth
@@ -764,25 +1160,37 @@ const InvoiceForm = () => {
                   </Grid>
 
                   <Grid item xs={12} md={6}>
-                    <SimpleSelect
-                      label="Status"
-                      options={statusOptions}
-                      value={formData.status}
-                      onChange={(value) => handleDropdownChange('status', value)}
-                      error={errors.status}
-                      icon={FileText}
-                    />
+                    <Box ref={statusAnchorRef}>
+                      <CustomDropdown
+                        label="Status"
+                        options={statusOptions}
+                        value={formData.status}
+                        onChange={(value) => handleDropdownChange('status', value)}
+                        error={errors.status}
+                        dropdownKey="status"
+                        anchorRef={statusAnchorRef}
+                        icon={FileText}
+                        isOpen={openDropdown === 'status'}
+                        onToggle={handleToggleDropdown}
+                      />
+                    </Box>
                   </Grid>
 
                   <Grid item xs={12} md={6}>
-                    <SimpleSelect
-                      label="Legal Framework Agreement (LFA)"
-                      options={lfaOptions}
-                      value={formData.LFA}
-                      onChange={(value) => handleDropdownChange('LFA', value)}
-                      error={errors.LFA}
-                      icon={FileText}
-                    />
+                    <Box ref={lfaAnchorRef}>
+                      <CustomDropdown
+                        label="Legal Framework Agreement (LFA)"
+                        options={lfaOptions}
+                        value={formData.LFA}
+                        onChange={(value) => handleDropdownChange('LFA', value)}
+                        error={errors.LFA}
+                        dropdownKey="lfa"
+                        anchorRef={lfaAnchorRef}
+                        icon={FileText}
+                        isOpen={openDropdown === 'lfa'}
+                        onToggle={handleToggleDropdown}
+                      />
+                    </Box>
                   </Grid>
 
                   <Grid item xs={12}>
@@ -800,24 +1208,21 @@ const InvoiceForm = () => {
                   </Grid>
 
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      required
-                      label="Action Item"
-                      name="actionItem"
-                      value={formData.actionItem}
-                      onChange={handleInputChange}
-                      placeholder="Prepare contract"
-                      error={!!errors.actionItem}
-                      helperText={errors.actionItem}
-                      multiline
-                      rows={2}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          borderRadius: 1,
-                        },
-                      }}
-                    />
+                    <Box ref={actionItemAnchorRef}>
+                      <CustomDropdown
+                        label="Action Item"
+                        options={actionItemOptions}
+                        value={formData.actionItem}
+                        onChange={(value) => handleDropdownChange('actionItem', value)}
+                        error={errors.actionItem}
+                        dropdownKey="actionItem"
+                        anchorRef={actionItemAnchorRef}
+                        icon={FileText}
+                        isOpen={openDropdown === 'actionItem'}
+                        onToggle={handleToggleDropdown}
+                        placeholder="Select action item"
+                      />
+                    </Box>
                   </Grid>
                 </Grid>
               </Box>
@@ -879,14 +1284,18 @@ const InvoiceForm = () => {
 
                     <Grid container spacing={2}>
                       <Grid item xs={12} md={6}>
-                        <SimpleSelect
-                          label="Service Type"
-                          options={serviceOptions}
-                          value={service.serviceName}
-                          onChange={(value) => handleServiceChange(serviceIndex, 'serviceName', value)}
-                          error={errors[`service_${serviceIndex}_name`]}
-                          icon={FileText}
-                        />
+                        <Box ref={getServiceAnchorRef(serviceIndex)}>
+                          <ServiceDropdown
+                            serviceIndex={serviceIndex}
+                            value={service.serviceName}
+                            onChange={(value) => handleServiceChange(serviceIndex, 'serviceName', value)}
+                            error={errors[`service_${serviceIndex}_name`]}
+                            anchorRef={getServiceAnchorRef(serviceIndex)}
+                            isOpen={openDropdown === `service-${serviceIndex}`}
+                            onToggle={handleToggleDropdown}
+                            dropdownKey={`service-${serviceIndex}`}
+                          />
+                        </Box>
                       </Grid>
 
                       <Grid item xs={12} md={6}>
