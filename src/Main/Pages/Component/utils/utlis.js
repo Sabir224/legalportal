@@ -91,9 +91,9 @@ export const theme = createTheme({
   },
 });
 export const zohoInvoiceBaseApi = 'https://www.zohoapis.com/invoice/v3';
-// export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
+export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
-export const ApiEndPoint = 'http://localhost:5001/api/';
+//export const ApiEndPoint = 'http://localhost:5001/api/';
 
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
@@ -235,8 +235,12 @@ export const formatAvailability = (value) => {
       return 'Online';
     case 'InPerson/Online':
       return 'In Person and Online Both';
+    case 'PayInOffice':
+      return 'Pay In Office';
+    case 'Card':
+      return 'Card';
     default:
-      return value || 'N/A';
+      return value || '__';
   }
 };
 export const mondayLogoImage =

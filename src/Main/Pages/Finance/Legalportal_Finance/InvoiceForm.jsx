@@ -1,422 +1,1112 @@
-import React, { useState } from 'react';
-import jsPDF from 'jspdf';
+import React, { useState, useRef, useEffect } from 'react';
+import { Plus, Trash2, Save, ChevronDown, User, Mail, Phone, FileText, Calendar, DollarSign } from 'lucide-react';
+import {
+  Box,
+  Button,
+  Checkbox,
+  FormControlLabel,
+  IconButton,
+  Paper,
+  TextField,
+  Typography,
+  Grid,
+  Container,
+  Alert,
+  Divider,
+  Chip,
+  Card,
+  CardContent,
+  InputAdornment,
+  Fade,
+  Popper,
+  ClickAwayListener,
+  MenuItem,
+  Select,
+  FormControl,
+  InputLabel,
+} from '@mui/material';
+import { alpha } from '@mui/material/styles';
 
-import styles from "./InvoiceForm.module.css";
-import logo from "../../../Pages/Images/logo.png";
+// Color constants for the theme
+const COLORS = {
+  navy: {
+    main: '#1a237e',
+    light: '#534bae',
+    dark: '#000051',
+  },
+  gold: {
+    main: '#b4a269',
+    light: '#e6d4a3',
+    dark: '#847339',
+  },
+  background: {
+    light: '#f8f9fa',
+    white: '#ffffff',
+  },
+};
 
 const InvoiceForm = () => {
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        service: ''
-    });
-
-    const legalServices = [
-        { name: "Legal Consultation", price: 1500 },
-        { name: "Contract Drafting", price: 3500 },
-        { name: "Court Representation", price: 7500 }
-    ];
-
-
-    const generateInvoice = (formData, logo) => {
-        const doc = new jsPDF();
-        const pageWidth = doc.internal.pageSize.getWidth();
-
-        // === HEADER ===
-        const addHeader = () => {
-
-            doc.setFillColor(26, 43, 66);
-            doc.rect(0, 0, pageWidth, 45, 'F');
-
-            const logoX = 15, logoY = 10, logoW = 25, logoH = 25;
-            doc.addImage(logo, "PNG", logoX, logoY, logoW, logoH);
-
-            // Company Info 
-            const infoX = logoX + logoW + 5;
-            const infoY = logoY + 4;
-            const maxInfoWidth = pageWidth / 2.2;
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(255, 255, 255);
-            const companyInfo = [
-                "AWS Legal Consultancy FZ-LLC",
-                "The H Hotel - office tower 1602",
-                "Sheikh Zayed Road, Dubai",
-                "United Arab Emirates",
-                "TRN 100487818500003"
-            ];
-            let offsetY = 0;
-            companyInfo.forEach(line => {
-                const wrapped = doc.splitTextToSize(line, maxInfoWidth);
-                doc.text(wrapped, infoX, infoY + offsetY);
-                offsetY += 6; // Reduced from 7 to maintain compact spacing
-            });
-
-            // Invoice Title
-            doc.setFontSize(28);
-            doc.setFont("helvetica", "bold");
-            doc.setTextColor(255, 255, 255); // White text
-            doc.text("INVOICE", pageWidth - 20, logoY + 15, { align: "right" });
-            doc.setFontSize(10);
-            doc.setFont("helvetica", "normal");
-            doc.text(`Invoice #: INV-${new Date().getTime()}`, pageWidth - 20, logoY + 22, { align: "right" });
-
-            doc.setTextColor(0, 0, 0);
-
-            return 50; // Return the height of the blue header
-        };
-
-        let currentY = addHeader();
-
-        // === CLIENT INFO  ===
-        doc.setFontSize(10);
-        doc.setFont("helvetica", "bold");
-        doc.text("Invoice Issued To:", 15, currentY + 36);
-
-        doc.setFontSize(10);
-
-        // Colors
-        const headingColor = [26, 43, 66];   // dark dull blue
-        const valueColor = [26, 61, 124];      // dull grey
-        const dueDateColor = [204, 0, 0];     // red
-        const blackColor = [0, 0, 0];
-        const dullBlackColor = [50, 50, 50];
-
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...headingColor);
-        doc.text(formData.name || "-", 15, currentY + 44);
-
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...headingColor);
-        doc.text(formData.email || "-", 15, currentY + 49);
-
-        doc.setFontSize(9);
-
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...dullBlackColor);
-        doc.text("Balance Due", pageWidth - 20, currentY + 9, { align: "right" });
-
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-        doc.setTextColor(...dullBlackColor);
-        doc.text("AED 0.00", pageWidth - 20, currentY + 14, { align: "right" });
-
-
-        doc.setFontSize(10);
-
-        // Date Issued
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...headingColor);
-        doc.text("Date Issued:", pageWidth - 70, currentY + 24, { align: "left" });
-
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(...headingColor);
-        doc.text(new Date().toLocaleDateString(), pageWidth - 20, currentY + 24, { align: "right" });
-
-        // TERMS
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...headingColor);
-        doc.text("Terms:", pageWidth - 70, currentY + 32, { align: "left" });
-
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(...headingColor);
-        doc.text(" Due on Receipt", pageWidth - 20, currentY + 32, { align: "right" });
-
-        // P.O.
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...headingColor);
-        doc.text("P.O.#:", pageWidth - 70, currentY + 40, { align: "left" });
-
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(...headingColor);
-        doc.text(`${formData.service}`, pageWidth - 20, currentY + 40, { align: "right" });
-
-        // DUE DATE
-        doc.setFont("helvetica", "normal");
-        doc.setTextColor(...dueDateColor);
-        doc.text("Due Date:", pageWidth - 70, currentY + 48, { align: "left" });
-
-        doc.setFont("helvetica", "italic");
-        doc.setTextColor(...dueDateColor);
-        doc.text("30/09/2025", pageWidth - 20, currentY + 48, { align: "right" });
-
-        currentY += 35;
-
-
-        // === PAYMENT TABLE ===
-doc.setFontSize(12);
-doc.setFont("helvetica", "bold");
-doc.setTextColor(...blackColor);
-doc.text("Payment Summary", 15, currentY + 27);
-
-currentY += 33;
-
-// Find the selected service to get its price
-const selectedService = legalServices.find(service => service.name === formData.service);
-const servicePrice = selectedService ? selectedService.price : 0;
-
-// === TABLE HEADER + ROWS ===
-
-// Table dimensions
-const tableX = 15;
-const tableWidth = pageWidth - 30;
-const rowHeight = 10;
-
-// === HEADER (first row) ===
-doc.setFont("helvetica", "bold");
-doc.setFontSize(11);
-doc.setTextColor(200, 170, 90);
-
-// Column headers
-doc.text("Description", tableX + 5, currentY + 7);
-// doc.text("Qty", tableX + tableWidth * 0.6, currentY + 7);
-doc.text("Rate", tableX + tableWidth * 0.7, currentY + 7);
-doc.text("Tax", tableX + tableWidth * 0.8, currentY + 7);
-doc.text("Amount", tableX + tableWidth - 10, currentY + 7, { align: "right" });
-
-// Draw horizontal line separating header from body
-doc.setDrawColor(0, 0, 0);
-doc.line(tableX, currentY + rowHeight, tableX + tableWidth, currentY + rowHeight);
-
-// === BODY ROW (service details) ===
-doc.setFont("helvetica", "normal");
-doc.setFontSize(10);
-doc.setTextColor(50, 50, 50); // Dull black/gray instead of [0, 0, 0]
-
-const bodyY = currentY + rowHeight + 7;
-doc.text(`${formData.service} Fee`, tableX + 5, bodyY + 1);
-// doc.text("1.00", tableX + tableWidth * 0.6, bodyY);
-doc.text("540.00", tableX + tableWidth * 0.7, bodyY);
-doc.text("25.71", tableX + tableWidth * 0.8, bodyY);
-doc.text(`${servicePrice.toLocaleString()}`, tableX + tableWidth - 10, bodyY, { align: "right" });
-
-// Add tax percentage below the tax value
-doc.setFontSize(8);
-doc.text("5.00%", tableX + tableWidth * 0.8, bodyY + 5);
-
-
-// Draw horizontal line separating header from body
-doc.setDrawColor(0, 0, 0);
-doc.line(tableX, currentY + rowHeight, tableX + tableWidth, currentY + rowHeight);
-doc.line(tableX, currentY + (rowHeight + 14), tableX + tableWidth, currentY + (rowHeight + 14));
-
-// Move position down for next elements
-currentY += 25;
-
-// Add subtotal
-doc.setFont("helvetica", "bold");
-doc.setFontSize(10);
-doc.text("Sub Total", tableX + tableWidth * 0.72, currentY + 7);
-doc.setFont("helvetica", "normal");
-// doc.text("25.71", tableX + tableWidth * 0.8, currentY + 7);
-doc.text(`AED ${servicePrice.toLocaleString()}`, tableX + tableWidth - 10, currentY + 7, { align: "right" });
-
-
-// Add balance due
-currentY += 10;
-doc.setFont("helvetica", "bold");
-doc.text("Balance Due", tableX + tableWidth * 0.72, currentY + 5);
-doc.setFont("helvetica", "normal");
-doc.text("AED 0.00", tableX + tableWidth - 10, currentY + 5, { align: "right" });
-
-currentY += 20;
-
-// Tax Summary Section
-doc.setFont("helvetica", "bold");
-doc.setFontSize(12);
-doc.setTextColor(...blackColor);
-doc.text("Tax Summary", tableX, currentY);
-
-// Tax table dimensions
-const taxTableWidth = tableWidth;
-const taxTableX = tableX;
-
-// Draw tax table header
-currentY += 8;
-doc.setFont("helvetica", "bold");
-doc.setFontSize(10);
-doc.setTextColor(200, 170, 90);
-
-doc.text("Tax Details", taxTableX + 5, currentY + 3);
-doc.text("Taxable Amount (AED)", taxTableX + taxTableWidth * 0.5, currentY + 3);
-doc.text("Tax Amount (AED)", taxTableX + taxTableWidth - 10, currentY + 3, { align: "right" });
-
-// Draw horizontal line for tax table header
-doc.setDrawColor(0, 0, 0);
-doc.line(taxTableX, currentY + 7, taxTableX + taxTableWidth, currentY + 7);
-
-// Tax table body
-currentY += 10;
-doc.setFont("helvetica", "normal");
-doc.setFontSize(10);
-doc.setTextColor(50, 50, 50);
-
-doc.text("Standard Rate (5%)", taxTableX + 5, currentY + 4);
-doc.text("514.29", taxTableX + taxTableWidth * 0.6, currentY + 4);
-doc.text("25.71", taxTableX + taxTableWidth - 10, currentY + 4, { align: "right" });
-
-// Draw horizontal line for tax table header
-doc.setDrawColor(0, 0, 0);
-doc.line(taxTableX, currentY + 9, taxTableX + taxTableWidth, currentY + 9);
-
-// Tax table total
-currentY += 10;
-doc.setFont("helvetica", "bold");
-doc.text("Total", taxTableX + 5, currentY + 5);
-doc.text("AED514.29", taxTableX + taxTableWidth * 0.6, currentY + 5);
-doc.text("AED25.71", taxTableX + taxTableWidth - 10, currentY + 5, { align: "right" });
-
-        
-
-        // === BANK DETAILS ===
-        const marginLeft = 15;
-
-        doc.setFont("helvetica", "bold");
-        doc.setFontSize(11);
-        doc.setTextColor(...dullBlackColor);
-        doc.text("Bank Details", marginLeft, currentY + 25);
-
-        doc.setFontSize(10);
-currentY += 3;
-        const details = [
-            "Bank: Emirates NBD",
-            "Account Name: AWS Legal Consultancy FZ-LLC",
-            "IBAN: AE123456789012345678901",
-            "SWIFT: EBILAEAD"
-        ];
-
-        const startY = currentY + 31;
-        const lineHeight = 8;
-
-        // step 1: find widest label (before colon)
-        let maxLabelWidth = 0;
-        details.forEach(line => {
-            const [label] = line.split(":");
-            const width = doc.getTextWidth(label.trim());
-            if (width > maxLabelWidth) maxLabelWidth = width;
-        });
-
-        // fixed position for values (aligned column)
-        const valueX = marginLeft + maxLabelWidth + 5; // space after colon
-
-        // step 2: draw labels (dark blue) and values (dull grey)
-        details.forEach((line, i) => {
-            const y = startY + i * lineHeight;
-            const [label, value] = line.split(":");
-
-            // label (heading color)
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(...dullBlackColor);
-            doc.text(label.trim(), marginLeft, y);
-
-            // value (dull grey)
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(...dullBlackColor);
-            doc.text(value.trim(), valueX, y);
-        });
-
-        // === Footer ===
-        currentY += 15; // small gap after table
-
-        doc.setFont("helvetica", "italic");
-        doc.setFontSize(10);
-        doc.setTextColor(120, 120, 120); // elegant gray
-
-        // Center it relative to page width, but near last content
-        doc.text(
-            "Thanks for choosing AWS Legal Consultancy as your trusted partner!",
-            pageWidth / 2,
-            currentY + 70,
-            { align: "center" }
-        );
-        // Reset for anything after
-        doc.setTextColor(0, 0, 0);
-        // Save PDF
-        doc.save(`Invoice_${formData.name}.pdf`);
+  const [formData, setFormData] = useState({
+    caseId: '',
+    name: '',
+    email: '',
+    phone: '',
+    status: '',
+    LFA: '',
+    hasInvoice: false,
+    actionItem: '',
+    services: [],
+  });
+
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Dropdown states
+  const [dropdownStates, setDropdownStates] = useState({
+    status: false,
+    lfa: false,
+    services: {},
+  });
+
+  // Refs for dropdowns
+  const statusAnchorRef = useRef(null);
+  const lfaAnchorRef = useRef(null);
+  const serviceAnchorRefs = useRef({});
+
+  // Dropdown options with icons and colors
+  const statusOptions = {
+    unpaid: { label: 'Unpaid', color: 'error' },
+    paid: { label: 'Paid', color: 'success' },
+    pending: { label: 'Pending', color: 'warning' },
+    overdue: { label: 'Overdue', color: 'error' },
+    cancelled: { label: 'Cancelled', color: 'default' },
+  };
+
+  const lfaOptions = {
+    contract_draft: 'Contract Draft Agreement',
+    service_agreement: 'Service Agreement',
+    partnership: 'Partnership Agreement',
+    employment: 'Employment Contract',
+    nda: 'NDA Agreement',
+  };
+
+  const serviceOptions = {
+    company_formation: 'Company Formation',
+    legal_consultation: 'Legal Consultation',
+    document_review: 'Document Review',
+    business_registration: 'Business Registration',
+    tax_advisory: 'Tax Advisory',
+    compliance: 'Compliance Services',
+  };
+
+  // Enhanced Phone Input Component
+  const PhoneInput = ({ value, onChange, error }) => {
+    const formatPhoneNumber = (value) => {
+      const numbers = value.replace(/\D/g, '');
+      if (numbers.length <= 2) {
+        return `+${numbers}`;
+      } else if (numbers.length <= 5) {
+        return `+${numbers.slice(0, 2)} ${numbers.slice(2)}`;
+      } else {
+        return `+${numbers.slice(0, 2)} ${numbers.slice(2, 5)} ${numbers.slice(5, 12)}`;
+      }
     };
 
     const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+      const formatted = formatPhoneNumber(e.target.value);
+      onChange(formatted);
     };
 
     return (
-        <div className={styles.invoiceFormContainer}>
-            <div className={styles.invoiceFormCard}>
-                <h2 className={styles.title}>Generate Legal Invoice</h2>
-
-                <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        generateInvoice(formData, logo);
-                    }}
-                >
-                    <div className={styles.formRow}>
-                        <div className={styles.formGroup}>
-                            <input
-                                type="text"
-                                name="name"
-                                value={formData.name}
-                                onChange={handleChange}
-                                placeholder="Full Name"
-                                required
-                                className={styles.formInput}
-                            />
-                        </div>
-
-                        <div className={styles.formGroup}>
-                            <input
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleChange}
-                                placeholder="Email Address"
-                                required
-                                className={styles.formInput}
-                            />
-                        </div>
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <input
-                            type="text"
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleChange}
-                            placeholder="Phone Number"
-                            className={styles.formInput}
-                        />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <select
-                            name="service"
-                            value={formData.service}
-                            onChange={handleChange}
-                            className={styles.formSelect}
-                            required
-                        >
-                            <option value="">Select a service</option>
-                            {legalServices.map((service, index) => (
-                                <option key={index} value={service.name}>
-                                    {service.name} (AED {service.price.toLocaleString()})
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <button type="submit" className={styles.generateBtn}>
-                        Generate Invoice
-                    </button>
-                </form>
-            </div>
-        </div>
+      <TextField
+        fullWidth
+        label="Phone Number"
+        value={value}
+        onChange={handleChange}
+        placeholder="+92 300 1234567"
+        error={!!error}
+        helperText={error}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Phone size={20} color={COLORS.navy.main} />
+            </InputAdornment>
+          ),
+        }}
+        sx={{
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 1,
+            transition: 'all 0.2s',
+            '&:hover': {
+              borderColor: COLORS.navy.main,
+            },
+          },
+        }}
+      />
     );
+  };
 
+  // Fixed Custom Dropdown Component with proper positioning
+  const CustomDropdown = ({
+    options,
+    value,
+    onChange,
+    placeholder,
+    error,
+    isOpen,
+    onToggle,
+    anchorRef,
+    label,
+    icon: Icon,
+  }) => {
+    const getDisplayValue = () => {
+      if (!value) return '';
+      return typeof options[value] === 'object' ? options[value].label : options[value];
+    };
+
+    return (
+      <Box ref={anchorRef} sx={{ width: '100%', position: 'relative' }}>
+        <TextField
+          fullWidth
+          label={label}
+          value={getDisplayValue()}
+          onClick={onToggle}
+          placeholder={placeholder}
+          error={!!error}
+          helperText={error}
+          InputProps={{
+            readOnly: true,
+            startAdornment: Icon && (
+              <InputAdornment position="start">
+                <Icon size={20} color={COLORS.navy.main} />
+              </InputAdornment>
+            ),
+            endAdornment: (
+              <ChevronDown
+                className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                style={{ color: COLORS.navy.main, cursor: 'pointer' }}
+                size={20}
+              />
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 1,
+              cursor: 'pointer',
+              backgroundColor: 'white',
+              transition: 'all 0.2s',
+              '&:hover': {
+                borderColor: COLORS.navy.main,
+              },
+            },
+          }}
+        />
+
+        <Popper
+          open={isOpen}
+          anchorEl={anchorRef.current}
+          placement="bottom-start"
+          style={{ zIndex: 1300 }}
+          transition
+          modifiers={[
+            {
+              name: 'preventOverflow',
+              enabled: true,
+              options: {
+                boundary: 'viewport',
+                padding: 8,
+              },
+            },
+            {
+              name: 'flip',
+              enabled: true,
+              options: {
+                boundary: 'viewport',
+                padding: 8,
+              },
+            },
+          ]}
+        >
+          {({ TransitionProps }) => (
+            <Fade {...TransitionProps} timeout={200}>
+              <Paper
+                sx={{
+                  width: anchorRef.current ? anchorRef.current.clientWidth : 'auto',
+                  maxHeight: 200,
+                  overflow: 'auto',
+                  border: `1px solid ${COLORS.gold.main}`,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  borderRadius: 1,
+                  mt: 0.5,
+                }}
+              >
+                {Object.entries(options).map(([optionValue, optionData]) => {
+                  const label = typeof optionData === 'object' ? optionData.label : optionData;
+                  const color = typeof optionData === 'object' ? optionData.color : 'default';
+
+                  return (
+                    <Box
+                      key={optionValue}
+                      onClick={() => {
+                        onChange(optionValue);
+                        onToggle();
+                      }}
+                      sx={{
+                        px: 2,
+                        py: 1.5,
+                        cursor: 'pointer',
+                        backgroundColor: optionValue === value ? alpha(COLORS.navy.main, 0.08) : 'background.paper',
+                        '&:hover': {
+                          backgroundColor: alpha(COLORS.navy.main, 0.12),
+                        },
+                        borderBottom: '1px solid',
+                        borderColor: 'divider',
+                        '&:last-child': { borderBottom: 'none' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1,
+                      }}
+                    >
+                      {typeof optionData === 'object' ? (
+                        <Chip
+                          label={label}
+                          size="small"
+                          color={color}
+                          variant={optionValue === value ? 'filled' : 'outlined'}
+                          sx={{ minWidth: 80 }}
+                        />
+                      ) : (
+                        <Typography variant="body2" color="text.primary">
+                          {label}
+                        </Typography>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Paper>
+            </Fade>
+          )}
+        </Popper>
+      </Box>
+    );
+  };
+
+  // Simple Select Dropdown (Alternative approach)
+  const SimpleSelect = ({ options, value, onChange, label, error, icon: Icon }) => {
+    return (
+      <FormControl fullWidth error={!!error}>
+        <InputLabel>{label}</InputLabel>
+        <Select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          label={label}
+          startAdornment={
+            Icon && (
+              <InputAdornment position="start" sx={{ ml: 1 }}>
+                <Icon size={20} color={COLORS.navy.main} />
+              </InputAdornment>
+            )
+          }
+          sx={{
+            borderRadius: 1,
+            '& .MuiOutlinedInput-notchedOutline': {
+              borderColor: COLORS.navy.main,
+            },
+          }}
+        >
+          {Object.entries(options).map(([key, optionData]) => {
+            const label = typeof optionData === 'object' ? optionData.label : optionData;
+            return (
+              <MenuItem key={key} value={key}>
+                {typeof optionData === 'object' ? (
+                  <Chip
+                    label={label}
+                    size="small"
+                    color={optionData.color}
+                    variant={key === value ? 'filled' : 'outlined'}
+                  />
+                ) : (
+                  label
+                )}
+              </MenuItem>
+            );
+          })}
+        </Select>
+        {error && (
+          <Typography variant="caption" color="error">
+            {error}
+          </Typography>
+        )}
+      </FormControl>
+    );
+  };
+
+  // Handle dropdown toggles
+  const toggleDropdown = (type, serviceIndex = null) => {
+    setDropdownStates((prev) => {
+      if (type === 'service') {
+        const newServicesState = Object.keys(prev.services).reduce(
+          (acc, key) => ({
+            ...acc,
+            [key]: false,
+          }),
+          {}
+        );
+
+        return {
+          status: false,
+          lfa: false,
+          services: {
+            ...newServicesState,
+            [serviceIndex]: !prev.services[serviceIndex],
+          },
+        };
+      } else {
+        return {
+          status: type === 'status' ? !prev.status : false,
+          lfa: type === 'lfa' ? !prev.lfa : false,
+          services: {},
+        };
+      }
+    });
+  };
+
+  // Close dropdown when clicking outside
+  const handleClickAway = () => {
+    setDropdownStates({
+      status: false,
+      lfa: false,
+      services: {},
+    });
+  };
+
+  // Validation function
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Required field validations
+    if (!formData.caseId.trim()) newErrors.caseId = 'Case ID is required';
+    if (!formData.name.trim()) newErrors.name = 'Name is required';
+    if (!formData.email.trim()) newErrors.email = 'Email is required';
+    if (!formData.phone.trim()) newErrors.phone = 'Phone is required';
+    if (!formData.status) newErrors.status = 'Status is required';
+    if (!formData.LFA) newErrors.LFA = 'LFA is required';
+    if (!formData.actionItem.trim()) newErrors.actionItem = 'Action item is required';
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    // Phone validation (Pakistan format)
+    const phoneRegex = /^\+92\s?[0-9]{3}\s?[0-9]{7}$/;
+    if (formData.phone && !phoneRegex.test(formData.phone.replace(/\s/g, ''))) {
+      newErrors.phone = 'Phone must be in Pakistani format (+92 XXX XXXXXXX)';
+    }
+
+    // Services validation
+    if (formData.services.length === 0) {
+      newErrors.services = 'At least one service is required';
+    }
+
+    formData.services.forEach((service, index) => {
+      if (!service.serviceName) {
+        newErrors[`service_${index}_name`] = 'Service name is required';
+      }
+      if (!service.serviceValue || service.serviceValue <= 0) {
+        newErrors[`service_${index}_value`] = 'Service value must be greater than 0';
+      }
+
+      // Validate sub-items (guard if subItems missing)
+      const subItems = Array.isArray(service.subItems) ? service.subItems : [];
+      subItems.forEach((subItem, subIndex) => {
+        if (!subItem.dueDate) {
+          newErrors[`service_${index}_sub_${subIndex}_date`] = 'Due date is required';
+        }
+        if (!subItem.invoicedAmount || subItem.invoicedAmount <= 0) {
+          newErrors[`service_${index}_sub_${subIndex}_invoiced`] = 'Invoiced amount must be greater than 0';
+        }
+        if (subItem.receivedAmount < 0) {
+          newErrors[`service_${index}_sub_${subIndex}_received`] = 'Received amount cannot be negative';
+        }
+        if (subItem.receivedAmount > subItem.invoicedAmount) {
+          newErrors[`service_${index}_sub_${subIndex}_received`] = 'Received amount cannot exceed invoiced amount';
+        }
+      });
+
+      // Validate total sub-item amounts don't exceed service value
+      const totalInvoiced = subItems.reduce((sum, item) => sum + (item.invoicedAmount || 0), 0);
+      if (totalInvoiced > service.serviceValue) {
+        newErrors[`service_${index}_total`] = 'Total invoiced amount cannot exceed service value';
+      }
+    });
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Handlers
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handlePhoneChange = (value) => {
+    setFormData((prev) => ({ ...prev, phone: value }));
+    if (errors.phone) {
+      setErrors((prev) => ({ ...prev, phone: '' }));
+    }
+  };
+
+  const handleDropdownChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleServiceChange = (index, field, value) => {
+    const updatedServices = [...formData.services];
+    updatedServices[index] = {
+      ...updatedServices[index],
+      [field]: value,
+      subItems: Array.isArray(updatedServices[index].subItems) ? updatedServices[index].subItems : [],
+    };
+
+    setFormData((prev) => ({ ...prev, services: updatedServices }));
+
+    const errorKey = `service_${index}_${field === 'serviceName' ? 'name' : 'value'}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: '' }));
+    }
+
+    if (field === 'serviceName') {
+      setDropdownStates((prev) => ({
+        ...prev,
+        services: { ...prev.services, [index]: false },
+      }));
+    }
+  };
+
+  const handleSubItemChange = (serviceIndex, subIndex, field, value) => {
+    const updatedServices = [...formData.services];
+    if (!Array.isArray(updatedServices[serviceIndex].subItems)) {
+      updatedServices[serviceIndex].subItems = [];
+    }
+    updatedServices[serviceIndex].subItems[subIndex] = {
+      ...updatedServices[serviceIndex].subItems[subIndex],
+      [field]: value,
+    };
+    setFormData((prev) => ({ ...prev, services: updatedServices }));
+
+    const errorKey = `service_${serviceIndex}_sub_${subIndex}_${field}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => ({ ...prev, [errorKey]: '' }));
+    }
+  };
+
+  const addService = () => {
+    const newService = {
+      serviceName: '',
+      serviceValue: 0,
+      subItems: [
+        {
+          dueDate: new Date().toISOString().split('T')[0],
+          invoicedAmount: 0,
+          receivedAmount: 0,
+          notes: '',
+        },
+      ],
+    };
+    setFormData((prev) => ({
+      ...prev,
+      services: [...prev.services, newService],
+    }));
+  };
+
+  const removeService = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      services: prev.services.filter((_, i) => i !== index),
+    }));
+  };
+
+  const addSubItem = (serviceIndex) => {
+    const updatedServices = [...formData.services];
+    if (!Array.isArray(updatedServices[serviceIndex].subItems)) {
+      updatedServices[serviceIndex].subItems = [];
+    }
+    updatedServices[serviceIndex].subItems.push({
+      dueDate: new Date().toISOString().split('T')[0],
+      invoicedAmount: 0,
+      receivedAmount: 0,
+      notes: '',
+    });
+    setFormData((prev) => ({ ...prev, services: updatedServices }));
+  };
+
+  const removeSubItem = (serviceIndex, subIndex) => {
+    const updatedServices = [...formData.services];
+    updatedServices[serviceIndex].subItems = updatedServices[serviceIndex].subItems.filter((_, i) => i !== subIndex);
+    setFormData((prev) => ({ ...prev, services: updatedServices }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSuccessMessage('');
+
+    try {
+      // simulate network delay
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log('Submitting form data:', formData);
+      setSuccessMessage('Case submitted successfully!');
+
+      setFormData({
+        caseId: '',
+        name: '',
+        email: '',
+        phone: '',
+        status: '',
+        LFA: '',
+        hasInvoice: false,
+        actionItem: '',
+        services: [],
+      });
+      setErrors({});
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setErrors({ submit: 'Error submitting case. Please try again.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <ClickAwayListener onClickAway={handleClickAway}>
+      <Container
+        maxWidth="md" // Changed from lg to md for better layout
+        sx={{
+          py: 4,
+          maxHeight: '84vh',
+          backgroundColor: COLORS.background.light,
+          overflow: 'auto',
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: '#f1f1f1',
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: COLORS.gold.main,
+            borderRadius: '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: COLORS.gold.dark,
+          },
+        }}
+      >
+        <Box
+          sx={{
+            borderRadius: 2,
+            background: COLORS.background.white,
+            border: `1px solid ${alpha(COLORS.navy.main, 0.1)}`,
+            overflow: 'visible',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
+            mb: 4,
+          }}
+        >
+          {/* Header Section */}
+          <Box
+            sx={{
+              background: `linear-gradient(135deg, ${COLORS.navy.main} 0%, ${COLORS.navy.dark} 100%)`,
+              color: 'white',
+              p: 3,
+              textAlign: 'center',
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+            }}
+          >
+            <FileText size={40} style={{ marginBottom: 12, color: COLORS.gold.main }} />
+            <Typography variant="h4" fontWeight="bold" gutterBottom>
+              Invoice Management
+            </Typography>
+          </Box>
+
+          {/* Form Content */}
+          <Box sx={{ p: 3 }}>
+            {successMessage && (
+              <Alert
+                severity="success"
+                sx={{
+                  mb: 3,
+                  borderRadius: 1,
+                  border: `1px solid`,
+                  borderColor: 'success.light',
+                }}
+              >
+                {successMessage}
+              </Alert>
+            )}
+
+            {errors.submit && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 3,
+                  borderRadius: 1,
+                }}
+              >
+                {errors.submit}
+              </Alert>
+            )}
+
+            <Box component="form" onSubmit={handleSubmit} noValidate>
+              {/* Basic Information Section */}
+              <Box sx={{ mb: 4 }}>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <User color={COLORS.navy.main} size={24} />
+                  <Typography variant="h5" fontWeight="600" color={COLORS.navy.main}>
+                    Basic Information
+                  </Typography>
+                </Box>
+
+                <Grid container spacing={2}>
+                  {/* Only 2 fields per row */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Case ID"
+                      name="caseId"
+                      value={formData.caseId}
+                      onChange={handleInputChange}
+                      placeholder="CASE-1002"
+                      error={!!errors.caseId}
+                      helperText={errors.caseId}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Full Name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      placeholder="Ali Raza"
+                      error={!!errors.name}
+                      helperText={errors.name}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <User size={20} color={COLORS.navy.main} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Email Address"
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="ali.raza@example.com"
+                      error={!!errors.email}
+                      helperText={errors.email}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Mail size={20} color={COLORS.navy.main} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        },
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <PhoneInput value={formData.phone} onChange={handlePhoneChange} error={errors.phone} />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <SimpleSelect
+                      label="Status"
+                      options={statusOptions}
+                      value={formData.status}
+                      onChange={(value) => handleDropdownChange('status', value)}
+                      error={errors.status}
+                      icon={FileText}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} md={6}>
+                    <SimpleSelect
+                      label="Legal Framework Agreement (LFA)"
+                      options={lfaOptions}
+                      value={formData.LFA}
+                      onChange={(value) => handleDropdownChange('LFA', value)}
+                      error={errors.LFA}
+                      icon={FileText}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.hasInvoice}
+                          onChange={handleInputChange}
+                          name="hasInvoice"
+                          sx={{ color: COLORS.navy.main }}
+                        />
+                      }
+                      label="Has Invoice"
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      required
+                      label="Action Item"
+                      name="actionItem"
+                      value={formData.actionItem}
+                      onChange={handleInputChange}
+                      placeholder="Prepare contract"
+                      error={!!errors.actionItem}
+                      helperText={errors.actionItem}
+                      multiline
+                      rows={2}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          borderRadius: 1,
+                        },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Box>
+
+              <Divider sx={{ my: 4, borderColor: alpha(COLORS.navy.main, 0.1) }} />
+
+              {/* Services Section */}
+              <Box sx={{ mb: 4 }}>
+                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <DollarSign color={COLORS.navy.main} size={24} />
+                    <Typography variant="h5" fontWeight="600" color={COLORS.navy.main}>
+                      Services & Payments
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="contained"
+                    startIcon={<Plus />}
+                    onClick={addService}
+                    sx={{
+                      borderRadius: 1,
+                      px: 3,
+                      py: 1,
+                      backgroundColor: COLORS.navy.main,
+                      '&:hover': {
+                        backgroundColor: COLORS.navy.dark,
+                      },
+                    }}
+                  >
+                    Add Service
+                  </Button>
+                </Box>
+
+                {errors.services && (
+                  <Alert severity="error" sx={{ mb: 3, borderRadius: 1 }}>
+                    {errors.services}
+                  </Alert>
+                )}
+
+                {formData.services.map((service, serviceIndex) => (
+                  <Box
+                    key={serviceIndex}
+                    sx={{
+                      mb: 3,
+                      p: 2,
+                      borderRadius: 1,
+                      border: `1px solid ${alpha(COLORS.navy.main, 0.1)}`,
+                      backgroundColor: alpha(COLORS.background.light, 0.5),
+                    }}
+                  >
+                    <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                      <Typography variant="h6" fontWeight="600" color={COLORS.navy.main}>
+                        Service {serviceIndex + 1}
+                      </Typography>
+                      <IconButton color="error" onClick={() => removeService(serviceIndex)} size="small">
+                        <Trash2 size={18} />
+                      </IconButton>
+                    </Box>
+
+                    <Grid container spacing={2}>
+                      <Grid item xs={12} md={6}>
+                        <SimpleSelect
+                          label="Service Type"
+                          options={serviceOptions}
+                          value={service.serviceName}
+                          onChange={(value) => handleServiceChange(serviceIndex, 'serviceName', value)}
+                          error={errors[`service_${serviceIndex}_name`]}
+                          icon={FileText}
+                        />
+                      </Grid>
+
+                      <Grid item xs={12} md={6}>
+                        <TextField
+                          fullWidth
+                          required
+                          label="Service Value (PKR)"
+                          type="number"
+                          value={service.serviceValue}
+                          onChange={(e) =>
+                            handleServiceChange(serviceIndex, 'serviceValue', parseFloat(e.target.value) || 0)
+                          }
+                          error={!!errors[`service_${serviceIndex}_value`]}
+                          helperText={errors[`service_${serviceIndex}_value`]}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <DollarSign size={20} color={COLORS.navy.main} />
+                              </InputAdornment>
+                            ),
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 1,
+                            },
+                          }}
+                        />
+                      </Grid>
+                    </Grid>
+
+                    {/* Payment Schedule */}
+                    <Box sx={{ mt: 2 }}>
+                      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+                        <Typography variant="subtitle1" fontWeight="600" color="text.primary">
+                          Payment Schedule
+                        </Typography>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          onClick={() => addSubItem(serviceIndex)}
+                          startIcon={<Plus size={16} />}
+                          sx={{
+                            borderRadius: 1,
+                            borderColor: COLORS.navy.main,
+                            color: COLORS.navy.main,
+                            '&:hover': {
+                              borderColor: COLORS.navy.dark,
+                              backgroundColor: alpha(COLORS.navy.main, 0.04),
+                            },
+                          }}
+                        >
+                          Add Payment
+                        </Button>
+                      </Box>
+
+                      {(Array.isArray(service.subItems) ? service.subItems : []).map((subItem, subIndex) => (
+                        <Box
+                          key={subIndex}
+                          sx={{
+                            mb: 1,
+                            p: 2,
+                            borderRadius: 1,
+                            border: `1px solid ${alpha(COLORS.navy.main, 0.05)}`,
+                            backgroundColor: 'white',
+                          }}
+                        >
+                          <Grid container spacing={1} alignItems="center">
+                            <Grid item xs={12} md={3}>
+                              <TextField
+                                fullWidth
+                                type="date"
+                                label="Due Date"
+                                InputLabelProps={{ shrink: true }}
+                                value={subItem.dueDate}
+                                onChange={(e) => handleSubItemChange(serviceIndex, subIndex, 'dueDate', e.target.value)}
+                                error={!!errors[`service_${serviceIndex}_sub_${subIndex}_date`]}
+                                helperText={errors[`service_${serviceIndex}_sub_${subIndex}_date`]}
+                                InputProps={{
+                                  startAdornment: (
+                                    <InputAdornment position="start">
+                                      <Calendar size={16} color={COLORS.navy.main} />
+                                    </InputAdornment>
+                                  ),
+                                }}
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: 1,
+                                  },
+                                }}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={2}>
+                              <TextField
+                                fullWidth
+                                type="number"
+                                label="Invoiced Amount"
+                                value={subItem.invoicedAmount}
+                                onChange={(e) =>
+                                  handleSubItemChange(
+                                    serviceIndex,
+                                    subIndex,
+                                    'invoicedAmount',
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                error={!!errors[`service_${serviceIndex}_sub_${subIndex}_invoiced`]}
+                                helperText={errors[`service_${serviceIndex}_sub_${subIndex}_invoiced`]}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={2}>
+                              <TextField
+                                fullWidth
+                                type="number"
+                                label="Received Amount"
+                                value={subItem.receivedAmount}
+                                onChange={(e) =>
+                                  handleSubItemChange(
+                                    serviceIndex,
+                                    subIndex,
+                                    'receivedAmount',
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                error={!!errors[`service_${serviceIndex}_sub_${subIndex}_received`]}
+                                helperText={errors[`service_${serviceIndex}_sub_${subIndex}_received`]}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={4}>
+                              <TextField
+                                fullWidth
+                                label="Notes"
+                                value={subItem.notes}
+                                onChange={(e) => handleSubItemChange(serviceIndex, subIndex, 'notes', e.target.value)}
+                                placeholder="Payment description..."
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={1}>
+                              {service.subItems && service.subItems.length > 1 && (
+                                <IconButton
+                                  color="error"
+                                  onClick={() => removeSubItem(serviceIndex, subIndex)}
+                                  size="small"
+                                >
+                                  <Trash2 size={16} />
+                                </IconButton>
+                              )}
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      ))}
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+
+              {/* Submit Button */}
+              <Box display="flex" justifyContent="flex-end" mt={4} gap={2}>
+                <Button
+                  variant="outlined"
+                  onClick={() => {
+                    setFormData({
+                      caseId: '',
+                      name: '',
+                      email: '',
+                      phone: '',
+                      status: '',
+                      LFA: '',
+                      hasInvoice: false,
+                      actionItem: '',
+                      services: [],
+                    });
+                    setErrors({});
+                    setSuccessMessage('');
+                  }}
+                  disabled={isSubmitting}
+                  sx={{
+                    borderRadius: 1,
+                    px: 4,
+                    py: 1,
+                    minWidth: 120,
+                    borderColor: COLORS.navy.main,
+                    color: COLORS.navy.main,
+                    '&:hover': {
+                      borderColor: COLORS.navy.dark,
+                      backgroundColor: alpha(COLORS.navy.main, 0.04),
+                    },
+                  }}
+                >
+                  Reset
+                </Button>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  startIcon={<Save />}
+                  disabled={isSubmitting}
+                  size="large"
+                  sx={{
+                    borderRadius: 1,
+                    px: 4,
+                    py: 1,
+                    minWidth: 150,
+                    backgroundColor: COLORS.navy.main,
+                    '&:hover': {
+                      backgroundColor: COLORS.navy.dark,
+                    },
+                  }}
+                >
+                  {isSubmitting ? 'Submitting...' : 'Submit Case'}
+                </Button>
+              </Box>
+            </Box>
+          </Box>
+        </Box>
+      </Container>
+    </ClickAwayListener>
+  );
 };
 
 export default InvoiceForm;

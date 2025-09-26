@@ -1591,17 +1591,23 @@ function LegalConsultationStepper() {
 
       let rescheduleLink = `https://portal.aws-legalgroup.com/reschedule`;
 
-      // add phone if available
-      if (phone) rescheduleLink += `/${phone}`;
+      // Build search params
+      const params = new URLSearchParams();
 
-      // add name if available (sanitize if present)
-      if (name) rescheduleLink += `/${name.replace(/\s+/g, '-')}`;
+      // add phone if available
+      if (phone) params.append('phone', phone);
+
+      // add name if available
+      if (name) params.append('name', name);
 
       // always add ref
-      rescheduleLink += `?ref=${ref}`;
+      params.append('ref', ref);
 
-      // add source=website if applicable
-      if (source === 'website') rescheduleLink += '&source=website';
+      // add source if applicable
+      if (source === 'website') params.append('source', 'website');
+
+      // final link
+      rescheduleLink += `?${params.toString()}`;
 
       const clientEmail = paymentForm.email || confirmationData?.email || data?.payment?.email;
       console.log('Sending Client Email:', clientEmail);
@@ -2091,176 +2097,190 @@ function LegalConsultationStepper() {
                 {error}
               </Typography>
             )}
-
             <Box
               sx={{
+                height: '60vh', // Fixed height for the scrollable area
+                overflow: 'hidden', // Hide overflow from parent
                 display: 'flex',
                 flexDirection: 'column',
-                gap: 1.5,
-                height: '50vh',
-                overflowY: 'auto',
-                pr: 1,
-                '&::-webkit-scrollbar': {
-                  width: '6px',
-                },
-                '&::-webkit-scrollbar-track': {
-                  background: 'rgba(0,0,0,0.1)',
-                  borderRadius: '10px',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  background: '#d4af37',
-                  borderRadius: '10px',
-                },
               }}
             >
-              {lawyers.map((lawyer) => (
-                <Card
-                  key={lawyer._id}
-                  variant="outlined"
+              <Box
+                sx={{
+                  flex: 1,
+                  overflowY: 'auto', // Enable vertical scrolling
+                  pr: 1,
+                  '&::-webkit-scrollbar': {
+                    width: '6px',
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    background: 'rgba(0,0,0,0.1)',
+                    borderRadius: '10px',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    background: '#d4af37',
+                    borderRadius: '10px',
+                  },
+                }}
+              >
+                <Box
                   sx={{
-                    minHeight: '100px',
-                    cursor: 'pointer',
-                    borderColor: selectedLawyer?._id === lawyer._id ? '#d4af37' : 'rgba(255,255,255,0.1)',
-                    backgroundColor:
-                      selectedLawyer?._id === lawyer._id ? 'rgba(212, 175, 55, 0.1)' : 'rgba(15, 26, 47, 0.7)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(212, 175, 55, 0.08)',
-                      borderColor: 'rgba(212, 175, 55, 0.3)',
-                    },
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
                   }}
-                  onClick={() => setSelectedLawyer(lawyer)}
                 >
-                  <CardContent sx={{ p: 2 }}>
-                    <Box display="flex" alignItems="flex-start" gap={2}>
-                      <Avatar
-                        src={lawyer.ProfilePicture}
-                        sx={{
-                          width: 64,
-                          height: 64,
-                          border: '2px solid #2c3e50',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                          flexShrink: 0,
-                        }}
-                      />
-
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'space-between',
-                            alignItems: 'flex-start',
-                            gap: 1,
-                            mb: 1,
-                          }}
-                        >
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography
-                              variant="subtitle1"
-                              fontWeight={600}
-                              sx={{
-                                color: '#fff',
-                                whiteSpace: 'nowrap',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                              }}
-                            >
-                              {lawyer.UserName}
-                            </Typography>
-                            {lawyer.position && (
-                              <Typography variant="caption" sx={{ color: '#d4af37', fontWeight: 500 }}>
-                                {lawyer.position}
-                              </Typography>
-                            )}
-                          </Box>
-
-                          <Box
+                  {lawyers.map((lawyer) => (
+                    <Card
+                      key={lawyer._id}
+                      variant="outlined"
+                      sx={{
+                        // Remove fixed minHeight to allow natural card sizing
+                        cursor: 'pointer',
+                        borderColor: selectedLawyer?._id === lawyer._id ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                        backgroundColor:
+                          selectedLawyer?._id === lawyer._id ? 'rgba(212, 175, 55, 0.1)' : 'rgba(15, 26, 47, 0.7)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(212, 175, 55, 0.08)',
+                          borderColor: 'rgba(212, 175, 55, 0.3)',
+                        },
+                        borderRadius: 2,
+                        transition: 'all 0.2s ease',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                      }}
+                      onClick={() => setSelectedLawyer(lawyer)}
+                    >
+                      <CardContent sx={{ p: 2 }}>
+                        <Box display="flex" alignItems="flex-start" gap={2}>
+                          <Avatar
+                            src={lawyer.ProfilePicture}
                             sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 0.5,
-                              backgroundColor: 'rgba(212, 175, 55, 0.15)',
-                              borderRadius: 1,
-                              px: 1,
-                              py: 0.5,
+                              width: 64,
+                              height: 64,
+                              border: '2px solid #2c3e50',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
                               flexShrink: 0,
                             }}
-                          >
-                            <Typography variant="body2" sx={{ color: '#d4af37', fontWeight: 600 }}>
-                              <Box component="span" sx={{ mr: 0.5 }}>
-                                AED
-                              </Box>
-                              {lawyer.price || 200}/hr
-                            </Typography>
-                          </Box>
-                        </Box>
+                          />
 
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexWrap: 'wrap',
-                            gap: 1.2,
-                            mb: lawyer.bio ? 1 : 0,
-                          }}
-                        >
-                          <DetailItem
-                            icon={<Work sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Service"
-                            value={lawyer.specialty}
-                          />
-                          <DetailItem
-                            icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Experience"
-                            value={lawyer.experience}
-                          />
-                          <DetailItem
-                            icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Languages"
-                            value={lawyer.language || 'N/A'}
-                          />
-                          <DetailItem
-                            icon={<LocationOn sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Location"
-                            value={lawyer.address.split(',')[0]}
-                          />
-                          <DetailItem
-                            icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                            label="Availability"
-                            value={formatAvailability(lawyer.availablity) || 'N/A'}
-                          />
-                        </Box>
-                        {lawyer.bio && (
-                          <Box
-                            sx={{
-                              borderTop: '1px solid rgba(255,255,255,0.15)', // thin subtle line
-                              mt: 2, // space before line
-                              pt: 1.5, // space after line before bio
-                            }}
-                          >
-                            <Typography
-                              variant="caption"
+                          <Box sx={{ flex: 1, minWidth: 0 }}>
+                            <Box
                               sx={{
-                                color: 'rgba(255, 255, 255, 0.75)',
-                                display: '-webkit-box',
-                                WebkitLineClamp: 3,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                lineHeight: 1.4,
-                                whiteSpace: 'pre-line', // respects \n new lines if present
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'flex-start',
+                                gap: 1,
+                                mb: 1,
                               }}
                             >
-                              {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
-                            </Typography>
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography
+                                  variant="subtitle1"
+                                  fontWeight={600}
+                                  sx={{
+                                    color: '#fff',
+                                    whiteSpace: 'nowrap',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                  }}
+                                >
+                                  {lawyer.UserName}
+                                </Typography>
+                                {lawyer.position && (
+                                  <Typography variant="caption" sx={{ color: '#d4af37', fontWeight: 500 }}>
+                                    {lawyer.position}
+                                  </Typography>
+                                )}
+                              </Box>
+
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 0.5,
+                                  backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                                  borderRadius: 1,
+                                  px: 1,
+                                  py: 0.5,
+                                  flexShrink: 0,
+                                }}
+                              >
+                                <Typography variant="body2" sx={{ color: '#d4af37', fontWeight: 600 }}>
+                                  <Box component="span" sx={{ mr: 0.5 }}>
+                                    AED
+                                  </Box>
+                                  {lawyer.price || 200}/hr
+                                </Typography>
+                              </Box>
+                            </Box>
+
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: 1.2,
+                                mb: lawyer.bio ? 1 : 0,
+                              }}
+                            >
+                              <DetailItem
+                                icon={<Work sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                                label="Service"
+                                value={lawyer.specialty}
+                              />
+                              <DetailItem
+                                icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                                label="Experience"
+                                value={lawyer.experience}
+                              />
+                              <DetailItem
+                                icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                                label="Languages"
+                                value={lawyer.language || 'N/A'}
+                              />
+                              <DetailItem
+                                icon={<LocationOn sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                                label="Location"
+                                value={lawyer.address.split(',')[0]}
+                              />
+                              <DetailItem
+                                icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
+                                label="Availability"
+                                value={formatAvailability(lawyer.availablity) || 'N/A'}
+                              />
+                            </Box>
+
+                            {lawyer.bio && (
+                              <Box
+                                sx={{
+                                  borderTop: '1px solid rgba(255,255,255,0.15)',
+                                  mt: 2,
+                                  pt: 1.5,
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  sx={{
+                                    color: 'rgba(255, 255, 255, 0.75)',
+                                    display: '-webkit-box',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    lineHeight: 1.4,
+                                    whiteSpace: 'pre-line',
+                                  }}
+                                >
+                                  {lawyer.bio.length > 300 ? `${lawyer.bio.substring(0, 300)}...` : lawyer.bio}
+                                </Typography>
+                              </Box>
+                            )}
                           </Box>
-                        )}
-                      </Box>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                        </Box>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              </Box>
             </Box>
           </Box>
         );

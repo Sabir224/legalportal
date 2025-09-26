@@ -54,7 +54,7 @@ import { styled } from '@mui/material/styles';
 import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { enGB } from 'date-fns/locale';
-import { ApiEndPoint } from '../Component/utils/utlis';
+import { ApiEndPoint, formatAvailability } from '../Component/utils/utlis';
 import StatCard from './StatCard';
 import FilterSection from './FilterSection';
 import FilterableHeaderCell from './FilterableHeaderCell';
@@ -75,11 +75,11 @@ const ElegantCard = styled(Card)(({ theme }) => ({
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
   },
 }));
-const BLANK_LAWYER = {
-  _id: 'blank',
+const blanks_LAWYER = {
+  _id: 'blanks',
   FkUserId: {
-    _id: 'blank-user',
-    UserName: 'blank',
+    _id: 'blanks-user',
+    UserName: 'blanks',
     Email: '',
     Role: 'lawyer',
     CanManageEverything: false,
@@ -92,7 +92,7 @@ const BLANK_LAWYER = {
   Position: '',
   YearOfExperience: '',
   ConsultationFee: '',
-  Expertise: 'blank',
+  Expertise: 'blanks',
   Department: '',
   Bio: '',
   Address: '',
@@ -130,6 +130,8 @@ export default function PaymentDashboard() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
     service: '',
@@ -188,6 +190,7 @@ export default function PaymentDashboard() {
     }
   };
   const handleOpenConfirm = (appointment) => {
+    setPaymentSuccess(false);
     setSelectedAppointment(appointment);
     setConfirmOpen(true);
   };
@@ -202,15 +205,24 @@ export default function PaymentDashboard() {
   const handleConfirm = async () => {
     setLoadingPayment(true);
     try {
-      await markPaymentPaid(selectedAppointment); // your API function
-      setConfirmOpen(false);
-      setSelectedAppointment(null);
+      await markPaymentPaid(selectedAppointment);
+
+      // trigger success state (dialog will show "Paid ✔")
+      setPaymentSuccess(true);
+
+      // wait 2 seconds before closing & clearing selection
+      setTimeout(() => {
+        setSelectedAppointment(null);
+        setConfirmOpen(false);
+        setPaymentSuccess(false); // reset for next time
+      }, 2000);
     } catch (error) {
       console.error(error);
     } finally {
       setLoadingPayment(false);
     }
   };
+
   const viewInvoice = async (paymentId) => {
     setLoadingId(paymentId);
 
@@ -311,28 +323,28 @@ export default function PaymentDashboard() {
 
   // Normalizers
   const normalizeClient = (name) => {
-    if (!name) return 'blank';
+    if (!name) return 'blanks';
     return String(name).toLowerCase().trim();
   };
 
   const normalizePhone = (phone) => {
-    if (!phone) return 'blank';
+    if (!phone) return 'blanks';
     // remove everything except digits
     const digits = String(phone).replace(/\D/g, '');
-    return digits === '' ? 'blank' : digits;
+    return digits === '' ? 'blanks' : digits;
   };
 
   const normalizeAmount = (amount) => {
-    if (amount === null || amount === undefined || amount === '') return 'blank';
+    if (amount === null || amount === undefined || amount === '') return 'blanks';
     return String(amount);
   };
 
   const normalizeMethod = (method) => {
-    if (!method) return 'blank';
+    if (!method) return 'blanks';
     return String(method);
   };
   const normalizeEmail = (email) => {
-    if (!email) return 'blank';
+    if (!email) return 'blanks';
     return email.trim().toLowerCase();
   };
 
@@ -351,30 +363,32 @@ export default function PaymentDashboard() {
           setData(result.data);
 
           // Default: select all filters initially (normalized)
-          const allServices = [...new Set(result.data.map((i) => i.lawyer?.Expertise || 'blank').filter(Boolean))];
+          const allServices = [...new Set(result.data.map((i) => i.lawyer?.Expertise || 'blanks').filter(Boolean))];
           const allConsultations = [
-            ...new Set(result.data.map((i) => i.payment?.consultationType || 'blank').filter(Boolean)),
+            ...new Set(result.data.map((i) => i.payment?.consultationType || 'blanks').filter(Boolean)),
           ];
           const allStatuses = [...new Set(result.data.map((i) => i.payment?.status || 'not-booked').filter(Boolean))];
           const allLawyers = [
             ...new Map(
               result.data.map((i) => {
                 if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
-                return [BLANK_LAWYER._id, BLANK_LAWYER];
+                return [blanks_LAWYER._id, blanks_LAWYER];
               })
             ).values(),
           ];
 
           // normalized sets for new fields
           const allClient = [
-            ...new Set(result.data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank'))),
+            ...new Set(result.data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blanks'))),
           ];
           const allPhone = [
-            ...new Set(result.data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank'))),
+            ...new Set(result.data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blanks'))),
           ];
-          const allAmount = [...new Set(result.data.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
-          const allMethods = [...new Set(result.data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
-          const allEmails = [...new Set(result.data.map((i) => normalizeEmail(i.payment?.email || 'blank')))];
+          const allAmount = [...new Set(result.data.map((i) => normalizeAmount(i.payment?.amount || 'blanks')))];
+          const allMethods = [
+            ...new Set(result.data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blanks'))),
+          ];
+          const allEmails = [...new Set(result.data.map((i) => normalizeEmail(i.payment?.email || 'blanks')))];
 
           // set defaults (select all)
           setMethodFilter(allMethods);
@@ -449,37 +463,37 @@ export default function PaymentDashboard() {
       filtered = filtered.filter((item) => statusFilter.includes(item.payment?.status || 'not-booked'));
     }
     if (serviceFilter.length > 0) {
-      filtered = filtered.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blank'));
+      filtered = filtered.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blanks'));
     }
     if (consultationTypeFilter.length > 0) {
-      filtered = filtered.filter((item) => consultationTypeFilter.includes(item.payment?.consultationType || 'blank'));
+      filtered = filtered.filter((item) => consultationTypeFilter.includes(item.payment?.consultationType || 'blanks'));
     }
     if (lawyerFilter.length > 0) {
-      filtered = filtered.filter((item) => lawyerFilter.includes(item.lawyer?._id || BLANK_LAWYER._id));
+      filtered = filtered.filter((item) => lawyerFilter.includes(item.lawyer?._id || blanks_LAWYER._id));
     }
 
     // methodFilter contains normalized strings
     if (methodFilter.length > 0) {
       filtered = filtered.filter((item) =>
-        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blank'))
+        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blanks'))
       );
     }
 
     // client / phone / amount comparisons use normalizers
     if (clientFilter.length > 0) {
       filtered = filtered.filter((item) =>
-        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blank'))
+        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blanks'))
       );
     }
 
     if (phoneFilter.length > 0) {
       filtered = filtered.filter((item) =>
-        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blank'))
+        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blanks'))
       );
     }
 
     if (amountFilter.length > 0) {
-      filtered = filtered.filter((item) => amountFilter.includes(normalizeAmount(item.payment?.amount || 'blank')));
+      filtered = filtered.filter((item) => amountFilter.includes(normalizeAmount(item.payment?.amount || 'blanks')));
     }
 
     if (dateFilter.startDate) {
@@ -514,7 +528,7 @@ export default function PaymentDashboard() {
     dateFilter,
   ]);
 
-  // ✅ Dynamic options with blank
+  // ✅ Dynamic options with blanks
   const getDynamicFilterOptions = (currentFilterType) => {
     let dynamicData = [...data];
 
@@ -537,43 +551,43 @@ export default function PaymentDashboard() {
       dynamicData = dynamicData.filter((item) => statusFilter.includes(item.payment?.status || 'not-booked'));
     }
     if (currentFilterType !== 'service' && serviceFilter.length > 0) {
-      dynamicData = dynamicData.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blank'));
+      dynamicData = dynamicData.filter((item) => serviceFilter.includes(item.lawyer?.Expertise || 'blanks'));
     }
     if (currentFilterType !== 'consultation' && consultationTypeFilter.length > 0) {
       dynamicData = dynamicData.filter((item) =>
-        consultationTypeFilter.includes(item.payment?.consultationType || 'blank')
+        consultationTypeFilter.includes(item.payment?.consultationType || 'blanks')
       );
     }
     if (currentFilterType !== 'lawyer' && lawyerFilter.length > 0) {
-      dynamicData = dynamicData.filter((item) => lawyerFilter.includes(item.lawyer?._id || 'blank'));
+      dynamicData = dynamicData.filter((item) => lawyerFilter.includes(item.lawyer?._id || 'blanks'));
     }
     if (currentFilterType !== 'method' && methodFilter.length > 0) {
       dynamicData = dynamicData.filter((item) =>
-        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blank'))
+        methodFilter.includes(normalizeMethod(item.payment?.paymentMethod || 'blanks'))
       );
     }
     if (currentFilterType !== 'client' && clientFilter.length > 0) {
       dynamicData = dynamicData.filter((item) =>
-        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blank'))
+        clientFilter.includes(normalizeClient(item.payment?.name || item.link?.name || 'blanks'))
       );
     }
     if (currentFilterType !== 'phone' && phoneFilter.length > 0) {
       dynamicData = dynamicData.filter((item) =>
-        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blank'))
+        phoneFilter.includes(normalizePhone(item.payment?.phone || item.link?.phone || 'blanks'))
       );
     }
     if (currentFilterType !== 'amount' && amountFilter.length > 0) {
       dynamicData = dynamicData.filter((item) =>
-        amountFilter.includes(normalizeAmount(item.payment?.amount || 'blank'))
+        amountFilter.includes(normalizeAmount(item.payment?.amount || 'blanks'))
       );
     }
 
     // Build normalized available sets from dynamicData
-    const availableServices = [...new Set(dynamicData.map((i) => i.lawyer?.Expertise || 'blank'))];
-    if (!availableServices.includes('blank')) availableServices.push('blank');
+    const availableServices = [...new Set(dynamicData.map((i) => i.lawyer?.Expertise || 'blanks'))];
+    if (!availableServices.includes('blanks')) availableServices.push('blanks');
 
-    const availableConsultations = [...new Set(dynamicData.map((i) => i.payment?.consultationType || 'blank'))];
-    if (!availableConsultations.includes('blank')) availableConsultations.push('blank');
+    const availableConsultations = [...new Set(dynamicData.map((i) => i.payment?.consultationType || 'blanks'))];
+    if (!availableConsultations.includes('blanks')) availableConsultations.push('blanks');
 
     const availableStatuses = [...new Set(dynamicData.map((i) => i.payment?.status || 'not-booked'))];
     if (!availableStatuses.includes('not-booked')) availableStatuses.push('not-booked');
@@ -582,44 +596,46 @@ export default function PaymentDashboard() {
       ...new Map(
         dynamicData.map((i) => {
           if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
-          return [BLANK_LAWYER._id, BLANK_LAWYER];
+          return [blanks_LAWYER._id, blanks_LAWYER];
         })
       ).values(),
     ];
-    if (!availableLawyers.some((l) => l._id === BLANK_LAWYER._id)) availableLawyers.push(BLANK_LAWYER);
+    if (!availableLawyers.some((l) => l._id === blanks_LAWYER._id)) availableLawyers.push(blanks_LAWYER);
 
-    const availableMethods = [...new Set(dynamicData.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
-    if (!availableMethods.includes('blank')) availableMethods.push('blank');
+    const availableMethods = [
+      ...new Set(dynamicData.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blanks'))),
+    ];
+    if (!availableMethods.includes('blanks')) availableMethods.push('blanks');
 
     const availableClient = [
-      ...new Set(dynamicData.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank'))),
+      ...new Set(dynamicData.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blanks'))),
     ];
-    if (!availableClient.includes('blank')) availableClient.push('blank');
+    if (!availableClient.includes('blanks')) availableClient.push('blanks');
 
     const availablePhone = [
-      ...new Set(dynamicData.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank'))),
+      ...new Set(dynamicData.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blanks'))),
     ];
-    if (!availablePhone.includes('blank')) availablePhone.push('blank');
+    if (!availablePhone.includes('blanks')) availablePhone.push('blanks');
 
-    const availableAmount = [...new Set(dynamicData.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
-    if (!availableAmount.includes('blank')) availableAmount.push('blank');
+    const availableAmount = [...new Set(dynamicData.map((i) => normalizeAmount(i.payment?.amount || 'blanks')))];
+    if (!availableAmount.includes('blanks')) availableAmount.push('blanks');
 
     // Build all* from full data (normalized) for "show all" lists in UI
-    const allServices = [...new Set(data.map((i) => i.lawyer?.Expertise || 'blank'))];
-    const allConsultations = [...new Set(data.map((i) => i.payment?.consultationType || 'blank'))];
+    const allServices = [...new Set(data.map((i) => i.lawyer?.Expertise || 'blanks'))];
+    const allConsultations = [...new Set(data.map((i) => i.payment?.consultationType || 'blanks'))];
     const allStatuses = [...new Set(data.map((i) => i.payment?.status || 'not-booked'))];
     const allLawyers = [
       ...new Map(
         data.map((i) => {
           if (i.lawyer && i.lawyer._id) return [i.lawyer._id, i.lawyer];
-          return [BLANK_LAWYER._id, BLANK_LAWYER];
+          return [blanks_LAWYER._id, blanks_LAWYER];
         })
       ).values(),
     ];
-    const allMethods = [...new Set(data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blank')))];
-    const allClient = [...new Set(data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blank')))];
-    const allPhone = [...new Set(data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blank')))];
-    const allAmount = [...new Set(data.map((i) => normalizeAmount(i.payment?.amount || 'blank')))];
+    const allMethods = [...new Set(data.map((i) => normalizeMethod(i.payment?.paymentMethod || 'blanks')))];
+    const allClient = [...new Set(data.map((i) => normalizeClient(i.payment?.name || i.link?.name || 'blanks')))];
+    const allPhone = [...new Set(data.map((i) => normalizePhone(i.payment?.phone || i.link?.phone || 'blanks')))];
+    const allAmount = [...new Set(data.map((i) => normalizeAmount(i.payment?.amount || 'blanks')))];
 
     // builders (return { value, available, selected })
     const buildServiceOptions = () => {
@@ -1403,7 +1419,7 @@ export default function PaymentDashboard() {
                                     <Box display="flex" alignItems="center" gap={1}>
                                       <Description fontSize="small" sx={{ color: lightTheme.accentColor }} />
                                       <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
-                                        {item.payment?.consultationType || '—'}
+                                        {formatAvailability(item.payment?.consultationType) || '—'}
                                       </Typography>
                                     </Box>
 
@@ -1627,7 +1643,7 @@ export default function PaymentDashboard() {
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
-                                      {item.payment?.consultationType || '—'}
+                                      {formatAvailability(item.payment?.consultationType) || '—'}
                                     </StyledTableCell>
                                     <StyledTableCell
                                       sx={{
@@ -1688,7 +1704,7 @@ export default function PaymentDashboard() {
                                         whiteSpace: 'nowrap',
                                       }}
                                     >
-                                      {item.payment?.paymentMethod || '—'}
+                                      {formatAvailability(item.payment?.paymentMethod) || '—'}
                                     </StyledTableCell>
                                     <StyledTableCell sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
                                       {getStatusChip(
@@ -1868,7 +1884,7 @@ export default function PaymentDashboard() {
                       onToggle={handleToggleClient}
                       selectedValues={clientFilter}
                       isCurrentFilter={activeFilter === 'client'}
-                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                      getLabel={(v) => (v === 'blanks' ? 'blanks' : `${v}`)}
                     />
                   )}
 
@@ -1884,7 +1900,7 @@ export default function PaymentDashboard() {
                       onToggle={handleTogglePhone}
                       selectedValues={phoneFilter}
                       isCurrentFilter={activeFilter === 'phone'}
-                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                      getLabel={(v) => (v === 'blanks' ? 'blanks' : `${v}`)}
                     />
                   )}
 
@@ -1900,7 +1916,7 @@ export default function PaymentDashboard() {
                       onToggle={handleToggleAmount}
                       selectedValues={amountFilter}
                       isCurrentFilter={activeFilter === 'amount'}
-                      getLabel={(v) => (v === 'blank' ? 'Blank' : `${v}`)}
+                      getLabel={(v) => (v === 'blanks' ? 'blanks' : `${v}`)}
                     />
                   )}
 
@@ -1989,7 +2005,13 @@ export default function PaymentDashboard() {
             )}
           </Box>
         </Container>
-        <PaymentConfirmationDialog open={confirmOpen} onCancel={handleCancel} onConfirm={handleConfirm} />
+        <PaymentConfirmationDialog
+          open={confirmOpen}
+          onCancel={handleCancel}
+          onConfirm={handleConfirm}
+          paymentSuccess={paymentSuccess}
+          loadingPayment={loadingPayment}
+        />
       </Box>
     </LocalizationProvider>
   );
