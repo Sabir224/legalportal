@@ -199,7 +199,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/case/:caseId/?:userId" element={<CaseRedirectHandler />} />
+        <Route path="/case/:caseId/:userId" element={<CaseRedirectHandler />} />
         <Route path="/acknowledgeCaseHandover/:caseId/:userId" element={<AcknowledgeCaseHandoverRedirectHandler />} />
         <Route
           path="/client-consultation"
