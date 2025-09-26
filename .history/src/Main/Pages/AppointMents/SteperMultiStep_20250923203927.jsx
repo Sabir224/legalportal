@@ -1591,23 +1591,17 @@ function LegalConsultationStepper() {
 
       let rescheduleLink = `https://portal.aws-legalgroup.com/reschedule`;
 
-      // Build search params
-      const params = new URLSearchParams();
-
       // add phone if available
-      if (phone) params.append('phone', phone);
+      if (phone) rescheduleLink += `/${phone}`;
 
-      // add name if available
-      if (name) params.append('name', name);
+      // add name if available (sanitize if present)
+      if (name) rescheduleLink += `/${name.replace(/\s+/g, '-')}`;
 
       // always add ref
-      params.append('ref', ref);
+      rescheduleLink += `?ref=${ref}`;
 
-      // add source if applicable
-      if (source === 'website') params.append('source', 'website');
-
-      // final link
-      rescheduleLink += `?${params.toString()}`;
+      // add source=website if applicable
+      if (source === 'website') rescheduleLink += '&source=website';
 
       const clientEmail = paymentForm.email || confirmationData?.email || data?.payment?.email;
       console.log('Sending Client Email:', clientEmail);
