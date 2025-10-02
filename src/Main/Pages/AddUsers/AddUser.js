@@ -318,12 +318,18 @@ const AddUser = () => {
         method: 'POST',
         body: formData,
       });
+      const data = response.json();
 
       if (!response.ok) {
-        throw new Error('Failed to add user');
+        if (response.status === 400) {
+          showError('This email is already registered. Please use another one.');
+        } else {
+          showError('❌ Failed to Add User! ' + (data.message || 'Unknown error'));
+        }
+        return;
       }
       dispatch(screenChange(9));
-      showSuccess('✅ User Added Successfully!');
+      showSuccess('Request has been sent to the admin for approval.');
 
       setName('');
       setEmail('');

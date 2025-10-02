@@ -78,7 +78,7 @@ export default function RescheduleConfirm() {
             const timeDiffMinutes = (meetingDate - now) / (1000 * 60);
 
             // Only allow if more than 30 minutes before start
-            canRescheduleFlag = timeDiffMinutes > 30;
+            canRescheduleFlag = timeDiffMinutes > 60;
           }
 
           appointmentDate = meetingDate;
@@ -292,8 +292,8 @@ export default function RescheduleConfirm() {
             </Typography>
             <Typography sx={{ mt: 0.5, color: '#d4af37' }}>
               {canReschedule
-                ? 'You can reschedule until 30 minutes before the appointment.'
-                : 'This appointment starts within 30 minutes and can no longer be rescheduled.'}
+                ? 'You can reschedule until 60 minutes before the appointment.'
+                : 'This appointment starts within minutes and can no longer be rescheduled.'}
             </Typography>
           </Box>
 

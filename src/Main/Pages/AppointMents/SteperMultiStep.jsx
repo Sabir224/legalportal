@@ -188,6 +188,7 @@ function LegalConsultationStepper() {
   const [linkData, setLinkData] = React.useState(null);
   const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
   const [answers, setAnswers] = useState({});
+  const [paymentStatus, setPaymentSatus] = useState('');
   const services = [
     { name: 'Civil Law', description: 'Civil law related legal services' },
     { name: 'Commercial Law', description: 'Commercial law related legal services' },
@@ -215,10 +216,42 @@ function LegalConsultationStepper() {
     { name: 'Debt Collection Law', description: 'Debt collection related legal services' },
     { name: 'Capital Funds Law', description: 'Capital funds and investment-related legal services' },
   ];
+  const RenderQuestion = ({ question }) => {
+    if (!question) return null;
+
+    // Regex to match parentheses content
+    const regex = /\(([^)]+)\)/g;
+    const parts = [];
+    let lastIndex = 0;
+    let match;
+
+    while ((match = regex.exec(question)) !== null) {
+      // Text before (
+      if (match.index > lastIndex) {
+        parts.push(question.slice(lastIndex, match.index));
+      }
+
+      // Italic part inside ()
+      parts.push(<i key={match.index}>({match[1]})</i>);
+
+      lastIndex = regex.lastIndex;
+    }
+
+    // Remaining text after last )
+    if (lastIndex < question.length) {
+      parts.push(question.slice(lastIndex));
+    }
+
+    return <span>{parts}</span>;
+  };
+  const italicizeParentheses = (text) => {
+    if (!text) return text;
+    return text.replace(/\(([^)]+)\)/g, (_, inner) => `<i>(${inner})</i>`);
+  };
 
   const questionsConfig = {
     'Civil Law': [
-      { type: 'checkbox', question: 'Is the client the plaintiff or defendant?', options: ['Plaintiff', 'Defendant'] },
+      { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
       {
         type: 'text',
         question:
@@ -257,7 +290,7 @@ function LegalConsultationStepper() {
       },
     ],
     'Criminal Law': [
-      { type: 'checkbox', question: 'Is the client the plaintiff or defendant?', options: ['Plaintiff', 'Defendant'] },
+      { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
       {
         type: 'text',
         question:
@@ -278,7 +311,7 @@ function LegalConsultationStepper() {
       {
         type: 'text',
         question:
-          'If this concerns a deceased person, what is the relationship? (Include known details about the will’s location or probate status if available.)',
+          'If this concerns a deceased person, what is the relationship? (Include known details about the will’s if available.)',
       },
       {
         type: 'text',
@@ -362,7 +395,7 @@ function LegalConsultationStepper() {
       {
         type: 'text',
         question:
-          'What type of financial issue is involved? (fraud, misrepresentation, banking dispute, unauthorized transactions, etc.)',
+          'What is the nature of your financial issue? (fraud, misrepresentation, banking dispute, unauthorized transactions, etc.)',
       },
       { type: 'text', question: 'What financial institutions or parties are involved?' },
       { type: 'text', question: 'What actions have been taken so far (complaints, regulatory filings, lawsuits)?' },
@@ -440,7 +473,7 @@ function LegalConsultationStepper() {
       { type: 'file', question: 'Attach relevant documents (if any)' },
     ],
     'Rental Law': [
-      { type: 'checkbox', question: 'Client is the:', options: ['Landlord', 'Tenant'] },
+      { type: 'checkbox', question: 'Are you the:', options: ['Landlord', 'Tenant'] },
       { type: 'checkbox', question: 'Type of Lease:', options: ['Residential', 'Commercial'] },
       {
         type: 'text',
@@ -470,7 +503,7 @@ function LegalConsultationStepper() {
     'Debt Collection Law': [
       {
         type: 'checkbox',
-        question: 'Is the client the',
+        question: 'Are you the:',
         options: ['Creditor (seeking to collect a debt)', 'Debtor (responding to a debt or enforcement action)'],
       },
       {
@@ -488,7 +521,7 @@ function LegalConsultationStepper() {
     'Capital Funds Law': [
       {
         type: 'checkbox',
-        question: 'Client Role',
+        question: 'Are you a:',
         options: ['Fund Manager', 'Investor', 'Company Seeking Investment', 'Advisor/Other'],
       },
       {
@@ -549,7 +582,7 @@ function LegalConsultationStepper() {
       case 'Online':
         return 'Online';
       case 'InPerson/Online':
-        return 'In Person and Online Both';
+        return 'In Person & Online ';
       default:
         return value || 'N/A';
     }
@@ -1359,7 +1392,7 @@ function LegalConsultationStepper() {
         },
         caseDescription: caseDiscription,
       });
-
+      setPaymentSatus('pending');
       if (paymentResponse.isDuplicate) {
         console.log('🔄 Duplicate payment detected, using existing payment:', paymentResponse.paymentId);
       }
@@ -1476,7 +1509,7 @@ function LegalConsultationStepper() {
       }),
       caseDescription: caseDiscription,
     };
-
+    setPaymentSatus('paid');
     // Update payment with all details
     await axios.post(`${ApiEndPoint}payments/update-status`, paymentUpdateData);
 
@@ -1964,19 +1997,25 @@ function LegalConsultationStepper() {
                 </Typography>
                 {questionsConfig[service]?.map((q, idx) => (
                   <Box key={idx} sx={{ mt: 2 }}>
-                    <Typography sx={{ color: 'white', mb: 1 }}>{q.question}</Typography>
+                    <Typography sx={{ color: 'white', mb: 1 }}>
+                      {' '}
+                      <RenderQuestion question={q.question} />
+                    </Typography>
                     {q.type === 'text' && (
                       <TextField
                         fullWidth
                         multiline
-                        minRows={1}
-                        maxRows={4}
                         value={answers[q.question] || ''}
                         onChange={(e) => handleAnswerChange(q.question, e.target.value)}
                         error={!!errors[q.question]}
                         helperText={errors[q.question] || ''}
                         InputProps={{
-                          style: { color: 'white', backgroundColor: '#18273e' },
+                          style: {
+                            color: 'white',
+                            backgroundColor: '#18273e',
+                            maxHeight: '200px', // ✅ set your max height here
+                            overflowY: 'auto', // ✅ enable scroll if text exceeds max height
+                          },
                         }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
@@ -1984,10 +2023,14 @@ function LegalConsultationStepper() {
                             '& fieldset': { borderColor: 'rgba(255,255,255,0.23)' },
                             '&:hover fieldset': { borderColor: '#d4af37' },
                             '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                            textarea: {
+                              overflowY: 'auto', // ✅ scroll inside textarea
+                            },
                           },
                         }}
                       />
                     )}
+
                     {q.type === 'checkbox' && (
                       <FormGroup>
                         {q.options.map((option) => (
@@ -2048,10 +2091,9 @@ function LegalConsultationStepper() {
                     )}
                   </Box>
                 ))}
-
                 <Box sx={{ mt: 3 }}>
                   <TextField
-                    label="Case Description (Required)"
+                    label="Preview Description"
                     value={caseDiscription}
                     onChange={(e) => setDiscription(e.target.value)}
                     required
@@ -2230,7 +2272,7 @@ function LegalConsultationStepper() {
                               <DetailItem
                                 icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
                                 label="Experience"
-                                value={lawyer.experience}
+                                value={(lawyer.experience, ' Years')}
                               />
                               <DetailItem
                                 icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
@@ -3555,8 +3597,7 @@ function LegalConsultationStepper() {
                     color: 'white',
                   }}
                 >
-                  {subject} on {new Intl.DateTimeFormat('en-US', options).format(selectedDate)} at{' '}
-                  {convertTo12HourFormat(selectedSlot?.startTime)}
+                  Add additional information (optional)
                 </h3>
                 <textarea
                   placeholder="Text Message (Optional)"
@@ -3576,10 +3617,7 @@ function LegalConsultationStepper() {
                 {isPopupVisiblecancel && (
                   <div className="popup-actions d-flex justify-content-center">
                     <button className="confirm-btn" onClick={handleConfirm}>
-                      Yes
-                    </button>
-                    <button className="cancel-btn" onClick={handleClosePopup}>
-                      No
+                      Done
                     </button>
                   </div>
                 )}
@@ -3663,6 +3701,7 @@ function LegalConsultationStepper() {
           sx={{
             display: 'flex',
             justifyContent: 'center',
+            gap: 2,
             pt: 2,
           }}
         >
@@ -3682,45 +3721,70 @@ function LegalConsultationStepper() {
               Book Another Appointment
             </Button>
           ) : (
-            // Show Next button only for steps 0-3 (Service Type, Select Lawyer, Date & Time, Consultation Method)
-            activeStep < 4 && (
-              <Button
-                endIcon={<ArrowForward />}
-                variant="contained"
-                onClick={handleNext}
-                disabled={
-                  loading ||
-                  // Step 0: Service + Required Questions + Description
-                  (activeStep === 0 &&
-                    (!service ||
-                      !caseDiscription.trim() ||
-                      (questionsConfig[service] || []).some(
-                        (q) =>
-                          q.required !== false && // ❌ only check required ones
-                          ((q.type === 'text' && !answers[q.question]) ||
-                            (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)))
-                      ))) ||
-                  // Step 1: Select lawyer
-                  (activeStep === 1 && !selectedLawyer) ||
-                  // Step 2: Date + Slot
-                  (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
-                  // Step 3: Consultation Method
-                  (activeStep === 3 && !method)
-                }
-                sx={{
-                  backgroundColor: '#d4af37',
-                  color: '#18273e',
-                  fontWeight: 'bold',
-                  '&:hover': { backgroundColor: '#c19b2e' },
-                  '&.Mui-disabled': {
-                    backgroundColor: 'rgba(212, 175, 55, 0.5)',
-                    color: 'rgba(24, 39, 62, 0.5)',
-                  },
-                }}
-              >
-                {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
-              </Button>
-            )
+            <>
+              {activeStep > 0 &&
+                activeStep < 5 &&
+                paymentStatus !== 'paid' &&
+                paymentStatus !== 'pending' &&
+                data?.payment?.status !== 'paid' &&
+                data?.payment?.status !== 'pending' && (
+                  <Button
+                    startIcon={<ArrowBack />}
+                    variant="outlined"
+                    onClick={handleBack}
+                    sx={{
+                      backgroundColor: '#d4af37',
+                      color: '#18273e',
+                      fontWeight: 'bold',
+                      '&:hover': { backgroundColor: '#c19b2e' },
+                      '&.Mui-disabled': {
+                        backgroundColor: 'rgba(212, 175, 55, 0.5)',
+                        color: 'rgba(24, 39, 62, 0.5)',
+                      },
+                    }}
+                  >
+                    Back
+                  </Button>
+                )}
+
+              {activeStep < 4 && (
+                <Button
+                  endIcon={<ArrowForward />}
+                  variant="contained"
+                  onClick={handleNext}
+                  disabled={
+                    loading ||
+                    // Step 0: Service + Required Questions + Description
+                    (activeStep === 0 && !service) ||
+                    // !caseDiscription.trim() ||
+                    // (questionsConfig[service] || []).some(
+                    //   (q) =>
+                    //     q.required !== false && // ❌ only check required ones
+                    //     ((q.type === 'text' && !answers[q.question]) ||
+                    //       (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)))
+                    // )
+                    // Step 1: Select lawyer
+                    (activeStep === 1 && !selectedLawyer) ||
+                    // Step 2: Date + Slot
+                    (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
+                    // Step 3: Consultation Method
+                    (activeStep === 3 && !method)
+                  }
+                  sx={{
+                    backgroundColor: '#d4af37',
+                    color: '#18273e',
+                    fontWeight: 'bold',
+                    '&:hover': { backgroundColor: '#c19b2e' },
+                    '&.Mui-disabled': {
+                      backgroundColor: 'rgba(212, 175, 55, 0.5)',
+                      color: 'rgba(24, 39, 62, 0.5)',
+                    },
+                  }}
+                >
+                  {loading ? <CircularProgress size={24} sx={{ color: '#18273e' }} /> : 'Next'}
+                </Button>
+              )}
+            </>
           )}
         </Box>
       </Paper>

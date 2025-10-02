@@ -33,6 +33,13 @@ import {
   Checkbox,
   Stack,
   Collapse,
+  DialogActions,
+  MenuItem,
+  Select,
+  InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material';
 import {
   CalendarToday,
@@ -67,6 +74,7 @@ import { minWidth } from '@mui/system';
 import { CheckCircleIcon, Receipt } from 'lucide-react';
 import PaymentConfirmationDialog from './PaymentConfirmationDailog';
 import axios from 'axios';
+import { FormControl } from 'react-bootstrap';
 const lightTheme = {
   background: '#f8f9fa',
   accentColor: '#d4af37',
@@ -148,6 +156,8 @@ export default function LegalServicesDashboard() {
   const [caseIdFilter, setCaseIdFilter] = useState([]);
   const [dateFilter, setDateFilter] = useState({ startDate: '', endDate: '' });
   const [expandedRows, setExpandedRows] = useState({});
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingSubitem, setEditingSubitem] = useState(null);
 
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
@@ -281,7 +291,45 @@ export default function LegalServicesDashboard() {
 
     fetchData();
   }, []);
+  // Open dialog with selected subitem
+  const handleEditSubitem = (subitem, caseId) => {
+    setEditingSubitem({ ...subitem, caseId });
+    setEditOpen(true);
+  };
 
+  const handleCloseEdit = () => {
+    setEditOpen(false);
+    setEditingSubitem(null);
+  };
+
+  const handleSaveEdit = async () => {
+    try {
+      // Call your API
+      const response = await axios.put(
+        `${ApiEndPoint}legal-services/${editingSubitem.caseId}/payments/${editingSubitem._id}`,
+        editingSubitem
+      );
+
+      if (response.data.success) {
+        // Update local state without refetch
+        setData((prev) =>
+          prev.map((c) =>
+            c._id === editingSubitem.caseId
+              ? {
+                  ...c,
+                  paymentSubitems: c.paymentSubitems.map((p) =>
+                    p._id === editingSubitem._id ? { ...editingSubitem } : p
+                  ),
+                }
+              : c
+          )
+        );
+        handleCloseEdit();
+      }
+    } catch (err) {
+      console.error('Error updating payment:', err);
+    }
+  };
   const filteredData = useMemo(() => {
     if (!data || data.length === 0) return [];
 
@@ -671,7 +719,7 @@ export default function LegalServicesDashboard() {
               <StatCard
                 title="Revenue Last Month"
                 value={summary.revenueLastMonth || 0}
-                subtitle={`${summary.bookingsLastMonth || 0} services`}
+                // subtitle={`${summary.bookingsLastMonth || 0} services`}
                 icon={ArrowBack}
                 isCurrency
               />
@@ -680,7 +728,17 @@ export default function LegalServicesDashboard() {
               <StatCard
                 title="Revenue This Month"
                 value={summary.revenueThisMonth || 0}
-                subtitle={`${summary.bookingsThisMonth || 0} services`}
+                // subtitle={`${summary.bookingsThisMonth || 0} services`}
+                icon={CalendarMonth}
+                isCurrency
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={2}>
+              <StatCard
+                title="Revenue This Month"
+                value={summary.revenueThisMonth || 0}
+                subtitle=""
                 icon={CalendarMonth}
                 isCurrency
               />
@@ -689,32 +747,20 @@ export default function LegalServicesDashboard() {
               <StatCard
                 title="Revenue Today"
                 value={summary.revenueToday || 0}
-                subtitle={`${summary.bookingsToday || 0} services`}
+                // subtitle={`${summary.bookingsToday || 0} services`}
                 icon={Today}
                 isCurrency
               />
             </Grid>
-            {/* Revenue */}
+
             <Grid item xs={12} sm={6} md={2}>
               <StatCard
-                title="Revenue Last Month"
-                value={summary.revenueLastMonth || 0}
-                subtitle=""
-                icon={ArrowBack}
+                title="Total Pending"
+                value={totals.pending || 0}
+                subtitle="Awaiting payment"
+                icon={CalendarToday}
                 isCurrency
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Revenue This Month"
-                value={summary.revenueThisMonth || 0}
-                subtitle=""
-                icon={CalendarMonth}
-                isCurrency
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard title="Revenue Today" value={summary.revenueToday || 0} subtitle="" icon={Today} isCurrency />
             </Grid>
 
             {/* Bookings */}
@@ -742,7 +788,7 @@ export default function LegalServicesDashboard() {
                 icon={Receipt}
               />
             </Grid>
-            <Grid item xs={12} sm={6} md={2}>
+            {/* <Grid item xs={12} sm={6} md={2}>
               <StatCard
                 title="Total Invoiced"
                 value={totals.invoiced || 0}
@@ -750,8 +796,8 @@ export default function LegalServicesDashboard() {
                 icon={Receipt}
                 isCurrency
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
+            </Grid> */}
+            {/* <Grid item xs={12} sm={6} md={2}>
               <StatCard
                 title="Total Received"
                 value={totals.received || 0}
@@ -759,16 +805,7 @@ export default function LegalServicesDashboard() {
                 icon={AttachMoney}
                 isCurrency
               />
-            </Grid>
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Total Pending"
-                value={totals.pending || 0}
-                subtitle="Awaiting payment"
-                icon={CalendarToday}
-                isCurrency
-              />
-            </Grid>
+            </Grid> */}
           </Grid>
 
           {/* Revenue Graph */}
@@ -1050,7 +1087,7 @@ export default function LegalServicesDashboard() {
                         <TableRow>
                           <FilterableHeaderCell
                             label="Case ID"
-                            minWidth={120}
+                            minWidth={150}
                             isActive={caseIdFilter.length < data.length}
                             onClick={(e) => handleOpenFilter('caseId', e)}
                           />
@@ -1140,11 +1177,11 @@ export default function LegalServicesDashboard() {
                             }
                             onClick={(e) => handleOpenFilter('actionItem', e)}
                           />
-                          <StyledTableCell
+                          {/* <StyledTableCell
                             sx={{ minWidth: 80, backgroundColor: lightTheme.textPrimary, color: lightTheme.background }}
                           >
                             Details
-                          </StyledTableCell>
+                          </StyledTableCell> */}
                         </TableRow>
                       </TableHead>
 
@@ -1153,14 +1190,24 @@ export default function LegalServicesDashboard() {
                           <React.Fragment key={item._id}>
                             <StyledTableRow hover>
                               <StyledTableCell>
-                                <Typography
-                                  variant="body2"
-                                  fontWeight="medium"
-                                  sx={{ color: lightTheme.textPrimary, fontSize: '0.875rem' }}
-                                >
-                                  {item.caseId}
-                                </Typography>
+                                <Box display="flex" alignItems="center" gap={1}>
+                                  <IconButton
+                                    size="small"
+                                    onClick={() => toggleRowExpansion(item._id)}
+                                    sx={{ color: lightTheme.accentColor }}
+                                  >
+                                    {expandedRows[item._id] ? <ExpandLess /> : <ExpandMore />}
+                                  </IconButton>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight="medium"
+                                    sx={{ color: lightTheme.textPrimary, fontSize: '0.875rem' }}
+                                  >
+                                    {item.caseId}
+                                  </Typography>
+                                </Box>
                               </StyledTableCell>
+
                               <StyledTableCell>
                                 <Typography
                                   variant="body2"
@@ -1222,15 +1269,6 @@ export default function LegalServicesDashboard() {
                                   size="small"
                                   sx={{ fontWeight: 600 }}
                                 />
-                              </StyledTableCell>
-                              <StyledTableCell>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => toggleRowExpansion(item._id)}
-                                  sx={{ color: lightTheme.accentColor }}
-                                >
-                                  {expandedRows[item._id] ? <ExpandLess /> : <ExpandMore />}
-                                </IconButton>
                               </StyledTableCell>
                             </StyledTableRow>
 
@@ -1358,6 +1396,15 @@ export default function LegalServicesDashboard() {
                                             </StyledTableCell>
                                             <StyledTableCell>{subitem.transactionId || 'N/A'}</StyledTableCell>
                                             <StyledTableCell>{subitem.notes || 'N/A'}</StyledTableCell>
+                                            {/* <StyledTableCell>
+                                              <Button
+                                                size="small"
+                                                variant="outlined"
+                                                onClick={() => handleEditSubitem(subitem, item._id)}
+                                              >
+                                                Edit
+                                              </Button>
+                                            </StyledTableCell> */}
                                           </TableRow>
                                         ))}
                                       </TableBody>
@@ -1511,6 +1558,59 @@ export default function LegalServicesDashboard() {
             </Popover>
           )}
         </Container>
+        <Dialog open={editOpen} onClose={handleCloseEdit} fullWidth maxWidth="sm">
+          <DialogTitle>Edit Payment</DialogTitle>
+          <DialogContent>
+            <TextField
+              margin="dense"
+              label="Received Amount"
+              type="number"
+              fullWidth
+              value={editingSubitem?.receivedAmount || ''}
+              onChange={(e) => setEditingSubitem({ ...editingSubitem, receivedAmount: Number(e.target.value) })}
+            />
+
+            {/* Dropdown for Payment Method */}
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="payment-method-label">Payment Method</InputLabel>
+              <Select
+                labelId="payment-method-label"
+                value={editingSubitem?.paymentMethod || 'cash'}
+                onChange={(e) => setEditingSubitem({ ...editingSubitem, paymentMethod: e.target.value })}
+              >
+                <MenuItem value="cash">Cash</MenuItem>
+                <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
+                <MenuItem value="credit_card">Credit Card</MenuItem>
+                <MenuItem value="debit_card">Debit Card</MenuItem>
+                <MenuItem value="paypal">PayPal</MenuItem>
+                <MenuItem value="stripe">Stripe</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+              margin="dense"
+              label="Transaction ID"
+              fullWidth
+              value={editingSubitem?.transactionId || ''}
+              onChange={(e) => setEditingSubitem({ ...editingSubitem, transactionId: e.target.value })}
+            />
+
+            <TextField
+              margin="dense"
+              label="Notes"
+              fullWidth
+              value={editingSubitem?.notes || ''}
+              onChange={(e) => setEditingSubitem({ ...editingSubitem, notes: e.target.value })}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseEdit}>Cancel</Button>
+            <Button onClick={handleSaveEdit} variant="contained" color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Box>
     </LocalizationProvider>
   );

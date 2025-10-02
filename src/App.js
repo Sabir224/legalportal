@@ -39,6 +39,8 @@ import LFQ_ClientCaseEvaluationForm from './Main/Pages/Component/Case_Forms/LFQF
 import BookConsultation from './Main/Pages/AppointMents/GenerateBookLinkForwebiste';
 import { jwtDecode } from 'jwt-decode';
 import LEA_Form from './Main/Pages/Component/Case_Forms/LFA_form';
+import AdminApprovalPage from './Main/Pages/AddUsers/ApprovalRequest';
+import ResetUserPassword from './Main/Pages/AddUsers/ResetPasword';
 
 const stripePromise = loadStripe(
   'pk_test_51RoQo6BT7u3uYz1KIIKn6F2KvS3L27Wl3KFljhLwhxQpUURhdinGJgrF1FsnNjn0R2XcPZ3rKZoGxYXpgo80cDbv00NMFKr9m1'
@@ -117,12 +119,23 @@ const GlobalTokenValidator = () => {
       '/LFA_Form',
       '/clientAppointMent',
       '/reschedule',
+      '/approval/:token',
+      '/reset-user-password/:token',
     ];
 
     const pathname = location.pathname;
 
     // Helper function to check if route is public
-    const isPublicRoute = (path) => publicRoutes.includes(path);
+    const isPublicRoute = (path) => {
+      return publicRoutes.some((route) => {
+        if (route.includes(':token')) {
+          // Handle dynamic token routes
+          const base = route.split('/:token')[0];
+          return path.startsWith(base);
+        }
+        return path === route;
+      });
+    };
 
     // Don't validate on public routes
     if (isPublicRoute(pathname)) return;
@@ -147,10 +160,7 @@ const GlobalTokenValidator = () => {
   return null;
 };
 
-
 function App() {
-
-
   useEffect(() => {
     if (!SocketService.socket || !SocketService.socket.connected) {
       console.log('🔌 Connecting to socket...');
@@ -189,6 +199,8 @@ function App() {
           }
         />
         <Route path="/reschedule" element={<RescheduleConfirm />} />
+        <Route path="/approval/:token" element={<AdminApprovalPage />} />
+        <Route path="/reset-user-password/:token" element={<ResetUserPassword />} />
 
         {/* Protected routes */}
         <Route

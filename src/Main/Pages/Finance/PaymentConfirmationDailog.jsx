@@ -7,8 +7,9 @@ import {
   DialogActions,
   Button,
   CircularProgress,
+  Box,
 } from '@mui/material';
-import { Box, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 const PaymentConfirmationDialog = ({ open, onCancel, onConfirm, paymentSuccess, loadingPayment }) => {
   return (
@@ -107,7 +108,7 @@ const PaymentConfirmationDialog = ({ open, onCancel, onConfirm, paymentSuccess, 
             >
               {loadingPayment ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={18} color="inherit" />
+                  <CircularProgress size={18} sx={{ color: '#b8962f' }} />
                   Marking...
                 </Box>
               ) : (
