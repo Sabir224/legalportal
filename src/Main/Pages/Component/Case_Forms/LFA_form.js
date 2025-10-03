@@ -10684,12 +10684,24 @@ const LEA_Form = ({ token }) => {
                 </Modal.Body>
                 <Modal.Footer className="justify-content-center">
                     <div className="d-flex gap-3">
-                        <Button
+                        <div
+                            className="align-items-center"
                             style={{
-                                backgroundColor: "#001f54", // Dark Blue
+                                backgroundColor: "#16213e",
                                 color: "white",
-                                border: "none",
-                                transition: "all 0.3s ease-in-out"
+                                width: "150px",
+                                minWidth: "170px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                alignSelf: 'center',
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = "#c0a262"; // Golden on hover
@@ -10702,15 +10714,33 @@ const LEA_Form = ({ token }) => {
                             onClick={() => setShowRejectModal(false)}
                         >
                             Cancel
-                        </Button>
+                        </div>
 
-                        <Button
-                            variant="danger"
+                        <div
+                            // variant="danger"
+                            className="align-items-center"
+                            style={{
+                                backgroundColor: "red",
+                                color: "white",
+                                width: "150px",
+                                minWidth: "170px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                alignSelf: 'center',
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
+                            }}
                             onClick={handleRejectLFA}
                             disabled={isSubmittingRejection}
                         >
                             {isSubmittingRejection ? "Submitting..." : "Submit Rejection"}
-                        </Button>
+                        </div>
                     </div>
                 </Modal.Footer>
             </Modal>
@@ -11145,14 +11175,24 @@ const LEA_Form = ({ token }) => {
                                 <Modal.Footer className="justify-content-center">
                                     {/* OK Button - Closes the modal */}
                                     <button
-                                        className="btn btn-primary me-2"
+                                        className="align-items-center"
                                         onClick={() => setRejectionAcknowledged(true)}
                                         style={{
-                                            backgroundColor: "#001f54",
+                                            backgroundColor: "#16213e",
                                             color: "white",
-                                            border: "none",
-                                            transition: "all 0.3s ease-in-out",
-                                            minWidth: "100px"
+                                            width: "150px",
+                                            minWidth: "170px",
+                                            maxWidth: "200px",
+                                            padding: "8px 20px",
+                                            borderRadius: "4px",
+                                            fontSize: "14px",
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            alignSelf: 'center',
+                                            border: "2px solid #16213e",
+                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                            transition: "all 0.3s ease",
+                                            fontWeight: "500",
                                         }}
                                         onMouseOver={(e) => {
                                             e.currentTarget.style.backgroundColor = "#c0a262";
@@ -11167,15 +11207,26 @@ const LEA_Form = ({ token }) => {
                                     </button>
 
                                     {/* Edit Agreement Button */}
-                                    <button
-                                        className="btn btn-primary"
+                                    <div
+                                        className="align-items-center"
                                         onClick={() => setEditMode(true)}
+
                                         style={{
-                                            backgroundColor: "#001f54",
+                                            backgroundColor: "#16213e",
                                             color: "white",
-                                            border: "none",
-                                            transition: "all 0.3s ease-in-out",
-                                            minWidth: "120px"
+                                            width: "150px",
+                                            minWidth: "170px",
+                                            maxWidth: "200px",
+                                            padding: "8px 20px",
+                                            borderRadius: "4px",
+                                            fontSize: "14px",
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            alignSelf: 'center',
+                                            border: "2px solid #16213e",
+                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                            transition: "all 0.3s ease",
+                                            fontWeight: "500",
                                         }}
                                         onMouseOver={(e) => {
                                             e.currentTarget.style.backgroundColor = "#c0a262";
@@ -11187,7 +11238,7 @@ const LEA_Form = ({ token }) => {
                                         }}
                                     >
                                         Edit Agreement
-                                    </button>
+                                    </div>
                                 </Modal.Footer>
                             </Modal>
                         )}
