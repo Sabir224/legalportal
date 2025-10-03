@@ -651,7 +651,6 @@ const BasicCase = ({ token }) => {
         filteredCases = allCases.filter(
           (caseItem) =>
             caseItem.ClientId === token?._id &&
-            caseItem.Status !== "Closed" &&
             caseItem.CloseType === reduxCaseCloseType
         );
       } else if (token.Role?.toLowerCase() === "admin") {
@@ -665,12 +664,14 @@ const BasicCase = ({ token }) => {
           caseItem.AssignedUsers?.some(
             (user) =>
               user.UserId?.toString() === token._id?.toString() &&
-              caseItem.Status !== "Closed" &&
               caseItem.CloseType === reduxCaseCloseType
           )
         );
       }
 
+
+
+      console.log(" filterCase =", filteredCases)
       // 🔹 Grouping logic: {header: clientName/id, subcases:[cases]}
       const groupedCases = Object.values(
         filteredCases.reduce((acc, caseItem) => {
@@ -1714,6 +1715,21 @@ const BasicCase = ({ token }) => {
                         </div>
                       </div>
                     </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
                     {/* Desktop View - Horizontal Layout */}
 
