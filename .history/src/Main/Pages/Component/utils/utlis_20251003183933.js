@@ -91,9 +91,13 @@ export const theme = createTheme({
   },
 });
 export const zohoInvoiceBaseApi = 'https://www.zohoapis.com/invoice/v3';
-export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
+//export const ApiEndPoint = 'https://portal.aws-legalgroup.com/api/';
 //export const ApiEndPoint = "https://awsrealestate.awschatbot.online/api/";
+<<<<<<< HEAD
+export const ApiEndPoint = 'http://localhost:5001/api/';
+=======
 // export const ApiEndPoint = 'http://localhost:5001/api/';
+>>>>>>> 2963b9057f6170686a0e4445353995910c77b95e
 
 // Utility function to decode JWT token and check its expiration time
 export const decodeToken = (token) => {
