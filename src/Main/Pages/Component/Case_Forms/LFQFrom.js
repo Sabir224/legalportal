@@ -1059,7 +1059,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
         const approvedBySignBase64 = data.isApproved ? await getBase64ImageFromUrl(Stamp) : null;
 
         // === BRAND/LAYOUT CONTROLS ===
-        const sidebarWidth = 85;
+        const sidebarWidth = 45;
         const BAR_COLOR = "#18273e";
 
         // Big watermark settings (center of page)
@@ -1102,8 +1102,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 // Bottom-left strip "AWS" (4 times)
                 // Replace the 4x loop with a single bottom-left logo
                 const bottomPadding = 8;
-                const AWS_SIDE_LOGO_SIZE = 96; // adjust size as needed
-                const AWS_SIDE_LOGO_width = 87; // adjust size as needed
+                const AWS_SIDE_LOGO_SIZE = 45; // adjust size as needed
+                const AWS_SIDE_LOGO_width = 45; // adjust size as needed
                 // place it a bit above bottom with small left offset (matches previous AWS_SIDE_X-10)
                 const bottomY = pageSize.height - bottomPadding - AWS_SIDE_LOGO_SIZE - 6;
 
@@ -1153,7 +1153,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 // }
 
                 // >>> NEW: logo inside the LEFT strip at the top (centered)
-                const STRIP_LOGO_SIZE = 85;                            // adjust if needed
+                const STRIP_LOGO_SIZE = 45;                            // adjust if needed
                 const stripLogoX = Math.round((sidebarWidth - STRIP_LOGO_SIZE) / 2);
                 const stripLogoY = 10;                                 // distance from page top
                 const stripLogo = (AWSSideLogo

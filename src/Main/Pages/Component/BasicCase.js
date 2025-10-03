@@ -144,20 +144,20 @@ const BasicCase = ({ token }) => {
   ];
 
   const UpdateSubtypelist = [
-    "Civil Case",
+    "Civil Law",
     "Commercial Law",
-    "Criminal Case",
+    "Criminal Law",
     "Family Law",
-    "Real Estate Case",
-    "Labor Case",
-    "Construction Case",
-    "Maritime Case",
-    "Personal Injury Case", ,
-    "Technology Case",
-    "Financial Case",
+    "Real Estate Law",
+    "Labor Law",
+    "Construction Law",
+    "Maritime Law",
+    "Personal Injury Law", ,
+    "Technology Law",
+    "Financial Law",
     "Public Law",
-    "Consumer Case",
-    "Environmental Case",
+    "Consumer Law",
+    "Environmental Law",
     "Rental Law"
   ]
 
@@ -252,9 +252,17 @@ const BasicCase = ({ token }) => {
   };
   // Fetch cases on component mount
 
+  const handleSubEdit = (parentIndex, subIndex, value) => {
+    const updatedData = [...data];
+    updatedData[parentIndex].subcases[subIndex].notes = value;
+    setData(updatedData);
+  };
+
+
   const handleClick = async (scr, item) => {
     // const newParams = { CaseId:item.CaseId };
     // dispatch(setParams(newParams));
+    console.log("item = ", item)
     global.CaseId = item;
     dispatch(Caseinfo(item));
     console.log("  global.CaseId ", item?._id);
@@ -1535,6 +1543,7 @@ const BasicCase = ({ token }) => {
                 .map((item, index) => (
                   <div key={index} className="border-bottom position-relative">
                     {/* Mobile View */}
+                    {/* MOBILE VIEW */}
                     <div
                       className="d-md-none p-3"
                       style={{
@@ -1543,40 +1552,43 @@ const BasicCase = ({ token }) => {
                         maxHeight: "83vh",
                       }}
                     >
-                      {/* Status and Actions Row */}
-                      <div className="d-flex flex-wrap justify-content-between align-items-center mb-3" style={{ alignContent: "flex-end" }}>
-                        <Dropdown>
+                      <div className="d-flex justify-content-start mt-2 mb-2">
+                        <Dropdown
+                          show={dropdownOpen === item?.headerCase?._id}
+                          onToggle={(isOpen) =>
+                            setDropdownOpen(isOpen ? item?.headerCase?._id : null)
+                          }
+                        >
                           <Dropdown.Toggle
-                            variant="light"
+                            variant=""
                             size="sm"
-                            className="rounded-circle p-0 border"
-                            style={{
-                              width: "28px",
-                              height: "28px",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
+                            className="custom-dropdown-toggle"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setDropdownOpen(
+                                dropdownOpen === item?.headerCase?._id ? null : item?.headerCase?._id
+                              );
                             }}
-                          >
-                            <i className="bi bi-three-dots-vertical"></i>
-                          </Dropdown.Toggle>
+                          ></Dropdown.Toggle>
+
                           <Dropdown.Menu>
                             {token.Role === "admin" && reduxCaseCloseType === "" && (
                               <>
                                 <Dropdown.Item
                                   onClick={(event) => {
                                     event.stopPropagation();
-                                    handleOpenModal(item);
+                                    handleOpenModal(item?.headerCase);
                                   }}
                                 >
                                   Assign Case
                                 </Dropdown.Item>
+
                                 <Dropdown.Item
                                   onClick={async (event) => {
                                     event.stopPropagation();
                                     setLoaderOpen(true);
                                     try {
-                                      const response = await updateFunction(item);
+                                      const response = await updateFunction(item?.headerCase);
                                       if (response?.success) setLoaderOpen(false);
                                     } catch (err) {
                                       console.error("Update failed", err);
@@ -1586,124 +1598,122 @@ const BasicCase = ({ token }) => {
                                 >
                                   Update Case
                                 </Dropdown.Item>
-                                {token.Role === "admin" && (
-                                  <>
-                                    <Dropdown.Item onClick={(event) => {
-                                      event.stopPropagation();
-                                      setSelectedCase(item);
-                                      setShowCloseType(true);
-                                    }}>
-                                      Close Type
-                                    </Dropdown.Item>
 
-                                  </>
-                                )}
-                                {token.Role === "admin" && (
-                                  <Dropdown.Item
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setSelectedCase(item);
-                                      setShowMergeModal(true);
-                                    }}
-                                  >
-                                    Merge With
-                                  </Dropdown.Item>
-                                )}
-                                {token.Role === "admin" && (
-                                  <Dropdown.Item
-                                    onClick={(event) => {
-                                      event.preventDefault()
-                                      event.stopPropagation();
-                                      setSelectedCase(item);
-                                      setSelectedCaseType(item?.CaseType)
-                                      setShowCaseType(true);
-                                    }}
-                                  >
-                                    {item?.CaseType ? "Update" : "Add"} Case Type
-                                  </Dropdown.Item>
-                                )}
-                                {token.Role === "admin" && (
-                                  <Dropdown.Item
-                                    onClick={(event) => {
-                                      event.preventDefault()
-                                      event.stopPropagation();
-                                      setSelectedCase(item);
-                                      setShowSubCaseType(true);
-                                    }}
-                                  >
-                                    {item?.CaseSubType ? "Update" : "Add"} Case Sub Type
-                                  </Dropdown.Item>
-                                )}
-                                {token.Role === "admin" && (
-                                  <Dropdown.Item
-                                    onClick={(event) => {
-                                      event.stopPropagation();
-                                      setSelectedCase(item);
-                                      setShowCaseStages(true);
-                                    }}
-                                  >
-                                    Set Case Stage
-                                  </Dropdown.Item>
-                                )}
+                                <Dropdown.Item
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCase(item?.headerCase);
+                                    setShowMergeModal(true);
+                                  }}
+                                >
+                                  Merge With
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCase(item?.headerCase);
+                                    setShowCloseType(true);
+                                  }}
+                                >
+                                  Close Type
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCase(item?.headerCase);
+                                    setShowCaseType(true);
+                                  }}
+                                >
+                                  {item?.headerCase?.CaseType ? "Update" : "Add"} Case Type
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCase(item?.headerCase);
+                                    setShowSubCaseType(true);
+                                  }}
+                                >
+                                  {item?.headerCase?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                </Dropdown.Item>
+
+                                <Dropdown.Item
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    setSelectedCase(item?.headerCase);
+                                    setShowCaseStages(true);
+                                  }}
+                                >
+                                  Set Case Stage
+                                </Dropdown.Item>
                               </>
                             )}
-                            <Dropdown.Item
-                              onClick={(e) => {
-                                if (
-                                  e.target.tagName !== "INPUT" &&
-                                  e.target.tagName !== "BUTTON"
-                                ) {
-                                  handleClick(1, item);
-                                }
-                              }}
-                            >
-                              View Details
-                            </Dropdown.Item>
+
+                            <Dropdown.Item>View Details</Dropdown.Item>
                           </Dropdown.Menu>
                         </Dropdown>
                       </div>
 
-                      {/* Data Fields */}
-                      <div className="d-flex flex-column gap-2">
+                      {/* Parent Case Details */}
+                      <div className="d-flex flex-column gap-2 mb-2">
+                        {/* CLIENT NAME */}
                         <div className="d-flex flex-wrap">
-                          <span
-                            className="text-muted me-2"
-                            style={{ minWidth: "80px", wordBreak: "break-word" }}
-                          >
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                            Client:
+                          </span>
+                          <span className="fw-medium">{item?.headerCase?.ClientName}</span>
+                        </div>
+
+                        {/* CASE NUMBER */}
+                        <div className="d-flex flex-wrap">
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
                             Case #:
                           </span>
-                          <span className="fw-medium">{item["CaseNumber"]}</span>
+                          <span className="fw-medium">{item?.headerCase?.CaseNumber}</span>
                         </div>
 
+                        {/* SERIAL NUMBER */}
                         <div className="d-flex flex-wrap">
-                          <span
-                            className="text-muted me-2"
-                            style={{ minWidth: "80px", wordBreak: "break-word" }}
-                          >
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
                             Request #:
                           </span>
-                          <span className="fw-medium">{item["SerialNumber"]}</span>
-                        </div>
-                        <div className="d-flex flex-wrap">
-                          <span
-                            className="text-muted me-2"
-                            style={{ minWidth: "80px", wordBreak: "break-word" }}
-                          >
-                            Case Sub Type
-                          </span>
-                          <span className="fw-medium">{item["CaseSubType"]}</span>
+                          <span className="fw-medium">{item?.headerCase?.SerialNumber}</span>
                         </div>
 
+                        {/* CASE TYPE */}
                         <div className="d-flex flex-wrap">
-                          <span
-                            className="text-muted me-2"
-                            style={{ minWidth: "80px", wordBreak: "break-word" }}
-                          >
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
                             Type:
                           </span>
-                          <span className="fw-medium">{item["CaseType"]}</span>
+                          <span className="fw-medium">{item?.headerCase?.CaseType}</span>
                         </div>
 
+                        {/* CASE SUB TYPE */}
+                        <div className="d-flex flex-wrap">
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                            Sub Type:
+                          </span>
+                          <span className="fw-medium">{item?.headerCase?.CaseSubType}</span>
+                        </div>
+
+                        {/* LFA */}
+                        {item?.headerCase?.IsLFA && (
+                          <div
+                            className="text-primary"
+                            style={{ textDecoration: "underline", cursor: "pointer" }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              dispatch(Caseinfo(item?.headerCase));
+                              dispatch(screenChange(27));
+                            }}
+                          >
+                            Go To LFA
+                          </div>
+                        )}
+
+                        {/* NOTES */}
                         <div>
                           <div className="text-muted mb-1">Purpose:</div>
                           <input
@@ -1714,7 +1724,194 @@ const BasicCase = ({ token }) => {
                           />
                         </div>
                       </div>
+
+                      {/* BUTTON TO TOGGLE SUBCASES */}
+                      {item?.subcases?.length > 0 && (
+                        <button
+                          className="btn btn-sm btn-outline-primary mb-2"
+                          onClick={() =>
+                            setExpanded(expanded === item?.headerCase?._id ? null : item?.headerCase?._id)
+                          }
+                        >
+                          {expanded === item?.headerCase?._id ? "Hide Subcases" : "Show Subcases"}
+                        </button>
+                      )}
+
+                      {/* SUBCASES LIST */}
+                      {item?.headerCase?._id &&
+                        expanded === item?.headerCase?._id &&
+                        item?.subcases?.map((sub, subIndex) => (
+
+                          <>
+                            {/* ACTIONS DROPDOWN */}
+                            <div className="d-flex justify-content-start mt-2 mb-2">
+                              <Dropdown
+                                show={dropdownOpen === sub?._id}
+                                onToggle={(isOpen) => setDropdownOpen(isOpen ? sub._id : null)}
+                              >
+                                <Dropdown.Toggle
+                                  variant=""
+                                  size="sm"
+                                  className="border rounded-circle"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setDropdownOpen(dropdownOpen === sub._id ? null : sub._id);
+                                  }}
+                                ></Dropdown.Toggle>
+
+                                <Dropdown.Menu>
+                                  {token.Role === "admin" && reduxCaseCloseType === "" && (
+                                    <>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleOpenModal(sub);
+                                        }}
+                                      >
+                                        Assign Case
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={async (event) => {
+                                          event.stopPropagation();
+                                          setLoaderOpen(true);
+                                          try {
+                                            const response = await updateFunction(sub);
+                                            if (response?.success) setLoaderOpen(false);
+                                          } catch (err) {
+                                            console.error("Update failed", err);
+                                            setLoaderOpen(false);
+                                          }
+                                        }}
+                                      >
+                                        Update Case
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowMergeModal(true);
+                                        }}
+                                      >
+                                        Merge With
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCloseType(true);
+                                        }}
+                                      >
+                                        Close Type
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCaseType(true);
+                                        }}
+                                      >
+                                        {sub?.CaseType ? "Update" : "Add"} Case Type
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowSubCaseType(true);
+                                        }}
+                                      >
+                                        {sub?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                      </Dropdown.Item>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCaseStages(true);
+                                        }}
+                                      >
+                                        Set Case Stage
+                                      </Dropdown.Item>
+                                    </>
+                                  )}
+                                  <Dropdown.Item>View Details</Dropdown.Item>
+                                </Dropdown.Menu>
+                              </Dropdown>
+                            </div>
+
+                            <div
+                              key={sub?._id}
+                              className="border rounded p-2 mb-2"
+                              style={{ backgroundColor: "#fafafa" }}
+                              onClick={(e) => {
+                                if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+                                  handleClick(1, sub);
+                                }
+                              }}
+                            >
+                              {/* CASE NUMBER */}
+                              <div className="d-flex flex-wrap">
+                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                                  Case #:
+                                </span>
+                                <span className="fw-medium">{sub?.CaseNumber}</span>
+                              </div>
+
+                              {/* SERIAL NUMBER */}
+                              <div className="d-flex flex-wrap">
+                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                                  Request #:
+                                </span>
+                                <span className="fw-medium">{sub?.SerialNumber}</span>
+                              </div>
+
+                              {/* CASE TYPE */}
+                              <div className="d-flex flex-wrap">
+                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                                  Type:
+                                </span>
+                                <span className="fw-medium">{sub?.CaseType}</span>
+                              </div>
+
+                              {/* CASE SUB TYPE */}
+                              <div className="d-flex flex-wrap">
+                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                                  Sub Type:
+                                </span>
+                                <span className="fw-medium">{sub?.CaseSubType}</span>
+                              </div>
+
+                              {/* LFA */}
+                              {sub?.IsLFA && (
+                                <div
+                                  className="text-primary"
+                                  style={{ textDecoration: "underline", cursor: "pointer" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(Caseinfo(sub));
+                                    dispatch(screenChange(27));
+                                  }}
+                                >
+                                  Go To LFA
+                                </div>
+                              )}
+
+                              {/* NOTES */}
+                              <div>
+                                <div className="text-muted mb-1">Purpose:</div>
+                                <input
+                                  className="form-control form-control-sm"
+                                  type="text"
+                                  value={sub.notes || ""}
+                                  onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
+                                  onClick={(e) => e.stopPropagation()}
+                                />
+                              </div>
+
+
+                            </div>
+                          </>
+                        ))}
                     </div>
+
 
 
 
@@ -1785,27 +1982,22 @@ const BasicCase = ({ token }) => {
                         >
                           {item?.headerCase?.ClientName}
                         </span>
-
                         {/* CASE NUMBER */}
                         <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
                           {item?.headerCase?.CaseNumber}
                         </span>
-
                         {/* SERIAL NUMBER */}
                         <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
                           {item?.headerCase?.SerialNumber}
                         </span>
-
-                        {/* CASE SUB TYPE */}
-                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-                          {item?.headerCase?.CaseSubType}
-                        </span>
-
                         {/* CASE TYPE */}
                         <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
                           {item?.headerCase?.CaseType}
                         </span>
-
+                        {/* CASE SUB TYPE */}
+                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                          {item?.headerCase?.CaseSubType}
+                        </span>
                         {/* LFA */}
                         <div
                           className="text-start"
@@ -1824,7 +2016,6 @@ const BasicCase = ({ token }) => {
                         >
                           {item?.headerCase?.IsLFA ? "Go To LFA" : ""}
                         </div>
-
                         {/* NOTES */}
                         <div className="" style={{ maxWidth: "250px", minWidth: "250px" }}>
                           <input
@@ -1836,7 +2027,6 @@ const BasicCase = ({ token }) => {
                           />
                         </div>
 
-                        {/* ACTIONS */}
                         <div className="col d-flex justify-content-end" style={{
                           maxWidth: '100px',
                           minWidth: '100px',
@@ -1973,11 +2163,11 @@ const BasicCase = ({ token }) => {
                             </span>
 
                             <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-                              {sub?.CaseSubType}
+                              {sub?.CaseType}
                             </span>
 
                             <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-                              {sub?.CaseType}
+                              {sub?.CaseSubType}
                             </span>
 
                             {/* LFA */}
@@ -2005,13 +2195,11 @@ const BasicCase = ({ token }) => {
                                 className="form-control"
                                 type="text"
                                 value={sub.notes || ""}
-                                onChange={(e) => handleEdit(subIndex, e.target.value)}
+                                onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
 
-                            {/* ACTIONS */}
-                            {/* <div className="col d-flex justify-content-end" style={{ maxWidth: "100px", minWidth: "100px" }}> */}
                             <div className="col d-flex justify-content-end" style={{
                               maxWidth: '100px',
                               minWidth: '100px',
@@ -2026,7 +2214,7 @@ const BasicCase = ({ token }) => {
                                   className="custom-dropdown-toggle"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setDropdownOpen(dropdownOpen === sub._id ? null : index);
+                                    setDropdownOpen(dropdownOpen === sub._id ? null : sub._id);
                                   }}
                                 ></Dropdown.Toggle>
 
