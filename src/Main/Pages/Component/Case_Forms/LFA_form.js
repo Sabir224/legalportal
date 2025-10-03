@@ -11176,6 +11176,7 @@ const LEA_Form = ({ token }) => {
                                     {/* OK Button - Closes the modal */}
                                     <button
                                         className="align-items-center"
+                                        onClick={() => setRejectionAcknowledged(true)}
                                         style={{
                                             backgroundColor: "#16213e",
                                             color: "white",
@@ -11206,8 +11207,10 @@ const LEA_Form = ({ token }) => {
                                     </button>
 
                                     {/* Edit Agreement Button */}
-                                    <button
+                                    <div
                                         className="align-items-center"
+                                        onClick={() => setEditMode(true)}
+
                                         style={{
                                             backgroundColor: "#16213e",
                                             color: "white",
@@ -11235,7 +11238,7 @@ const LEA_Form = ({ token }) => {
                                         }}
                                     >
                                         Edit Agreement
-                                    </button>
+                                    </div>
                                 </Modal.Footer>
                             </Modal>
                         )}
