@@ -116,6 +116,7 @@ function LegalConsultationStepper() {
   const [selectedLawyer, setSelectedLawyer] = React.useState(null);
   const [selectedDate, setSelectedDate] = React.useState(new Date());
   const [selectedSlot, setSelectedSlot] = React.useState(null);
+  const [allLawyers, setAllLawyers] = React.useState([]);
   const [lawyers, setLawyers] = React.useState([]);
   const [lawyersDetails, setLawyersDetails] = React.useState();
   const [appointmentSlots, setAppointmentSlots] = React.useState([]);
@@ -160,6 +161,11 @@ function LegalConsultationStepper() {
   const elements = useElements();
 
   const [paymentForm, setPaymentForm] = React.useState({
+    name: '',
+    email: '',
+    phone: '',
+  });
+  const [UserInfo, setUserIno] = React.useState({
     name: '',
     email: '',
     phone: '',
@@ -244,10 +250,6 @@ function LegalConsultationStepper() {
 
     return <span>{parts}</span>;
   };
-  const italicizeParentheses = (text) => {
-    if (!text) return text;
-    return text.replace(/\(([^)]+)\)/g, (_, inner) => `<i>(${inner})</i>`);
-  };
 
   const questionsConfig = {
     'Civil Law': [
@@ -257,7 +259,7 @@ function LegalConsultationStepper() {
         question:
           'Please describe the nature of the dispute (breach of contract, damage to property, unpaid debt, etc.)',
       },
-      { type: 'text', question: 'Who are the other party/parties involved, and what is your relationship to them?' },
+      { type: 'text', question: 'Who are the other parties involved, and what is your relationship to them?' },
       { type: 'file', question: 'Attach relevant documents (if any)' },
     ],
     'Family Law': [
@@ -515,7 +517,7 @@ function LegalConsultationStepper() {
       {
         type: 'text',
         question:
-          'Who are the other party/parties involved, and do you have any relevant agreements or communications? (Provide names and business relationships)',
+          'Who are the other parties involved, and do you have any relevant agreements or communications? (Provide names and business relationships)',
       },
     ],
     'Capital Funds Law': [
@@ -840,136 +842,14 @@ function LegalConsultationStepper() {
       isMounted = false;
     };
   }, [ref]);
-
-  // React.useEffect(() => {
-  //   console.groupCollapsed('[Payment Data Fetch] Initializing fetch');
-  //   let isMounted = true;
-
-  //   const fetchData = async () => {
-  //     try {
-  //       const { data: responseData } = await axios.get(`${ApiEndPoint}payments/paymentData/${ref}`);
-
-  //       if (!isMounted) return;
-
-  //       if (responseData?.success && responseData.data) {
-  //         setData(responseData.data);
-  //         const { payment, lawyer, linkData } = responseData.data;
-  //         setLinkData(linkData);
-
-  //         // Always set available data
-  //         if (payment) {
-  //           setService(payment.serviceType || '');
-  //           setMethod(payment.consultationType || '');
-  //           setPaymentMethod(payment.paymentMethod || 'Card');
-  //           //console.log('Description:', payment?.caseDescription);
-  //           setDiscription(payment?.caseDescription);
-  //         }
-
-  //         if (lawyer) setSelectedLawyer(lawyer);
-
-  //         // Determine step based on payment method and status
-  //         if (payment) {
-  //           // Case 1: Pay at Office - skip to confirmation if meeting details exist
-  //           if (payment.paymentMethod === 'PayInOffice') {
-  //             if (payment.meetingDetails) {
-  //               setConfirmationData({
-  //                 lawyer: lawyer,
-  //                 service: payment.serviceType,
-  //                 phone: payment.phone,
-  //                 email: payment.email,
-  //                 method: payment?.consultationType,
-  //                 paymentMethod: payment?.paymentMethod,
-  //                 date: new Date(payment.meetingDetails.date),
-  //                 slot: payment.meetingDetails.slot,
-  //                 meetingLink: payment.meetingDetails.meetingUrl,
-  //               });
-  //               setPaymentId(payment?._id);
-  //               setActiveStep(6); // Confirmation
-  //             } else {
-  //               // No meeting details yet - proceed to scheduling
-  //               setActiveStep(2); // Date & Time selection
-  //             }
-  //           }
-  //           // Case 2: Online Payment - check payment status
-  //           else if (payment.paymentMethod === 'Card') {
-  //             if (payment.status === 'paid') {
-  //               if (payment.meetingDetails) {
-  //                 // Complete booking - show confirmation
-  //                 setConfirmationData({
-  //                   lawyer: lawyer,
-  //                   service: payment?.serviceType,
-  //                   phone: payment?.phone,
-  //                   email: payment?.email,
-  //                   status: payment?.status,
-  //                   method: payment?.consultationType,
-  //                   paymentMethod: payment?.paymentMethod,
-  //                   date: new Date(payment?.meetingDetails?.date),
-  //                   slot: payment?.meetingDetails?.slot,
-  //                   meetingLink: payment?.meetingDetails?.meetingUrl,
-  //                 });
-  //                 setPaymentId(payment?._id);
-  //                 setActiveStep(6); // Confirmation
-  //               } else {
-  //                 setConfirmationData({
-  //                   lawyer: lawyer,
-  //                   service: payment?.serviceType,
-  //                   phone: payment?.phone,
-  //                   email: payment?.email,
-  //                   status: payment?.status,
-  //                   method: payment?.consultationType,
-  //                   paymentMethod: payment?.paymentMethod,
-  //                   date: payment?.meetingDetails?.date ? new Date(payment.meetingDetails.date) : null,
-  //                   slot: payment?.meetingDetails?.slot || null,
-  //                   meetingLink: payment?.meetingDetails?.meetingUrl || null,
-  //                   confirmed: !!payment?.meetingDetails, // true if meeting exists
-  //                 });
-  //                 // Paid but no meeting - skip to date/time selection
-  //                 setPaymentId(payment?._id);
-  //                 setActiveStep(2); // Date & Time
-  //               }
-  //             } else {
-  //               // Not paid yet - go to payment step
-
-  //               setActiveStep(4); // Payment
-  //             }
-  //           }
-  //         } else {
-  //           // No payment record - start from beginning
-  //           setActiveStep(0); // Service selection
-  //         }
-  //       }
-  //     } catch (error) {
-  //       if (isMounted) console.log('Failed to load payment data:', error);
-  //     } finally {
-  //       if (isMounted) setInitialDataLoaded(true);
-  //     }
-  //   };
-
-  //   if (ref) fetchData();
-
-  //   return () => {
-  //     isMounted = false;
-  //   };
-  // }, [ref]);
-
+  // 🔹 Step 1: Fetch all lawyers once (on mount)
   React.useEffect(() => {
-    const fetchLawyers = async () => {
+    const fetchAllLawyers = async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
         if (response.data && response?.data?.lawyers) {
-          // Filter lawyers based on selected service (expertise) and available slots
-          const filteredLawyers = response.data.lawyers.filter((lawyer) => {
-            // 1. Check if lawyer matches selected service expertise
-            const matchesExpertise = !service || lawyer.specialty.toLowerCase().includes(service.toLowerCase());
-
-            // 2. Check if lawyer has available slots
-            const hasSlots = lawyer.hasAvailableSlots;
-
-            return matchesExpertise && hasSlots;
-          });
-          console.log('Check Lawyer:', filteredLawyers);
-          setLawyers(filteredLawyers);
+          setAllLawyers(response.data.lawyers); // save all lawyers
         }
       } catch (err) {
         setError('Failed to fetch lawyers. Please try again.');
@@ -979,11 +859,57 @@ function LegalConsultationStepper() {
       }
     };
 
-    // Changed from activeStep >= 2 to activeStep >= 1 since Select Lawyer is now Step 1
-    if (activeStep >= 1 && lawyers.length === 0 && service) {
-      fetchLawyers();
+    fetchAllLawyers(); // run only once
+  }, []);
+  // 🔹 Step 2: Filter lawyers whenever service changes
+  React.useEffect(() => {
+    if (service && allLawyers.length > 0) {
+      const filtered = allLawyers.filter((lawyer) => {
+        const matchesExpertise = !service || lawyer.specialty.toLowerCase().includes(service.toLowerCase());
+
+        const hasSlots = lawyer.hasAvailableSlots;
+
+        return matchesExpertise && hasSlots;
+      });
+
+      setLawyers(filtered);
+    } else {
+      setLawyers([]); // clear if no service or no lawyers
     }
-  }, [activeStep, service, lawyers.length]); // Added lawyers.length to dependencies
+  }, [service, allLawyers]);
+
+  // React.useEffect(() => {
+  //   const fetchLawyers = async () => {
+  //     setLoading(true);
+  //     try {
+  //       const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
+  //       if (response.data && response?.data?.lawyers) {
+  //         // Filter lawyers based on selected service (expertise) and available slots
+  //         const filteredLawyers = response.data.lawyers.filter((lawyer) => {
+  //           // 1. Check if lawyer matches selected service expertise
+  //           const matchesExpertise = !service || lawyer.specialty.toLowerCase().includes(service.toLowerCase());
+
+  //           // 2. Check if lawyer has available slots
+  //           const hasSlots = lawyer.hasAvailableSlots;
+
+  //           return matchesExpertise && hasSlots;
+  //         });
+  //         console.log('Check Lawyer:', filteredLawyers);
+  //         setLawyers(filteredLawyers);
+  //       }
+  //     } catch (err) {
+  //       setError('Failed to fetch lawyers. Please try again.');
+  //       console.error('Error fetching lawyers:', err);
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   // Changed from activeStep >= 2 to activeStep >= 1 since Select Lawyer is now Step 1
+  //  if (activeStep >= 1 && service) {
+  //   fetchLawyers();
+  // }
+  // }, [activeStep, service]); // Added lawyers.length to dependencies
 
   // Fetch appointments when lawyer is selected (for Date/Time step)
   const fetchAppointments = async (lawyerId, date) => {
@@ -1092,31 +1018,6 @@ function LegalConsultationStepper() {
     setAppointmentSlots([]);
     setClientMessage('');
   };
-  // const regenerateAndRedirect = async () => {
-  //   try {
-  //     // Call your API to generate new link
-  //     const res = await axios.post(`${ApiEndPoint}generateLink`, {
-  //       phone,
-  //       name,
-  //     });
-
-  //     if (res.data?.success && res.data?.fullUrl) {
-  //       let redirectUrl = res.data.fullUrl;
-
-  //       if (source === 'website') {
-  //         // Append &source=website
-  //         redirectUrl += redirectUrl.includes('?') ? '&source=website' : '?source=website';
-  //       }
-
-  //       // Redirect to new link
-  //       window.location.href = redirectUrl;
-  //     } else {
-  //       console.error('Failed to generate new link:', res.data);
-  //     }
-  //   } catch (err) {
-  //     console.error('Error generating link:', err);
-  //   }
-  // };
 
   const onResetClick = async () => {
     await forceGenerateAndRedirect(); // This will reload the page to new URL
@@ -1141,6 +1042,14 @@ function LegalConsultationStepper() {
   const handlePaymentChange = (e) => {
     const { name, value } = e.target;
     setPaymentForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handCardInfo = (e) => {
+    const { name, value } = e.target;
+    setUserIno((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -1283,6 +1192,9 @@ function LegalConsultationStepper() {
         phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone,
         email: paymentForm?.email || data?.payment?.email,
         amount: Number(selectedLawyer?.price) || 200,
+        cardHolder: UserInfo.name,
+        cardHolderPhone: UserInfo.phone,
+        cardHolderEmail: UserInfo.email,
         serviceType: service,
         lawyerId: selectedLawyer?._id,
         consultationType: method,
@@ -1462,9 +1374,9 @@ function LegalConsultationStepper() {
       type: 'card',
       card: cardElement,
       billing_details: {
-        name: paymentForm.name,
-        email: paymentForm.email,
-        phone: paymentForm.phone,
+        name: UserInfo.name,
+        email: UserInfo.email,
+        phone: UserInfo.phone,
       },
     });
 
@@ -1867,7 +1779,7 @@ function LegalConsultationStepper() {
           fontWeight: highlight ? 500 : 400,
         }}
       >
-        {value}
+        {value} {label === 'Experience' ? 'Years' : ''}
       </Typography>
     </Box>
   );
@@ -1904,6 +1816,7 @@ function LegalConsultationStepper() {
     setSelectedSlot(slot);
     setSelectedTime(slot.startTime);
   };
+
   const renderStepContent = (step) => {
     switch (step) {
       case 0: // Service Type
@@ -1989,7 +1902,134 @@ function LegalConsultationStepper() {
                 <Typography sx={{ color: 'red', fontSize: '12px', mt: 1 }}>{errors.service}</Typography>
               )}
             </FormControl>
+            {source === 'website' && (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  mb: 3,
+                  mt: 1,
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '12px',
+                }}
+              >
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: '#d4af37',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: '600',
+                  }}
+                >
+                  <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
+                  Your Information
+                </Typography>
+                <GlobalStyles
+                  styles={{
+                    '.personal-info-scope input:-webkit-autofill': {
+                      WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                      WebkitTextFillColor: 'white',
+                      caretColor: 'white',
+                      transition: 'background-color 5000s ease-in-out 0s',
+                    },
+                    '.personal-info-scope input:-webkit-autofill:focus': {
+                      WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                      WebkitTextFillColor: 'white',
+                    },
+                  }}
+                />
+                <Grid container className="personal-info-scope" spacing={2}>
+                  {/* Full Name */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="name"
+                      value={paymentForm.name}
+                      onChange={handlePaymentChange}
+                      required={source === 'website'}
+                      error={source === 'website' && !paymentForm.name.trim()}
+                      helperText={source === 'website' && !paymentForm.name.trim() ? 'Full name is required' : ''}
+                      InputLabelProps={{
+                        style: {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
 
+                  {/* Email */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      name="email"
+                      value={paymentForm.email}
+                      onChange={handlePaymentChange}
+                      required={source === 'website'}
+                      error={source === 'website' && !paymentForm.email.trim()}
+                      helperText={source === 'website' && !paymentForm.email.trim() ? 'Email is required' : ''}
+                      InputLabelProps={{
+                        style: {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Phone */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      name="phone"
+                      value={paymentForm.phone}
+                      onChange={handlePaymentChange}
+                      required={source === 'website'}
+                      error={source === 'website' && !paymentForm.phone.trim()}
+                      helperText={source === 'website' && !paymentForm.phone.trim() ? 'Phone number required' : ''}
+                      InputLabelProps={{
+                        style: {
+                          color: 'rgba(255, 255, 255, 0.7)',
+                        },
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
+                        },
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
+                </Grid>
+              </Paper>
+            )}
             {service && (
               <Box sx={{ mt: 3 }}>
                 <Typography variant="subtitle1" sx={{ color: '#d4af37' }}>
@@ -2272,7 +2312,7 @@ function LegalConsultationStepper() {
                               <DetailItem
                                 icon={<AccessTime sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
                                 label="Experience"
-                                value={(lawyer.experience, ' Years')}
+                                value={lawyer.experience}
                               />
                               <DetailItem
                                 icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
@@ -2342,140 +2382,6 @@ function LegalConsultationStepper() {
               <Typography color="error" sx={{ mb: 2 }}>
                 {error}
               </Typography>
-            )}
-
-            {/* Personal Info Form for Free Appointments */}
-            {selectedLawyer?.price === 0 && (
-              <Paper
-                elevation={0}
-                sx={{
-                  p: 3,
-                  mb: 3,
-                  backgroundColor: 'transparent',
-                  border: '1px solid rgba(212, 175, 55, 0.5)',
-                  borderRadius: '12px',
-                }}
-              >
-                <Typography
-                  variant="subtitle1"
-                  sx={{
-                    color: '#d4af37',
-                    mb: 2,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    fontWeight: '600',
-                  }}
-                >
-                  <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
-                  Your Information
-                </Typography>
-                <Grid container spacing={2}>
-                  {/* Full Name */}
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Full Name"
-                      name="name"
-                      value={paymentForm.name}
-                      onChange={handlePaymentChange}
-                      required
-                      InputLabelProps={{
-                        style: {
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        },
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          color: 'white',
-                          backgroundColor: '#18273e !important',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.23)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#d4af37',
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* Email */}
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Email"
-                      type="email"
-                      name="email"
-                      value={paymentForm.email}
-                      onChange={handlePaymentChange}
-                      required
-                      InputLabelProps={{
-                        style: {
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        },
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          color: 'white',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.23)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#d4af37',
-                        },
-                      }}
-                    />
-                  </Grid>
-
-                  {/* Phone */}
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Phone Number"
-                      name="phone"
-                      value={paymentForm.phone}
-                      onChange={handlePaymentChange}
-                      required
-                      InputLabelProps={{
-                        style: {
-                          color: 'rgba(255, 255, 255, 0.7)',
-                        },
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          color: 'white',
-                          '& fieldset': {
-                            borderColor: 'rgba(255, 255, 255, 0.23)',
-                          },
-                          '&:hover fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                          '&.Mui-focused fieldset': {
-                            borderColor: '#d4af37',
-                          },
-                        },
-                        '& .MuiInputLabel-root.Mui-focused': {
-                          color: '#d4af37',
-                        },
-                      }}
-                    />
-                  </Grid>
-                </Grid>
-              </Paper>
             )}
 
             {/* Custom Calendar */}
@@ -2646,9 +2552,7 @@ function LegalConsultationStepper() {
                     variant="contained"
                     size="small"
                     onClick={handleConfirm}
-                    disabled={
-                      !paymentForm.name || !paymentForm.email || !paymentForm.phone || !selectedSlot || isProcessing
-                    }
+                    disabled={!UserInfo.name || !UserInfo.email || !UserInfo.phone || !selectedSlot || isProcessing}
                     sx={{
                       px: 3,
                       py: 1.2,
@@ -2944,172 +2848,140 @@ function LegalConsultationStepper() {
               </Grid>
             </Paper>
 
-            {/* Personal Info Section */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                backgroundColor: 'transparent',
-                border: '1px solid rgba(212, 175, 55, 0.5)',
-                borderRadius: '12px',
-                mb: 4,
-              }}
-            >
-              <Typography
-                variant="subtitle1"
+            {/* Personal Info Section (Only show if NOT PayInOffice) */}
+            {!(method === 'InPerson' && paymentMethod === 'PayInOffice') && (
+              <Paper
+                elevation={0}
                 sx={{
-                  color: '#d4af37',
-                  mb: 2,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  fontWeight: '600',
+                  p: 3,
+                  backgroundColor: 'transparent',
+                  border: '1px solid rgba(212, 175, 55, 0.5)',
+                  borderRadius: '12px',
+                  mb: 4,
                 }}
               >
-                <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
-                Personal Information
-              </Typography>
-              <GlobalStyles
-                styles={{
-                  '.personal-info-scope input:-webkit-autofill': {
-                    WebkitBoxShadow: '0 0 0 1000px #18273e inset',
-                    WebkitTextFillColor: 'white',
-                    caretColor: 'white',
-                    transition: 'background-color 5000s ease-in-out 0s',
-                  },
-                  '.personal-info-scope input:-webkit-autofill:focus': {
-                    WebkitBoxShadow: '0 0 0 1000px #18273e inset',
-                    WebkitTextFillColor: 'white',
-                  },
-                }}
-              />
-              <Grid className="personal-info-scope" container spacing={2}>
-                {/* Full Name */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    name="name"
-                    value={paymentForm.name}
-                    onChange={handlePaymentChange}
-                    required
-                    InputLabelProps={{
-                      style: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        color: 'white',
-                        backgroundColor: '#18273e !important',
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.23)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#d4af37',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#d4af37',
-                        },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#d4af37',
-                      },
-                    }}
-                  />
-                </Grid>
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: '#d4af37',
+                    mb: 2,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    fontWeight: '600',
+                  }}
+                >
+                  <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
+                  Billing Information
+                </Typography>
 
-                {/* Email */}
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Email"
-                    type="email"
-                    name="email"
-                    value={paymentForm.email}
-                    onChange={handlePaymentChange}
-                    required
-                    InputLabelProps={{
-                      style: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Email fontSize="small" sx={{ color: '#d4af37' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        color: 'white',
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.23)',
-                        },
-                        '&:hover fieldset': {
-                          borderColor: '#d4af37',
-                        },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#d4af37',
-                        },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#d4af37',
-                      },
-                    }}
-                  />
-                </Grid>
+                <GlobalStyles
+                  styles={{
+                    '.personal-info-scope input:-webkit-autofill': {
+                      WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                      WebkitTextFillColor: 'white',
+                      caretColor: 'white',
+                      transition: 'background-color 5000s ease-in-out 0s',
+                    },
+                    '.personal-info-scope input:-webkit-autofill:focus': {
+                      WebkitBoxShadow: '0 0 0 1000px #18273e inset',
+                      WebkitTextFillColor: 'white',
+                    },
+                  }}
+                />
 
-                {/* Phone */}
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    name="phone"
-                    value={paymentForm.phone}
-                    onChange={handlePaymentChange}
-                    required
-                    InputLabelProps={{
-                      style: {
-                        color: 'rgba(255, 255, 255, 0.7)',
-                      },
-                    }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <Phone fontSize="small" sx={{ color: '#d4af37' }} />
-                        </InputAdornment>
-                      ),
-                    }}
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        color: 'white',
-                        '& fieldset': {
-                          borderColor: 'rgba(255, 255, 255, 0.23)',
+                <Grid className="personal-info-scope" container spacing={2}>
+                  {/* Full Name */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      name="name"
+                      value={UserInfo.name}
+                      onChange={handCardInfo}
+                      required
+                      InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PersonOutline fontSize="small" sx={{ color: '#d4af37' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          backgroundColor: '#18273e !important',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
                         },
-                        '&:hover fieldset': {
-                          borderColor: '#d4af37',
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Email */}
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Email"
+                      type="email"
+                      name="email"
+                      value={UserInfo.email}
+                      onChange={handCardInfo}
+                      required
+                      InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Email fontSize="small" sx={{ color: '#d4af37' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
                         },
-                        '&.Mui-focused fieldset': {
-                          borderColor: '#d4af37',
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
+
+                  {/* Phone */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      name="phone"
+                      value={UserInfo.phone}
+                      onChange={handCardInfo}
+                      required
+                      InputLabelProps={{ style: { color: 'rgba(255, 255, 255, 0.7)' } }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <Phone fontSize="small" sx={{ color: '#d4af37' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          color: 'white',
+                          '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
+                          '&:hover fieldset': { borderColor: '#d4af37' },
+                          '&.Mui-focused fieldset': { borderColor: '#d4af37' },
                         },
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#d4af37',
-                      },
-                    }}
-                  />
+                        '& .MuiInputLabel-root.Mui-focused': { color: '#d4af37' },
+                      }}
+                    />
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Paper>
+              </Paper>
+            )}
 
             {/* Payment Section */}
             {method === 'InPerson' && paymentMethod === 'PayInOffice' ? (
@@ -3120,7 +2992,6 @@ function LegalConsultationStepper() {
                 <Button
                   variant="contained"
                   onClick={handleConfirmPayment}
-                  disabled={isProcessing || !paymentForm.name || !paymentForm.email || !paymentForm.phone}
                   sx={{
                     px: 3,
                     py: 1.2,
@@ -3230,12 +3101,7 @@ function LegalConsultationStepper() {
                     variant="contained"
                     onClick={handleConfirmPayment}
                     disabled={
-                      isProcessing ||
-                      !paymentForm.name ||
-                      !paymentForm.email ||
-                      !paymentForm.phone ||
-                      !cardComplete ||
-                      !elements
+                      isProcessing || !UserInfo.name || !UserInfo.email || !UserInfo.phone || !cardComplete || !elements
                     }
                     sx={{
                       px: 3,
@@ -3756,19 +3622,14 @@ function LegalConsultationStepper() {
                     loading ||
                     // Step 0: Service + Required Questions + Description
                     (activeStep === 0 && !service) ||
-                    // !caseDiscription.trim() ||
-                    // (questionsConfig[service] || []).some(
-                    //   (q) =>
-                    //     q.required !== false && // ❌ only check required ones
-                    //     ((q.type === 'text' && !answers[q.question]) ||
-                    //       (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)))
-                    // )
                     // Step 1: Select lawyer
                     (activeStep === 1 && !selectedLawyer) ||
                     // Step 2: Date + Slot
                     (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
                     // Step 3: Consultation Method
-                    (activeStep === 3 && !method)
+                    (activeStep === 3 && !method) ||
+                    (source === 'website' &&
+                      (!paymentForm.name.trim() || !paymentForm.email.trim() || !paymentForm.phone.trim()))
                   }
                   sx={{
                     backgroundColor: '#d4af37',
