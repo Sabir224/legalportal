@@ -1369,15 +1369,19 @@ function LegalConsultationStepper() {
   const handleCardPaymentFlow = async (paymentData) => {
     // Create payment method
     const cardElement = elements.getElement(CardElement);
+    const billingDetails = {
+      name: UserInfo.name || name,
+      phone: UserInfo.phone || phone,
+    };
 
+    // only add email if available
+    if (UserInfo.email) {
+      billingDetails.email = UserInfo.email;
+    }
     const { error: pmError, paymentMethod: stripePaymentMethod } = await stripe.createPaymentMethod({
       type: 'card',
       card: cardElement,
-      billing_details: {
-        name: UserInfo.name,
-        email: UserInfo.email,
-        phone: UserInfo.phone,
-      },
+      billing_details: billingDetails,
     });
 
     if (pmError) {
