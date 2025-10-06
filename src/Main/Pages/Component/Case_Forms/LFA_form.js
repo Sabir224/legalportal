@@ -9400,6 +9400,7 @@
 
 
 
+
 import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -9411,7 +9412,7 @@ import ConfirmModal from '../../AlertModels/ConfirmModal';
 import { useAlert } from '../../../../Component/AlertContext';
 import Form_SignaturePad from './Form_Componets/SignaturePad';
 import { BsPlus, BsDash, BsDownload } from "react-icons/bs";
-import { Dropdown, Form, InputGroup, Modal, Button } from "react-bootstrap";
+import { Dropdown, Form, InputGroup, Modal, Button, Table } from "react-bootstrap";
 import CEEditable from './CEEditable';
 import { v4 as uuidv4 } from "uuid";
 import { jsPDF } from "jspdf";
@@ -9458,6 +9459,44 @@ const LEA_Form = ({ token }) => {
     const [generatedLink, setGeneratedLink] = useState("");
     const [isEmailLinkAccess, setIsEmailLinkAccess] = useState(false);
     const [signatureSubmitted, setSignatureSubmitted] = useState(false); // NEW: Track if signature was submitted
+
+    // NEW: State for Services and Fees Modal
+    const [showServicesModal, setShowServicesModal] = useState(false);
+    const [selectedService, setSelectedService] = useState("");
+    const [serviceFees, setServiceFees] = useState("");
+    const [currentSection, setCurrentSection] = useState(""); // To track which section the button was clicked from
+    const [servicesList, setServicesList] = useState([
+        "Criminal Law",
+        "Commercial Law",
+        "Corporate Services",
+        "Family Law",
+        "Intellectual Property",
+        "Insurance Law",
+        "Labor Law",
+        "Mergers & Acquisitions",
+        "Real Estate Law",
+        "Rental & Tenancy",
+        "Alternative Dispute Resolution / Arbitration / Dispute Resolution",
+        "Debt Collection"
+    ]);
+    const [services, setServices] = useState([
+        {
+            id: uuidv4(),
+            selectedService: "",
+            serviceFees: "",
+            // subItems: [
+            //     {
+            //         id: uuidv4(),
+            //         dueDate: null,
+            //         paymentDate: null,
+            //         invoicedAmount: "",
+            //         receivedAmount: "",
+            //         pendingAmount: "",
+            //         paymentStatus: "Pending"
+            //     }
+            // ]
+        }
+    ]);
 
     const handleGenerateLink = () => {
         const originalLink = `${window.location.origin}/LFA_Form?caseId=${caseInfo?._id}&timestamp=${Date.now()}`
@@ -9579,6 +9618,222 @@ const LEA_Form = ({ token }) => {
     const [showSignaturePad, setShowSignaturePad] = useState(false); // NEW: Control signature pad visibility
     const isclient = token?.Role === "client";
     const [rejectionAcknowledged, setRejectionAcknowledged] = useState(false);
+
+    // NEW: Functions for Services and Fees Modal
+    const handleAddService = () => {
+        setServices([...services, {
+            id: uuidv4(),
+            selectedService: "",
+            serviceFees: "",
+            // subItems: [
+            //     {
+            //         id: uuidv4(),
+            //         dueDate: null,
+            //         paymentDate: null,
+            //         invoicedAmount: "",
+            //         receivedAmount: "",
+            //         pendingAmount: "",
+            //         paymentStatus: "Pending"
+            //     }
+            // ]
+        }]);
+    };
+
+    const handleRemoveService = (serviceId) => {
+        if (services.length > 1) {
+            setServices(services.filter(service => service.id !== serviceId));
+        }
+    };
+
+    const handleServiceChange = (serviceId, field, value) => {
+        setServices(services.map(service =>
+            service.id === serviceId ? { ...service, [field]: value } : service
+        ));
+    };
+
+    // const handleAddSubItem = (serviceId) => {
+    //     setServices(services.map(service => 
+    //         service.id === serviceId 
+    //             ? { 
+    //                 ...service, 
+    //                 subItems: [...service.subItems, {
+    //                     id: uuidv4(),
+    //                     dueDate: null,
+    //                     paymentDate: null,
+    //                     invoicedAmount: "",
+    //                     receivedAmount: "",
+    //                     pendingAmount: "",
+    //                     paymentStatus: "Pending"
+    //                 }]
+    //             } 
+    //             : service
+    //     ));
+    // };
+
+    // const handleRemoveSubItem = (serviceId, subItemId) => {
+    //     setServices(services.map(service => 
+    //         service.id === serviceId 
+    //             ? { 
+    //                 ...service, 
+    //                 subItems: service.subItems.filter(item => item.id !== subItemId)
+    //             } 
+    //             : service
+    //     ));
+    // };
+
+    // const handleSubItemChange = (serviceId, subItemId, field, value) => {
+    //     setServices(services.map(service => 
+    //         service.id === serviceId 
+    //             ? { 
+    //                 ...service, 
+    //                 subItems: service.subItems.map(item => 
+    //                     item.id === subItemId ? { ...item, [field]: value } : item
+    //                 )
+    //             } 
+    //             : service
+    //     ));
+    // };
+
+    // const handleSaveAllServices = async () => {
+    //   // Validate all services
+    //   const invalidServices = services.filter(service => 
+    //     !service.selectedService || !service.serviceFees
+    //   );
+
+    //   if (invalidServices.length > 0) {
+    //     alert("Please select a service and enter fees for all services");
+    //     return;
+    //   }
+
+    //   try {
+    //     const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
+    //     const lfaId = dataList?._id || targetCaseId; // Use existing LFA ID or case ID as fallback
+
+    //     if (!targetCaseId) {
+    //       alert("Case ID not found");
+    //       return;
+    //     }
+
+    //     const response = await fetch(`${ApiEndPoint}saveServices`, {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({
+    //         lfaId,
+    //         caseId: targetCaseId,
+    //         services: {
+    //           section: currentSection,
+    //           services: services
+    //         }
+    //       })
+    //     });
+
+    //     if (!response.ok) {
+    //       throw new Error('Failed to save services');
+    //     }
+
+    //     const data = await response.json();
+
+    //     if (data.success) {
+    //       setShowServicesModal(false);
+    //       alert(`${services.length} service(s) saved successfully!`);
+
+    //       // Optionally clear services after saving if you want
+    //       // setServices([{
+    //       //   id: uuidv4(),
+    //       //   selectedService: "",
+    //       //   serviceFees: "",
+    //       //   subItems: [{
+    //       //     id: uuidv4(),
+    //       //     dueDate: null,
+    //       //     paymentDate: null,
+    //       //     invoicedAmount: "",
+    //       //     receivedAmount: "",
+    //       //     pendingAmount: "",
+    //       //     paymentStatus: "Pending"
+    //       //   }]
+    //       // }]);
+    //     } else {
+    //       alert("Failed to save services: " + data.message);
+    //     }
+    //   } catch (error) {
+    //     console.error("Error saving services:", error);
+    //     alert("Failed to save services. Please try again.");
+    //   }
+    // };
+    const handleSaveAllServices = async () => {
+        // Validate all services
+        const invalidServices = services.filter(service =>
+            !service.selectedService || !service.serviceFees
+        );
+
+        if (invalidServices.length > 0) {
+            alert("Please select a service and enter fees for all services");
+            return;
+        }
+
+        try {
+            const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
+            const lfaId = dataList?._id || targetCaseId;
+
+            if (!targetCaseId) {
+                alert("Case ID not found");
+                return;
+            }
+
+            const response = await fetch(`${ApiEndPoint}saveServices`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lfaId,
+                    caseId: targetCaseId,
+                    services: {
+                        section: currentSection,
+                        services: services
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save services');
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                setShowServicesModal(false);
+                // alert(`${services.length} service(s) saved successfully!`);
+            } else {
+                alert("Failed to save services: " + data.message);
+            }
+        } catch (error) {
+            console.error("Error saving services:", error);
+            alert("Failed to save services. Please try again.");
+        }
+    };
+    const handleAddServiceClick = (section) => {
+        setCurrentSection(section);
+        setServices([{
+            id: uuidv4(),
+            selectedService: "",
+            serviceFees: "",
+            // subItems: [
+            //     {
+            //         id: uuidv4(),
+            //         dueDate: null,
+            //         paymentDate: null,
+            //         invoicedAmount: "",
+            //         receivedAmount: "",
+            //         pendingAmount: "",
+            //         paymentStatus: "Pending"
+            //     }
+            // ]
+        }]);
+        setShowServicesModal(true);
+    };
 
     const FetchLFA = async (caseIdToFetch = null) => {
         showDataLoading(true);
@@ -9952,6 +10207,8 @@ const LEA_Form = ({ token }) => {
                         }
                     ]),
 
+                    // In the content array, find the signatures section and replace it with this:
+
                     { text: "Signatures", style: "subHeader", margin: [0, 40, 0, 20] },
                     {
                         columns: [
@@ -9959,9 +10216,19 @@ const LEA_Form = ({ token }) => {
                                 width: '40%',
                                 stack: [
                                     lawyerSignatureBase64
-                                        ? { image: lawyerSignatureBase64, width: 120, height: 60, margin: [0, 0, 0, 5] }
-                                        : { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                    { text: "___________________", margin: [0, 0, 0, 5] },
+                                        ? {
+                                            image: lawyerSignatureBase64,
+                                            width: 120,
+                                            height: 60,
+                                            margin: [0, 0, 0, 5]
+                                        }
+                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Empty text instead of line
+                                    lawyerSignatureBase64
+                                        ? {
+                                            text: "___________________",
+                                            margin: [0, 0, 0, 5]
+                                        }
+                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Only show line if signature exists
                                     { text: "The Lawyer", style: "signatureLabel" },
                                     { text: lawyerName, style: "signatureName" }
                                 ],
@@ -9969,12 +10236,23 @@ const LEA_Form = ({ token }) => {
                             },
                             {
                                 width: '20%',
-                                stack: [
-                                    // Stamp in the middle
+                                stack: lawyerSignatureBase64 && clientSignatureBase64 ? [ // CHANGED: Only show stamp if BOTH signatures exist
                                     logoiA64
-                                        ? { image: logoiA64, width: 80, height: 80, margin: [0, 10, 0, 5], alignment: 'center' }
+                                        ? {
+                                            image: logoiA64,
+                                            width: 80,
+                                            height: 80,
+                                            margin: [0, 10, 0, 5],
+                                            alignment: 'center'
+                                        }
                                         : { text: "" },
-                                    { text: "Verified and Authenticated", style: "stampText", alignment: 'center' }
+                                    {
+                                        text: "Verified and Authenticated",
+                                        style: "stampText",
+                                        alignment: 'center'
+                                    }
+                                ] : [
+                                    { text: "" } // CHANGED: Empty stack if not both signatures
                                 ],
                                 alignment: 'center'
                             },
@@ -9982,9 +10260,19 @@ const LEA_Form = ({ token }) => {
                                 width: '40%',
                                 stack: [
                                     clientSignatureBase64
-                                        ? { image: clientSignatureBase64, width: 120, height: 60, margin: [0, 0, 0, 5] }
-                                        : { canvas: [{ type: "line", x1: 0, y1: 0, x2: 120, y2: 0, lineWidth: 1 }], margin: [0, 0, 0, 5] },
-                                    { text: "___________________", margin: [0, 0, 0, 5] },
+                                        ? {
+                                            image: clientSignatureBase64,
+                                            width: 120,
+                                            height: 60,
+                                            margin: [0, 0, 0, 5]
+                                        }
+                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Empty text instead of line
+                                    clientSignatureBase64
+                                        ? {
+                                            text: "___________________",
+                                            margin: [0, 0, 0, 5]
+                                        }
+                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Only show line if signature exists
                                     { text: "The Client", style: "signatureLabel" },
                                     { text: clientName, style: "signatureName" }
                                 ],
@@ -9992,8 +10280,7 @@ const LEA_Form = ({ token }) => {
                             }
                         ],
                         margin: [0, 0, 0, 40]
-                    }
-                ],
+                    }],
 
                 styles: {
                     header: { fontSize: 18, bold: true, color: "#0A1C45" },
@@ -10240,6 +10527,19 @@ const LEA_Form = ({ token }) => {
 
             const data = await res.json();
             if (data.success) {
+                // After successfully creating LFA, save services if any exist
+                const targetCaseId = caseInfo?._id;
+                if (services.length > 0 && currentSection &&
+                    services.some(service => service.selectedService && service.serviceFees)) {
+                    try {
+                        await saveServicesToDatabase(data.data._id || targetCaseId, targetCaseId, services);
+                        console.log("Services saved successfully with initial LFA creation");
+                    } catch (error) {
+                        console.error("Failed to save services with LFA creation:", error);
+                        // Continue even if services fail
+                    }
+                }
+
                 setEditMode(false);
             } else {
                 console.error("❌ Failed:", data.message);
@@ -10294,12 +10594,75 @@ const LEA_Form = ({ token }) => {
             console.error("Error submitting form:", err);
         }
     };
-    const handleUpdateLawyerSubmit = async () => {
+    // Keep the existing saveServicesToDatabase function for form submission
+    // const saveServicesToDatabase = async (lfaId, caseId, servicesData) => {
+    //   try {
+    //     const response = await fetch(`${ApiEndPoint}saveServices`, {
+    //       method: 'POST',
+    //       headers: {
+    //         'Content-Type': 'application/json',
+    //       },
+    //       body: JSON.stringify({
+    //         lfaId,
+    //         caseId,
+    //         services: {
+    //           section: currentSection,
+    //           services: servicesData
+    //         }
+    //       })
+    //     });
 
+    //     if (!response.ok) {
+    //       throw new Error('Failed to save services');
+    //     }
+
+    //     const data = await response.json();
+    //     return data;
+    //   } catch (error) {
+    //     console.error("Error saving services:", error);
+    //     throw error;
+    //   }
+    // };
+    const saveServicesToDatabase = async (lfaId, caseId, servicesData) => {
+        try {
+            const response = await fetch(`${ApiEndPoint}saveServices`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    lfaId,
+                    caseId,
+                    services: {
+                        section: currentSection, // This will be different for Section 3 vs Section 4
+                        services: servicesData
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save services');
+            }
+
+            const data = await response.json();
+
+            // Add this check to handle both success cases
+            if (!data.success) {
+                throw new Error(data.message || 'Failed to save services');
+            }
+
+            return data;
+        } catch (error) {
+            console.error("Error saving services:", error);
+            throw error;
+        }
+    };
+    const handleUpdateLawyerSubmit = async () => {
         try {
             if (lfaStatus === "accepted") {
                 handleAcceptLFA()
             }
+
             // Determine the case ID based on access method
             const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
 
@@ -10308,17 +10671,27 @@ const LEA_Form = ({ token }) => {
                 return;
             }
 
-            // FIXED: Correctly identify if this is a lawyer submission
-            const isLawyerSubmission = token?.Role === "lawyer" && !isEmailLinkAccess;
+            // Get the LFA form ID if it exists
+            let lfaId = dataList?._id;
 
-            // NEW: Check if this is a lawyer resubmission after rejection
+            // If services were added in the modal but not saved independently, save them now
+            if (services.length > 0 && currentSection &&
+                services.some(service => service.selectedService && service.serviceFees)) {
+                try {
+                    await saveServicesToDatabase(lfaId || targetCaseId, targetCaseId, services);
+                    console.log("Services saved successfully with LFA submission");
+                } catch (error) {
+                    console.error("Failed to save services with LFA submission:", error);
+                    // Continue with LFA submission even if services fail
+                }
+            }
+
+            const isLawyerSubmission = token?.Role === "lawyer" && !isEmailLinkAccess;
             const isResubmission = lfaStatus === "rejected";
-            console.log("Resubmittion")
 
             if (isResubmission) {
                 console.log("Resubmittion = 1")
                 // Use resubmission endpoint for lawyer resubmitting after rejection
-                // Send the updated agreement content along with resubmission
                 const resubmitData = {
                     resubmittedBy: "lawyer",
                     agreement: JSON.stringify({
@@ -10347,21 +10720,15 @@ const LEA_Form = ({ token }) => {
 
                 if (data.success) {
                     setEditMode(false);
-
-                    // Clear rejection status on successful resubmission
                     setLfaStatus("pending");
-                    //  alert("LFA resubmitted successfully! The form is now pending client review.");
-
-                    // Refresh the form data to ensure synchronization
                     await FetchLFA(targetCaseId);
                 } else {
                     console.error("❌ Failed:", data.message);
                     alert("Failed to resubmit LFA. Please try again.");
                 }
             } else {
-                // Normal update submission (not a resubmission)
+                // Normal update submission
                 const formData = new FormData();
-
                 formData.append("caseId", targetCaseId);
                 formData.append("Islawyer", isLawyerSubmission);
 
@@ -10384,7 +10751,6 @@ const LEA_Form = ({ token }) => {
                 formData.append("fixedHeadings", JSON.stringify(formattedHeadings));
                 formData.append("headings", JSON.stringify(headings || []));
 
-                // FIXED: Properly handle signatures based on user type and access method
                 if (isLawyerSubmission && savedSignature) {
                     const file = base64ToFile(savedSignature, "lawyer-signature.png");
                     formData.append("file", file);
@@ -10405,25 +10771,13 @@ const LEA_Form = ({ token }) => {
                 if (data.success) {
                     setEditMode(false);
 
-                    // Set appropriate state based on who submitted
                     if (isLawyerSubmission) {
                         setSignatureSubmitted(true);
-                        // alert("Lawyer signature submitted successfully!");
                     } else {
-                        // Client submission (portal or email)
                         setSignatureSubmitted(true);
                         setShowSignaturePad(false);
-
-                        if (isEmailLinkAccess || isclient) {
-                            if (isEmailLinkAccess) {
-                                // alert("Signature submitted successfully! The LFA process is now complete.");
-                            } else {
-                                // alert("Signature submitted successfully!");
-                            }
-                        }
                     }
 
-                    // Refresh the form data to ensure synchronization
                     await FetchLFA(targetCaseId);
                 } else {
                     console.error("❌ Failed:", data.message);
@@ -10435,6 +10789,7 @@ const LEA_Form = ({ token }) => {
             alert("Error submitting form. Please try again.");
         }
     };
+
     const addHeading = () =>
         setHeadings([...headings, { title: '', points: [{ text: '', subpoints: [] }] }]);
 
@@ -10597,52 +10952,27 @@ const LEA_Form = ({ token }) => {
 
         return (
             <div
-                className="d-flex justify-content-center align-items-center mt-4  gap-3 mb-4 px-3"
+                className="d-flex justify-content-center align-items-center mt-4 mb-4 px-3"
                 data-html2canvas-ignore="true"
             >
                 {/* Reject button */}
                 <button
-                    // className="btn btn-danger fw-bold me-3"
+                    className="btn btn-danger fw-bold me-3"
                     onClick={() => setShowRejectModal(true)}
-                    className="d-flex align-items-center"
-                    style={{
-                        backgroundColor: "#16213e",
-                        color: "white",
-                        width: "150px",
-                        minWidth: "100px",
-                        maxWidth: "200px",
-                        padding: "8px 20px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        textAlign: "center",
-                        border: "2px solid #16213e",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                        transition: "all 0.3s ease",
-                        fontWeight: "500",
-                    }}
+                    style={{ width: "150px" }}
                 >
                     Reject LFA
                 </button>
 
                 {/* Accept button */}
                 <button
-                    className="d-flex align-items-center"
+                    className="btn fw-bold"
                     style={{
-                        backgroundColor: "#16213e",
-                        color: "white",
                         width: "150px",
-                        minWidth: "100px",
-                        maxWidth: "200px",
-                        padding: "8px 20px",
-                        borderRadius: "4px",
-                        fontSize: "14px",
-                        cursor: "pointer",
-                        textAlign: "center",
-                        border: "2px solid #16213e",
-                        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                        transition: "all 0.3s ease",
-                        fontWeight: "500",
+                        backgroundColor: "#001f54",
+                        color: "white",
+                        border: "none",
+                        transition: "all 0.3s ease-in-out"
                     }}
                     onMouseOver={(e) => {
                         e.currentTarget.style.backgroundColor = "#c0a262";
@@ -10684,24 +11014,12 @@ const LEA_Form = ({ token }) => {
                 </Modal.Body>
                 <Modal.Footer className="justify-content-center">
                     <div className="d-flex gap-3">
-                        <div
-                            className="align-items-center"
+                        <Button
                             style={{
-                                backgroundColor: "#16213e",
+                                backgroundColor: "#001f54", // Dark Blue
                                 color: "white",
-                                width: "150px",
-                                minWidth: "170px",
-                                maxWidth: "200px",
-                                padding: "8px 20px",
-                                borderRadius: "4px",
-                                fontSize: "14px",
-                                cursor: "pointer",
-                                textAlign: "center",
-                                alignSelf: 'center',
-                                border: "2px solid #16213e",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                transition: "all 0.3s ease",
-                                fontWeight: "500",
+                                border: "none",
+                                transition: "all 0.3s ease-in-out"
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = "#c0a262"; // Golden on hover
@@ -10714,45 +11032,146 @@ const LEA_Form = ({ token }) => {
                             onClick={() => setShowRejectModal(false)}
                         >
                             Cancel
-                        </div>
+                        </Button>
 
-                        <div
-                            // variant="danger"
-                            className="align-items-center"
-                            style={{
-                                backgroundColor: "red",
-                                color: "white",
-                                width: "150px",
-                                minWidth: "170px",
-                                maxWidth: "200px",
-                                padding: "8px 20px",
-                                borderRadius: "4px",
-                                fontSize: "14px",
-                                cursor: "pointer",
-                                textAlign: "center",
-                                alignSelf: 'center',
-                                border: "2px solid #16213e",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                transition: "all 0.3s ease",
-                                fontWeight: "500",
-                            }}
+                        <Button
+                            variant="danger"
                             onClick={handleRejectLFA}
                             disabled={isSubmittingRejection}
                         >
                             {isSubmittingRejection ? "Submitting..." : "Submit Rejection"}
-                        </div>
+                        </Button>
                     </div>
                 </Modal.Footer>
             </Modal>
         );
     };
 
+    // NEW: Services and Fees Modal
+    // NEW: Services and Fees Modal - Simplified Design
+    // NEW: Services and Fees Modal - Multiple Services Design
+    // Keep the renderServicesModal function as is, with both buttons
+    const renderServicesModal = () => {
+        return (
+            <Modal show={showServicesModal} onHide={() => setShowServicesModal(false)} size="lg">
+                <Modal.Header closeButton>
+                    <Modal.Title>Add Services and Fees - {currentSection}</Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    {/* Services List */}
+                    <div className="mb-4">
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <h6 className="mb-0">Services</h6>
+                            <Button
+                                variant="outline-primary"
+                                size="sm"
+                                onClick={handleAddService}
+                                className="d-flex align-items-center"
+                            >
+                                <BsPlus className="me-1" /> Add Another Service
+                            </Button>
+                        </div>
+
+                        {/* Services List */}
+                        {services.map((service, serviceIndex) => (
+                            <div key={service.id} className="border rounded p-3 mb-3 position-relative">
+                                <div className="d-flex justify-content-between align-items-center mb-3">
+                                    <h6 className="mb-0">Service {serviceIndex + 1}</h6>
+                                    {services.length > 1 && (
+                                        <Button
+                                            variant="outline-danger"
+                                            size="sm"
+                                            onClick={() => handleRemoveService(service.id)}
+                                            className="position-absolute"
+                                            style={{ top: '10px', right: '10px' }}
+                                        >
+                                            <BsDash />
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {/* Service Selection */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Select Service</Form.Label>
+                                    <Form.Select
+                                        value={service.selectedService}
+                                        onChange={(e) => handleServiceChange(service.id, 'selectedService', e.target.value)}
+                                        className="form-control-lg"
+                                    >
+                                        <option value="">Choose a service...</option>
+                                        {servicesList.map((serviceOption, index) => (
+                                            <option key={index} value={serviceOption}>{serviceOption}</option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+
+                                {/* Service Fees */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Service Fees</Form.Label>
+                                    <InputGroup size="lg">
+                                        <InputGroup.Text>AED</InputGroup.Text>
+                                        <Form.Control
+                                            type="number"
+                                            placeholder="Enter fee amount"
+                                            value={service.serviceFees}
+                                            onChange={(e) => handleServiceChange(service.id, 'serviceFees', e.target.value)}
+                                        />
+                                    </InputGroup>
+                                </Form.Group>
+                            </div>
+                        ))}
+                    </div>
+                </Modal.Body>
+                <Modal.Footer className="justify-content-center">
+                    <div className="d-flex gap-3">
+                        <Button
+                            style={{
+                                backgroundColor: "#001f54",
+                                color: "white",
+                                border: "none",
+                                transition: "all 0.3s ease-in-out",
+                                minWidth: '120px'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = "#c0a262";
+                                e.currentTarget.style.color = "black";
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = "#001f54";
+                                e.currentTarget.style.color = "white";
+                            }}
+                            onClick={() => setShowServicesModal(false)}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            style={{
+                                backgroundColor: "#001f54",
+                                color: "white",
+                                border: "none",
+                                transition: "all 0.3s ease-in-out",
+                                minWidth: '120px'
+                            }}
+                            onMouseOver={(e) => {
+                                e.currentTarget.style.backgroundColor = "#c0a262";
+                                e.currentTarget.style.color = "black";
+                            }}
+                            onMouseOut={(e) => {
+                                e.currentTarget.style.backgroundColor = "#001f54";
+                                e.currentTarget.style.color = "white";
+                            }}
+                            onClick={handleSaveAllServices}
+                        >
+                            Save All Services
+                        </Button>
+                    </div>
+                </Modal.Footer>
+            </Modal>
+        );
+    };
     const ThankYouMessage = () => (
         <div className="text-center py-5">
             <h3>Thank You!</h3>
-
-
-
         </div>
     );
 
@@ -10809,15 +11228,10 @@ const LEA_Form = ({ token }) => {
 
             {/* toolbar */}
 
-
-            {/* toolbar - MODIFIED: Removed card styling and aligned button to right */}
-            {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
-            {/* toolbar - MODIFIED: Positioned to the right with proper spacing */}
-
             {(token?.Role === "lawyer" || isFormFilled) ? (
                 <>
                     <div
-                        className="d-flex justify-content-end mb-3 gap-3 px-3 py-2"
+                        className="d-flex justify-content-end mb-3 px-3 py-2"
                         data-html2canvas-ignore="true"
                         style={{
                             marginTop: '10px'
@@ -10825,26 +11239,14 @@ const LEA_Form = ({ token }) => {
                     >
                         {/* Only show Generate Link button to lawyer and admin */}
                         {(token?.Role === "lawyer" || token?.Role === "admin") && (
-
                             <button
-                                // className="btn btn-primary me-3 px-4 py-2 fw-medium"
+                                className="btn btn-primary me-3 px-4 py-2 fw-medium"
                                 onClick={handleGenerateLink}
-                                className="d-flex align-items-center"
                                 style={{
-                                    backgroundColor: "#16213e",
+                                    backgroundColor: "#001f54",
                                     color: "white",
-                                    width: "150px",
-                                    minWidth: "100px",
-                                    maxWidth: "200px",
-                                    padding: "8px 20px",
-                                    borderRadius: "4px",
-                                    fontSize: "14px",
-                                    cursor: "pointer",
-                                    textAlign: "center",
-                                    border: "2px solid #16213e",
-                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                    transition: "all 0.3s ease",
-                                    fontWeight: "500",
+                                    border: "none",
+                                    transition: "all 0.3s ease-in-out"
                                 }}
                                 onMouseOver={(e) => {
                                     e.currentTarget.style.backgroundColor = "#c0a262";
@@ -10860,24 +11262,14 @@ const LEA_Form = ({ token }) => {
                         )}
 
                         <button
-                            // className="btn fw-medium d-flex align-items-center"
+                            className="btn fw-medium d-flex align-items-center"
                             onClick={handleDownload}
-                            className="d-flex align-items-center"
                             style={{
-                                backgroundColor: "#16213e",
+                                padding: "8px 16px",
+                                backgroundColor: "#001f54",
                                 color: "white",
-                                width: "150px",
-                                minWidth: "100px",
-                                maxWidth: "200px",
-                                padding: "8px 20px",
-                                borderRadius: "4px",
-                                fontSize: "14px",
-                                cursor: "pointer",
-                                textAlign: "center",
-                                border: "2px solid #16213e",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                transition: "all 0.3s ease",
-                                fontWeight: "500",
+                                border: "none",
+                                transition: "all 0.3s ease-in-out"
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = "#c0a262";
@@ -10892,7 +11284,6 @@ const LEA_Form = ({ token }) => {
                             Download PDF
                         </button>
                     </div>
-
                     <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef} key={draftKey} style={isEmailLinkAccess ? { backgroundColor: "white", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" } : {}}>
                         {/* Header */}
                         <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
@@ -10931,10 +11322,6 @@ const LEA_Form = ({ token }) => {
                                 </Dropdown>
                             </Form.Group>
                         )}
-
-                        {/* NEW: Show status message */}
-                        {/* FIXED: Show appropriate status message based on user role */}
-                        {/* FIXED: Show appropriate status message based on user role */}
 
                         <div className="card p-2 p-md-4 shadow-sm mb-4">
                             <label className="form-label fw-bold fs-5 text-break">Agreement</label>
@@ -11022,7 +11409,57 @@ const LEA_Form = ({ token }) => {
                         </div>
 
                         {/* Fixed Headings */}
-                        {renderHeadings(fixedHeadings, setFixedHeadings, true)}
+                        {fixedHeadings.map((heading, index) => (
+                            <div key={index} className="section border p-2 rounded bg-light mb-3">
+                                <div className="d-flex justify-content-between align-items-start mb-2">
+                                    <strong>{heading.title}</strong>
+                                    {/* Add Service and Fees button for specific sections */}
+                                    {(heading.title.includes('Professional Fees for Dispute Case') ||
+                                        heading.title.includes('Other Fees')) && editMode && (
+                                            <button
+                                                className="btn btn-sm ms-2"
+                                                onClick={() => handleAddServiceClick(heading.title)}
+                                                style={{
+                                                    backgroundColor: "#001f54",
+                                                    color: "white",
+                                                    border: "none",
+                                                    transition: "all 0.3s ease-in-out",
+                                                    whiteSpace: "nowrap"
+                                                }}
+                                                onMouseOver={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#c0a262";
+                                                    e.currentTarget.style.color = "black";
+                                                }}
+                                                onMouseOut={(e) => {
+                                                    e.currentTarget.style.backgroundColor = "#001f54";
+                                                    e.currentTarget.style.color = "white";
+                                                }}
+                                            >
+                                                Add Service and Fees
+                                            </button>
+                                        )}
+                                </div>
+                                {editMode ? (
+                                    <CEEditable
+                                        list={[heading]}
+                                        onChange={(updatedList) => {
+                                            const updatedHeadings = [...fixedHeadings];
+                                            updatedHeadings[index] = updatedList[0];
+                                            setFixedHeadings(updatedHeadings);
+                                        }}
+                                        disable={(isFormFilled && !editMode)}
+                                    />
+                                ) : (
+                                    <ol type="a" style={{ margin: "8px 0", paddingLeft: "24px" }}>
+                                        {heading.points.map((point, pIndex) => (
+                                            <li key={pIndex} style={{ margin: "4px 0", textAlign: "justify" }}>
+                                                {point.text}
+                                            </li>
+                                        ))}
+                                    </ol>
+                                )}
+                            </div>
+                        ))}
 
                         {/* Custom Headings */}
                         {/* {renderHeadings(headings, setHeadings, false)} */}
@@ -11111,9 +11548,7 @@ const LEA_Form = ({ token }) => {
                             )}
                         </div>
                         {/* ⬇️⬇️⬇️ ADD REJECTION STATUS DISPLAY RIGHT HERE ⬇️⬇️⬇️ */}
-                        {/* Rejection Status Display - UPDATED */}
                         {/* Rejection Status Display - FIXED */}
-                        {/* ⬇️⬇️⬇️ ADD REJECTION STATUS DISPLAY RIGHT HERE ⬇️⬇️⬇️ */}
                         {/* Rejection Status Display - FIXED */}
                         {lfaStatus === "rejected" && dataList?.rejectionReason && (
                             <div className="alert alert-danger mt-4" role="alert">
@@ -11125,7 +11560,15 @@ const LEA_Form = ({ token }) => {
                                     }
                                 </h5>
                                 <p className="mb-1"><strong>Reason for rejection:</strong></p>
-                                <p className="mb-0">{dataList.rejectionReason}</p>
+                                <div
+                                    className="mb-0 rejection-reason"
+                                    style={{
+                                        whiteSpace: 'pre-wrap',
+                                        lineHeight: '1.5'
+                                    }}
+                                >
+                                    {dataList.rejectionReason}
+                                </div>
                                 {dataList.rejectedAt && (
                                     <small className="text-muted d-block mt-2">
                                         Rejected on: {new Date(dataList.rejectedAt).toLocaleDateString('en-GB')}
@@ -11133,126 +11576,72 @@ const LEA_Form = ({ token }) => {
                                         {!isclient && !isEmailLinkAccess && dataList.rejectedBy && ` by ${dataList.rejectedBy}`}
                                     </small>
                                 )}
-
-                                {/* Show resubmission instructions ONLY to lawyer (not client/email access) */}
-                                {!isclient && !isEmailLinkAccess && token?.Role === "lawyer" && (
-                                    <div className="mt-3">
-                                        {/* Resubmission instructions here */}
-                                    </div>
-                                )}
                             </div>
                         )}
                         {/* NEW: Rejection Popup Modal for Lawyer */}
-                        {/* NEW: Rejection Popup Modal for Lawyer */}
                         {!isclient && !isEmailLinkAccess && token?.Role === "lawyer" && lfaStatus === "rejected" && dataList?.rejectionReason && !editMode && !rejectionAcknowledged && (
-                            <Modal show={true} onHide={() => setRejectionAcknowledged(true)} backdrop="static" keyboard={false}>
-                                <Modal.Header style={{ backgroundColor: "#f8d7da", borderColor: "#f5c6cb" }}>
+                            <Modal show={true} onHide={() => setRejectionAcknowledged(true)} backdrop="static" keyboard={false} size="lg">
+                                <Modal.Header closeButton style={{ backgroundColor: "#f8d7da", borderColor: "#f5c6cb" }}>
                                     <Modal.Title className="text-danger">LFA Rejected by Client</Modal.Title>
                                 </Modal.Header>
                                 <Modal.Body>
-                                    <div className="alert alert-warning" role="alert">
-                                        <h6 className="alert-heading">Client has rejected this Legal Fee Agreement</h6>
-                                        <hr />
+                                    <div className="mb-3">
+                                        <h6 className="text-danger mb-3">Client has rejected this Legal Fee Agreement</h6>
                                         <p className="mb-2"><strong>Reason for rejection:</strong></p>
-                                        <p className="mb-3">{dataList.rejectionReason}</p>
-                                        {/* In the lawyer rejection popup modal */}
-                                        <small className="text-muted">
+
+                                        {/* Scrollable container for rejection reason */}
+                                        <div
+                                            style={{
+                                                whiteSpace: 'pre-wrap',
+                                                textAlign: 'left',
+                                                maxHeight: '200px',
+                                                overflowY: 'auto',
+                                                padding: '10px',
+                                                border: '1px solid #ddd',
+                                                borderRadius: '4px',
+                                                backgroundColor: '#fafafa',
+                                                fontSize: '14px',
+                                                lineHeight: '1.5'
+                                            }}
+                                        >
+                                            {dataList.rejectionReason}
+                                        </div>
+
+                                        <small className="text-muted mt-2 d-block">
                                             Rejected on: {new Date(dataList.rejectedAt || Date.now()).toLocaleDateString('en-GB')}
                                         </small>
                                     </div>
-
-                                    {/* <div className="mt-3">
-                                    <p className="mb-2"><strong>Next steps:</strong></p>
-                                    <ul className="small">
-                                        <li>Review the client's feedback above</li>
-                                        <li>Make necessary changes to the agreement</li>
-                                        <li>Click "Edit Agreement" to make changes</li>
-                                        <li>After editing, click "Save & Update Agreement" to resubmit</li>
-                                        <li>The client will be notified to review the updated LFA</li>
-                                    </ul>
-                                </div> */}
                                 </Modal.Body>
                                 <Modal.Footer className="justify-content-center">
-                                    {/* OK Button - Closes the modal */}
                                     <button
-                                        className="align-items-center"
+                                        className="btn btn-primary me-2"
                                         onClick={() => setRejectionAcknowledged(true)}
                                         style={{
-                                            backgroundColor: "#16213e",
+                                            backgroundColor: "#001f54",
                                             color: "white",
-                                            width: "150px",
-                                            minWidth: "170px",
-                                            maxWidth: "200px",
-                                            padding: "8px 20px",
-                                            borderRadius: "4px",
-                                            fontSize: "14px",
-                                            cursor: "pointer",
-                                            textAlign: "center",
-                                            alignSelf: 'center',
-                                            border: "2px solid #16213e",
-                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                            transition: "all 0.3s ease",
-                                            fontWeight: "500",
-                                        }}
-                                        onMouseOver={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#c0a262";
-                                            e.currentTarget.style.color = "black";
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#001f54";
-                                            e.currentTarget.style.color = "white";
+                                            border: "none",
+                                            transition: "all 0.3s ease-in-out",
+                                            minWidth: "100px"
                                         }}
                                     >
                                         OK
                                     </button>
-
-                                    {/* Edit Agreement Button */}
-                                    <div
-                                        className="align-items-center"
+                                    <button
+                                        className="btn btn-primary"
                                         onClick={() => setEditMode(true)}
-
                                         style={{
-                                            backgroundColor: "#16213e",
+                                            backgroundColor: "#001f54",
                                             color: "white",
-                                            width: "150px",
-                                            minWidth: "170px",
-                                            maxWidth: "200px",
-                                            padding: "8px 20px",
-                                            borderRadius: "4px",
-                                            fontSize: "14px",
-                                            cursor: "pointer",
-                                            textAlign: "center",
-                                            alignSelf: 'center',
-                                            border: "2px solid #16213e",
-                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                            transition: "all 0.3s ease",
-                                            fontWeight: "500",
-                                        }}
-                                        onMouseOver={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#c0a262";
-                                            e.currentTarget.style.color = "black";
-                                        }}
-                                        onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = "#001f54";
-                                            e.currentTarget.style.color = "white";
+                                            border: "none",
+                                            transition: "all 0.3s ease-in-out",
+                                            minWidth: "120px"
                                         }}
                                     >
                                         Edit Agreement
-                                    </div>
+                                    </button>
                                 </Modal.Footer>
                             </Modal>
                         )}
-                        {/* Resubmission Status Display */}
-                        {/* {(isclient || isEmailLinkAccess) && dataList?.resubmittedAt && (
-    <div className="alert alert-info mt-4" role="alert">
-        <h5 className="alert-heading">LFA Resubmitted</h5>
-        <p className="mb-1">
-            This LFA was resubmitted by {dataList.resubmittedBy || "lawyer"} on {new Date(dataList.resubmittedAt).toLocaleDateString()}.
-        </p>
-        <p className="mb-0">Please review the updated agreement.</p>
-    </div>
-)} */}
-
                         <div className="d-flex justify-content-center gap-2 gap-md-3 mt-3 mb-4 flex-wrap" data-html2canvas-ignore="true">
                             {(!isclient && savedClientSignature && savedLawyerSignature) && (
                                 <button
@@ -11327,6 +11716,9 @@ const LEA_Form = ({ token }) => {
 
             {/* NEW: Rejection Modal */}
             {renderRejectionModal()}
+
+            {/* NEW: Services and Fees Modal */}
+            {renderServicesModal()}
         </div>
     );
 };
