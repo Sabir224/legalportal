@@ -681,33 +681,68 @@ const BasicCase = ({ token }) => {
 
       console.log(" filterCase =", filteredCases)
       // 🔹 Grouping logic: {header: clientName/id, subcases:[cases]}
-      const groupedCases = Object.values(
-        filteredCases.reduce((acc, caseItem) => {
-          const clientId = caseItem.ClientId;
-          const header = caseItem.ClientName || clientId || "Unknown Client";
+      // const groupedCases = Object.values(
+      //   filteredCases.reduce((acc, caseItem) => {
+      //     const clientId = caseItem.ClientId;
+      //     const header = caseItem.ClientName || clientId || "Unknown Client";
 
-          if (!clientId) {
-            // Agar ClientId hi nahi hai → har case ek independent header
-            acc[`${header}_${caseItem?._id}`] = {
-              headerCase: caseItem,
-              subcases: [], // koi subcases nahi
-            };
-          } else {
-            // Agar ClientId hai → grouping normal
-            if (!acc[clientId]) {
-              acc[clientId] = {
-                headerCase: caseItem, // pehla case header banega
+      //     if (!clientId) {
+      //       // Agar ClientId hi nahi hai → har case ek independent header
+      //       acc[`${header}_${caseItem?._id}`] = {
+      //         headerCase: caseItem,
+      //         subcases: [], // koi subcases nahi
+      //       };
+      //     } else {
+      //       // Agar ClientId hai → grouping normal
+      //       if (!acc[clientId]) {
+      //         acc[clientId] = {
+      //           headerCase: caseItem, // pehla case header banega
+      //           subcases: [],
+      //         };
+      //       } else {
+      //         acc[clientId].subcases.push(caseItem);
+      //       }
+      //     }
+
+      //     return acc;
+      //   }, {})
+      // );
+
+
+      const groupedCases = Object.values(
+        filteredCases
+          // 🔹 Step 1: sort pehle hi kar lo → latest first
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .reduce((acc, caseItem) => {
+            const clientId = caseItem.ClientId;
+            const header = caseItem.ClientName || clientId || "Unknown Client";
+
+            if (!clientId) {
+              // Agar ClientId hi nahi hai → har case ek independent header
+              acc[`${header}_${caseItem?._id}`] = {
+                headerCase: caseItem,
                 subcases: [],
               };
             } else {
-              acc[clientId].subcases.push(caseItem);
+              // Agar ClientId hai → grouping normal
+              if (!acc[clientId]) {
+                acc[clientId] = {
+                  headerCase: caseItem, // sabse pehla (latest) case header banega
+                  subcases: [],
+                };
+              } else {
+                acc[clientId].subcases.push(caseItem);
+              }
             }
-          }
 
-          return acc;
-        }, {})
+            return acc;
+          }, {})
       );
 
+      // 🔹 Step 2: subcases ko bhi sort karna (latest → oldest)
+      groupedCases.forEach((group) => {
+        group.subcases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      });
 
       console.log("Group Cases = ", groupedCases)
       await setData(groupedCases);
