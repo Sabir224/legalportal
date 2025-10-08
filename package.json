@@ -34,7 +34,7 @@
     "@tiptap/starter-kit": "^3.3.0",
     "axios": "^1.8.2",
     "bootstrap": "^5.3.3",
-    "caniuse-lite": "^1.0.30001746",
+    "caniuse-lite": "^1.0.30001748",
     "chart.js": "^4.5.0",
     "chartjs-plugin-datalabels": "^2.2.0",
     "cra-template": "1.2.0",

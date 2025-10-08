@@ -1232,8 +1232,8 @@ const BasicCase = ({ token }) => {
 
               <span className="d-flex gap-2 text-start"
                 style={{
-                  maxWidth: "150px",
-                  minWidth: "150px",
+                  maxWidth: "180px",
+                  minWidth: "180px",
                   position: "sticky",
                   left: 0,
                   paddingLeft: 20,
