@@ -563,63 +563,92 @@ const BasicCase = ({ token }) => {
   //   return filteredCases;
   // };
 
-
   const getFilteredCases = () => {
     let filteredCases = data;
 
-    // 🔒 If CaseType or CaseSubType is empty (i.e., nothing selected), show nothing
+    // 🔒 Agar CaseType ya CaseSubType filter empty ho to kuch bhi na dikhaye
     const hasEmptyFilter =
       (filters.CaseType && filters.CaseType.length === 0) ||
       (filters.CaseSubType && filters.CaseSubType.length === 0);
 
     if (hasEmptyFilter) return [];
 
-    // Apply search filter
+    // 🔍 Search (headerCase + subcases)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filteredCases = filteredCases.filter((item) =>
-        Object.entries(item).some(([key, value]) => {
-          if (
-            typeof value !== "string" ||
-            ["_id", "createdAt", "updatedAt"].includes(key)
-          ) {
-            return false;
-          }
+      filteredCases = filteredCases.filter((item) => {
+        const header = item.headerCase || {};
+        const subcases = item.subcases || [];
+
+        // headerCase check
+        const headerMatch = Object.entries(header).some(([key, value]) => {
+          if (typeof value !== "string") return false;
           return value.toLowerCase().includes(query);
-        })
-      );
+        });
+
+        // subcases check
+        const subcaseMatch = subcases.some((sub) =>
+          Object.entries(sub).some(([key, value]) => {
+            if (typeof value !== "string") return false;
+            return value.toLowerCase().includes(query);
+          })
+        );
+
+        return headerMatch || subcaseMatch;
+      });
     }
 
-    // Filter by CaseType
+    // 📂 Filter by CaseType (headerCase + subcases)
     if (filters.CaseType && filters.CaseType.length > 0) {
-      filteredCases = filteredCases.filter((item) =>
-        filters.CaseType.includes(item.CaseType || "")
-      );
+      filteredCases = filteredCases.filter((item) => {
+        const headerType = item.headerCase?.CaseType || "";
+        const subTypes = item.subcases.map((s) => s.CaseType || "");
+        return (
+          filters.CaseType.includes(headerType) ||
+          subTypes.some((st) => filters.CaseType.includes(st))
+        );
+      });
     }
 
-    // Filter by CaseSubType
+    // 📂 Filter by CaseSubType (headerCase + subcases)
     if (filters.CaseSubType && filters.CaseSubType.length > 0) {
-      filteredCases = filteredCases.filter((item) =>
-        filters.CaseSubType.includes(item.CaseSubType || "")
-      );
+      filteredCases = filteredCases.filter((item) => {
+        const headerSubType = item.headerCase?.CaseSubType || "";
+        const subSubTypes = item.subcases.map((s) => s.CaseSubType || "");
+        return (
+          filters.CaseSubType.includes(headerSubType) ||
+          subSubTypes.some((sst) => filters.CaseSubType.includes(sst))
+        );
+      });
     }
 
-    // Sorting
+    // 🔄 Sorting (sirf headerCase field pe)
     if (filters.sortBy) {
-      filteredCases.sort((a, b) => {
-        const aVal = a[filters.sortBy];
-        const bVal = b[filters.sortBy];
+      filteredCases = [...filteredCases].sort((a, b) => {
+        const aVal = a.headerCase?.[filters.sortBy];
+        const bVal = b.headerCase?.[filters.sortBy];
 
         if (aVal == null || bVal == null) return 0;
 
+        if (typeof aVal === "string" && typeof bVal === "string") {
+          return filters.sortOrder === "asc"
+            ? aVal.localeCompare(bVal)
+            : bVal.localeCompare(aVal);
+        }
+
         return filters.sortOrder === "asc"
-          ? aVal > bVal ? 1 : -1
-          : aVal < bVal ? 1 : -1;
+          ? aVal > bVal
+            ? 1
+            : -1
+          : aVal < bVal
+            ? 1
+            : -1;
       });
     }
 
     return filteredCases;
   };
+
 
 
   const getCurrentPageData = () => {
@@ -1296,124 +1325,7 @@ const BasicCase = ({ token }) => {
 
 
 
-              {/* CASE SUB TYPE Filter */}
-              <span
-                ref={caseSubTypeRef}
-                className="d-flex gap-2 text-start"
-                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
-              >
-                Case Sub Type
-                <Dropdown
-                  show={showCaseSubTypeFilter}
-                  onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
-                >
-                  <Dropdown.Toggle
-                    variant=""
-                    size="sm"
-                    className="custom-dropdown-toggle"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCaseTypeFilter(false);
-                      setCaseFilter(false);
-                      setCaseSubTypeFilter(!showCaseSubTypeFilter);
-                    }}
-                  >
-                    <FontAwesomeIcon
-                      icon={faFilter}
-                      style={{
-                        color:
-                          filters.CaseSubType &&
-                            filters.CaseSubType.length > 0 &&
-                            filters.CaseSubType.length <= Subtypelist.length
-                            ? "red" // kuch select hain lekin sab nahi
-                            : "white",
-                      }}
-                    />
-                  </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
-                    <Dropdown.Item
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFilterChange("CaseSubType", "__SELECT_ALL__");
-                      }}
-                    >
-                      Select All
-                    </Dropdown.Item>
-                    <Dropdown.Item
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setFilters((prev) => ({ ...prev, CaseSubType: [] }));
-                      }}
-                    >
-                      Clear All
-                    </Dropdown.Item>
 
-                    {/* Blank Option */}
-                    <Dropdown.Item
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFilterChange("CaseSubType", "");
-                      }}
-                      style={{
-                        backgroundColor: filters.CaseSubType.includes("") ? "" : "",
-                        color: "white",
-                      }}
-                    >
-                      <Form.Check
-                        type="checkbox"
-                        label="(Blank)"
-                        checked={filters.CaseSubType.includes("")}
-                        onChange={() => { }}
-                      />
-                    </Dropdown.Item>
-
-                    {/* Dynamic Options */}
-                    {Subtypelist.map((type) => (
-                      <Dropdown.Item
-                        key={type}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFilterChange("CaseSubType", type);
-                        }}
-                        style={{
-                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "",
-                          color: "white",
-                        }}
-                      >
-                        <Form.Check
-                          type="checkbox"
-                          label={type}
-                          checked={filters.CaseSubType.includes(type)}
-                          onChange={() => { }}
-                        />
-                      </Dropdown.Item>
-                    ))}
-
-                    <Dropdown.Divider />
-                    <div className="text-end px-2 pb-2">
-                      <div
-                        role="button"
-                        style={{
-                          padding: "4px 12px",
-                          border: "1px solid #18273e",
-                          borderRadius: "4px",
-                          color: "white",
-                          backgroundColor: "#18273e",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                          display: "inline-block",
-                        }}
-                        onClick={() => {
-                          handleApplyFilter("CaseSubType");
-                          setCaseSubTypeFilter(false);
-                        }}
-                      >
-                        OK
-                      </div>
-                    </div>
-                  </Dropdown.Menu>
-                </Dropdown>
-              </span>
 
               {/* CASE TYPE Filter */}
               <span
@@ -1534,7 +1446,124 @@ const BasicCase = ({ token }) => {
                 </Dropdown>
               </span>
 
+              {/* CASE SUB TYPE Filter */}
+              <span
+                ref={caseSubTypeRef}
+                className="d-flex gap-2 text-start"
+                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+              >
+                Case Sub Type
+                <Dropdown
+                  show={showCaseSubTypeFilter}
+                  onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
+                >
+                  <Dropdown.Toggle
+                    variant=""
+                    size="sm"
+                    className="custom-dropdown-toggle"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCaseTypeFilter(false);
+                      setCaseFilter(false);
+                      setCaseSubTypeFilter(!showCaseSubTypeFilter);
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={faFilter}
+                      style={{
+                        color:
+                          filters.CaseSubType &&
+                            filters.CaseSubType.length > 0 &&
+                            filters.CaseSubType.length <= Subtypelist.length
+                            ? "red" // kuch select hain lekin sab nahi
+                            : "white",
+                      }}
+                    />
+                  </Dropdown.Toggle>
+                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseSubType", "__SELECT_ALL__");
+                      }}
+                    >
+                      Select All
+                    </Dropdown.Item>
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setFilters((prev) => ({ ...prev, CaseSubType: [] }));
+                      }}
+                    >
+                      Clear All
+                    </Dropdown.Item>
 
+                    {/* Blank Option */}
+                    <Dropdown.Item
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFilterChange("CaseSubType", "");
+                      }}
+                      style={{
+                        backgroundColor: filters.CaseSubType.includes("") ? "" : "",
+                        color: "white",
+                      }}
+                    >
+                      <Form.Check
+                        type="checkbox"
+                        label="(Blank)"
+                        checked={filters.CaseSubType.includes("")}
+                        onChange={() => { }}
+                      />
+                    </Dropdown.Item>
+
+                    {/* Dynamic Options */}
+                    {Subtypelist.map((type) => (
+                      <Dropdown.Item
+                        key={type}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFilterChange("CaseSubType", type);
+                        }}
+                        style={{
+                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "",
+                          color: "white",
+                        }}
+                      >
+                        <Form.Check
+                          type="checkbox"
+                          label={type}
+                          checked={filters.CaseSubType.includes(type)}
+                          onChange={() => { }}
+                        />
+                      </Dropdown.Item>
+                    ))}
+
+                    <Dropdown.Divider />
+                    <div className="text-end px-2 pb-2">
+                      <div
+                        role="button"
+                        style={{
+                          padding: "4px 12px",
+                          border: "1px solid #18273e",
+                          borderRadius: "4px",
+                          color: "white",
+                          backgroundColor: "#18273e",
+                          fontSize: "14px",
+                          cursor: "pointer",
+                          display: "inline-block",
+                        }}
+                        onClick={() => {
+                          handleApplyFilter("CaseSubType");
+                          setCaseSubTypeFilter(false);
+                        }}
+                      >
+                        OK
+                      </div>
+                    </div>
+                  </Dropdown.Menu>
+                </Dropdown>
+              </span>
 
 
               {/* LFQ Heading */}
