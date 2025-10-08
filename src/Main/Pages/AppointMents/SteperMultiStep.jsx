@@ -108,7 +108,315 @@ const StepIcon = ({ active, completed, icon }) => {
     <StyledStepIcon active={active || completed}>{completed ? <CheckCircle fontSize="small" /> : icon}</StyledStepIcon>
   );
 };
-
+const services = [
+  { name: 'Civil Law', description: 'Civil law related legal services' },
+  { name: 'Commercial Law', description: 'Commercial law related legal services' },
+  { name: 'Criminal Law', description: 'Criminal law related legal services' },
+  { name: 'Family Law', description: 'Family law related legal services' },
+  { name: 'Real Estate Law', description: 'Real estate law related legal services' },
+  { name: 'Labour Law', description: 'Labour law related legal services' },
+  { name: 'Construction Law', description: 'Construction law related legal services' },
+  { name: 'Maritime Law', description: 'Maritime law related legal services' },
+  { name: 'Personal Injury Law', description: 'Personal injury law related legal services' },
+  { name: 'Technology Law', description: 'Technology law related legal services' },
+  { name: 'Financial Law', description: 'Financial law related legal services' },
+  { name: 'Public Law', description: 'Public law related legal services' },
+  { name: 'Consumer Law', description: 'Consumer law related legal services' },
+  { name: 'Environmental Law', description: 'Environmental law related legal services' },
+  {
+    name: 'Estate / Succession / Inheritance Law',
+    description: 'Estate, succession, and inheritance legal services',
+  },
+  { name: 'Insurance Law', description: 'Insurance-related legal services' },
+  { name: 'Banking and Investment Law', description: 'Banking and investment related legal services' },
+  { name: 'Tax Law', description: 'Tax-related legal services' },
+  { name: 'Rental Law', description: 'Rental and tenancy-related legal services' },
+  { name: 'Intellectual Property Law', description: 'Intellectual property legal services' },
+  { name: 'Debt Collection Law', description: 'Debt collection related legal services' },
+  { name: 'Capital Funds Law', description: 'Capital funds and investment-related legal services' },
+];
+const questionsConfig = {
+  'Civil Law': [
+    { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
+    {
+      type: 'text',
+      question: 'Please describe the nature of the dispute (breach of contract, damage to property, unpaid debt, etc.)',
+    },
+    { type: 'text', question: 'Who are the other parties involved, and what is your relationship to them?' },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Family Law': [
+    { type: 'text', question: 'Current marital or relationship status' },
+    {
+      type: 'text',
+      question: 'Relevant legal actions already taken (separation agreement, court filings, restraining orders).',
+    },
+    { type: 'checkbox', question: 'Religion', options: ['Muslim', 'Non-Muslim'] },
+    {
+      type: 'text',
+      question:
+        'Please confirm where your marriage took place? And if there are children involved? If yes, list their full names, birth dates, and current living arrangements.',
+    },
+    {
+      type: 'text',
+      question:
+        'Legal service required - issues you need assistance with, and what outcome are you seeking? (sole custody, equal parenting time, spousal support, asset division, protection order, etc.)',
+    },
+  ],
+  'Commercial Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of the legal issue or service you are seeking? (incorporation, shareholder agreement, business sale, contract drafting/review, partnership dispute, regulatory compliance, etc.)',
+    },
+    {
+      type: 'file',
+      question: 'Attach relevant documents (if any)',
+    },
+  ],
+  'Criminal Law': [
+    { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
+    {
+      type: 'text',
+      question:
+        'Have you been charged, arrested, or are you currently under investigation? (Please specify the alleged offence(s), date(s), and law enforcement agency involved)',
+    },
+    {
+      type: 'text',
+      question:
+        'What stage is your case currently at? (not yet charged, bail hearing scheduled, awaiting trial, sentencing, probation violation, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Estate / Succession / Inheritance Law': [
+    {
+      type: 'text',
+      question: 'Please define the legal service you are seeking. (Planning, managing or disputing an estate.)',
+    },
+    {
+      type: 'text',
+      question:
+        'If this concerns a deceased person, what is the relationship? (Include known details about the will’s if available.)',
+    },
+    {
+      type: 'text',
+      question:
+        'What assets, debts, or disputes (if any) are involved in the estate? (real estate, businesses, bank accounts, inheritance conflicts, missing beneficiaries.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Real Estate Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of your real estate matter? (purchase, sale, lease, construction defect, title problem, etc.)',
+    },
+    { type: 'text', question: 'Are there any contracts, offers, or legal proceedings currently in progress?' },
+    {
+      type: 'text',
+      question:
+        'Who are the other parties involved (buyer, seller, tenant, developer, municipality), and are there any disputes, deadlines, or financial concerns?',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Labour Law': [
+    {
+      type: 'text',
+      question:
+        'Please describe the nature of the employment relationship (full-time, part-time, contract, unionized) and how long it has existed.',
+    },
+    {
+      type: 'text',
+      question:
+        'What is the specific issue you are seeking legal advice for? (termination, unpaid salary, harassment, contract review, discrimination, etc.)',
+    },
+    {
+      type: 'text',
+      question:
+        'Have any formal actions been taken to date (written warnings, termination letter, complaint to HR, labour board complaint)?',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Construction Law': [
+    {
+      type: 'text',
+      question:
+        'What type of construction issue is involved? (contract dispute, defect, payment issue, project delay, safety concern, etc.)',
+    },
+    { type: 'text', question: 'Who are the parties involved (contractor, subcontractor, owner, municipality)?' },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Maritime Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of the maritime issue? (shipping dispute, cargo damage, vessel arrest, seafarer employment, marine insurance, etc.)',
+    },
+    { type: 'text', question: 'What parties are involved (shipowner, charterer, insurer, port authority, crew)?' },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Personal Injury Law': [
+    {
+      type: 'text',
+      question:
+        'What type of personal injury occurred? (car accident, workplace injury, medical negligence, slip and fall, etc.)',
+    },
+    { type: 'text', question: 'When and where did the injury occur?' },
+    { type: 'file', question: 'Attach relevant medical/legal documents (if any)' },
+  ],
+  'Technology Law': [
+    {
+      type: 'text',
+      question:
+        'What type of technology matter is involved? (data privacy, software licensing, cybersecurity, IT contracts, AI compliance, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant agreements/policies (if any)' },
+    {
+      type: 'text',
+      question: 'What outcome are you seeking? (compliance, damages, contract negotiation, dispute resolution)',
+    },
+  ],
+  'Financial Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of your financial issue? (fraud, misrepresentation, banking dispute, unauthorized transactions, etc.)',
+    },
+    { type: 'text', question: 'What financial institutions or parties are involved?' },
+    { type: 'text', question: 'What actions have been taken so far (complaints, regulatory filings, lawsuits)?' },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Public Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of the public law matter? (constitutional challenge, administrative law, judicial review, regulatory compliance)',
+    },
+    { type: 'text', question: 'Which public authority, regulator, or government body is involved?' },
+    { type: 'text', question: 'What outcome or relief are you seeking?' },
+  ],
+  'Consumer Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of your consumer issue? (defective product, false advertising, unfair contract, service dispute, fraud)',
+    },
+    { type: 'text', question: 'Who is the seller, manufacturer, or service provider involved?' },
+    {
+      type: 'text',
+      question: 'What steps have been taken so far (complaints, refund request, consumer protection filing)?',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Environmental Law': [
+    {
+      type: 'text',
+      question:
+        'What is the nature of the environmental matter? (pollution, land use, regulatory compliance, environmental assessment, climate dispute)',
+    },
+    {
+      type: 'text',
+      question: 'What authority or organization is involved? (EPA, local municipality, private corporation, NGO)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Insurance Law': [
+    {
+      type: 'checkbox',
+      question: 'Type of Insurance Involved',
+      options: ['Auto', 'Home', 'Commercial', 'Life', 'Disability', 'Liability', 'Other'],
+    },
+    {
+      type: 'text',
+      question:
+        'What is the issue or dispute you’re facing with the insurer? (denied claim, delayed payout, coverage dispute, policy cancellation, insurer bad faith, etc.)',
+    },
+    { type: 'text', question: 'Please describe the event or loss that gave rise to the insurance claim.' },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Banking and Investment Law': [
+    { type: 'checkbox', question: 'Nature of the Matter', options: ['Banking', 'Investment', 'Both'] },
+    {
+      type: 'text',
+      question:
+        'Please describe the product or service involved and the institution(s) concerned. (mortgage, line of credit, brokerage account, investment fund, crypto platform, financial advisor, etc.)',
+    },
+    {
+      type: 'text',
+      question:
+        'What is the issue or dispute you are facing? (unauthorized transactions, misrepresentation, frozen account, advisor negligence, margin call, regulatory violation, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Tax Law': [
+    { type: 'checkbox', question: 'Type of Taxpayer', options: ['Individual', 'Corporation', 'Trust', 'Other'] },
+    {
+      type: 'text',
+      question:
+        'What is the nature of the tax issue you are facing? (audit, reassessment, unpaid taxes, penalty dispute, voluntary disclosure, tax planning, CRA communication, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Rental Law': [
+    { type: 'checkbox', question: 'Are you the:', options: ['Landlord', 'Tenant'] },
+    { type: 'checkbox', question: 'Type of Lease:', options: ['Residential', 'Commercial'] },
+    {
+      type: 'text',
+      question:
+        'Please describe the legal issue or dispute you are facing. (non-payment of rent, eviction notice, lease violation, repair issues, lease review, deposit dispute, illegal occupancy, etc.)',
+    },
+    {
+      type: 'text',
+      question:
+        'What is the current status of the lease and occupancy? (active lease, notice given/received, tenant still in possession, rent arrears, abandoned property, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Intellectual Property Law': [
+    {
+      type: 'checkbox',
+      question: 'Type of Intellectual Property Involved',
+      options: ['Trademark', 'Copyright', 'Patent', 'Trade Secret', 'Other'],
+    },
+    {
+      type: 'text',
+      question:
+        'What specific IP asset or issue do you need help with? (registering a trademark, enforcing copyright, patent application, defending against infringement, licensing, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+  'Debt Collection Law': [
+    {
+      type: 'checkbox',
+      question: 'Are you the:',
+      options: ['Creditor (seeking to collect a debt)', 'Debtor (responding to a debt or enforcement action)'],
+    },
+    {
+      type: 'text',
+      question:
+        'What is the amount and nature of the debt? (unpaid invoice, loan, service contract, promissory note — include amount, due date, and whether it is disputed.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+    {
+      type: 'text',
+      question:
+        'Who are the other parties involved, and do you have any relevant agreements or communications? (Provide names and business relationships)',
+    },
+  ],
+  'Capital Funds Law': [
+    {
+      type: 'checkbox',
+      question: 'Are you a:',
+      options: ['Fund Manager', 'Investor', 'Company Seeking Investment', 'Advisor/Other'],
+    },
+    {
+      type: 'text',
+      question:
+        'What specific legal assistance are you seeking? (fund formation, drafting investor agreements, securities compliance, LP/GP structuring, dispute resolution, fundraising support, etc.)',
+    },
+    { type: 'file', question: 'Attach relevant documents (if any)' },
+  ],
+};
 function LegalConsultationStepper() {
   const [activeStep, setActiveStep] = React.useState(0);
   const [method, setMethod] = React.useState('');
@@ -139,6 +447,7 @@ function LegalConsultationStepper() {
   const [caseDiscription, setDiscription] = useState('');
   const [errors, setErrors] = useState({});
   const hasRedirected = React.useRef(false);
+  const [hasData, setHasData] = useState(false);
 
   const dateOptions = {
     timeZone: 'Asia/Dubai',
@@ -180,10 +489,7 @@ function LegalConsultationStepper() {
   const name = searchParams.get('name');
   const ref = searchParams.get('ref');
   const source = searchParams.get('source');
-  console.log('phone:', phone);
-  console.log('name:', name);
-  console.log('ref:', ref);
-  console.log('source:', source);
+
   // Popup states
   const [isPopupVisible, setIsPopupVisible] = React.useState(false);
   const [popupcolor, setPopupcolor] = React.useState('popup');
@@ -195,33 +501,7 @@ function LegalConsultationStepper() {
   const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
   const [answers, setAnswers] = useState({});
   const [paymentStatus, setPaymentSatus] = useState('');
-  const services = [
-    { name: 'Civil Law', description: 'Civil law related legal services' },
-    { name: 'Commercial Law', description: 'Commercial law related legal services' },
-    { name: 'Criminal Law', description: 'Criminal law related legal services' },
-    { name: 'Family Law', description: 'Family law related legal services' },
-    { name: 'Real Estate Law', description: 'Real estate law related legal services' },
-    { name: 'Labour Law', description: 'Labour law related legal services' },
-    { name: 'Construction Law', description: 'Construction law related legal services' },
-    { name: 'Maritime Law', description: 'Maritime law related legal services' },
-    { name: 'Personal Injury Law', description: 'Personal injury law related legal services' },
-    { name: 'Technology Law', description: 'Technology law related legal services' },
-    { name: 'Financial Law', description: 'Financial law related legal services' },
-    { name: 'Public Law', description: 'Public law related legal services' },
-    { name: 'Consumer Law', description: 'Consumer law related legal services' },
-    { name: 'Environmental Law', description: 'Environmental law related legal services' },
-    {
-      name: 'Estate / Succession / Inheritance Law',
-      description: 'Estate, succession, and inheritance legal services',
-    },
-    { name: 'Insurance Law', description: 'Insurance-related legal services' },
-    { name: 'Banking and Investment Law', description: 'Banking and investment related legal services' },
-    { name: 'Tax Law', description: 'Tax-related legal services' },
-    { name: 'Rental Law', description: 'Rental and tenancy-related legal services' },
-    { name: 'Intellectual Property Law', description: 'Intellectual property legal services' },
-    { name: 'Debt Collection Law', description: 'Debt collection related legal services' },
-    { name: 'Capital Funds Law', description: 'Capital funds and investment-related legal services' },
-  ];
+
   const RenderQuestion = ({ question }) => {
     if (!question) return null;
 
@@ -249,290 +529,6 @@ function LegalConsultationStepper() {
     }
 
     return <span>{parts}</span>;
-  };
-
-  const questionsConfig = {
-    'Civil Law': [
-      { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
-      {
-        type: 'text',
-        question:
-          'Please describe the nature of the dispute (breach of contract, damage to property, unpaid debt, etc.)',
-      },
-      { type: 'text', question: 'Who are the other parties involved, and what is your relationship to them?' },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Family Law': [
-      { type: 'text', question: 'Current marital or relationship status' },
-      {
-        type: 'text',
-        question: 'Relevant legal actions already taken (separation agreement, court filings, restraining orders).',
-      },
-      { type: 'checkbox', question: 'Religion', options: ['Muslim', 'Non-Muslim'] },
-      {
-        type: 'text',
-        question:
-          'Please confirm where your marriage took place? And if there are children involved? If yes, list their full names, birth dates, and current living arrangements.',
-      },
-      {
-        type: 'text',
-        question:
-          'Legal service required - issues you need assistance with, and what outcome are you seeking? (sole custody, equal parenting time, spousal support, asset division, protection order, etc.)',
-      },
-    ],
-    'Commercial Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of the legal issue or service you are seeking? (incorporation, shareholder agreement, business sale, contract drafting/review, partnership dispute, regulatory compliance, etc.)',
-      },
-      {
-        type: 'file',
-        question: 'Attach relevant documents (if any)',
-      },
-    ],
-    'Criminal Law': [
-      { type: 'checkbox', question: 'Are you the plaintiff or the defendant?', options: ['Plaintiff', 'Defendant'] },
-      {
-        type: 'text',
-        question:
-          'Have you been charged, arrested, or are you currently under investigation? (Please specify the alleged offence(s), date(s), and law enforcement agency involved)',
-      },
-      {
-        type: 'text',
-        question:
-          'What stage is your case currently at? (not yet charged, bail hearing scheduled, awaiting trial, sentencing, probation violation, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Estate / Succession / Inheritance Law': [
-      {
-        type: 'text',
-        question: 'Please define the legal service you are seeking. (Planning, managing or disputing an estate.)',
-      },
-      {
-        type: 'text',
-        question:
-          'If this concerns a deceased person, what is the relationship? (Include known details about the will’s if available.)',
-      },
-      {
-        type: 'text',
-        question:
-          'What assets, debts, or disputes (if any) are involved in the estate? (real estate, businesses, bank accounts, inheritance conflicts, missing beneficiaries.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Real Estate Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of your real estate matter? (purchase, sale, lease, construction defect, title problem, etc.)',
-      },
-      { type: 'text', question: 'Are there any contracts, offers, or legal proceedings currently in progress?' },
-      {
-        type: 'text',
-        question:
-          'Who are the other parties involved (buyer, seller, tenant, developer, municipality), and are there any disputes, deadlines, or financial concerns?',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Labour Law': [
-      {
-        type: 'text',
-        question:
-          'Please describe the nature of the employment relationship (full-time, part-time, contract, unionized) and how long it has existed.',
-      },
-      {
-        type: 'text',
-        question:
-          'What is the specific issue you are seeking legal advice for? (termination, unpaid salary, harassment, contract review, discrimination, etc.)',
-      },
-      {
-        type: 'text',
-        question:
-          'Have any formal actions been taken to date (written warnings, termination letter, complaint to HR, labour board complaint)?',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Construction Law': [
-      {
-        type: 'text',
-        question:
-          'What type of construction issue is involved? (contract dispute, defect, payment issue, project delay, safety concern, etc.)',
-      },
-      { type: 'text', question: 'Who are the parties involved (contractor, subcontractor, owner, municipality)?' },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Maritime Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of the maritime issue? (shipping dispute, cargo damage, vessel arrest, seafarer employment, marine insurance, etc.)',
-      },
-      { type: 'text', question: 'What parties are involved (shipowner, charterer, insurer, port authority, crew)?' },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Personal Injury Law': [
-      {
-        type: 'text',
-        question:
-          'What type of personal injury occurred? (car accident, workplace injury, medical negligence, slip and fall, etc.)',
-      },
-      { type: 'text', question: 'When and where did the injury occur?' },
-      { type: 'file', question: 'Attach relevant medical/legal documents (if any)' },
-    ],
-    'Technology Law': [
-      {
-        type: 'text',
-        question:
-          'What type of technology matter is involved? (data privacy, software licensing, cybersecurity, IT contracts, AI compliance, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant agreements/policies (if any)' },
-      {
-        type: 'text',
-        question: 'What outcome are you seeking? (compliance, damages, contract negotiation, dispute resolution)',
-      },
-    ],
-    'Financial Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of your financial issue? (fraud, misrepresentation, banking dispute, unauthorized transactions, etc.)',
-      },
-      { type: 'text', question: 'What financial institutions or parties are involved?' },
-      { type: 'text', question: 'What actions have been taken so far (complaints, regulatory filings, lawsuits)?' },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Public Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of the public law matter? (constitutional challenge, administrative law, judicial review, regulatory compliance)',
-      },
-      { type: 'text', question: 'Which public authority, regulator, or government body is involved?' },
-      { type: 'text', question: 'What outcome or relief are you seeking?' },
-    ],
-    'Consumer Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of your consumer issue? (defective product, false advertising, unfair contract, service dispute, fraud)',
-      },
-      { type: 'text', question: 'Who is the seller, manufacturer, or service provider involved?' },
-      {
-        type: 'text',
-        question: 'What steps have been taken so far (complaints, refund request, consumer protection filing)?',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Environmental Law': [
-      {
-        type: 'text',
-        question:
-          'What is the nature of the environmental matter? (pollution, land use, regulatory compliance, environmental assessment, climate dispute)',
-      },
-      {
-        type: 'text',
-        question: 'What authority or organization is involved? (EPA, local municipality, private corporation, NGO)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Insurance Law': [
-      {
-        type: 'checkbox',
-        question: 'Type of Insurance Involved',
-        options: ['Auto', 'Home', 'Commercial', 'Life', 'Disability', 'Liability', 'Other'],
-      },
-      {
-        type: 'text',
-        question:
-          'What is the issue or dispute you’re facing with the insurer? (denied claim, delayed payout, coverage dispute, policy cancellation, insurer bad faith, etc.)',
-      },
-      { type: 'text', question: 'Please describe the event or loss that gave rise to the insurance claim.' },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Banking and Investment Law': [
-      { type: 'checkbox', question: 'Nature of the Matter', options: ['Banking', 'Investment', 'Both'] },
-      {
-        type: 'text',
-        question:
-          'Please describe the product or service involved and the institution(s) concerned. (mortgage, line of credit, brokerage account, investment fund, crypto platform, financial advisor, etc.)',
-      },
-      {
-        type: 'text',
-        question:
-          'What is the issue or dispute you are facing? (unauthorized transactions, misrepresentation, frozen account, advisor negligence, margin call, regulatory violation, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Tax Law': [
-      { type: 'checkbox', question: 'Type of Taxpayer', options: ['Individual', 'Corporation', 'Trust', 'Other'] },
-      {
-        type: 'text',
-        question:
-          'What is the nature of the tax issue you are facing? (audit, reassessment, unpaid taxes, penalty dispute, voluntary disclosure, tax planning, CRA communication, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Rental Law': [
-      { type: 'checkbox', question: 'Are you the:', options: ['Landlord', 'Tenant'] },
-      { type: 'checkbox', question: 'Type of Lease:', options: ['Residential', 'Commercial'] },
-      {
-        type: 'text',
-        question:
-          'Please describe the legal issue or dispute you are facing. (non-payment of rent, eviction notice, lease violation, repair issues, lease review, deposit dispute, illegal occupancy, etc.)',
-      },
-      {
-        type: 'text',
-        question:
-          'What is the current status of the lease and occupancy? (active lease, notice given/received, tenant still in possession, rent arrears, abandoned property, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Intellectual Property Law': [
-      {
-        type: 'checkbox',
-        question: 'Type of Intellectual Property Involved',
-        options: ['Trademark', 'Copyright', 'Patent', 'Trade Secret', 'Other'],
-      },
-      {
-        type: 'text',
-        question:
-          'What specific IP asset or issue do you need help with? (registering a trademark, enforcing copyright, patent application, defending against infringement, licensing, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
-    'Debt Collection Law': [
-      {
-        type: 'checkbox',
-        question: 'Are you the:',
-        options: ['Creditor (seeking to collect a debt)', 'Debtor (responding to a debt or enforcement action)'],
-      },
-      {
-        type: 'text',
-        question:
-          'What is the amount and nature of the debt? (unpaid invoice, loan, service contract, promissory note — include amount, due date, and whether it is disputed.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-      {
-        type: 'text',
-        question:
-          'Who are the other parties involved, and do you have any relevant agreements or communications? (Provide names and business relationships)',
-      },
-    ],
-    'Capital Funds Law': [
-      {
-        type: 'checkbox',
-        question: 'Are you a:',
-        options: ['Fund Manager', 'Investor', 'Company Seeking Investment', 'Advisor/Other'],
-      },
-      {
-        type: 'text',
-        question:
-          'What specific legal assistance are you seeking? (fund formation, drafting investor agreements, securities compliance, LP/GP structuring, dispute resolution, fundraising support, etc.)',
-      },
-      { type: 'file', question: 'Attach relevant documents (if any)' },
-    ],
   };
 
   // 🔹 Auto-generate Case Description when answers change
@@ -742,7 +738,7 @@ function LegalConsultationStepper() {
           setData(responseData.data);
           const { payment, lawyer, linkData } = responseData.data;
           setLinkData(linkData);
-
+          setHasData(true);
           // Always set available data
           if (payment) {
             setService(payment.serviceType || '');
@@ -750,6 +746,7 @@ function LegalConsultationStepper() {
             setPaymentMethod(payment.paymentMethod || 'Card');
             //console.log('Description:', payment?.caseDescription);
             setDiscription(payment?.caseDescription);
+            setHasData(true);
           }
 
           if (lawyer) setSelectedLawyer(lawyer);
@@ -843,40 +840,91 @@ function LegalConsultationStepper() {
     };
   }, [ref]);
   // 🔹 Step 1: Fetch all lawyers once (on mount)
+  // 🧠 1️⃣ Fetch all lawyers ONLY when we don't already have payment/lawyer from backend
   React.useEffect(() => {
+    // if data exists and has both payment & lawyer → skip fetching
+    if (data && data.payment && data.lawyer) {
+      console.log('⏩ Skipping lawyer fetch — payment & lawyer already exist');
+      return;
+    }
+
+    // run only if data is null or missing payment/lawyer
+    console.log('📡 Fetching all lawyers... (no backend lawyer/payment)');
+
     const fetchAllLawyers = async () => {
       setLoading(true);
       try {
         const response = await axios.get(`${ApiEndPoint}getAllLawyers`);
-        if (response.data && response?.data?.lawyers) {
-          setAllLawyers(response.data.lawyers); // save all lawyers
+        const lawyers = response.data?.lawyers || [];
+
+        if (lawyers.length > 0) {
+          setAllLawyers(lawyers);
+          console.log('✅ Lawyers fetched:', lawyers.length);
+        } else {
+          console.warn('⚠️ No lawyers returned from API');
         }
       } catch (err) {
+        console.error('❌ Error fetching lawyers:', err);
         setError('Failed to fetch lawyers. Please try again.');
-        console.error('Error fetching lawyers:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchAllLawyers(); // run only once
-  }, []);
-  // 🔹 Step 2: Filter lawyers whenever service changes
+    fetchAllLawyers();
+  }, [data]); // 👈 Runs when data changes (from null → real data)
+
+  // 🧠 2️⃣ Filter lawyers automatically based on selected service
   React.useEffect(() => {
-    if (service && allLawyers.length > 0) {
+    // if backend already provided lawyer → skip filtering
+    if (data && data.lawyer) {
+      console.log('⏩ Skipping filter — backend already provided lawyer');
+      return;
+    }
+
+    // wait until we have a selected service
+    if (!service) {
+      console.log('⚠️ No service selected — skipping filter');
+      setLawyers([]);
+      return;
+    }
+
+    // filter logic
+    if (allLawyers.length > 0) {
       const filtered = allLawyers.filter((lawyer) => {
-        const matchesExpertise = !service || lawyer.specialty.toLowerCase().includes(service.toLowerCase());
-
-        const hasSlots = lawyer.hasAvailableSlots;
-
+        const matchesExpertise = !service || (lawyer.specialty || '').toLowerCase().includes(service.toLowerCase());
+        const hasSlots = lawyer.hasAvailableSlots === true;
         return matchesExpertise && hasSlots;
       });
 
+      console.log(`🎯 Filtered ${filtered.length} lawyers for service: ${service}`);
       setLawyers(filtered);
     } else {
-      setLawyers([]); // clear if no service or no lawyers
+      console.warn('⚠️ No lawyers to filter');
+      setLawyers([]);
     }
-  }, [service, allLawyers]);
+  }, [service, allLawyers, data]);
+  // 🔹 Reset selections whenever service changes
+  React.useEffect(() => {
+    if (data && data.lawyer) {
+      console.log('⏩ Skipping filter — backend already provided lawyer');
+      return;
+    }
+    if (!service) return; // do nothing if service is empty
+
+    console.log('♻️ Service changed — resetting selections');
+
+    setSelectedLawyer(null);
+    setSelectedDate(new Date());
+    setSelectedSlot(null);
+    setAppointmentSlots([]);
+    setConfirmationData(null);
+    setMeetingLink('');
+    setPaymentMethod('PayOnline'); // or your default
+    setPaymentSatus('');
+    setBookingData(null);
+    setDiscription(''); // optional: clear case description if needed
+  }, [service]);
 
   // React.useEffect(() => {
   //   const fetchLawyers = async () => {
@@ -1056,6 +1104,12 @@ function LegalConsultationStepper() {
   };
   // Time slot click handler
   const handleTimeClick = (time, slot) => {
+    console.log({
+      activeStep,
+      selectedDate,
+      selectedSlot,
+      hasPrePayment: !!(data?.payment && data?.lawyer),
+    });
     setSelectedTime(time);
     setSelectedSlot(slot);
   };
@@ -3624,16 +3678,21 @@ function LegalConsultationStepper() {
                   onClick={handleNext}
                   disabled={
                     loading ||
-                    // Step 0: Service + Required Questions + Description
+                    // Step 0: Service
                     (activeStep === 0 && !service) ||
                     // Step 1: Select lawyer
                     (activeStep === 1 && !selectedLawyer) ||
-                    // Step 2: Date + Slot
-                    (activeStep === 2 && (!selectedDate || !selectedSlot)) ||
+                    // Step 2: Date & Slot Selection
+                    (activeStep === 2 &&
+                      (!(data?.payment && data?.lawyer)
+                        ? !selectedDate || !selectedSlot // 🔹 No prepayment → need both
+                        : !selectedSlot)) || // 🔹 Prepayment → only need slot
                     // Step 3: Consultation Method
                     (activeStep === 3 && !method) ||
+                    // Step 4: Payment details (only when user is from website and has no prepayment)
                     (source === 'website' &&
-                      (!paymentForm.name.trim() || !paymentForm.email.trim() || !paymentForm.phone.trim()))
+                      !(data?.payment && data?.lawyer) &&
+                      (!paymentForm.name.trim() || !paymentForm.phone.trim()))
                   }
                   sx={{
                     backgroundColor: '#d4af37',
