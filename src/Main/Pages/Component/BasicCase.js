@@ -1333,7 +1333,7 @@ const BasicCase = ({ token }) => {
                 className="d-flex gap-2 text-start"
                 style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
               >
-                Case Type
+                Type of Service
                 <Dropdown
                   show={showCaseTypeFilter}
                   onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}
@@ -1452,7 +1452,7 @@ const BasicCase = ({ token }) => {
                 className="d-flex gap-2 text-start"
                 style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
               >
-                Case Sub Type
+                Service Type
                 <Dropdown
                   show={showCaseSubTypeFilter}
                   onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
@@ -1690,7 +1690,7 @@ const BasicCase = ({ token }) => {
                                     setShowCaseType(true);
                                   }}
                                 >
-                                  {item?.headerCase?.CaseType ? "Update" : "Add"} Case Type
+                                  {item?.headerCase?.CaseType ? "Update" : "Add"} Type of Service
                                 </Dropdown.Item>
 
                                 <Dropdown.Item
@@ -1700,7 +1700,7 @@ const BasicCase = ({ token }) => {
                                     setShowSubCaseType(true);
                                   }}
                                 >
-                                  {item?.headerCase?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                  {item?.headerCase?.CaseSubType ? "Update" : "Add"} Service Type
                                 </Dropdown.Item>
 
                                 <Dropdown.Item
@@ -1874,7 +1874,7 @@ const BasicCase = ({ token }) => {
                                           setShowCaseType(true);
                                         }}
                                       >
-                                        {sub?.CaseType ? "Update" : "Add"} Case Type
+                                        {sub?.CaseType ? "Update" : "Add"} Type of Service
                                       </Dropdown.Item>
                                       <Dropdown.Item
                                         onClick={(event) => {
@@ -1883,7 +1883,7 @@ const BasicCase = ({ token }) => {
                                           setShowSubCaseType(true);
                                         }}
                                       >
-                                        {sub?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                        {sub?.CaseSubType ? "Update" : "Add"} Service Type
                                       </Dropdown.Item>
                                       <Dropdown.Item
                                         onClick={(event) => {
@@ -2153,7 +2153,7 @@ const BasicCase = ({ token }) => {
                                     setSelectedCase(item?.headerCase);
                                     setShowCaseType(true);
                                   }}>
-                                    {item?.headerCase.CaseType ? "Update" : "Add"} Case Type
+                                    {item?.headerCase.CaseType ? "Update" : "Add"} Type of Service
                                   </Dropdown.Item>
 
                                   <Dropdown.Item onClick={(event) => {
@@ -2161,7 +2161,7 @@ const BasicCase = ({ token }) => {
                                     setSelectedCase(item?.headerCase);
                                     setShowSubCaseType(true);
                                   }}>
-                                    {item?.headerCase.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                    {item?.headerCase.CaseSubType ? "Update" : "Add"} Service Type
                                   </Dropdown.Item>
 
                                   <Dropdown.Item onClick={(event) => {
@@ -2326,7 +2326,7 @@ const BasicCase = ({ token }) => {
                                         setSelectedCase(sub);
                                         setShowCaseType(true);
                                       }}>
-                                        {item?.CaseType ? "Update" : "Add"} Case Type
+                                        {item?.CaseType ? "Update" : "Add"} Type of Service
                                       </Dropdown.Item>
 
                                       <Dropdown.Item onClick={(event) => {
@@ -2334,7 +2334,7 @@ const BasicCase = ({ token }) => {
                                         setSelectedCase(sub);
                                         setShowSubCaseType(true);
                                       }}>
-                                        {item?.CaseSubType ? "Update" : "Add"} Case Sub Type
+                                        {item?.CaseSubType ? "Update" : "Add"} Service Type
                                       </Dropdown.Item>
 
                                       <Dropdown.Item onClick={(event) => {
@@ -2589,12 +2589,12 @@ const BasicCase = ({ token }) => {
 
       <Modal show={showCaseType} onHide={() => setShowCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCase?.CaseType ? "Update" : "Add"} Case Type</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseType ? "Update" : "Add"} Type of Service</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="mergeWithCase" className="w-100">
-              <Form.Label>Select Case Type</Form.Label>
+              <Form.Label>Select Type of Service</Form.Label>
 
               <Form.Select
                 className="w-100"
@@ -2633,12 +2633,12 @@ const BasicCase = ({ token }) => {
 
       <Modal show={showSubCaseType} onHide={() => setShowSubCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCase?.CaseSubType ? "Update" : "Add"} Case Sub Type</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseSubType ? "Update" : "Add"} Service Type</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="mergeWithCase" className="w-100">
-              <Form.Label>Select Case Sub Type</Form.Label>
+              <Form.Label>Select Service Type</Form.Label>
 
               <Form.Select
                 className="w-100"

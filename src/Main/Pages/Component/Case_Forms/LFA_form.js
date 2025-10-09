@@ -11139,7 +11139,9 @@ const LEA_Form = ({ token }) => {
                 <Modal.Footer className="justify-content-center">
                     <div className="d-flex gap-3">
                         <Button
-                            className="d-flex align-items-center" style={{
+
+                        
+                            className="d-flex align-items-center justify-content-center" style={{
                                 backgroundColor: "#16213e",
                                 color: "white",
                                 width: "150px",
@@ -11421,7 +11423,7 @@ const LEA_Form = ({ token }) => {
                 <>
                     {/* toolbar */}
                     <div
-                        className="d-flex justify-content-end mb-3 px-3 py-2"
+                        className="d-flex justify-content-end mb-3 px-3 py-2 gap-3"
                         data-html2canvas-ignore="true"
                         style={{
                             marginTop: '10px'
@@ -11429,7 +11431,6 @@ const LEA_Form = ({ token }) => {
                     >
                         {(token?.Role === "lawyer" || token?.Role === "admin") && (
                             <button
-
                                 className="d-flex align-items-center" style={{
                                     backgroundColor: "#16213e",
                                     color: "white",
@@ -11847,9 +11848,9 @@ const LEA_Form = ({ token }) => {
                                 <Modal.Footer className="justify-content-center gap-3">
 
                                     <button
-                                        // className="btn btn-primary me-2"
                                         onClick={() => setRejectionAcknowledged(true)}
-                                        className="d-flex align-items-center" style={{
+                                        className="d-flex align-items-center justify-content-center"
+                                        style={{
                                             backgroundColor: "#16213e",
                                             color: "white",
                                             width: "150px",
@@ -11868,6 +11869,7 @@ const LEA_Form = ({ token }) => {
                                     >
                                         OK
                                     </button>
+
                                     <button
                                         // className="btn btn-primary"
                                         onClick={() => setEditMode(true)}
