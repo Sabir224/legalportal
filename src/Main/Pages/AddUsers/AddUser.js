@@ -318,7 +318,7 @@ const AddUser = () => {
         method: 'POST',
         body: formData,
       });
-      const data = response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         if (response.status === 400) {
@@ -329,7 +329,7 @@ const AddUser = () => {
         return;
       }
       dispatch(screenChange(9));
-      showSuccess('Request has been sent to the admin for approval.');
+      showSuccess(data.message);
 
       setName('');
       setEmail('');

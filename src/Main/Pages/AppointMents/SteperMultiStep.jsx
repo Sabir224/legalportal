@@ -501,6 +501,59 @@ function LegalConsultationStepper() {
   const [initialDataLoaded, setInitialDataLoaded] = React.useState(false);
   const [answers, setAnswers] = useState({});
   const [paymentStatus, setPaymentSatus] = useState('');
+  const generateInvoice = async (appointment) => {
+    const { payment } = appointment;
+    if (!appointment || !payment) {
+      throw new Error('Invalid appointment object: missing payment info.');
+    }
+
+    const controller = new AbortController();
+    const timeoutMs = 20000;
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(`${ApiEndPoint}createZohoInvoice`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(appointment),
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await res.json().catch(() => null);
+
+      if (!res.ok) {
+        throw data || { message: res.statusText, status: res.status };
+      }
+
+      if (!data?.alreadyExists) {
+        // ✅ Update hasInvoice = true in DB
+
+        await fetch(`${ApiEndPoint}payments/${payment._id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasInvoice: true }),
+        });
+        setData((prev) =>
+          prev.map((item) =>
+            item.payment && item.payment._id === payment._id
+              ? { ...item, payment: { ...item.payment, hasInvoice: true } }
+              : item
+          )
+        );
+      }
+      return data;
+      // console.log('Invoice created:', payload.invoice?.invoice_number || payload.url || payload);
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        console.error(`Request timed out after ${timeoutMs}ms`);
+      } else {
+        console.error('Error creating Zoho invoice:', err);
+      }
+    } finally {
+    }
+  };
 
   const RenderQuestion = ({ question }) => {
     if (!question) return null;
@@ -676,27 +729,6 @@ function LegalConsultationStepper() {
     }
   };
 
-  const validateForm = () => {
-    let newErrors = {};
-    if (!service) newErrors.service = 'Please select a service';
-
-    const qs = questionsConfig[service] || [];
-    qs.forEach((q) => {
-      if (q.required !== false) {
-        if (q.type === 'text' && !answers[q.question]) {
-          newErrors[q.question] = 'This field is required';
-        }
-        if (q.type === 'checkbox' && (!answers[q.question] || answers[q.question].length === 0)) {
-          newErrors[q.question] = 'Please select at least one option';
-        }
-      }
-    });
-
-    if (!caseDiscription) newErrors.caseDescription = 'Case description is required';
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
   // generate and redirect (manual or auto when ref missing)
   const regenerateAndRedirect = async () => {
     try {
@@ -1270,6 +1302,7 @@ function LegalConsultationStepper() {
           },
           caseDescription: caseDiscription,
         });
+
         await axios.post(`${ApiEndPoint}payments/update-status`, {
           paymentId,
           meetingDetails: {
@@ -1279,6 +1312,39 @@ function LegalConsultationStepper() {
           },
           caseDescription: caseDiscription,
         });
+
+        // 🧾 Generate Zoho Invoice
+        try {
+          const appointmentPayload = {
+            lawyer: selectedLawyer,
+            service,
+            method,
+            date: selectedDate,
+            slot: selectedSlot,
+            clientMessage,
+            caseDescription: caseDiscription,
+            payment: {
+              _id: paymentId,
+              name: paymentForm?.name || confirmationData?.name,
+              phone: paymentForm?.phone || confirmationData?.phone,
+              email: paymentForm?.email || confirmationData?.email || '',
+              amount: Number(selectedLawyer?.price) || 200,
+              status: 'paid',
+              serviceType: service,
+              consultationType: method,
+              paymentMethod,
+              appointmentLink: window.location.href,
+              createdAt: new Date(),
+            },
+          };
+
+          console.log('🧾 Generating Zoho invoice...');
+          const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+          console.log('✅ Zoho invoice created:', invoiceResponse.data);
+        } catch (invoiceErr) {
+          console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+        }
+
         setActiveStep(6);
       };
 
@@ -1401,6 +1467,38 @@ function LegalConsultationStepper() {
     // Send confirmation emails
     await sendConfirmationEmails(paymentResponse.paymentId);
 
+    // 🧾 Generate Zoho Invoice
+    try {
+      const appointmentPayload = {
+        lawyer: selectedLawyer,
+        service,
+        method: method || confirmationData.method,
+        date: selectedDate,
+        slot: selectedSlot,
+        clientMessage,
+        caseDescription: caseDiscription,
+        payment: {
+          _id: paymentResponse.paymentId,
+          name: paymentForm?.name || confirmationData?.name,
+          phone: paymentForm?.phone || confirmationData?.phone,
+          email: paymentForm?.email || confirmationData?.email || '',
+          amount: Number(selectedLawyer?.price) || 200,
+          status: 'pending',
+          serviceType: service,
+          consultationType: method,
+          paymentMethod: 'PayInOffice',
+          appointmentLink: window.location.href,
+          createdAt: new Date(),
+        },
+      };
+
+      console.log('🧾 Generating Zoho invoice for PayInOffice...');
+      const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+      console.log('✅ Zoho invoice created:', invoiceResponse.data);
+    } catch (invoiceErr) {
+      console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+    }
+
     // Proceed to confirmation
     const confirmationPayload = {
       lawyer: selectedLawyer,
@@ -1498,7 +1596,39 @@ function LegalConsultationStepper() {
       // Send confirmation emails
       await sendConfirmationEmails(paymentId);
     }
+    try {
+      const appointmentPayload = {
+        lawyer: selectedLawyer,
+        service,
+        method,
+        date: selectedDate,
+        slot: selectedSlot,
+        clientMessage,
+        caseDescription: caseDiscription,
+        payment: {
+          _id: paymentId,
+          name: paymentForm?.name || confirmationData?.name,
+          phone: paymentForm?.phone || confirmationData?.phone,
+          email: paymentForm?.email || confirmationData?.email || '',
+          amount: Number(selectedLawyer?.price) || 200,
+          status: 'paid',
+          serviceType: service,
+          consultationType: method,
+          paymentMethod: 'Card',
+          appointmentLink: window.location.href,
+          createdAt: new Date(),
+        },
+      };
 
+      console.log('🧾 Generating Zoho invoice for InPerson + Card...');
+      const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+      console.log('✅ Zoho invoice created:', invoiceResponse.data);
+    } catch (invoiceErr) {
+      console.error(
+        '❌ Failed to generate Zoho invoice (InPerson + Card):',
+        invoiceErr.response?.data || invoiceErr.message
+      );
+    }
     // Store confirmation data for the UI
     setConfirmationData({
       lawyer: selectedLawyer,
@@ -1787,6 +1917,38 @@ function LegalConsultationStepper() {
         console.log('✅ Payment status updated');
       } catch (err) {
         console.error('Payment update error:', err.response?.data || err.message);
+      }
+      // Step 4: Generate Invoice
+      try {
+        const appointmentPayload = {
+          lawyer: selectedLawyer,
+          service,
+          method,
+          date: selectedDate,
+          slot: selectedSlot,
+          clientMessage,
+          caseDescription: caseDiscription,
+          payment: {
+            _id: oldpaymentId || data?.payment?._id,
+            name: paymentForm?.name || confirmationData?.name || data?.payment?.name || name,
+            phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone || phone,
+            email: paymentForm?.email || confirmationData?.email || data?.payment?.email || '',
+            amount: Number(selectedLawyer?.price) || 200,
+            status: paymentStatus || data?.payment?.status,
+            serviceType: service,
+            consultationType: method,
+            paymentMethod,
+            caseDescription: caseDiscription,
+            appointmentLink: window.location.href,
+            createdAt: new Date(),
+          },
+        };
+
+        console.log('🧾 Generating Zoho Invoice...');
+        const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+        console.log('✅ Invoice generated:', invoiceResponse.data);
+      } catch (invoiceErr) {
+        console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
       }
 
       // success popup
@@ -2372,11 +2534,7 @@ function LegalConsultationStepper() {
                                 label="Experience"
                                 value={lawyer.experience}
                               />
-                              <DetailItem
-                                icon={<Language sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
-                                label="Languages"
-                                value={lawyer.language || 'N/A'}
-                              />
+
                               <DetailItem
                                 icon={<LocationOn sx={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }} />}
                                 label="Location"
