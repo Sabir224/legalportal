@@ -9423,7 +9423,7 @@ import backgroundImage from "../../../Pages/Images/bg.jpg";
 import logoiA from "../../../Pages/Component/assets/Stamp.png";// Add your stamp image
 import AWSlogo from "../../../Pages/Component/assets/AWSSideLogo.png"; // Add this import at the top of your file
 import AWSlogo5 from "../../../Pages/Component/assets/AWSSideLogo2.png";
-
+import AWSlegalServices from '../../../Pages/Component/assets/AWSlegalServices.jpg';
 // Properly set up the vfs
 pdfMake.vfs = pdfFonts.vfs;
 
@@ -9460,12 +9460,11 @@ const LEA_Form = ({ token }) => {
     const [isEmailLinkAccess, setIsEmailLinkAccess] = useState(false);
     const [signatureSubmitted, setSignatureSubmitted] = useState(false); // NEW: Track if signature was submitted
 
-    // NEW: State for Services and Fees Modal
-    const [showServicesModal, setShowServicesModal] = useState(false);
-    const [selectedService, setSelectedService] = useState("");
-    const [serviceFees, setServiceFees] = useState("");
-    const [currentSection, setCurrentSection] = useState(""); // To track which section the button was clicked from
-    const [servicesList, setServicesList] = useState([
+    // NEW: Service Type State - CHANGED: "suhad" instead of "litigation", "aws" instead of "legalServices"
+    const [serviceType, setServiceType] = useState("suhad"); // "suhad" or "aws"
+
+    // Service Lists based on type - CHANGED: Names updated but functionality remains
+    const suhadServices = [
         "Criminal Law",
         "Commercial Law",
         "Corporate Services",
@@ -9478,25 +9477,40 @@ const LEA_Form = ({ token }) => {
         "Rental & Tenancy",
         "Alternative Dispute Resolution / Arbitration / Dispute Resolution",
         "Debt Collection"
-    ]);
+    ];
+
+    const awsServices = [
+        "Business Setup",
+        "Under Corporate Services",
+        "Golden Visa",
+        "Partner Visa",
+        "Bank Account",
+        "Drafted Legal Agreement",
+        "Prepared NOC Draft",
+        "Legal Advice"
+    ];
+
+    const [servicesList, setServicesList] = useState(suhadServices);
+
+    // NEW: State for Services and Fees Modal
+    const [showServicesModal, setShowServicesModal] = useState(false);
+    const [selectedService, setSelectedService] = useState("");
+    const [serviceFees, setServiceFees] = useState("");
+    const [currentSection, setCurrentSection] = useState(""); // To track which section the button was clicked from
+
     const [services, setServices] = useState([
         {
             id: uuidv4(),
             selectedService: "",
             serviceFees: "",
-            // subItems: [
-            //     {
-            //         id: uuidv4(),
-            //         dueDate: null,
-            //         paymentDate: null,
-            //         invoicedAmount: "",
-            //         receivedAmount: "",
-            //         pendingAmount: "",
-            //         paymentStatus: "Pending"
-            //     }
-            // ]
         }
     ]);
+
+    // NEW: State to track saved services for each section
+    const [savedServices, setSavedServices] = useState({
+        "Section 3: Professional Fees for Dispute Case": [],
+        "Section 4: Other Fees": []
+    });
 
     const handleGenerateLink = () => {
         const originalLink = `${window.location.origin}/LFA_Form?caseId=${caseInfo?._id}&timestamp=${Date.now()}`
@@ -9619,23 +9633,22 @@ const LEA_Form = ({ token }) => {
     const isclient = token?.Role === "client";
     const [rejectionAcknowledged, setRejectionAcknowledged] = useState(false);
 
+    // NEW: Handle Service Type Change - CHANGED: Updated to use "suhad" and "aws"
+    const handleServiceTypeChange = (type) => {
+        setServiceType(type);
+        if (type === "suhad") {
+            setServicesList(suhadServices);
+        } else {
+            setServicesList(awsServices);
+        }
+    };
+
     // NEW: Functions for Services and Fees Modal
     const handleAddService = () => {
         setServices([...services, {
             id: uuidv4(),
             selectedService: "",
             serviceFees: "",
-            // subItems: [
-            //     {
-            //         id: uuidv4(),
-            //         dueDate: null,
-            //         paymentDate: null,
-            //         invoicedAmount: "",
-            //         receivedAmount: "",
-            //         pendingAmount: "",
-            //         paymentStatus: "Pending"
-            //     }
-            // ]
         }]);
     };
 
@@ -9651,117 +9664,6 @@ const LEA_Form = ({ token }) => {
         ));
     };
 
-    // const handleAddSubItem = (serviceId) => {
-    //     setServices(services.map(service => 
-    //         service.id === serviceId 
-    //             ? { 
-    //                 ...service, 
-    //                 subItems: [...service.subItems, {
-    //                     id: uuidv4(),
-    //                     dueDate: null,
-    //                     paymentDate: null,
-    //                     invoicedAmount: "",
-    //                     receivedAmount: "",
-    //                     pendingAmount: "",
-    //                     paymentStatus: "Pending"
-    //                 }]
-    //             } 
-    //             : service
-    //     ));
-    // };
-
-    // const handleRemoveSubItem = (serviceId, subItemId) => {
-    //     setServices(services.map(service => 
-    //         service.id === serviceId 
-    //             ? { 
-    //                 ...service, 
-    //                 subItems: service.subItems.filter(item => item.id !== subItemId)
-    //             } 
-    //             : service
-    //     ));
-    // };
-
-    // const handleSubItemChange = (serviceId, subItemId, field, value) => {
-    //     setServices(services.map(service => 
-    //         service.id === serviceId 
-    //             ? { 
-    //                 ...service, 
-    //                 subItems: service.subItems.map(item => 
-    //                     item.id === subItemId ? { ...item, [field]: value } : item
-    //                 )
-    //             } 
-    //             : service
-    //     ));
-    // };
-
-    // const handleSaveAllServices = async () => {
-    //   // Validate all services
-    //   const invalidServices = services.filter(service => 
-    //     !service.selectedService || !service.serviceFees
-    //   );
-
-    //   if (invalidServices.length > 0) {
-    //     alert("Please select a service and enter fees for all services");
-    //     return;
-    //   }
-
-    //   try {
-    //     const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
-    //     const lfaId = dataList?._id || targetCaseId; // Use existing LFA ID or case ID as fallback
-
-    //     if (!targetCaseId) {
-    //       alert("Case ID not found");
-    //       return;
-    //     }
-
-    //     const response = await fetch(`${ApiEndPoint}saveServices`, {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({
-    //         lfaId,
-    //         caseId: targetCaseId,
-    //         services: {
-    //           section: currentSection,
-    //           services: services
-    //         }
-    //       })
-    //     });
-
-    //     if (!response.ok) {
-    //       throw new Error('Failed to save services');
-    //     }
-
-    //     const data = await response.json();
-
-    //     if (data.success) {
-    //       setShowServicesModal(false);
-    //       alert(`${services.length} service(s) saved successfully!`);
-
-    //       // Optionally clear services after saving if you want
-    //       // setServices([{
-    //       //   id: uuidv4(),
-    //       //   selectedService: "",
-    //       //   serviceFees: "",
-    //       //   subItems: [{
-    //       //     id: uuidv4(),
-    //       //     dueDate: null,
-    //       //     paymentDate: null,
-    //       //     invoicedAmount: "",
-    //       //     receivedAmount: "",
-    //       //     pendingAmount: "",
-    //       //     paymentStatus: "Pending"
-    //       //   }]
-    //       // }]);
-    //     } else {
-    //       alert("Failed to save services: " + data.message);
-    //     }
-    //   } catch (error) {
-    //     console.error("Error saving services:", error);
-    //     alert("Failed to save services. Please try again.");
-    //   }
-    // };
     const handleSaveAllServices = async () => {
         // Validate all services
         const invalidServices = services.filter(service =>
@@ -9775,10 +9677,12 @@ const LEA_Form = ({ token }) => {
 
         try {
             const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
+
+            // FIX: Get the correct lfaId - use dataList._id if available, otherwise use targetCaseId
             const lfaId = dataList?._id || targetCaseId;
 
-            if (!targetCaseId) {
-                alert("Case ID not found");
+            if (!targetCaseId || !lfaId) {
+                alert("Case ID or LFA ID not found");
                 return;
             }
 
@@ -9788,11 +9692,12 @@ const LEA_Form = ({ token }) => {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    lfaId,
+                    lfaId: lfaId, // FIX: Use the correct lfaId
                     caseId: targetCaseId,
                     services: {
                         section: currentSection,
-                        services: services
+                        services: services,
+                        serviceType: serviceType
                     }
                 })
             });
@@ -9804,8 +9709,20 @@ const LEA_Form = ({ token }) => {
             const data = await response.json();
 
             if (data.success) {
+                // Update the savedServices state - REPLACE existing services for this section
+                setSavedServices(prev => ({
+                    ...prev,
+                    [currentSection]: services
+                }));
+
+                // Then update the section with services
+                updateSectionWithServices(currentSection, services);
+
+                // Force UI refresh
+                setDraftKey(prev => prev + 1);
+
                 setShowServicesModal(false);
-                // alert(`${services.length} service(s) saved successfully!`);
+                alert("Services saved successfully!");
             } else {
                 alert("Failed to save services: " + data.message);
             }
@@ -9814,27 +9731,140 @@ const LEA_Form = ({ token }) => {
             alert("Failed to save services. Please try again.");
         }
     };
+    // FIXED: Function to update section with services - PROPERLY HANDLES EXISTING SERVICES
+    // FIXED: Function to update section with services - PROPERLY HANDLES EXISTING SERVICES
+    // FIXED: Function to update section with services - STRICT SERVICE DETECTION
+    const updateSectionWithServices = (section, servicesData) => {
+        const sectionIndex = fixedHeadings.findIndex(h => h.title === section);
+        if (sectionIndex === -1) return;
+
+        const updatedHeadings = [...fixedHeadings];
+        const currentSection = updatedHeadings[sectionIndex];
+
+        // Create service points from services data
+        const servicePoints = servicesData.map(service => {
+            // Include additional text if it exists
+            const additionalText = service.additionalText ? ` ${service.additionalText}` : "";
+            return {
+                text: `${service.selectedService}: <strong>AED ${service.serviceFees}</strong>${additionalText}`,
+                subpoints: []
+            };
+        });
+
+        // STRICT: Identify existing non-service points using strict pattern
+        const existingNonServicePoints = currentSection.points.filter(point => {
+            if (!point.text || point.text.trim() === '') return false;
+
+            // STRICT pattern: must match exact service format with AED and numbers
+            const isServicePoint = point.text && (
+                point.text.includes(': <strong>AED ') ||
+                /^[^:]+:\s*<strong>AED\s*[\d,]+\.?\d*<\/strong>/.test(point.text)
+            );
+
+            return !isServicePoint;
+        });
+
+        // REPLACE existing services with new ones - don't append
+        const allPoints = [...existingNonServicePoints, ...servicePoints];
+
+        // Update the section with combined points
+        updatedHeadings[sectionIndex] = {
+            ...currentSection,
+            points: allPoints
+        };
+
+        setFixedHeadings(updatedHeadings);
+
+        // Also update the dataList to reflect changes immediately
+        if (dataList) {
+            setDataList(prev => ({
+                ...prev,
+                fixedHeadings: updatedHeadings
+            }));
+        }
+    };
+
+    // FIXED: handleAddServiceClick - properly loads existing services
+    // FIXED: handleAddServiceClick - properly loads existing services without duplication
+    // FIXED: handleAddServiceClick - properly loads existing services without duplication
+    // FIXED: handleAddServiceClick - properly loads existing services without resetting
     const handleAddServiceClick = (section) => {
         setCurrentSection(section);
-        setServices([{
-            id: uuidv4(),
-            selectedService: "",
-            serviceFees: "",
-            // subItems: [
-            //     {
-            //         id: uuidv4(),
-            //         dueDate: null,
-            //         paymentDate: null,
-            //         invoicedAmount: "",
-            //         receivedAmount: "",
-            //         pendingAmount: "",
-            //         paymentStatus: "Pending"
-            //     }
-            // ]
-        }]);
+
+        // Check if we have saved services for this section
+        const existingServices = savedServices[section];
+
+        if (existingServices && existingServices.length > 0) {
+            // Use services from savedServices state with proper IDs
+            const servicesWithIds = existingServices.map(service => ({
+                ...service,
+                id: service.id || uuidv4()
+            }));
+            setServices(servicesWithIds);
+        } else {
+            // Also check if there are services in the current section content
+            const sectionIndex = fixedHeadings.findIndex(h => h.title === section);
+            if (sectionIndex !== -1) {
+                const currentSection = fixedHeadings[sectionIndex];
+
+                // Parse existing services from section content (if any)
+                const parsedServices = parseServicesFromSection(currentSection);
+
+                if (parsedServices.length > 0) {
+                    setServices(parsedServices);
+                    // Also update savedServices to maintain consistency
+                    setSavedServices(prev => ({
+                        ...prev,
+                        [section]: parsedServices
+                    }));
+                } else {
+                    // Start with empty service if no existing services
+                    setServices([{
+                        id: uuidv4(),
+                        selectedService: "",
+                        serviceFees: "",
+                        additionalText: ""
+                    }]);
+                }
+            } else {
+                // Start with empty service
+                setServices([{
+                    id: uuidv4(),
+                    selectedService: "",
+                    serviceFees: "",
+                    additionalText: ""
+                }]);
+            }
+        }
+
         setShowServicesModal(true);
     };
 
+    // NEW: Helper function to parse services from section content
+    const parseServicesFromSection = (section) => {
+        if (!section || !section.points) return [];
+
+        const services = [];
+
+        section.points.forEach(point => {
+            if (point.text && point.text.trim() !== '') {
+                // Match service format: "Service Name: <strong>AED 1000</strong> additional text"
+                const serviceMatch = point.text.match(/^([^:]+):\s*<strong>AED\s*([\d,]+\.?\d*)<\/strong>(.*)$/);
+
+                if (serviceMatch) {
+                    const [, serviceName, feeAmount, additionalText] = serviceMatch;
+                    services.push({
+                        id: uuidv4(),
+                        selectedService: serviceName.trim(),
+                        serviceFees: feeAmount.replace(/,/g, ''), // Remove commas from fee
+                        additionalText: additionalText.trim()
+                    });
+                }
+            }
+        });
+
+        return services;
+    };
     const FetchLFA = async (caseIdToFetch = null) => {
         showDataLoading(true);
         try {
@@ -9868,15 +9898,38 @@ const LEA_Form = ({ token }) => {
             setIsLocalLawyerSign(!data.data?.LawyerSignatureImage);
             setSavedLawyerSignature();
 
+            // Set service type if available in data - CHANGED: Updated to use "suhad" and "aws"
+            if (data.data?.serviceType) {
+                setServiceType(data.data.serviceType);
+                if (data.data.serviceType === "aws") {
+                    setServicesList(awsServices);
+                } else {
+                    setServicesList(suhadServices);
+                }
+            }
+
+            // Load saved services if available
+            if (data.data?.savedServices) {
+                const servicesBySection = {};
+                data.data.savedServices.forEach(serviceGroup => {
+                    servicesBySection[serviceGroup.section] = serviceGroup.services;
+                });
+                setSavedServices(servicesBySection);
+
+                // Update sections with saved services
+                Object.keys(servicesBySection).forEach(section => {
+                    updateSectionWithServices(section, servicesBySection[section]);
+                });
+            }
+
             // If this is email link access and form is already accepted, show signature pad
-            // Handle signature pad visibility for email link access
             if (isEmailLinkAccess) {
                 if (data.data?.status === "accepted" && !data.data?.ClientSignatureImage) {
                     setShowSignaturePad(true);
-                    setSignatureSubmitted(false); // Ensure submit button is visible
+                    setSignatureSubmitted(false);
                 } else if (data.data?.ClientSignatureImage) {
                     setShowSignaturePad(false);
-                    setSignatureSubmitted(true); // Signature already submitted
+                    setSignatureSubmitted(true);
                 }
             }
 
@@ -9941,8 +9994,6 @@ const LEA_Form = ({ token }) => {
             return null;
         }
     };
-
-
 
     const handleDownload = async () => {
         try {
@@ -10052,6 +10103,66 @@ const LEA_Form = ({ token }) => {
                 }
             };
 
+            // Load the AWS legal services header image
+            const loadAWSlegalServicesImage = async () => {
+                try {
+                    const awsLegalServicesImg = await loadImage(AWSlegalServices);
+                    return convertImageToBase64(awsLegalServicesImg);
+                } catch (error) {
+                    console.error("Failed to load AWS legal services header image:", error);
+                    return null;
+                }
+            };
+
+            // Get the AWS legal services header image as base64
+            const awsLegalServicesBase64 = await loadAWSlegalServicesImage();
+
+            // CHANGED: Dynamic header content based on service type - updated to use "suhad" and "aws"
+            const headerContent = serviceType === "aws"
+                ? awsLegalServicesBase64
+                    ? {
+                        stack: [
+                            {
+                                image: awsLegalServicesBase64,
+                                width: 300, // Adjust width as needed for your image
+                                height: 80,  // Adjust height as needed for your image
+                                alignment: 'left',
+                                margin: [0, 0, 0, 0]
+                            }
+                        ]
+                    }
+                    : {
+                        stack: [
+                            { text: "LEGAL", fontSize: 22, bold: true, color: "#0A1C45", margin: [0, 6, 0, 0] },
+                            { text: "AWS LEGAL CONSULTANCY", fontSize: 12, bold: true, color: "#0A1C45", margin: [0, 2, 0, 0] },
+                            {
+                                text: "ADVOCATES & LEGAL CONSULTANTS",
+                                fontSize: 9,
+                                color: "#8a96b2",
+                                margin: [0, 2, 0, 0],
+                                characterSpacing: 1
+                            }
+                        ]
+                    }
+                : {
+                    stack: [
+                        { text: "LEGAL", fontSize: 22, bold: true, color: "#0A1C45", margin: [0, 6, 0, 0] },
+                        { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#0A1C45", margin: [0, 2, 0, 0] },
+                        {
+                            text: "ADVOCATES & LEGAL CONSULTANTS",
+                            fontSize: 9,
+                            color: "#8a96b2",
+                            margin: [0, 2, 0, 0],
+                            characterSpacing: 1
+                        }
+                    ]
+                };
+
+            // CHANGED: Dynamic footer content based on service type - updated to use "suhad" and "aws"
+            const footerContent = serviceType === "aws"
+                ? "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com"
+                : "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: suhad-legal.com,\n email: info@suhadlegal.com";
+
             const docDefinition = {
                 background: (currentPage, pageSize) => {
                     const elems = [
@@ -10067,6 +10178,7 @@ const LEA_Form = ({ token }) => {
                         }
                     ];
 
+                    // TOP logo (left strip)
                     // TOP logo (left strip) - AWS logo at the top
                     const topStartY = 50;
                     elems.push({
@@ -10090,7 +10202,6 @@ const LEA_Form = ({ token }) => {
                             y: bottomStartY
                         }
                     });
-
                     // Center watermark
                     if (logoBase64) {
                         const wmWidth = Math.min(360, pageSize.width * 0.45);
@@ -10116,23 +10227,13 @@ const LEA_Form = ({ token }) => {
                         columns: [
                             {
                                 columns: [
-                                    logoBase64
+                                    // ONLY show logo for suhad, NOT for aws services - CHANGED: Updated to use "suhad" instead of "litigation"
+                                    serviceType === "suhad" && logoBase64
                                         ? { image: logoBase64, width: 70, height: 70, margin: [0, 0, 10, 0] }
-                                        : { text: "" },
-                                    {
-                                        stack: [
-                                            { text: "LEGAL", fontSize: 22, bold: true, color: "#0A1C45", margin: [0, 6, 0, 0] },
-                                            { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#0A1C45", margin: [0, 2, 0, 0] },
-                                            {
-                                                text: "ADVOCATES & LEGAL CONSULTANTS",
-                                                fontSize: 9,
-                                                color: "#8a96b2",
-                                                margin: [0, 2, 0, 0],
-                                                characterSpacing: 1
-                                            }
-                                        ]
-                                    }
-                                ],
+                                        : { text: "", width: 0 },
+
+                                    headerContent
+                                ].filter(item => item),
                                 width: "*"
                             }
                         ]
@@ -10140,8 +10241,6 @@ const LEA_Form = ({ token }) => {
                 },
 
                 footer: (currentPage, pageCount, pageSize) => {
-                    const footerText = "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com";
-
                     return {
                         stack: [
                             {
@@ -10162,7 +10261,7 @@ const LEA_Form = ({ token }) => {
                                     {
                                         stack: [
                                             {
-                                                text: footerText,
+                                                text: footerContent,
                                                 alignment: "center",
                                                 fontSize: 7,
                                                 color: "#333333",
@@ -10196,18 +10295,15 @@ const LEA_Form = ({ token }) => {
                         margin: [0, 0, 0, 20]
                     },
 
-                    // In the content array, find the section points generation:
                     ...fixedHeadings.flatMap((section, sectionIndex) => [
                         { text: section.title, style: "subHeader", margin: [0, 20, 0, 10] },
                         {
-                            ol: section.points.map(point => point.text || ""), // Changed from ul to ol
+                            ol: section.points.map(point => point.text || ""),
                             style: "pointsList",
                             margin: [0, 0, 0, 20],
-                            type: 'lower-alpha' // Add this line
+                            type: 'lower-alpha'
                         }
                     ]),
-
-                    // In the content array, find the signatures section and replace it with this:
 
                     { text: "Signatures", style: "subHeader", margin: [0, 40, 0, 20] },
                     {
@@ -10222,13 +10318,13 @@ const LEA_Form = ({ token }) => {
                                             height: 60,
                                             margin: [0, 0, 0, 5]
                                         }
-                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Empty text instead of line
+                                        : { text: "", margin: [0, 0, 0, 5] },
                                     lawyerSignatureBase64
                                         ? {
                                             text: "___________________",
                                             margin: [0, 0, 0, 5]
                                         }
-                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Only show line if signature exists
+                                        : { text: "", margin: [0, 0, 0, 5] },
                                     { text: "The Lawyer", style: "signatureLabel" },
                                     { text: lawyerName, style: "signatureName" }
                                 ],
@@ -10236,7 +10332,7 @@ const LEA_Form = ({ token }) => {
                             },
                             {
                                 width: '20%',
-                                stack: lawyerSignatureBase64 && clientSignatureBase64 ? [ // CHANGED: Only show stamp if BOTH signatures exist
+                                stack: lawyerSignatureBase64 && clientSignatureBase64 ? [
                                     logoiA64
                                         ? {
                                             image: logoiA64,
@@ -10252,7 +10348,7 @@ const LEA_Form = ({ token }) => {
                                         alignment: 'center'
                                     }
                                 ] : [
-                                    { text: "" } // CHANGED: Empty stack if not both signatures
+                                    { text: "" }
                                 ],
                                 alignment: 'center'
                             },
@@ -10266,13 +10362,13 @@ const LEA_Form = ({ token }) => {
                                             height: 60,
                                             margin: [0, 0, 0, 5]
                                         }
-                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Empty text instead of line
+                                        : { text: "", margin: [0, 0, 0, 5] },
                                     clientSignatureBase64
                                         ? {
                                             text: "___________________",
                                             margin: [0, 0, 0, 5]
                                         }
-                                        : { text: "", margin: [0, 0, 0, 5] }, // CHANGED: Only show line if signature exists
+                                        : { text: "", margin: [0, 0, 0, 5] },
                                     { text: "The Client", style: "signatureLabel" },
                                     { text: clientName, style: "signatureName" }
                                 ],
@@ -10280,7 +10376,8 @@ const LEA_Form = ({ token }) => {
                             }
                         ],
                         margin: [0, 0, 0, 40]
-                    }],
+                    }
+                ],
 
                 styles: {
                     header: { fontSize: 18, bold: true, color: "#0A1C45" },
@@ -10294,15 +10391,16 @@ const LEA_Form = ({ token }) => {
                 defaultStyle: { font: "Roboto" }
             };
 
-            pdfMake.createPdf(docDefinition).download("Legal_Fee_Agreement.pdf");
+            // CHANGED: Updated PDF filename to use "suhad" and "aws"
+            pdfMake.createPdf(docDefinition).download(`Legal_Fee_Agreement_${serviceType === "aws" ? "AWS" : "Suhad"}.pdf`);
         } catch (e) {
             console.error("PDF generation failed:", e);
             alert("Sorry, unable to generate PDF. Check console for details.");
         }
     };
+
     // In LEA_Form component
     const handleAcceptLFA = async () => {
-
         try {
             showDataLoading(true);
 
@@ -10331,15 +10429,6 @@ const LEA_Form = ({ token }) => {
 
             if (data.success) {
                 setLfaStatus("accepted");
-                //  setShowSignaturePad(true);
-
-                // If this is email link access, show success message
-                //  if (isEmailLinkAccess) {
-                //  alert("LFA accepted successfully! Please provide your signature.");
-                // } else {
-                // For portal access, show message that notification was sent to lawyer
-                //alert("LFA accepted successfully! A notification has been sent to your lawyer.");
-                // }
             } else {
                 alert("Failed to accept LFA: " + data.message);
             }
@@ -10350,7 +10439,6 @@ const LEA_Form = ({ token }) => {
         }
     };
 
-    // Similarly update handleRejectLFA
     const handleRejectLFA = async () => {
         if (!rejectionReason.trim()) {
             alert("Please provide a reason for rejection.");
@@ -10388,13 +10476,6 @@ const LEA_Form = ({ token }) => {
 
             if (data.success) {
                 setLfaStatus("rejected");
-
-                // If this is email link access, show success message
-                // if (isEmailLinkAccess) {
-                //   alert("LFA rejected successfully. Your feedback has been sent to the lawyer.");
-                //} else {
-                //  alert("LFA rejected successfully. Your feedback has been sent to the lawyer.");
-                //}
             } else {
                 alert("Failed to reject LFA: " + data.message);
             }
@@ -10413,12 +10494,8 @@ const LEA_Form = ({ token }) => {
 
     const handleClientSignatureSave = (dataUrl) => {
         setSavedClientSignature(dataUrl);
-        // setShowSignaturePad(false);
-
-        // For email link access, automatically show the submit button
-        // Don't auto-submit, let the user click the submit button
         if (isEmailLinkAccess) {
-            setSignatureSubmitted(false); // Ensure submit button is visible
+            setSignatureSubmitted(false);
         }
     };
 
@@ -10447,6 +10524,7 @@ const LEA_Form = ({ token }) => {
             const formData = new FormData();
             formData.append("caseId", caseInfo?._id || "");
             formData.append("Islawyer", false);
+            formData.append("serviceType", serviceType); // NEW: Add service type
 
             formData.append(
                 "agreement",
@@ -10495,6 +10573,7 @@ const LEA_Form = ({ token }) => {
             const formData = new FormData();
             formData.append("caseId", caseInfo?._id || "");
             formData.append("Islawyer", true);
+            formData.append("serviceType", serviceType);
 
             formData.append(
                 "agreement",
@@ -10526,21 +10605,54 @@ const LEA_Form = ({ token }) => {
             });
 
             const data = await res.json();
+
             if (data.success) {
-                // After successfully creating LFA, save services if any exist
                 const targetCaseId = caseInfo?._id;
-                if (services.length > 0 && currentSection &&
-                    services.some(service => service.selectedService && service.serviceFees)) {
+
+                // FIX: Use the newly created LFA ID from the response
+                const lfaId = data.data?._id || targetCaseId;
+
+                console.log("LFA Created with ID:", lfaId); // Debug log
+
+                // Save all services from both sections when submitting the form
+                const allServicesToSave = [];
+
+                // Get services from Section 3
+                const section3Services = savedServices["Section 3: Professional Fees for Dispute Case"] || [];
+                if (section3Services.length > 0) {
+                    allServicesToSave.push({
+                        section: "Section 3: Professional Fees for Dispute Case",
+                        services: section3Services
+                    });
+                }
+
+                // Get services from Section 4
+                const section4Services = savedServices["Section 4: Other Fees"] || [];
+                if (section4Services.length > 0) {
+                    allServicesToSave.push({
+                        section: "Section 4: Other Fees",
+                        services: section4Services
+                    });
+                }
+
+                // Save all services to database with the correct lfaId
+                if (allServicesToSave.length > 0) {
                     try {
-                        await saveServicesToDatabase(data.data._id || targetCaseId, targetCaseId, services);
-                        console.log("Services saved successfully with initial LFA creation");
+                        for (const serviceGroup of allServicesToSave) {
+                            await saveServicesToDatabase(lfaId, targetCaseId, serviceGroup.services, serviceGroup.section);
+                        }
+                        console.log("All services saved successfully with initial LFA creation");
                     } catch (error) {
                         console.error("Failed to save services with LFA creation:", error);
-                        // Continue even if services fail
+                        // Don't throw error here - the form was created successfully
                     }
                 }
 
                 setEditMode(false);
+
+                // FIX: Refresh the data to get the updated LFA with services
+                await FetchLFA(targetCaseId);
+
             } else {
                 console.error("❌ Failed:", data.message);
             }
@@ -10548,12 +10660,12 @@ const LEA_Form = ({ token }) => {
             console.error("Error submitting form:", err);
         }
     };
-
     const handleUpdateClientSubmit = async () => {
         try {
             const formData = new FormData();
             formData.append("caseId", caseInfo?._id || "");
             formData.append("Islawyer", false);
+            formData.append("serviceType", serviceType); // NEW: Add service type
 
             formData.append(
                 "agreement",
@@ -10594,36 +10706,8 @@ const LEA_Form = ({ token }) => {
             console.error("Error submitting form:", err);
         }
     };
-    // Keep the existing saveServicesToDatabase function for form submission
-    // const saveServicesToDatabase = async (lfaId, caseId, servicesData) => {
-    //   try {
-    //     const response = await fetch(`${ApiEndPoint}saveServices`, {
-    //       method: 'POST',
-    //       headers: {
-    //         'Content-Type': 'application/json',
-    //       },
-    //       body: JSON.stringify({
-    //         lfaId,
-    //         caseId,
-    //         services: {
-    //           section: currentSection,
-    //           services: servicesData
-    //         }
-    //       })
-    //     });
 
-    //     if (!response.ok) {
-    //       throw new Error('Failed to save services');
-    //     }
-
-    //     const data = await response.json();
-    //     return data;
-    //   } catch (error) {
-    //     console.error("Error saving services:", error);
-    //     throw error;
-    //   }
-    // };
-    const saveServicesToDatabase = async (lfaId, caseId, servicesData) => {
+    const saveServicesToDatabase = async (lfaId, caseId, servicesData, section) => {
         try {
             const response = await fetch(`${ApiEndPoint}saveServices`, {
                 method: 'POST',
@@ -10634,8 +10718,9 @@ const LEA_Form = ({ token }) => {
                     lfaId,
                     caseId,
                     services: {
-                        section: currentSection, // This will be different for Section 3 vs Section 4
-                        services: servicesData
+                        section: section,
+                        services: servicesData,
+                        serviceType: serviceType // NEW: Save service type
                     }
                 })
             });
@@ -10646,7 +10731,6 @@ const LEA_Form = ({ token }) => {
 
             const data = await response.json();
 
-            // Add this check to handle both success cases
             if (!data.success) {
                 throw new Error(data.message || 'Failed to save services');
             }
@@ -10657,13 +10741,13 @@ const LEA_Form = ({ token }) => {
             throw error;
         }
     };
+
     const handleUpdateLawyerSubmit = async () => {
         try {
             if (lfaStatus === "accepted") {
                 handleAcceptLFA()
             }
 
-            // Determine the case ID based on access method
             const targetCaseId = isEmailLinkAccess ? LinkcaseId : caseInfo?._id;
 
             if (!targetCaseId) {
@@ -10671,18 +10755,38 @@ const LEA_Form = ({ token }) => {
                 return;
             }
 
-            // Get the LFA form ID if it exists
             let lfaId = dataList?._id;
 
-            // If services were added in the modal but not saved independently, save them now
-            if (services.length > 0 && currentSection &&
-                services.some(service => service.selectedService && service.serviceFees)) {
+            // Save all services from both sections when updating the form
+            const allServicesToSave = [];
+
+            // Get services from Section 3
+            const section3Services = savedServices["Section 3: Professional Fees for Dispute Case"] || [];
+            if (section3Services.length > 0) {
+                allServicesToSave.push({
+                    section: "Section 3: Professional Fees for Dispute Case",
+                    services: section3Services
+                });
+            }
+
+            // Get services from Section 4
+            const section4Services = savedServices["Section 4: Other Fees"] || [];
+            if (section4Services.length > 0) {
+                allServicesToSave.push({
+                    section: "Section 4: Other Fees",
+                    services: section4Services
+                });
+            }
+
+            // Save all services to database
+            if (allServicesToSave.length > 0) {
                 try {
-                    await saveServicesToDatabase(lfaId || targetCaseId, targetCaseId, services);
-                    console.log("Services saved successfully with LFA submission");
+                    for (const serviceGroup of allServicesToSave) {
+                        await saveServicesToDatabase(lfaId || targetCaseId, targetCaseId, serviceGroup.services, serviceGroup.section);
+                    }
+                    console.log("All services saved successfully with LFA submission");
                 } catch (error) {
                     console.error("Failed to save services with LFA submission:", error);
-                    // Continue with LFA submission even if services fail
                 }
             }
 
@@ -10691,7 +10795,6 @@ const LEA_Form = ({ token }) => {
 
             if (isResubmission) {
                 console.log("Resubmittion = 1")
-                // Use resubmission endpoint for lawyer resubmitting after rejection
                 const resubmitData = {
                     resubmittedBy: "lawyer",
                     agreement: JSON.stringify({
@@ -10705,7 +10808,8 @@ const LEA_Form = ({ token }) => {
                             subpoints: p.subpoints?.map(sp => ({ text: sp.text || "" })) || []
                         }))
                     })) || []),
-                    headings: JSON.stringify(headings || [])
+                    headings: JSON.stringify(headings || []),
+                    serviceType: serviceType // NEW: Add service type
                 };
 
                 const res = await fetch(`${ApiEndPoint}resubmitLFAForm/${targetCaseId}`, {
@@ -10727,10 +10831,10 @@ const LEA_Form = ({ token }) => {
                     alert("Failed to resubmit LFA. Please try again.");
                 }
             } else {
-                // Normal update submission
                 const formData = new FormData();
                 formData.append("caseId", targetCaseId);
                 formData.append("Islawyer", isLawyerSubmission);
+                formData.append("serviceType", serviceType); // NEW: Add service type
 
                 formData.append(
                     "agreement",
@@ -10839,19 +10943,17 @@ const LEA_Form = ({ token }) => {
 
     const pdfRef = useRef(null);
 
-    // UPDATED: selecting a draft now forces a clean remount & syncs signatures
     const handlePickDraft = (data) => {
         setAgreement(data.agreement);
         setFixedHeadings(data.fixedHeadings);
         setHeadings(data.headings);
         setSelectedDrafts(data);
-        setDraftKey((k) => k + 1); // force remount
+        setDraftKey((k) => k + 1);
     };
 
     const renderHeadings = (list, setFn, isFixed = false) => {
         if (!Array.isArray(list)) return null;
 
-        // FIXED: Preserve the alphabetical list structure when displaying
         const combinedHtml = list
             .map(
                 (heading, hIndex) => `
@@ -10870,18 +10972,14 @@ const LEA_Form = ({ token }) => {
         return (
             <div className="section border p-2 rounded bg-light">
                 {editMode ? (
-                    // Check if this is a fixed heading and if the specific section is editable
                     isFixed ? (
-                        // For fixed headings, check editable property for each section
                         <CEEditable
                             list={list}
                             onChange={(updatedList) => setFixedHeadings(updatedList)}
                             disable={(isFormFilled && !editMode)}
-                            // Pass editable information to CEEditable if needed
                             editableSections={list.map(item => item.editable !== false)}
                         />
                     ) : (
-                        // For custom headings, always editable
                         <CEEditable
                             list={list}
                             onChange={(updatedList) => setFn(updatedList)}
@@ -10894,8 +10992,6 @@ const LEA_Form = ({ token }) => {
             </div>
         );
 
-
-        // Step 2: HTML -> Array
         const parseHtmlToArray = (html) => {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, "text/html");
@@ -10905,7 +11001,6 @@ const LEA_Form = ({ token }) => {
 
             doc.body.childNodes.forEach((node) => {
                 if (node.nodeName === "P") {
-                    // extract heading text (remove numbering if any)
                     const headingText = node.textContent.replace(/^\d+\.\s*/, "").trim();
                     currentHeading = { title: headingText, points: [] };
                     sections.push(currentHeading);
@@ -10925,7 +11020,7 @@ const LEA_Form = ({ token }) => {
             <div className="section border p-2 rounded bg-light">
                 {editMode ? (
                     <CEEditable
-                        list={list} // 👈 ab array directly de sakte ho
+                        list={list}
                         onChange={(updatedList) => setFixedHeadings(updatedList)}
                         disable={(isFormFilled && !editMode)}
                     />
@@ -10936,15 +11031,47 @@ const LEA_Form = ({ token }) => {
         );
     };
 
-    // NEW: Render Accept/Reject buttons for client - UPDATED to check signatureSubmitted state
+    // NEW: Service Type Selector Component - CHANGED: Updated labels to "Suhad Letterhead" and "AWS Letterhead"
+    const ServiceTypeSelector = () => {
+        if (!editMode || isclient || isEmailLinkAccess) return null;
+
+        return (
+            <div className="card p-3 mb-4" data-html2canvas-ignore="true">
+                <label className="form-label fw-bold fs-6">Select Letterhead Type</label>
+                <div className="d-flex gap-3">
+                    <Form.Check
+                        type="radio"
+                        id="suhad-radio"
+                        label="Suhad Letterhead"
+                        name="serviceType"
+                        checked={serviceType === "suhad"}
+                        onChange={() => handleServiceTypeChange("suhad")}
+                    />
+                    <Form.Check
+                        type="radio"
+                        id="aws-radio"
+                        label="AWS Letterhead"
+                        name="serviceType"
+                        checked={serviceType === "aws"}
+                        onChange={() => handleServiceTypeChange("aws")}
+                    />
+                </div>
+                <small className="text-muted">
+                    {serviceType === "suhad"
+                        ? "Suhad Letterhead - Litigation Services"
+                        : "AWS Letterhead - Legal Services"}
+                </small>
+            </div>
+        );
+    };
+
     const renderClientDecisionButtons = () => {
-        // Show buttons for email link access OR regular client access
         const shouldShowButtons = (isEmailLinkAccess || isclient) &&
             isFormFilled &&
             lfaStatus !== "accepted" &&
             lfaStatus !== "rejected" &&
             !savedClientSignature &&
-            !signatureSubmitted; // NEW: Also check signatureSubmitted state
+            !signatureSubmitted;
 
         if (!shouldShowButtons) {
             return null;
@@ -10955,7 +11082,6 @@ const LEA_Form = ({ token }) => {
                 className="d-flex justify-content-center align-items-center mt-4 mb-4 px-3"
                 data-html2canvas-ignore="true"
             >
-                {/* Reject button */}
                 <button
                     className="btn btn-danger fw-bold me-3"
                     onClick={() => setShowRejectModal(true)}
@@ -10964,7 +11090,6 @@ const LEA_Form = ({ token }) => {
                     Reject LFA
                 </button>
 
-                {/* Accept button */}
                 <button
                     className="btn fw-bold"
                     style={{
@@ -10993,7 +11118,6 @@ const LEA_Form = ({ token }) => {
         );
     };
 
-    // NEW: Rejection Modal
     const renderRejectionModal = () => {
         return (
             <Modal show={showRejectModal} onHide={() => setShowRejectModal(false)}>
@@ -11015,18 +11139,28 @@ const LEA_Form = ({ token }) => {
                 <Modal.Footer className="justify-content-center">
                     <div className="d-flex gap-3">
                         <Button
-                            style={{
-                                backgroundColor: "#001f54", // Dark Blue
+                            className="d-flex align-items-center" style={{
+                                backgroundColor: "#16213e",
                                 color: "white",
-                                border: "none",
-                                transition: "all 0.3s ease-in-out"
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
                             }}
                             onMouseOver={(e) => {
-                                e.currentTarget.style.backgroundColor = "#c0a262"; // Golden on hover
+                                e.currentTarget.style.backgroundColor = "#c0a262";
                                 e.currentTarget.style.color = "black";
                             }}
                             onMouseOut={(e) => {
-                                e.currentTarget.style.backgroundColor = "#001f54"; // Back to Dark Blue
+                                e.currentTarget.style.backgroundColor = "#001f54";
                                 e.currentTarget.style.color = "white";
                             }}
                             onClick={() => setShowRejectModal(false)}
@@ -11035,7 +11169,22 @@ const LEA_Form = ({ token }) => {
                         </Button>
 
                         <Button
-                            variant="danger"
+                            className="d-flex align-items-center" style={{
+                                backgroundColor: "red",
+                                color: "white",
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
+                            }}
                             onClick={handleRejectLFA}
                             disabled={isSubmittingRejection}
                         >
@@ -11047,21 +11196,33 @@ const LEA_Form = ({ token }) => {
         );
     };
 
-    // NEW: Services and Fees Modal
-    // NEW: Services and Fees Modal - Simplified Design
-    // NEW: Services and Fees Modal - Multiple Services Design
-    // Keep the renderServicesModal function as is, with both buttons
     const renderServicesModal = () => {
+        // Combine all services for the dropdown
+        const allServices = [
+            {
+                group: "Litigation Services (Suhad)",
+                services: suhadServices
+            },
+            {
+                group: "Legal Services (AWS)",
+                services: awsServices
+            }
+        ];
+
         return (
             <Modal show={showServicesModal} onHide={() => setShowServicesModal(false)} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>Add Services and Fees - {currentSection}</Modal.Title>
+                    <div className="ms-3">
+                        <span className={`badge ${serviceType === 'suhad' ? 'bg-primary' : 'bg-success'}`}>
+                            {serviceType === 'suhad' ? 'Suhad Letterhead' : 'AWS Letterhead'}
+                        </span>
+                    </div>
                 </Modal.Header>
                 <Modal.Body>
-                    {/* Services List */}
                     <div className="mb-4">
                         <div className="d-flex justify-content-between align-items-center mb-3">
-                            <h6 className="mb-0">Services</h6>
+                            <h6 className="mb-0">All Available Services</h6>
                             <Button
                                 variant="outline-primary"
                                 size="sm"
@@ -11072,7 +11233,6 @@ const LEA_Form = ({ token }) => {
                             </Button>
                         </div>
 
-                        {/* Services List */}
                         {services.map((service, serviceIndex) => (
                             <div key={service.id} className="border rounded p-3 mb-3 position-relative">
                                 <div className="d-flex justify-content-between align-items-center mb-3">
@@ -11090,7 +11250,6 @@ const LEA_Form = ({ token }) => {
                                     )}
                                 </div>
 
-                                {/* Service Selection */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Select Service</Form.Label>
                                     <Form.Select
@@ -11099,13 +11258,19 @@ const LEA_Form = ({ token }) => {
                                         className="form-control-lg"
                                     >
                                         <option value="">Choose a service...</option>
-                                        {servicesList.map((serviceOption, index) => (
-                                            <option key={index} value={serviceOption}>{serviceOption}</option>
+                                        {/* Show all service groups by default */}
+                                        {allServices.map((serviceGroup, groupIndex) => (
+                                            <optgroup key={groupIndex} label={serviceGroup.group}>
+                                                {serviceGroup.services.map((serviceOption, index) => (
+                                                    <option key={`${groupIndex}-${index}`} value={serviceOption}>
+                                                        {serviceOption}
+                                                    </option>
+                                                ))}
+                                            </optgroup>
                                         ))}
                                     </Form.Select>
                                 </Form.Group>
 
-                                {/* Service Fees */}
                                 <Form.Group className="mb-3">
                                     <Form.Label>Service Fees</Form.Label>
                                     <InputGroup size="lg">
@@ -11117,6 +11282,21 @@ const LEA_Form = ({ token }) => {
                                             onChange={(e) => handleServiceChange(service.id, 'serviceFees', e.target.value)}
                                         />
                                     </InputGroup>
+                                </Form.Group>
+
+                                {/* ADD THIS: Additional Text Field for Service */}
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Additional Text (Optional)</Form.Label>
+                                    <Form.Control
+                                        as="textarea"
+                                        rows={2}
+                                        placeholder="Enter any additional text specific to this service"
+                                        value={service.additionalText || ""}
+                                        onChange={(e) => handleServiceChange(service.id, 'additionalText', e.target.value)}
+                                    />
+                                    {/* <Form.Text className="text-muted">
+                  This text will appear after the service fee in the agreement.
+                </Form.Text> */}
                                 </Form.Group>
                             </div>
                         ))}
@@ -11140,7 +11320,19 @@ const LEA_Form = ({ token }) => {
                                 e.currentTarget.style.backgroundColor = "#001f54";
                                 e.currentTarget.style.color = "white";
                             }}
-                            onClick={() => setShowServicesModal(false)}
+                            onClick={() => {
+                                // Don't reset services when cancelling - keep them for next time
+                                // Only reset if we're adding completely new services
+                                if (!savedServices[currentSection] || savedServices[currentSection].length === 0) {
+                                    setServices([{
+                                        id: uuidv4(),
+                                        selectedService: "",
+                                        serviceFees: "",
+                                        additionalText: ""
+                                    }]);
+                                }
+                                setShowServicesModal(false);
+                            }}
                         >
                             Cancel
                         </Button>
@@ -11214,7 +11406,6 @@ const LEA_Form = ({ token }) => {
                 .word-paper.pdf-mode .section { border: none !important; background: transparent !important; }
                 .word-paper.pdf-mode [contenteditable="true"] { border: none !important; outline: none !important; background: transparent !important; padding: 0 !important; }
                 
-                /* CHANGED: Replace bullet lists with alphabetical lists */
                 .word-paper ul,
                 .word-paper ol { padding-left: 24px !important; margin: 4px 0 6px 0 !important; }
                 .word-paper ul { list-style-type: lower-alpha !important; }
@@ -11226,10 +11417,9 @@ const LEA_Form = ({ token }) => {
                 @media print { [data-html2canvas-ignore="true"] { display: none !important; } }
             `}</style>
 
-            {/* toolbar */}
-
             {(token?.Role === "lawyer" || isFormFilled) ? (
                 <>
+                    {/* toolbar */}
                     <div
                         className="d-flex justify-content-end mb-3 px-3 py-2"
                         data-html2canvas-ignore="true"
@@ -11237,17 +11427,26 @@ const LEA_Form = ({ token }) => {
                             marginTop: '10px'
                         }}
                     >
-                        {/* Only show Generate Link button to lawyer and admin */}
                         {(token?.Role === "lawyer" || token?.Role === "admin") && (
                             <button
-                                className="btn btn-primary me-3 px-4 py-2 fw-medium"
-                                onClick={handleGenerateLink}
-                                style={{
-                                    backgroundColor: "#001f54",
+
+                                className="d-flex align-items-center" style={{
+                                    backgroundColor: "#16213e",
                                     color: "white",
-                                    border: "none",
-                                    transition: "all 0.3s ease-in-out"
+                                    width: "150px",
+                                    minWidth: "100px",
+                                    maxWidth: "200px",
+                                    padding: "8px 20px",
+                                    borderRadius: "4px",
+                                    fontSize: "14px",
+                                    cursor: "pointer",
+                                    textAlign: "center",
+                                    border: "2px solid #16213e",
+                                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                    transition: "all 0.3s ease",
+                                    fontWeight: "500",
                                 }}
+                                onClick={handleGenerateLink}
                                 onMouseOver={(e) => {
                                     e.currentTarget.style.backgroundColor = "#c0a262";
                                     e.currentTarget.style.color = "black";
@@ -11262,14 +11461,23 @@ const LEA_Form = ({ token }) => {
                         )}
 
                         <button
-                            className="btn fw-medium d-flex align-items-center"
+
                             onClick={handleDownload}
-                            style={{
-                                padding: "8px 16px",
-                                backgroundColor: "#001f54",
+                            className="d-flex align-items-center" style={{
+                                backgroundColor: "#16213e",
                                 color: "white",
-                                border: "none",
-                                transition: "all 0.3s ease-in-out"
+                                width: "150px",
+                                minWidth: "100px",
+                                maxWidth: "200px",
+                                padding: "8px 20px",
+                                borderRadius: "4px",
+                                fontSize: "14px",
+                                cursor: "pointer",
+                                textAlign: "center",
+                                border: "2px solid #16213e",
+                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                transition: "all 0.3s ease",
+                                fontWeight: "500",
                             }}
                             onMouseOver={(e) => {
                                 e.currentTarget.style.backgroundColor = "#c0a262";
@@ -11284,6 +11492,11 @@ const LEA_Form = ({ token }) => {
                             Download PDF
                         </button>
                     </div>
+
+                    {/* NEW: Service Type Selector */}
+                    <ServiceTypeSelector />
+
+
                     <div className="container mt-2 mt-md-4 word-paper" ref={pdfRef} key={draftKey} style={isEmailLinkAccess ? { backgroundColor: "white", padding: "20px", borderRadius: "10px", boxShadow: "0 4px 8px rgba(0,0,0,0.1)" } : {}}>
                         {/* Header */}
                         <div className="d-flex flex-wrap align-items-center mb-3 mb-md-4">
@@ -11364,7 +11577,6 @@ const LEA_Form = ({ token }) => {
                                                         handleEditableChange(index, newValue);
                                                     }}
                                                     onKeyDown={(e) => {
-                                                        // Prevent Enter key from creating new lines
                                                         if (e.key === 'Enter') {
                                                             e.preventDefault();
                                                         }
@@ -11413,7 +11625,6 @@ const LEA_Form = ({ token }) => {
                             <div key={index} className="section border p-2 rounded bg-light mb-3">
                                 <div className="d-flex justify-content-between align-items-start mb-2">
                                     <strong>{heading.title}</strong>
-                                    {/* Add Service and Fees button for specific sections */}
                                     {(heading.title.includes('Professional Fees for Dispute Case') ||
                                         heading.title.includes('Other Fees')) && editMode && (
                                             <button
@@ -11439,6 +11650,8 @@ const LEA_Form = ({ token }) => {
                                             </button>
                                         )}
                                 </div>
+
+                                {/* Display services immediately after saving */}
                                 {editMode ? (
                                     <CEEditable
                                         list={[heading]}
@@ -11450,20 +11663,27 @@ const LEA_Form = ({ token }) => {
                                         disable={(isFormFilled && !editMode)}
                                     />
                                 ) : (
-                                    <ol type="a" style={{ margin: "8px 0", paddingLeft: "24px" }}>
-                                        {heading.points.map((point, pIndex) => (
-                                            <li key={pIndex} style={{ margin: "4px 0", textAlign: "justify" }}>
-                                                {point.text}
-                                            </li>
-                                        ))}
-                                    </ol>
+                                    <div>
+                                        <ol type="a" style={{ margin: "8px 0", paddingLeft: "24px" }}>
+                                            {heading.points.map((point, pIndex) => (
+                                                <li key={pIndex} style={{ margin: "4px 0", textAlign: "justify" }}>
+                                                    <span dangerouslySetInnerHTML={{ __html: point.text }} />
+                                                </li>
+                                            ))}
+                                        </ol>
+
+                                        {/* Show empty state if no content at all */}
+                                        {(heading.title.includes('Professional Fees for Dispute Case') ||
+                                            heading.title.includes('Other Fees')) &&
+                                            heading.points.length === 0 && (
+                                                <div className="text-muted text-center py-2">
+                                                    No services added yet
+                                                </div>
+                                            )}
+                                    </div>
                                 )}
                             </div>
                         ))}
-
-                        {/* Custom Headings */}
-                        {/* {renderHeadings(headings, setHeadings, false)} */}
-
                         {/* NEW: Client decision buttons */}
                         {renderClientDecisionButtons()}
 
@@ -11508,7 +11728,6 @@ const LEA_Form = ({ token }) => {
                                 </div>
                             )}
 
-                            {/* ADDED: Stamp between signatures when both are present */}
                             {savedSignature && savedClientSignature && (
                                 <div style={{
                                     display: "flex",
@@ -11547,37 +11766,50 @@ const LEA_Form = ({ token }) => {
                                 </div>
                             )}
                         </div>
-                        {/* ⬇️⬇️⬇️ ADD REJECTION STATUS DISPLAY RIGHT HERE ⬇️⬇️⬇️ */}
-                        {/* Rejection Status Display - FIXED */}
-                        {/* Rejection Status Display - FIXED */}
+
+                        {/* Rejection Status Display */}
                         {lfaStatus === "rejected" && dataList?.rejectionReason && (
-                            <div className="alert alert-danger mt-4" role="alert">
-                                <h5 className="alert-heading">
-                                    {/* Show appropriate message based on user role */}
-                                    {(isclient || isEmailLinkAccess)
-                                        ? "You have rejected this LFA"
-                                        : "Client has rejected this LFA"
-                                    }
-                                </h5>
-                                <p className="mb-1"><strong>Reason for rejection:</strong></p>
-                                <div
-                                    className="mb-0 rejection-reason"
-                                    style={{
-                                        whiteSpace: 'pre-wrap',
-                                        lineHeight: '1.5'
-                                    }}
-                                >
-                                    {dataList.rejectionReason}
+                            <div className="card border-danger mt-4" style={{ maxWidth: '100%' }}>
+                                <div className="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+                                    <h6 className="mb-0">
+                                        <i className="bi bi-exclamation-triangle me-2"></i>
+                                        {(isclient || isEmailLinkAccess)
+                                            ? "You have rejected this LFA"
+                                            : "Client has rejected this LFA"
+                                        }
+                                    </h6>
+                                    {dataList.rejectedAt && (
+                                        <small className="text-light">
+                                            {new Date(dataList.rejectedAt).toLocaleDateString('en-GB')}
+                                            {!isclient && !isEmailLinkAccess && dataList.rejectedBy && ` by ${dataList.rejectedBy}`}
+                                        </small>
+                                    )}
                                 </div>
-                                {dataList.rejectedAt && (
-                                    <small className="text-muted d-block mt-2">
-                                        Rejected on: {new Date(dataList.rejectedAt).toLocaleDateString('en-GB')}
-                                        {/* Only show "by client" for lawyer view */}
-                                        {!isclient && !isEmailLinkAccess && dataList.rejectedBy && ` by ${dataList.rejectedBy}`}
-                                    </small>
-                                )}
+                                <div className="card-body">
+                                    <h6 className="card-title text-danger mb-3">
+                                        <strong>Reason for rejection:</strong>
+                                    </h6>
+                                    <div
+                                        className="rejection-reason-scrollable"
+                                        style={{
+                                            maxHeight: '200px',
+                                            overflowY: 'auto',
+                                            padding: '15px',
+                                            border: '1px solid #e9ecef',
+                                            borderRadius: '4px',
+                                            backgroundColor: '#f8f9fa',
+                                            fontSize: '14px',
+                                            lineHeight: '1.5',
+                                            whiteSpace: 'pre-wrap',
+                                            wordWrap: 'break-word'
+                                        }}
+                                    >
+                                        {dataList.rejectionReason}
+                                    </div>
+                                </div>
                             </div>
                         )}
+
                         {/* NEW: Rejection Popup Modal for Lawyer */}
                         {!isclient && !isEmailLinkAccess && token?.Role === "lawyer" && lfaStatus === "rejected" && dataList?.rejectionReason && !editMode && !rejectionAcknowledged && (
                             <Modal show={true} onHide={() => setRejectionAcknowledged(true)} backdrop="static" keyboard={false} size="lg">
@@ -11589,19 +11821,19 @@ const LEA_Form = ({ token }) => {
                                         <h6 className="text-danger mb-3">Client has rejected this Legal Fee Agreement</h6>
                                         <p className="mb-2"><strong>Reason for rejection:</strong></p>
 
-                                        {/* Scrollable container for rejection reason */}
                                         <div
                                             style={{
                                                 whiteSpace: 'pre-wrap',
                                                 textAlign: 'left',
-                                                maxHeight: '200px',
+                                                maxHeight: '300px',
                                                 overflowY: 'auto',
-                                                padding: '10px',
-                                                border: '1px solid #ddd',
+                                                padding: '15px',
+                                                border: '1px solid #dee2e6',
                                                 borderRadius: '4px',
-                                                backgroundColor: '#fafafa',
+                                                backgroundColor: '#f8f9fa',
                                                 fontSize: '14px',
-                                                lineHeight: '1.5'
+                                                lineHeight: '1.5',
+                                                wordWrap: 'break-word'
                                             }}
                                         >
                                             {dataList.rejectionReason}
@@ -11612,29 +11844,48 @@ const LEA_Form = ({ token }) => {
                                         </small>
                                     </div>
                                 </Modal.Body>
-                                <Modal.Footer className="justify-content-center">
+                                <Modal.Footer className="justify-content-center gap-3">
+
                                     <button
-                                        className="btn btn-primary me-2"
+                                        // className="btn btn-primary me-2"
                                         onClick={() => setRejectionAcknowledged(true)}
-                                        style={{
-                                            backgroundColor: "#001f54",
+                                        className="d-flex align-items-center" style={{
+                                            backgroundColor: "#16213e",
                                             color: "white",
-                                            border: "none",
-                                            transition: "all 0.3s ease-in-out",
-                                            minWidth: "100px"
+                                            width: "150px",
+                                            minWidth: "100px",
+                                            maxWidth: "200px",
+                                            padding: "8px 20px",
+                                            borderRadius: "4px",
+                                            fontSize: "14px",
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            border: "2px solid #16213e",
+                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                            transition: "all 0.3s ease",
+                                            fontWeight: "500",
                                         }}
                                     >
                                         OK
                                     </button>
                                     <button
-                                        className="btn btn-primary"
+                                        // className="btn btn-primary"
                                         onClick={() => setEditMode(true)}
-                                        style={{
-                                            backgroundColor: "#001f54",
+                                        className="d-flex align-items-center" style={{
+                                            backgroundColor: "#16213e",
                                             color: "white",
-                                            border: "none",
-                                            transition: "all 0.3s ease-in-out",
-                                            minWidth: "120px"
+                                            width: "150px",
+                                            minWidth: "100px",
+                                            maxWidth: "200px",
+                                            padding: "8px 20px",
+                                            borderRadius: "4px",
+                                            fontSize: "14px",
+                                            cursor: "pointer",
+                                            textAlign: "center",
+                                            border: "2px solid #16213e",
+                                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                                            transition: "all 0.3s ease",
+                                            fontWeight: "500",
                                         }}
                                     >
                                         Edit Agreement
@@ -11678,7 +11929,6 @@ const LEA_Form = ({ token }) => {
                                 </>
                             ) : (
                                 <>
-                                    {/* Show submit button for both portal access AND email link access */}
                                     {((isclient && savedClientSignature && lfaStatus === "accepted" && !signatureSubmitted) ||
                                         (isEmailLinkAccess && savedClientSignature && lfaStatus === "accepted" && !signatureSubmitted)) && (
                                             <button
@@ -11704,11 +11954,12 @@ const LEA_Form = ({ token }) => {
                                 </>
                             )}
                         </div>
-                        {/* Add this at the end of the form content */}
+
                         {isEmailLinkAccess && signatureSubmitted && (
                             <ThankYouMessage />
                         )}
                     </div>
+
                 </>
             ) : (
                 <div className="text-center text-black py-5">No LFA Form Available.</div>
