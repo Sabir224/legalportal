@@ -2806,7 +2806,7 @@ const caseStatusBarData = React.useMemo(() => ({
                           <div className="card-header bg-transparent border-0 p-3 d-flex justify-content-between align-items-center">
                             <h5 className="mb-0 text-white">
                               <FontAwesomeIcon icon={faChartPie} className="me-2" />
-                              Graph of Entire Company Success Rate
+                              Success Rate of All Cases
                             </h5>
                             <span className="badge bg-light text-primary" style={{ color: '#60A5FA !important' }}>
                               {filteredCounts.successRate}% Success
@@ -3407,7 +3407,7 @@ const caseStatusBarData = React.useMemo(() => ({
                         <div className="card-header bg-transparent border-0 p-3 d-flex justify-content-between align-items-center">
                           <h5 className="mb-0 text-white">
                             <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
-                            Graph of Entire Company Success Rate
+                            Success Rate of All Cases
                           </h5>
                           <span className="badge bg-light text-primary" style={{ color: '#60A5FA !important' }}>
                             {filteredCounts.successRate}% Success

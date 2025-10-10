@@ -1138,23 +1138,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
             // HEADER (with side-strip logo added)
             header: (currentPage, pageCount, pageSize) => {
-                // existing AWS text in the strip (header area)
+            
                 const headerBandTop = 0;
                 const startY = headerBandTop + 0;
                 const stepY = AWS_SIDE_FONT + 8;
                 const headerAWS = [];
-                // for (let i = 0; i < 3; i++) {
-                //     headerAWS.push({
-                //         text: "AWS",
-                //         bold: true,
-                //         fontSize: AWS_SIDE_FONT,
-                //         color: "#c0a262",
-                //         opacity: AWS_SIDE_OPACITY,
-                //         absolutePosition: { x: AWS_SIDE_X, y: startY + i * stepY }
-                //     });
-                // }
-
-                // >>> NEW: logo inside the LEFT strip at the top (centered)
+                
                 const STRIP_LOGO_SIZE = 45;                            // adjust if needed
                 const stripLogoX = Math.round((sidebarWidth - STRIP_LOGO_SIZE) / 2);
                 const stripLogoY = 10;                                 // distance from page top
@@ -1170,11 +1159,11 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 return {
                     margin: [sidebarWidth + 20, 15, 20, 0],
                     stack: [
-                        // absolute elements placed on the strip
+                       
                         stripLogo,
                         ...headerAWS,
 
-                        // right side: firm mark (unchanged)
+                      
                         {
                             columns: [
                                 logoBase64
@@ -1199,6 +1188,9 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     ]
                 };
             },
+
+
+
             // FOOTER + put "AWS" on the left strip (BOTTOM AREA ONLY, 4 times)
             footer: (currentPage, pageCount, pageSize) => {
                 const footerHeight = 70;
