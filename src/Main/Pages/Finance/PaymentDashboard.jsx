@@ -159,7 +159,7 @@ export default function PaymentDashboard() {
     const { payment } = appointment;
 
     try {
-      const response = await fetch(`${ApiEndPoint}invoices/markPaid/${payment?._id}`, {
+      const response = await fetch(`${ApiEndPoint}invoices/markPaid/${payment?.invoiceId}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1661,7 +1661,7 @@ export default function PaymentDashboard() {
                                             variant="outlined"
                                             size="small"
                                             sx={{ textTransform: 'none', borderRadius: 2 }}
-                                            onClick={() => viewInvoice(item.payment._id)}
+                                            onClick={() => viewInvoice(item.payment?.invoiceId)}
                                             disabled={loadingId === item.payment._id}
                                           >
                                             {loadingId === item.payment._id ? (

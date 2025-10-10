@@ -1314,36 +1314,41 @@ function LegalConsultationStepper() {
         });
 
         // 🧾 Generate Zoho Invoice
-        try {
-          const appointmentPayload = {
-            lawyer: selectedLawyer,
-            service,
-            method,
-            date: selectedDate,
-            slot: selectedSlot,
-            clientMessage,
-            caseDescription: caseDiscription,
-            payment: {
-              _id: paymentId,
-              name: paymentForm?.name || confirmationData?.name,
-              phone: paymentForm?.phone || confirmationData?.phone,
-              email: paymentForm?.email || confirmationData?.email || '',
-              amount: Number(selectedLawyer?.price) || 200,
-              status: 'paid',
-              serviceType: service,
-              consultationType: method,
-              paymentMethod,
-              appointmentLink: window.location.href,
-              createdAt: new Date(),
-            },
-          };
+        // try {
+        //   const appointmentPayload = {
+        //     lawyer: selectedLawyer,
+        //     service,
+        //     method,
+        //     date: selectedDate,
+        //     slot: selectedSlot,
+        //     clientMessage,
+        //     caseDescription: caseDiscription,
+        //     payment: {
+        //       _id: paymentId,
+        //       name: paymentForm?.name || confirmationData?.name,
+        //       phone: paymentForm?.phone || confirmationData?.phone,
+        //       email: paymentForm?.email || confirmationData?.email || '',
+        //       amount: Number(selectedLawyer?.price) || 200,
+        //       status: 'paid',
+        //       serviceType: service,
+        //       consultationType: method,
+        //       paymentMethod,
+        //       appointmentLink: window.location.href,
+        //       createdAt: new Date(),
+        //     },
+        //   };
 
-          console.log('🧾 Generating Zoho invoice...');
-          const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
-          console.log('✅ Zoho invoice created:', invoiceResponse.data);
-        } catch (invoiceErr) {
-          console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
-        }
+        //   console.log('🧾 Generating Zoho invoice...');
+        //   const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+        //   await fetch(`${ApiEndPoint}payments/${paymentId}`, {
+        //     method: 'PUT',
+        //     headers: { 'Content-Type': 'application/json' },
+        //     body: JSON.stringify({ hasInvoice: true }),
+        //   });
+        //   console.log('✅ Zoho invoice created:', invoiceResponse.data);
+        // } catch (invoiceErr) {
+        //   console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+        // }
 
         setActiveStep(6);
       };
@@ -1362,7 +1367,7 @@ function LegalConsultationStepper() {
         } else if (normalizedPaymentMethod === 'Card') {
           if (data?.payment?.status === 'paid') {
             await finalizeBooking(data?.payment?._id);
-          } else if (data?.payment?._id) {
+          } else if (data?.payment?._id && data?.payment?.status === 'pending') {
             console.log('📌 Existing Card payment pending, confirming only');
             await handleCardPaymentFlow({ ...paymentData, paymentId: data?.payment?._id });
           } else {
@@ -1468,35 +1473,42 @@ function LegalConsultationStepper() {
     await sendConfirmationEmails(paymentResponse.paymentId);
 
     // 🧾 Generate Zoho Invoice
-    try {
-      const appointmentPayload = {
-        lawyer: selectedLawyer,
-        service,
-        method: method || confirmationData.method,
-        date: selectedDate,
-        slot: selectedSlot,
-        clientMessage,
-        caseDescription: caseDiscription,
-        payment: {
-          _id: paymentResponse.paymentId,
-          name: paymentForm?.name || confirmationData?.name,
-          phone: paymentForm?.phone || confirmationData?.phone,
-          email: paymentForm?.email || confirmationData?.email || '',
-          amount: Number(selectedLawyer?.price) || 200,
-          status: 'pending',
-          serviceType: service,
-          consultationType: method,
-          paymentMethod: 'PayInOffice',
-          appointmentLink: window.location.href,
-          createdAt: new Date(),
-        },
-      };
+    if (!data?.payment && !data?.lawyer) {
+      try {
+        const appointmentPayload = {
+          lawyer: selectedLawyer,
+          service,
+          method: method || confirmationData.method,
+          date: selectedDate,
+          slot: selectedSlot,
+          clientMessage,
+          caseDescription: caseDiscription,
+          payment: {
+            _id: paymentResponse.paymentId,
+            name: paymentForm?.name || confirmationData?.name,
+            phone: paymentForm?.phone || confirmationData?.phone,
+            email: paymentForm?.email || confirmationData?.email || '',
+            amount: Number(selectedLawyer?.price) || 200,
+            status: 'pending',
+            serviceType: service,
+            consultationType: method,
+            paymentMethod: 'PayInOffice',
+            appointmentLink: window.location.href,
+            createdAt: new Date(),
+          },
+        };
 
-      console.log('🧾 Generating Zoho invoice for PayInOffice...');
-      const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
-      console.log('✅ Zoho invoice created:', invoiceResponse.data);
-    } catch (invoiceErr) {
-      console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+        console.log('🧾 Generating Zoho invoice for PayInOffice...');
+        const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+        console.log('✅ Zoho invoice created:', invoiceResponse.data);
+        await fetch(`${ApiEndPoint}payments/${paymentResponse?.paymentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasInvoice: true }),
+        });
+      } catch (invoiceErr) {
+        console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+      }
     }
 
     // Proceed to confirmation
@@ -1596,39 +1608,46 @@ function LegalConsultationStepper() {
       // Send confirmation emails
       await sendConfirmationEmails(paymentId);
     }
-    try {
-      const appointmentPayload = {
-        lawyer: selectedLawyer,
-        service,
-        method,
-        date: selectedDate,
-        slot: selectedSlot,
-        clientMessage,
-        caseDescription: caseDiscription,
-        payment: {
-          _id: paymentId,
-          name: paymentForm?.name || confirmationData?.name,
-          phone: paymentForm?.phone || confirmationData?.phone,
-          email: paymentForm?.email || confirmationData?.email || '',
-          amount: Number(selectedLawyer?.price) || 200,
-          status: 'paid',
-          serviceType: service,
-          consultationType: method,
-          paymentMethod: 'Card',
-          appointmentLink: window.location.href,
-          createdAt: new Date(),
-        },
-      };
+    // 🧾 Generate Zoho Invoice only for new bookings (no existing payment/lawyer)
+    if (!data?.payment && !data?.lawyer) {
+      try {
+        const appointmentPayload = {
+          lawyer: selectedLawyer,
+          service,
+          method,
+          date: selectedDate,
+          slot: selectedSlot,
+          clientMessage,
+          caseDescription: caseDiscription,
+          payment: {
+            _id: paymentId,
+            name: paymentForm?.name || confirmationData?.name,
+            phone: paymentForm?.phone || confirmationData?.phone,
+            email: paymentForm?.email || confirmationData?.email || '',
+            amount: Number(selectedLawyer?.price) || 200,
+            status: 'paid',
+            serviceType: service,
+            consultationType: method,
+            paymentMethod: 'Card',
+            appointmentLink: window.location.href,
+            createdAt: new Date(),
+          },
+        };
 
-      console.log('🧾 Generating Zoho invoice for InPerson + Card...');
-      const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
-      console.log('✅ Zoho invoice created:', invoiceResponse.data);
-    } catch (invoiceErr) {
-      console.error(
-        '❌ Failed to generate Zoho invoice (InPerson + Card):',
-        invoiceErr.response?.data || invoiceErr.message
-      );
+        console.log('🧾 Generating Zoho invoice for Card payment...');
+        const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+        console.log('✅ Zoho invoice created:', invoiceResponse.data);
+
+        await fetch(`${ApiEndPoint}payments/${paymentId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ hasInvoice: true }),
+        });
+      } catch (invoiceErr) {
+        console.error('❌ Failed to generate Zoho invoice (Card):', invoiceErr.response?.data || invoiceErr.message);
+      }
     }
+
     // Store confirmation data for the UI
     setConfirmationData({
       lawyer: selectedLawyer,
@@ -1919,36 +1938,38 @@ function LegalConsultationStepper() {
         console.error('Payment update error:', err.response?.data || err.message);
       }
       // Step 4: Generate Invoice
-      try {
-        const appointmentPayload = {
-          lawyer: selectedLawyer,
-          service,
-          method,
-          date: selectedDate,
-          slot: selectedSlot,
-          clientMessage,
-          caseDescription: caseDiscription,
-          payment: {
-            _id: oldpaymentId || data?.payment?._id,
-            name: paymentForm?.name || confirmationData?.name || data?.payment?.name || name,
-            phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone || phone,
-            email: paymentForm?.email || confirmationData?.email || data?.payment?.email || '',
-            amount: Number(selectedLawyer?.price) || 200,
-            status: paymentStatus || data?.payment?.status,
-            serviceType: service,
-            consultationType: method,
-            paymentMethod,
+      if (!data?.payment && !data?.lawyer) {
+        try {
+          const appointmentPayload = {
+            lawyer: selectedLawyer,
+            service,
+            method,
+            date: selectedDate,
+            slot: selectedSlot,
+            clientMessage,
             caseDescription: caseDiscription,
-            appointmentLink: window.location.href,
-            createdAt: new Date(),
-          },
-        };
+            payment: {
+              _id: oldpaymentId || data?.payment?._id,
+              name: paymentForm?.name || confirmationData?.name || data?.payment?.name || name,
+              phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone || phone,
+              email: paymentForm?.email || confirmationData?.email || data?.payment?.email || '',
+              amount: Number(selectedLawyer?.price) || 200,
+              status: paymentStatus || data?.payment?.status,
+              serviceType: service,
+              consultationType: method,
+              paymentMethod,
+              caseDescription: caseDiscription,
+              appointmentLink: window.location.href,
+              createdAt: new Date(),
+            },
+          };
 
-        console.log('🧾 Generating Zoho Invoice...');
-        const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
-        console.log('✅ Invoice generated:', invoiceResponse.data);
-      } catch (invoiceErr) {
-        console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+          console.log('🧾 Generating Zoho Invoice...');
+          const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
+          console.log('✅ Invoice generated:', invoiceResponse.data);
+        } catch (invoiceErr) {
+          console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
+        }
       }
 
       // success popup
