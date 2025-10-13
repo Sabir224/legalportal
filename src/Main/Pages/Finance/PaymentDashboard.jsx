@@ -131,7 +131,95 @@ export default function PaymentDashboard() {
   const [loadingPayment, setLoadingPayment] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  // state variables
+  const [revenueTodayFilter, setRevenueTodayFilter] = useState({ startDate: '', endDate: '' });
+  const [revenueThisMonthFilter, setRevenueThisMonthFilter] = useState({ startDate: '', endDate: '' });
+  const [revenueLastMonthFilter, setRevenueLastMonthFilter] = useState({ startDate: '', endDate: '' });
+  const [consultationsTodayFilter, setConsultationsTodayFilter] = useState({ startDate: '', endDate: '' });
+  const [consultationsThisMonthFilter, setConsultationsThisMonthFilter] = useState({ startDate: '', endDate: '' });
+  const [consultationsLastMonthFilter, setConsultationsLastMonthFilter] = useState({ startDate: '', endDate: '' });
+  const [totalAppointmentsFilter, setTotalAppointmentsFilter] = useState({ startDate: '', endDate: '' });
+  const [paidPaymentsFilter, setPaidPaymentsFilter] = useState({ startDate: '', endDate: '' });
+  const [pendingPaymentsFilter, setPendingPaymentsFilter] = useState({ startDate: '', endDate: '' });
+  const [totalRevenueFilter, setTotalRevenueFilter] = useState({ startDate: '', endDate: '' });
+  const [noBookedFilter, setNoBookedFilter] = useState({ startDate: '', endDate: '' });
 
+  // state for date filter popover
+  const [dateFilterPopover, setDateFilterPopover] = useState({
+    open: false,
+    anchorEl: null,
+    cardType: null,
+    currentFilter: null,
+    setFilterFunction: null,
+  });
+  // Date filter handlers
+  const handleOpenDateFilter = (cardType, currentFilter, setFilterFunction, event) => {
+    setDateFilterPopover({
+      open: true,
+      anchorEl: event.currentTarget,
+      cardType,
+      currentFilter,
+      setFilterFunction,
+      tempStartDate: currentFilter.startDate,
+      tempEndDate: currentFilter.endDate,
+    });
+  };
+
+  const handleApplyDateFilter = () => {
+    // Apply temporary values and close
+    if (dateFilterPopover.setFilterFunction) {
+      dateFilterPopover.setFilterFunction({
+        startDate: dateFilterPopover.tempStartDate || '',
+        endDate: dateFilterPopover.tempEndDate || '',
+      });
+    }
+    handleCloseDateFilter();
+  };
+  const handleCloseDateFilter = () => {
+    // Apply the temporary values when closing
+    if (dateFilterPopover.setFilterFunction && dateFilterPopover.tempStartDate !== undefined) {
+      dateFilterPopover.setFilterFunction({
+        startDate: dateFilterPopover.tempStartDate,
+        endDate: dateFilterPopover.tempEndDate,
+      });
+    }
+
+    setDateFilterPopover({
+      open: false,
+      anchorEl: null,
+      cardType: null,
+      currentFilter: null,
+      setFilterFunction: null,
+      tempStartDate: undefined,
+      tempEndDate: undefined,
+    });
+  };
+
+  const handleDateFilterChange = (field, value) => {
+    if (dateFilterPopover.setFilterFunction) {
+      // Update temporary values immediately for display
+      setDateFilterPopover((prev) => ({
+        ...prev,
+        [`temp${field.charAt(0).toUpperCase() + field.slice(1)}`]: value ? value.toISOString() : '',
+      }));
+    }
+  };
+
+  const handleClearDateFilter = () => {
+    if (dateFilterPopover.setFilterFunction) {
+      // Clear both temporary values and apply immediately
+      setDateFilterPopover((prev) => ({
+        ...prev,
+        tempStartDate: '',
+        tempEndDate: '',
+      }));
+
+      // Also update the actual filter state
+      dateFilterPopover.setFilterFunction({ startDate: '', endDate: '' });
+    }
+  };
   const [filterSearchTerms, setFilterSearchTerms] = useState({
     status: '',
     service: '',
@@ -799,10 +887,6 @@ export default function PaymentDashboard() {
     setLawyerFilter(availableValues);
   };
 
-  const handleDateFilterChange = (field, value) => {
-    setDateFilter((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleClearAllStatus = () => setStatusFilter([]);
   const handleClearAllService = () => setServiceFilter([]);
   const handleClearAllConsultation = () => setConsultationTypeFilter([]);
@@ -824,16 +908,64 @@ export default function PaymentDashboard() {
       method: '',
     });
   };
+  const filterDataByDateRange = (data, dateFilter, usePaymentDate = true) => {
+    if (!dateFilter.startDate && !dateFilter.endDate) return data;
+
+    return data.filter((item) => {
+      // Use payment date by default, fall back to link date if needed
+      let itemDate;
+
+      if (usePaymentDate && item.payment?.createdAt) {
+        itemDate = new Date(item.payment.createdAt);
+      } else if (item.link?.createdAt) {
+        itemDate = new Date(item.link.createdAt);
+      } else {
+        return false; // No date available
+      }
+
+      if (dateFilter.startDate) {
+        const startDate = new Date(dateFilter.startDate);
+        startDate.setHours(0, 0, 0, 0);
+        if (itemDate < startDate) return false;
+      }
+
+      if (dateFilter.endDate) {
+        const endDate = new Date(dateFilter.endDate);
+        endDate.setHours(23, 59, 59, 999);
+        if (itemDate > endDate) return false;
+      }
+
+      return true;
+    });
+  };
 
   // ✅ Stats calculations
-  const totalClients = data.length;
-  const paidPayments = data.filter((item) => item.payment?.status === 'paid').length;
-  const pendingPayments = data.filter((item) => item.payment?.status === 'pending').length;
-  const noBookedPayments = data.filter((item) => !item.payment || item.payment?.status === 'not_booked').length;
-  const totalRevenue = data
+  // const totalClients = data.length;
+  // const paidPayments = data.filter((item) => item.payment?.status === 'paid').length;
+  // const pendingPayments = data.filter((item) => item.payment?.status === 'pending').length;
+  // const noBookedPayments = data.filter((item) => !item.payment || item.payment?.status === 'not_booked').length;
+  // const totalRevenue = data
+  //   .filter((item) => item.payment?.status === 'paid')
+  //   .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
+  // Update the calculations for these StatCards
+  // For appointment-based calculations (use link date)
+  const totalClients = filterDataByDateRange(data, totalAppointmentsFilter, false).length;
+
+  const paidPayments = filterDataByDateRange(data, paidPaymentsFilter, true).filter(
+    (item) => item.payment?.status === 'paid'
+  ).length;
+
+  const pendingPayments = filterDataByDateRange(data, pendingPaymentsFilter, true).filter(
+    (item) => item.payment?.status === 'pending'
+  ).length;
+
+  const noBookedPayments = filterDataByDateRange(data, noBookedFilter, false).filter(
+    (item) => !item.payment || item.payment?.status === 'not_booked'
+  ).length;
+
+  const totalRevenue = filterDataByDateRange(data, totalRevenueFilter, true)
     .filter((item) => item.payment?.status === 'paid')
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
-
   const getStatusChip = (status, onMarkPaid, hasInvoice) => {
     if (!status) {
       return <Chip label="Not Booked" variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
@@ -874,7 +1006,6 @@ export default function PaymentDashboard() {
         return <Chip label={status} variant="outlined" size="small" sx={{ fontWeight: 600 }} />;
     }
   };
-
   const lightTheme = {
     background: '#f8f9fa',
     accentColor: '#d4af37',
@@ -956,21 +1087,25 @@ export default function PaymentDashboard() {
   const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
 
   // Calculate revenue metrics
-  const revenueToday = data
+  // Helper function to filter data by date range
+  // Enhanced filter function
+
+  // Calculate revenue metrics with date filters
+  const revenueToday = filterDataByDateRange(data, revenueTodayFilter, true)
     .filter((item) => {
       const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
       return paymentDate && paymentDate >= startOfToday && item.payment?.status === 'paid';
     })
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
 
-  const revenueThisMonth = data
+  const revenueThisMonth = filterDataByDateRange(data, revenueThisMonthFilter)
     .filter((item) => {
       const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
       return paymentDate && paymentDate >= startOfThisMonth && item.payment?.status === 'paid';
     })
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
 
-  const revenueLastMonth = data
+  const revenueLastMonth = filterDataByDateRange(data, revenueLastMonthFilter)
     .filter((item) => {
       const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
       return (
@@ -982,17 +1117,17 @@ export default function PaymentDashboard() {
     })
     .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
 
-  const consultationsToday = data.filter((item) => {
+  const consultationsToday = filterDataByDateRange(data, consultationsTodayFilter).filter((item) => {
     const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
     return paymentDate && paymentDate >= startOfToday;
   }).length;
 
-  const consultationsThisMonth = data.filter((item) => {
+  const consultationsThisMonth = filterDataByDateRange(data, consultationsThisMonthFilter).filter((item) => {
     const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
     return paymentDate && paymentDate >= startOfThisMonth;
   }).length;
 
-  const consultationsLastMonth = data.filter((item) => {
+  const consultationsLastMonth = filterDataByDateRange(data, consultationsLastMonthFilter).filter((item) => {
     const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
     return paymentDate && paymentDate >= startOfLastMonth && paymentDate <= endOfLastMonth;
   }).length;
@@ -1011,16 +1146,18 @@ export default function PaymentDashboard() {
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
-      const dayRevenue = data
-        .filter((item) => {
-          const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
-          return paymentDate && paymentDate >= startOfDay && paymentDate <= endOfDay && item.payment?.status === 'paid';
-        })
-        .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
+      const dayData = data.filter((item) => {
+        const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
+        return paymentDate && paymentDate >= startOfDay && paymentDate <= endOfDay && item.payment?.status === 'paid';
+      });
+
+      const dayRevenue = dayData.reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
+      const dayConsultations = dayData.length;
 
       graphData.push({
         date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
         revenue: dayRevenue,
+        consultations: dayConsultations,
       });
     }
 
@@ -1097,50 +1234,64 @@ export default function PaymentDashboard() {
               Payment Dashboard
             </Typography>
           </Box>
-
-          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 }, flex: '0 0 auto' }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard title="Total Appointments" value={totalClients} subtitle="Active appointments" icon={People} />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Paid Payments"
-                value={paidPayments}
-                subtitle="Completed transactions"
-                icon={AttachMoney}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Pending Payments"
-                value={pendingPayments}
-                subtitle="Awaiting payment"
-                icon={CalendarToday}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Total Revenue"
-                value={totalRevenue}
-                subtitle="From paid consultations"
-                icon={Description}
-                isCurrency
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="No Booked"
-                value={noBookedPayments}
-                subtitle="Appointments not booked"
-                icon={EventBusy}
-              />
-            </Grid>
-          </Grid>
           <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
+            <Grid item xs={12} sm={6} md={2}>
+              <StatCard
+                title="Consultations Last Month"
+                value={consultationsLastMonth}
+                subtitle={`$${revenueLastMonth.toLocaleString()} revenue`}
+                icon={History}
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter(
+                      'consultationsLastMonth',
+                      consultationsLastMonthFilter,
+                      setConsultationsLastMonthFilter,
+                      e
+                    ),
+                  hasFilter: consultationsLastMonthFilter.startDate || consultationsLastMonthFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={2}>
+              <StatCard
+                title="Consultations This Month"
+                value={consultationsThisMonth}
+                subtitle={`$${revenueThisMonth.toLocaleString()} revenue`}
+                icon={DateRange}
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter(
+                      'consultationsThisMonth',
+                      consultationsThisMonthFilter,
+                      setConsultationsThisMonthFilter,
+                      e
+                    ),
+                  hasFilter: consultationsThisMonthFilter.startDate || consultationsThisMonthFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={2}>
+              <StatCard
+                title="Consultations Today"
+                value={consultationsToday}
+                subtitle={`$${revenueToday.toLocaleString()} revenue`}
+                icon={EventAvailable}
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter(
+                      'consultationsToday',
+                      consultationsTodayFilter,
+                      setConsultationsTodayFilter,
+                      e
+                    ),
+                  hasFilter: consultationsTodayFilter.startDate || consultationsTodayFilter.endDate,
+                }}
+              />
+            </Grid>
+
             <Grid item xs={12} sm={6} md={2}>
               <StatCard
                 title="Revenue Last Month"
@@ -1148,6 +1299,11 @@ export default function PaymentDashboard() {
                 subtitle={`${consultationsLastMonth} consultations`}
                 icon={ArrowBack}
                 isCurrency
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter('revenueLastMonth', revenueLastMonthFilter, setRevenueLastMonthFilter, e),
+                  hasFilter: revenueLastMonthFilter.startDate || revenueLastMonthFilter.endDate,
+                }}
               />
             </Grid>
 
@@ -1158,6 +1314,11 @@ export default function PaymentDashboard() {
                 subtitle={`${consultationsThisMonth} consultations`}
                 icon={CalendarMonth}
                 isCurrency
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter('revenueThisMonth', revenueThisMonthFilter, setRevenueThisMonthFilter, e),
+                  hasFilter: revenueThisMonthFilter.startDate || revenueThisMonthFilter.endDate,
+                }}
               />
             </Grid>
 
@@ -1168,37 +1329,85 @@ export default function PaymentDashboard() {
                 subtitle={`${consultationsToday} consultations`}
                 icon={Today}
                 isCurrency
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations Last Month"
-                value={consultationsLastMonth}
-                subtitle={`$${revenueLastMonth.toLocaleString()} revenue`}
-                icon={History}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations This Month"
-                value={consultationsThisMonth}
-                subtitle={`$${revenueThisMonth.toLocaleString()} revenue`}
-                icon={DateRange}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations Today"
-                value={consultationsToday}
-                subtitle={`$${revenueToday.toLocaleString()} revenue`}
-                icon={EventAvailable}
+                dateFilter={{
+                  onOpen: (e) => handleOpenDateFilter('revenueToday', revenueTodayFilter, setRevenueTodayFilter, e),
+                  hasFilter: revenueTodayFilter.startDate || revenueTodayFilter.endDate,
+                }}
               />
             </Grid>
           </Grid>
+          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 }, flex: '0 0 auto' }}>
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Total Appointments"
+                value={totalClients}
+                subtitle="Active appointments"
+                icon={People}
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter('totalAppointments', totalAppointmentsFilter, setTotalAppointmentsFilter, e),
+                  hasFilter: totalAppointmentsFilter.startDate || totalAppointmentsFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Paid Payments"
+                value={paidPayments}
+                subtitle="Completed transactions"
+                icon={AttachMoney}
+                dateFilter={{
+                  onOpen: (e) => handleOpenDateFilter('paidPayments', paidPaymentsFilter, setPaidPaymentsFilter, e),
+                  hasFilter: paidPaymentsFilter.startDate || paidPaymentsFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Pending Payments"
+                value={pendingPayments}
+                subtitle="Awaiting payment"
+                icon={CalendarToday}
+                dateFilter={{
+                  onOpen: (e) =>
+                    handleOpenDateFilter('pendingPayments', pendingPaymentsFilter, setPendingPaymentsFilter, e),
+                  hasFilter: pendingPaymentsFilter.startDate || pendingPaymentsFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="Total Revenue"
+                value={totalRevenue}
+                subtitle="From paid consultations"
+                icon={Description}
+                isCurrency
+                dateFilter={{
+                  onOpen: (e) => handleOpenDateFilter('totalRevenue', totalRevenueFilter, setTotalRevenueFilter, e),
+                  hasFilter: totalRevenueFilter.startDate || totalRevenueFilter.endDate,
+                }}
+              />
+            </Grid>
+
+            <Grid item xs={12} sm={6} md={3}>
+              <StatCard
+                title="No Booked"
+                value={noBookedPayments}
+                subtitle="Appointments not booked"
+                icon={EventBusy}
+                dateFilter={{
+                  onOpen: (e) => handleOpenDateFilter('noBooked', noBookedFilter, setNoBookedFilter, e),
+                  hasFilter: noBookedFilter.startDate || noBookedFilter.endDate,
+                }}
+              />
+            </Grid>
+          </Grid>
+
           {/* Revenue Graph */}
+          {/* Revenue Graph - Grouped Bars version */}
           <ElegantCard sx={{ mb: { xs: 2, sm: 3, md: 4 }, p: 2 }}>
             <CardHeader
               title={
@@ -1210,7 +1419,7 @@ export default function PaymentDashboard() {
                     fontSize: { xs: '1rem', sm: '1.125rem', md: '1.25rem' },
                   }}
                 >
-                  Revenue Over Last 30 Days
+                  Revenue & Consultations Over Last 30 Days
                 </Typography>
               }
             />
@@ -1231,11 +1440,18 @@ export default function PaymentDashboard() {
                       tick={{ fontSize: 12 }}
                     />
                     <Tooltip
-                      formatter={(value) => [`AED ${value}`, 'Revenue']}
+                      formatter={(value, name) => {
+                        if (name === 'Revenue') {
+                          return [`AED ${value}`, 'Revenue'];
+                        } else {
+                          return [`${value} consultations`, 'Consultations'];
+                        }
+                      }}
                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Legend />
                     <Bar dataKey="revenue" name="Revenue" fill={lightTheme.accentColor} radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="consultations" name="Consultations" fill="#82ca9d" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </Box>
@@ -1920,7 +2136,7 @@ export default function PaymentDashboard() {
                     />
                   )}
 
-                  {/* Date Filter */}
+                  {/* Date Filter
                   {openFilter === 'date' && (
                     <>
                       <Typography variant="subtitle2" gutterBottom sx={{ color: '#d4af37', fontWeight: 600 }}>
@@ -1999,7 +2215,7 @@ export default function PaymentDashboard() {
                         Clear Date Filter
                       </Button>
                     </>
-                  )}
+                  )} */}
                 </Box>
               </Popover>
             )}
@@ -2012,6 +2228,115 @@ export default function PaymentDashboard() {
           paymentSuccess={paymentSuccess}
           loadingPayment={loadingPayment}
         />
+        {/* Date Filter Popover for StatCards */}
+        {/* Date Filter Popover for StatCards */}
+        <Popover
+          open={dateFilterPopover.open}
+          anchorEl={dateFilterPopover.anchorEl}
+          onClose={handleCloseDateFilter}
+          anchorOrigin={{
+            vertical: 'bottom',
+            horizontal: 'left',
+          }}
+          PaperProps={{
+            sx: {
+              background: '#ffffff',
+              border: `1px solid ${alpha(lightTheme.accentColor, 0.3)}`,
+              borderRadius: '8px',
+              padding: '16px',
+              minWidth: '300px',
+              boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
+            },
+          }}
+        >
+          <Box sx={{ color: lightTheme.textPrimary }}>
+            <Typography variant="subtitle1" fontWeight="600" gutterBottom sx={{ color: lightTheme.accentColor }}>
+              Filter {dateFilterPopover.cardType?.replace(/([A-Z])/g, ' $1')} by Date
+            </Typography>
+
+            <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                <DatePicker
+                  label="Start Date"
+                  value={
+                    dateFilterPopover.tempStartDate
+                      ? new Date(dateFilterPopover.tempStartDate)
+                      : dateFilterPopover.currentFilter?.startDate
+                      ? new Date(dateFilterPopover.currentFilter.startDate)
+                      : null
+                  }
+                  onChange={(newValue) => handleDateFilterChange('startDate', newValue)}
+                  format="dd/MM/yyyy"
+                  slotProps={{
+                    textField: {
+                      size: 'small',
+                      fullWidth: true,
+                      sx: filterInputSx,
+                    },
+                  }}
+                />
+
+                <DatePicker
+                  label="End Date"
+                  value={
+                    dateFilterPopover.tempEndDate
+                      ? new Date(dateFilterPopover.tempEndDate)
+                      : dateFilterPopover.currentFilter?.endDate
+                      ? new Date(dateFilterPopover.currentFilter.endDate)
+                      : null
+                  }
+                  onChange={(newValue) => handleDateFilterChange('endDate', newValue)}
+                  format="dd/MM/yyyy"
+                  slotProps={{
+                    textField: {
+                      size: 'small',
+                      fullWidth: true,
+                      sx: filterInputSx,
+                    },
+                  }}
+                />
+              </Box>
+            </LocalizationProvider>
+
+            <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+              <Button
+                size="small"
+                onClick={handleClearDateFilter}
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  borderColor: lightTheme.accentColor,
+                  color: lightTheme.accentColor,
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  '&:hover': {
+                    backgroundColor: alpha(lightTheme.accentColor, 0.1),
+                    borderColor: lightTheme.accentColor,
+                  },
+                }}
+              >
+                Clear Filter
+              </Button>
+              <Button
+                size="small"
+                onClick={handleApplyDateFilter}
+                variant="contained"
+                sx={{
+                  flex: 1,
+                  backgroundColor: lightTheme.accentColor,
+                  color: '#ffffff',
+                  fontWeight: 600,
+                  borderRadius: '8px',
+                  textTransform: 'none',
+                  '&:hover': { backgroundColor: '#b8941f' },
+                }}
+              >
+                Apply
+              </Button>
+            </Box>
+          </Box>
+        </Popover>
       </Box>
     </LocalizationProvider>
   );

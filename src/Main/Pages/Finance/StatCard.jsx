@@ -1,5 +1,7 @@
-import { CardContent, Typography, Box, Card } from '@mui/material';
+import { DateRange, FilterList } from '@mui/icons-material';
+import { CardContent, Typography, Box, Card, IconButton } from '@mui/material';
 import { alpha, styled } from '@mui/system';
+
 const ElegantCard = styled(Card)(({ theme }) => ({
   background: '#ffffff',
   borderRadius: 12,
@@ -12,6 +14,7 @@ const ElegantCard = styled(Card)(({ theme }) => ({
     boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
   },
 }));
+
 const lightTheme = {
   background: '#f8f9fa',
   accentColor: '#d4af37',
@@ -43,29 +46,47 @@ const filterInputSx = {
     color: lightTheme.accentColor,
   },
 };
-const StatCard = ({ title, value, subtitle, icon: Icon, isCurrency = false }) => {
+
+const StatCard = ({ title, value, subtitle, icon: Icon, isCurrency = false, dateFilter }) => {
   return (
     <ElegantCard>
       <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
         <Box display="flex" alignItems="center" justifyContent="space-between" mb={2}>
-          <Typography
-            variant="body2"
-            sx={{
-              color: lightTheme.textSecondary,
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: 0.5,
-              fontSize: { xs: '0.7rem', sm: '0.75rem' },
-            }}
-          >
-            {title}
-          </Typography>
-          <Icon
-            sx={{
-              color: lightTheme.accentColor,
-              fontSize: { xs: 24, sm: 28 },
-            }}
-          />
+          <Box display="flex" alignItems="center" gap={1}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: lightTheme.textSecondary,
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: 0.5,
+                fontSize: { xs: '0.7rem', sm: '0.75rem' },
+              }}
+            >
+              {title}
+            </Typography>
+          </Box>
+
+          <Box display="flex" alignItems="center" gap={1}>
+            {dateFilter && (
+              <IconButton
+                size="small"
+                onClick={dateFilter.onOpen}
+                sx={{
+                  color: dateFilter.hasFilter ? lightTheme.accentColor : lightTheme.textSecondary,
+                  '&:hover': { backgroundColor: alpha(lightTheme.accentColor, 0.1) },
+                }}
+              >
+                <FilterList sx={{ fontSize: 16 }} />
+              </IconButton>
+            )}
+            <Icon
+              sx={{
+                color: lightTheme.accentColor,
+                fontSize: { xs: 24, sm: 28 },
+              }}
+            />
+          </Box>
         </Box>
 
         <Typography
