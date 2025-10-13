@@ -15,6 +15,7 @@ import logo from "../../../Pages/Images/logo.png";
 import AWSSideLogo from "../../../Pages/Component/assets/AWSSideLogo.png";
 import AWSSideLogo1 from "../../../Pages/Component/assets/AWSSideLogo2.png";
 import Stamp from "../../../Pages/Component/assets/Stamp.png";
+import AWSlegalServices from '../../../Pages/Component/assets/AWSlegalServices.jpg';
 import { height } from "@mui/system";
 
 const LFQ_ClientCaseEvaluationForm = ({ token }) => {
@@ -91,6 +92,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     // Add state for confirmation modal
     const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [AWSPDFdownload, setAWSPDFdownload] = useState(false);
 
 
 
@@ -98,6 +100,34 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [reason, setReason] = useState("");
     const [changes, setChanges] = useState("");
 
+    const [showdownloadModal, setShowdownloadModal] = useState(false);
+
+    const handleDownload = async () => {
+        downloadCasePdf(LFQData, true);
+
+        setShowdownloadModal(false);
+    };
+    const handleShudDownloadPdf = async () => {
+        downloadCasePdf(LFQData, false);
+        setShowdownloadModal(false);
+    };
+
+    const buttonStyle = {
+        backgroundColor: "#16213e",
+        color: "white",
+        width: "150px",
+        minWidth: "100px",
+        maxWidth: "200px",
+        padding: "8px 20px",
+        borderRadius: "4px",
+        fontSize: "14px",
+        cursor: "pointer",
+        textAlign: "center",
+        border: "2px solid #16213e",
+        boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+        transition: "all 0.3s ease",
+        fontWeight: "500",
+    };
     const handleRejectClick = () => {
         setShowModal(true);
     };
@@ -1038,11 +1068,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     pdfMake.vfs = pdfFonts.pdfMake?.vfs;
 
-    const downloadCasePdf = async (data) => {
+    const downloadCasePdf = async (data, AWSPDF) => {
 
-        
+
         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
         const AWSSideLogoBase64 = logo ? await getBase64ImageFromUrl(AWSSideLogo) : null;
+        const ShudAWSSideLogoBase64 = logo ? await getBase64ImageFromUrl(AWSlegalServices) : null;
         const AWSSideLogo1Base64 = logo ? await getBase64ImageFromUrl(AWSSideLogo1) : null;
 
         const preparedBySignBase64 = data?.preparedBySignpath
@@ -1138,12 +1169,12 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
             // HEADER (with side-strip logo added)
             header: (currentPage, pageCount, pageSize) => {
-            
+
                 const headerBandTop = 0;
                 const startY = headerBandTop + 0;
                 const stepY = AWS_SIDE_FONT + 8;
                 const headerAWS = [];
-                
+
                 const STRIP_LOGO_SIZE = 45;                            // adjust if needed
                 const stripLogoX = Math.round((sidebarWidth - STRIP_LOGO_SIZE) / 2);
                 const stripLogoY = 10;                                 // distance from page top
@@ -1159,32 +1190,53 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                 return {
                     margin: [sidebarWidth + 20, 15, 20, 0],
                     stack: [
-                       
+
                         stripLogo,
                         ...headerAWS,
-
-                      
-                        {
-                            columns: [
-                                logoBase64
-                                    ? { image: logoBase64, width: 70, height: 70, margin: [0, 0, 10, 0] }
-                                    : { text: "" },
-                                {
-                                    stack: [
-                                        { text: "LEGAL", fontSize: 22, bold: true, color: "#576583", margin: [0, 6, 0, 0], lineHeight: 1.1 },
-                                        { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#576583", margin: [0, 2, 0, 0], lineHeight: 1.1 },
-                                        {
-                                            text: "ADVOCATES & LEGAL CONSULTANTS",
-                                            fontSize: 9,
-                                            color: "#8a96b2",
-                                            margin: [0, 2, 0, 0],
-                                            characterSpacing: 1,
-                                            lineHeight: 1.15
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
+                        AWSPDF ?
+                            {
+                                columns: [
+                                    logoBase64
+                                        ? { image: logoBase64, width: 70, height: 70, margin: [0, 0, 10, 0] }
+                                        : { text: "" },
+                                    {
+                                        stack: [
+                                            { text: "LEGAL", fontSize: 22, bold: true, color: "#576583", margin: [0, 6, 0, 0], lineHeight: 1.1 },
+                                            { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#576583", margin: [0, 2, 0, 0], lineHeight: 1.1 },
+                                            {
+                                                text: "ADVOCATES & LEGAL CONSULTANTS",
+                                                fontSize: 9,
+                                                color: "#8a96b2",
+                                                margin: [0, 2, 0, 0],
+                                                characterSpacing: 1,
+                                                lineHeight: 1.15
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                            :
+                            {
+                                columns: [
+                                    logoBase64
+                                        ? { image: ShudAWSSideLogoBase64, width: 300, height: 70, margin: [0, 0, 10, 0] }
+                                        : { text: "" },
+                                    // {
+                                    //     stack: [
+                                    //         { text: "LEGAL", fontSize: 22, bold: true, color: "#576583", margin: [0, 6, 0, 0], lineHeight: 1.1 },
+                                    //         { text: "SUHAD ALJUBOORI", fontSize: 12, bold: true, color: "#576583", margin: [0, 2, 0, 0], lineHeight: 1.1 },
+                                    //         {
+                                    //             text: "ADVOCATES & LEGAL CONSULTANTS",
+                                    //             fontSize: 9,
+                                    //             color: "#8a96b2",
+                                    //             margin: [0, 2, 0, 0],
+                                    //             characterSpacing: 1,
+                                    //             lineHeight: 1.15
+                                    //         }
+                                    //     ]
+                                    // }
+                                ]
+                            }
                     ]
                 };
             },
@@ -1192,11 +1244,16 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
 
             // FOOTER + put "AWS" on the left strip (BOTTOM AREA ONLY, 4 times)
+
             footer: (currentPage, pageCount, pageSize) => {
                 const footerHeight = 70;
 
                 const footerText =
-                    "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com";
+
+                    AWSPDF ? "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com"
+                        :
+                        "Dubai: 1 Sheikh Zayed Road, The H Dubai, Floor 1602\n (04) 5547635 ,  +971 527652221\ninfo@awsadvocates.com\nwww.awslaw.ae";
+
 
                 return {
                     margin: [0, -10, 0, 0],
@@ -1241,6 +1298,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                     ]
                 };
             },
+
 
 
 
@@ -1485,27 +1543,41 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             </button>
                         }
                         <button
-                            onClick={() => downloadCasePdf(LFQData)}
-                            className="d-flex align-items-center"
-                            style={{
-                                backgroundColor: "#16213e",
-                                color: "white",
-                                width: "150px",
-                                minWidth: "100px",
-                                maxWidth: "200px",
-                                padding: "8px 20px",
-                                borderRadius: "4px",
-                                fontSize: "14px",
-                                cursor: "pointer",
-                                textAlign: "center",
-                                border: "2px solid #16213e",
-                                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                                transition: "all 0.3s ease",
-                                fontWeight: "500",
-                            }}
+                            onClick={() => setShowdownloadModal(true)}
+                            className="d-flex align-items-center justify-content-center"
+                            style={buttonStyle}
                         >
                             Download LFQ PDF
                         </button>
+
+                        {/* Modal */}
+                        <Modal
+                            show={showdownloadModal}
+                            onHide={() => setShowdownloadModal(false)}
+                            centered
+                            backdrop="static"
+                        >
+                            <Modal.Body className="text-center" style={{ padding: "30px" }}>
+                                <h5 style={{ color: "#16213e", marginBottom: "20px" }}>
+                                    which you want to download the LFQ PDF?
+                                </h5>
+
+                                <div className="d-flex justify-content-center gap-3">
+                                    <button
+                                        onClick={handleDownload}
+                                        style={buttonStyle}
+                                    >
+                                        AWS Legal Suhad Aljuboori
+                                    </button>
+                                    <button
+                                        onClick={handleShudDownloadPdf}
+                                        style={buttonStyle}
+                                    >
+                                        AWS Legal Consultancy
+                                    </button>
+                                </div>
+                            </Modal.Body>
+                        </Modal>
                     </div>
 
                     <div className={showLinkGenerator ? "container py-4" : "card mb-2 p-4"}>

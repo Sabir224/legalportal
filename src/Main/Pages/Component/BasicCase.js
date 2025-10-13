@@ -1213,6 +1213,35 @@ const BasicCase = ({ token }) => {
 
 
   // Allowed transitions
+
+
+
+  const handleNoteBlur = async (id, value) => {
+    try {
+      // optional: skip if value is unchanged or empty
+      if (value.trim() === "") return;
+
+      console.log("value= ", value)
+      const res = await fetch(`${ApiEndPoint}updatePurpose/${id}/notes`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notes: value }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        console.log("Notes updated:", data);
+      } else {
+        console.error("Error:", data.message);
+      }
+    } catch (err) {
+      console.error("Server error:", err);
+    }
+  };
+
+
+
   const allowedTransitions = [
     "Consultation->Non-Litigation",
     "Consultation->Litigation",
@@ -1749,7 +1778,7 @@ const BasicCase = ({ token }) => {
                         {/* CASE TYPE */}
                         <div className="d-flex flex-wrap">
                           <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Type:
+                            Type of Service:
                           </span>
                           <span className="fw-medium">{item?.headerCase?.CaseType}</span>
                         </div>
@@ -1757,7 +1786,7 @@ const BasicCase = ({ token }) => {
                         {/* CASE SUB TYPE */}
                         <div className="d-flex flex-wrap">
                           <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Sub Type:
+                            Service Type:
                           </span>
                           <span className="fw-medium">{item?.headerCase?.CaseSubType}</span>
                         </div>
@@ -1782,9 +1811,10 @@ const BasicCase = ({ token }) => {
                           <div className="text-muted mb-1">Purpose:</div>
                           <input
                             className="form-control form-control-sm"
-                            value={item.notes || ""}
-                            onChange={(e) => handleEdit(index, e.target.value)}
+                            value={item?.headerCase.notes || item?.notes}
+                            onChange={(e) => handleEdit(item?.headerCase, e.target.value)}
                             onClick={(e) => e.stopPropagation()}
+                            onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
                           />
                         </div>
                       </div>
@@ -1966,6 +1996,7 @@ const BasicCase = ({ token }) => {
                                   type="text"
                                   value={sub.notes || ""}
                                   onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
+                                  onBlur={(e) => handleNoteBlur(sub?._id, e.target.value)}
                                   onClick={(e) => e.stopPropagation()}
                                 />
                               </div>
@@ -2085,8 +2116,9 @@ const BasicCase = ({ token }) => {
                           <input
                             className="form-control"
                             type="text"
-                            value={item.notes || ""}
+                            value={item?.headerCase?.notes || item?.notes}
                             onChange={(e) => handleEdit(index, e.target.value)}
+                            onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
                             onClick={(e) => e.stopPropagation()}
                           />
                         </div>
@@ -2260,6 +2292,7 @@ const BasicCase = ({ token }) => {
                                 type="text"
                                 value={sub.notes || ""}
                                 onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
+                                onBlur={(e) => handleNoteBlur(sub._id, e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
@@ -2361,7 +2394,7 @@ const BasicCase = ({ token }) => {
             ]}
 
           </div>
-          {totalPages > 1 && (
+          {(totalPages > 1 && !searchQuery) && (
             <div className="p-3">
               <div
                 className="d-flex justify-content-center align-items-center"
