@@ -1235,174 +1235,115 @@ export default function PaymentDashboard() {
             </Typography>
           </Box>
           <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations Last Month"
-                value={consultationsLastMonth}
-                subtitle={`$${revenueLastMonth.toLocaleString()} revenue`}
-                icon={History}
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter(
-                      'consultationsLastMonth',
-                      consultationsLastMonthFilter,
-                      setConsultationsLastMonthFilter,
-                      e
-                    ),
-                  hasFilter: consultationsLastMonthFilter.startDate || consultationsLastMonthFilter.endDate,
-                }}
-              />
+            {/* First Column - 3 cards */}
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={{ xs: 2, sm: 3 }}>
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Consultations Last Month"
+                    value={consultationsLastMonth}
+                    subtitle={`$${revenueLastMonth.toLocaleString()} revenue`}
+                    icon={History}
+                    dateFilter={{
+                      onOpen: (e) =>
+                        handleOpenDateFilter(
+                          'consultationsLastMonth',
+                          consultationsLastMonthFilter,
+                          setConsultationsLastMonthFilter,
+                          e
+                        ),
+                      hasFilter: consultationsLastMonthFilter.startDate || consultationsLastMonthFilter.endDate,
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Consultations This Month"
+                    value={consultationsThisMonth}
+                    subtitle={`$${revenueThisMonth.toLocaleString()} revenue`}
+                    icon={DateRange}
+                    dateFilter={{
+                      onOpen: (e) =>
+                        handleOpenDateFilter(
+                          'consultationsThisMonth',
+                          consultationsThisMonthFilter,
+                          setConsultationsThisMonthFilter,
+                          e
+                        ),
+                      hasFilter: consultationsThisMonthFilter.startDate || consultationsThisMonthFilter.endDate,
+                    }}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Consultations Today"
+                    value={consultationsToday}
+                    subtitle={`$${revenueToday.toLocaleString()} revenue`}
+                    icon={EventAvailable}
+                    dateFilter={{
+                      onOpen: (e) =>
+                        handleOpenDateFilter(
+                          'consultationsToday',
+                          consultationsTodayFilter,
+                          setConsultationsTodayFilter,
+                          e
+                        ),
+                      hasFilter: consultationsTodayFilter.startDate || consultationsTodayFilter.endDate,
+                    }}
+                  />
+                </Grid>
+              </Grid>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations This Month"
-                value={consultationsThisMonth}
-                subtitle={`$${revenueThisMonth.toLocaleString()} revenue`}
-                icon={DateRange}
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter(
-                      'consultationsThisMonth',
-                      consultationsThisMonthFilter,
-                      setConsultationsThisMonthFilter,
-                      e
-                    ),
-                  hasFilter: consultationsThisMonthFilter.startDate || consultationsThisMonthFilter.endDate,
-                }}
-              />
-            </Grid>
+            {/* Second Column - 3 cards */}
+            <Grid item xs={12} md={6}>
+              <Grid container spacing={{ xs: 2, sm: 3 }}>
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Revenue Last Month"
+                    value={revenueLastMonth}
+                    subtitle={`${consultationsLastMonth} consultations`}
+                    icon={ArrowBack}
+                    isCurrency
+                    dateFilter={{
+                      onOpen: (e) =>
+                        handleOpenDateFilter('revenueLastMonth', revenueLastMonthFilter, setRevenueLastMonthFilter, e),
+                      hasFilter: revenueLastMonthFilter.startDate || revenueLastMonthFilter.endDate,
+                    }}
+                  />
+                </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Consultations Today"
-                value={consultationsToday}
-                subtitle={`$${revenueToday.toLocaleString()} revenue`}
-                icon={EventAvailable}
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter(
-                      'consultationsToday',
-                      consultationsTodayFilter,
-                      setConsultationsTodayFilter,
-                      e
-                    ),
-                  hasFilter: consultationsTodayFilter.startDate || consultationsTodayFilter.endDate,
-                }}
-              />
-            </Grid>
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Revenue This Month"
+                    value={revenueThisMonth}
+                    subtitle={`${consultationsThisMonth} consultations`}
+                    icon={CalendarMonth}
+                    isCurrency
+                    dateFilter={{
+                      onOpen: (e) =>
+                        handleOpenDateFilter('revenueThisMonth', revenueThisMonthFilter, setRevenueThisMonthFilter, e),
+                      hasFilter: revenueThisMonthFilter.startDate || revenueThisMonthFilter.endDate,
+                    }}
+                  />
+                </Grid>
 
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Revenue Last Month"
-                value={revenueLastMonth}
-                subtitle={`${consultationsLastMonth} consultations`}
-                icon={ArrowBack}
-                isCurrency
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter('revenueLastMonth', revenueLastMonthFilter, setRevenueLastMonthFilter, e),
-                  hasFilter: revenueLastMonthFilter.startDate || revenueLastMonthFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Revenue This Month"
-                value={revenueThisMonth}
-                subtitle={`${consultationsThisMonth} consultations`}
-                icon={CalendarMonth}
-                isCurrency
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter('revenueThisMonth', revenueThisMonthFilter, setRevenueThisMonthFilter, e),
-                  hasFilter: revenueThisMonthFilter.startDate || revenueThisMonthFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={2}>
-              <StatCard
-                title="Revenue Today"
-                value={revenueToday}
-                subtitle={`${consultationsToday} consultations`}
-                icon={Today}
-                isCurrency
-                dateFilter={{
-                  onOpen: (e) => handleOpenDateFilter('revenueToday', revenueTodayFilter, setRevenueTodayFilter, e),
-                  hasFilter: revenueTodayFilter.startDate || revenueTodayFilter.endDate,
-                }}
-              />
-            </Grid>
-          </Grid>
-          <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 }, flex: '0 0 auto' }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Total Appointments"
-                value={totalClients}
-                subtitle="Active appointments"
-                icon={People}
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter('totalAppointments', totalAppointmentsFilter, setTotalAppointmentsFilter, e),
-                  hasFilter: totalAppointmentsFilter.startDate || totalAppointmentsFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Paid Payments"
-                value={paidPayments}
-                subtitle="Completed transactions"
-                icon={AttachMoney}
-                dateFilter={{
-                  onOpen: (e) => handleOpenDateFilter('paidPayments', paidPaymentsFilter, setPaidPaymentsFilter, e),
-                  hasFilter: paidPaymentsFilter.startDate || paidPaymentsFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Pending Payments"
-                value={pendingPayments}
-                subtitle="Awaiting payment"
-                icon={CalendarToday}
-                dateFilter={{
-                  onOpen: (e) =>
-                    handleOpenDateFilter('pendingPayments', pendingPaymentsFilter, setPendingPaymentsFilter, e),
-                  hasFilter: pendingPaymentsFilter.startDate || pendingPaymentsFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="Total Revenue"
-                value={totalRevenue}
-                subtitle="From paid consultations"
-                icon={Description}
-                isCurrency
-                dateFilter={{
-                  onOpen: (e) => handleOpenDateFilter('totalRevenue', totalRevenueFilter, setTotalRevenueFilter, e),
-                  hasFilter: totalRevenueFilter.startDate || totalRevenueFilter.endDate,
-                }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={3}>
-              <StatCard
-                title="No Booked"
-                value={noBookedPayments}
-                subtitle="Appointments not booked"
-                icon={EventBusy}
-                dateFilter={{
-                  onOpen: (e) => handleOpenDateFilter('noBooked', noBookedFilter, setNoBookedFilter, e),
-                  hasFilter: noBookedFilter.startDate || noBookedFilter.endDate,
-                }}
-              />
+                <Grid item xs={12} sm={6} md={12}>
+                  <StatCard
+                    title="Revenue Today"
+                    value={revenueToday}
+                    subtitle={`${consultationsToday} consultations`}
+                    icon={Today}
+                    isCurrency
+                    dateFilter={{
+                      onOpen: (e) => handleOpenDateFilter('revenueToday', revenueTodayFilter, setRevenueTodayFilter, e),
+                      hasFilter: revenueTodayFilter.startDate || revenueTodayFilter.endDate,
+                    }}
+                  />
+                </Grid>
+              </Grid>
             </Grid>
           </Grid>
 

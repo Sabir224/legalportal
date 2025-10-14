@@ -2425,36 +2425,6 @@ function LegalConsultationStepper() {
                     )}
                   </Box>
                 ))}
-                <Box sx={{ mt: 3 }}>
-                  <TextField
-                    label="Preview Description"
-                    value={caseDiscription}
-                    onChange={(e) => setDiscription(e.target.value)}
-                    required
-                    multiline
-                    minRows={2}
-                    maxRows={6}
-                    inputProps={{ maxLength: 1024 }}
-                    error={!!errors.caseDescription}
-                    helperText={errors.caseDescription || ''}
-                    InputProps={{
-                      readOnly: true,
-                      style: { color: 'white', backgroundColor: '#18273e' },
-                    }}
-                    InputLabelProps={{
-                      sx: { color: '#d4af37 !important' },
-                    }}
-                    sx={{
-                      width: '100%',
-                      '& .MuiOutlinedInput-root': {
-                        backgroundColor: '#18273e !important',
-                        '& fieldset': { borderColor: 'rgba(255, 255, 255, 0.23)' },
-                        '&:hover fieldset': { borderColor: '#d4af37' },
-                        '&.Mui-focused fieldset': { borderColor: '#d4af37' },
-                      },
-                    }}
-                  />
-                </Box>
               </Box>
             )}
           </Box>
