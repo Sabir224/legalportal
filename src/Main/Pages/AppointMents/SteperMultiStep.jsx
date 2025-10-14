@@ -1271,13 +1271,17 @@ function LegalConsultationStepper() {
           normalizedPaymentMethod = 'PayInOffice';
         }
       }
-
+      const baseAmount = Number(selectedLawyer?.price) || 200;
+      const amountDetails = calculateTotalAmount(baseAmount, method, paymentMethod);
       // 🔹 Prepare payment data
       const paymentData = {
         name: paymentForm?.name || confirmationData?.name || data?.payment?.name,
         phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone,
         email: paymentForm?.email || data?.payment?.email,
-        amount: Number(selectedLawyer?.price) || 200,
+        amount: amountDetails.total, // Use total amount including fees
+        baseAmount: amountDetails.baseAmount,
+        taxAmount: amountDetails.tax,
+        stripeFee: amountDetails.stripeFee,
         cardHolder: UserInfo.name,
         cardHolderPhone: UserInfo.phone,
         cardHolderEmail: UserInfo.email,
@@ -1312,43 +1316,6 @@ function LegalConsultationStepper() {
           },
           caseDescription: caseDiscription,
         });
-
-        // 🧾 Generate Zoho Invoice
-        // try {
-        //   const appointmentPayload = {
-        //     lawyer: selectedLawyer,
-        //     service,
-        //     method,
-        //     date: selectedDate,
-        //     slot: selectedSlot,
-        //     clientMessage,
-        //     caseDescription: caseDiscription,
-        //     payment: {
-        //       _id: paymentId,
-        //       name: paymentForm?.name || confirmationData?.name,
-        //       phone: paymentForm?.phone || confirmationData?.phone,
-        //       email: paymentForm?.email || confirmationData?.email || '',
-        //       amount: Number(selectedLawyer?.price) || 200,
-        //       status: 'paid',
-        //       serviceType: service,
-        //       consultationType: method,
-        //       paymentMethod,
-        //       appointmentLink: window.location.href,
-        //       createdAt: new Date(),
-        //     },
-        //   };
-
-        //   console.log('🧾 Generating Zoho invoice...');
-        //   const invoiceResponse = await axios.post(`${ApiEndPoint}createZohoInvoice`, appointmentPayload);
-        //   await fetch(`${ApiEndPoint}payments/${paymentId}`, {
-        //     method: 'PUT',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ hasInvoice: true }),
-        //   });
-        //   console.log('✅ Zoho invoice created:', invoiceResponse.data);
-        // } catch (invoiceErr) {
-        //   console.error('❌ Failed to generate Zoho invoice:', invoiceErr.response?.data || invoiceErr.message);
-        // }
 
         setActiveStep(6);
       };
@@ -1471,10 +1438,22 @@ function LegalConsultationStepper() {
 
     // Send confirmation emails
     await sendConfirmationEmails(paymentResponse.paymentId);
-
+    let normalizedPaymentMethod = paymentMethod;
+    if (method === 'Online') {
+      normalizedPaymentMethod = 'Card';
+    } else if (method === 'InPerson') {
+      if (paymentMethod === 'PayOnline') {
+        normalizedPaymentMethod = 'Card';
+      } else {
+        normalizedPaymentMethod = 'PayInOffice';
+      }
+    }
     // 🧾 Generate Zoho Invoice
     if (!data?.payment && !data?.lawyer) {
       try {
+        // 🔹 Calculate amounts with tax and fees
+        const baseAmount = Number(selectedLawyer?.price) || 200;
+        const amountDetails = calculateTotalAmount(baseAmount, method, paymentMethod);
         const appointmentPayload = {
           lawyer: selectedLawyer,
           service,
@@ -1488,7 +1467,13 @@ function LegalConsultationStepper() {
             name: paymentForm?.name || confirmationData?.name,
             phone: paymentForm?.phone || confirmationData?.phone,
             email: paymentForm?.email || confirmationData?.email || '',
-            amount: Number(selectedLawyer?.price) || 200,
+            amount: amountDetails.total,
+            baseAmount: amountDetails.baseAmount,
+            taxAmount: amountDetails.tax,
+            stripeFee: amountDetails.stripeFee,
+            cardHolder: UserInfo.name,
+            cardHolderPhone: UserInfo.phone,
+            cardHolderEmail: UserInfo.email,
             status: 'pending',
             serviceType: service,
             consultationType: method,
@@ -1608,9 +1593,21 @@ function LegalConsultationStepper() {
       // Send confirmation emails
       await sendConfirmationEmails(paymentId);
     }
+    let normalizedPaymentMethod = paymentMethod;
+    if (method === 'Online') {
+      normalizedPaymentMethod = 'Card';
+    } else if (method === 'InPerson') {
+      if (paymentMethod === 'PayOnline') {
+        normalizedPaymentMethod = 'Card';
+      } else {
+        normalizedPaymentMethod = 'PayInOffice';
+      }
+    }
     // 🧾 Generate Zoho Invoice only for new bookings (no existing payment/lawyer)
     if (!data?.payment && !data?.lawyer) {
       try {
+        const baseAmount = Number(selectedLawyer?.price) || 200;
+        const amountDetails = calculateTotalAmount(baseAmount, method, paymentMethod);
         const appointmentPayload = {
           lawyer: selectedLawyer,
           service,
@@ -1624,7 +1621,13 @@ function LegalConsultationStepper() {
             name: paymentForm?.name || confirmationData?.name,
             phone: paymentForm?.phone || confirmationData?.phone,
             email: paymentForm?.email || confirmationData?.email || '',
-            amount: Number(selectedLawyer?.price) || 200,
+            amount: amountDetails.total,
+            baseAmount: amountDetails.baseAmount,
+            taxAmount: amountDetails.tax,
+            stripeFee: amountDetails.stripeFee,
+            cardHolder: UserInfo.name,
+            cardHolderPhone: UserInfo.phone,
+            cardHolderEmail: UserInfo.email,
             status: 'paid',
             serviceType: service,
             consultationType: method,
@@ -1937,9 +1940,21 @@ function LegalConsultationStepper() {
       } catch (err) {
         console.error('Payment update error:', err.response?.data || err.message);
       }
+      let normalizedPaymentMethod = paymentMethod;
+      if (method === 'Online') {
+        normalizedPaymentMethod = 'Card';
+      } else if (method === 'InPerson') {
+        if (paymentMethod === 'PayOnline') {
+          normalizedPaymentMethod = 'Card';
+        } else {
+          normalizedPaymentMethod = 'PayInOffice';
+        }
+      }
       // Step 4: Generate Invoice
       if (!data?.payment && !data?.lawyer) {
         try {
+          const baseAmount = Number(selectedLawyer?.price) || 200;
+          const amountDetails = calculateTotalAmount(baseAmount, method, paymentMethod);
           const appointmentPayload = {
             lawyer: selectedLawyer,
             service,
@@ -1953,7 +1968,13 @@ function LegalConsultationStepper() {
               name: paymentForm?.name || confirmationData?.name || data?.payment?.name || name,
               phone: paymentForm?.phone || confirmationData?.phone || data?.payment?.phone || phone,
               email: paymentForm?.email || confirmationData?.email || data?.payment?.email || '',
-              amount: Number(selectedLawyer?.price) || 200,
+              amount: amountDetails.total,
+              baseAmount: amountDetails.baseAmount,
+              taxAmount: amountDetails.tax,
+              stripeFee: amountDetails.stripeFee,
+              cardHolder: UserInfo.name,
+              cardHolderPhone: UserInfo.phone,
+              cardHolderEmail: UserInfo.email,
               status: paymentStatus || data?.payment?.status,
               serviceType: service,
               consultationType: method,
@@ -2057,8 +2078,40 @@ function LegalConsultationStepper() {
     setSelectedSlot(slot);
     setSelectedTime(slot.startTime);
   };
+  // Tax and fee calculation utilities
+  const calculateTax = (amount, taxRate = 5) => {
+    return (amount * taxRate) / 100;
+  };
+
+  const calculateStripeFee = (amount, stripeRate = 5) => {
+    return (amount * stripeRate) / 100;
+  };
+
+  const calculateTotalAmount = (baseAmount, method, paymentMethod, taxRate = 5, stripeRate = 5) => {
+    const tax = calculateTax(baseAmount, taxRate);
+
+    if (method === 'Online' || paymentMethod === 'PayOnline') {
+      const stripeFee = calculateStripeFee(baseAmount, stripeRate);
+      return {
+        baseAmount,
+        tax,
+        stripeFee,
+        total: baseAmount + tax + stripeFee,
+      };
+    } else {
+      return {
+        baseAmount,
+        tax,
+        stripeFee: 0,
+        total: baseAmount + tax,
+      };
+    }
+  };
 
   const renderStepContent = (step) => {
+    // Calculate amounts for display
+    const baseAmount = Number(selectedLawyer?.price) || 200;
+    const amountDetails = calculateTotalAmount(baseAmount, method, paymentMethod);
     switch (step) {
       case 0: // Service Type
         return (
@@ -3056,18 +3109,51 @@ function LegalConsultationStepper() {
                   />
                 </Grid>
 
+                {/* Amount Breakdown */}
                 <Grid item xs={12}>
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Consultation Fee:
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'white' }}>
+                        AED {amountDetails.baseAmount}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                        Tax (5%):
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: 'white' }}>
+                        AED {amountDetails.tax}
+                      </Typography>
+                    </Box>
+
+                    {(method === 'Online' || paymentMethod === 'PayOnline') && (
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography variant="body2" sx={{ color: 'rgba(255, 255, 255, 0.7)' }}>
+                          Processing Fee (5%):
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'white' }}>
+                          AED {amountDetails.stripeFee}
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+
                   <Box
                     sx={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      backgroundColor: 'transparent',
+                      backgroundColor: 'rgba(212, 175, 55, 0.1)',
                       p: 2,
                       borderRadius: '8px',
+                      border: '1px solid rgba(212, 175, 55, 0.3)',
                     }}
                   >
-                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)' }}>
+                    <Typography variant="subtitle1" sx={{ color: 'rgba(255, 255, 255, 0.9)', fontWeight: 'bold' }}>
                       Total Amount:
                     </Typography>
                     <Typography
@@ -3075,10 +3161,18 @@ function LegalConsultationStepper() {
                       sx={{
                         color: '#d4af37',
                         fontWeight: 'bold',
-                        marginLeft: '10px',
                       }}
                     >
-                      {'  '}AED {selectedLawyer?.price || data?.payment?.amount || 200}
+                      AED {amountDetails.total}
+                    </Typography>
+                  </Box>
+
+                  {/* Fee Explanation */}
+                  <Box sx={{ mt: 2, p: 1.5, backgroundColor: 'rgba(255, 255, 255, 0.05)', borderRadius: '6px' }}>
+                    <Typography variant="caption" sx={{ color: 'rgba(255, 255, 255, 0.6)', fontStyle: 'italic' }}>
+                      {method === 'InPerson' && paymentMethod === 'PayInOffice'
+                        ? '5% tax included. Pay the total amount at the office.'
+                        : 'Includes 5% tax and 5% online processing fee.'}
                     </Typography>
                   </Box>
                 </Grid>
@@ -3223,8 +3317,8 @@ function LegalConsultationStepper() {
             {/* Payment Section */}
             {method === 'InPerson' && paymentMethod === 'PayInOffice' ? (
               <Box sx={{ textAlign: 'center' }}>
-                <Typography variant="body1" sx={{ mb: 3 }}>
-                  You'll pay AED {selectedLawyer?.price || 200} at the office on your appointment date
+                <Typography variant="body1" sx={{ mb: 3, color: 'white' }}>
+                  You'll pay AED {amountDetails.total} at the office on your appointment date
                 </Typography>
                 <Button
                   variant="contained"
@@ -3362,7 +3456,7 @@ function LegalConsultationStepper() {
                         Processing...
                       </>
                     ) : (
-                      `Pay ${selectedLawyer?.price || 200} AED Now`
+                      `Pay ${amountDetails.total} AED Now`
                     )}
                   </Button>
                 </Box>
@@ -3452,7 +3546,7 @@ function LegalConsultationStepper() {
                     Fee
                   </Typography>
                   <Typography fontWeight="medium" sx={{ color: 'white' }}>
-                    AED {selectedLawyer?.price || data?.payment?.amount || 'AED 200'}
+                    AED {amountDetails.total || selectedLawyer?.price || data?.payment?.amount || 'AED 200'}
                   </Typography>
                 </Box>
                 <Box>
