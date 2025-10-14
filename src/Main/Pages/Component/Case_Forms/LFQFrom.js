@@ -103,9 +103,8 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
     const [showdownloadModal, setShowdownloadModal] = useState(false);
 
     const handleDownload = async () => {
-        downloadCasePdf(LFQData, true);
+        downloadCasePdf(LFQData);
 
-        setShowdownloadModal(false);
     };
     const handleShudDownloadPdf = async () => {
         downloadCasePdf(LFQData, false);
@@ -1068,7 +1067,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
     pdfMake.vfs = pdfFonts.pdfMake?.vfs;
 
-    const downloadCasePdf = async (data, AWSPDF) => {
+    const downloadCasePdf = async (data) => {
 
 
         const logoBase64 = logo ? await getBase64ImageFromUrl(logo) : null;
@@ -1193,7 +1192,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
                         stripLogo,
                         ...headerAWS,
-                        AWSPDF ?
+                        !AWSPDFdownload ?
                             {
                                 columns: [
                                     logoBase64
@@ -1250,7 +1249,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
 
                 const footerText =
 
-                    AWSPDF ? "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com"
+                    !AWSPDFdownload ? "P/O Box 96070\nDubai: 1602, The H Dubai, One Sheikh Zayed Road\nTel: +971 (04) 332 5928, web: aws-legalgroup.com,\n email: info@awsadvocates.com"
                         :
                         "Dubai: 1 Sheikh Zayed Road, The H Dubai, Floor 1602\n (04) 5547635 ,  +971 527652221\ninfo@awsadvocates.com\nwww.awslaw.ae";
 
@@ -1543,7 +1542,7 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                             </button>
                         }
                         <button
-                            onClick={() => setShowdownloadModal(true)}
+                            onClick={handleDownload}
                             className="d-flex align-items-center justify-content-center"
                             style={buttonStyle}
                         >
@@ -1578,6 +1577,32 @@ const LFQ_ClientCaseEvaluationForm = ({ token }) => {
                                 </div>
                             </Modal.Body>
                         </Modal>
+                    </div>
+
+                    <div className="card p-3 mb-4" data-html2canvas-ignore="true">
+                        <label className="form-label fw-bold fs-6">Select Letterhead Type</label>
+                        <div className="d-flex gap-3">
+                            <Form.Check
+                                type="radio"
+                                id="suhad-radio"
+                                label="Suhad Letterhead"
+                                name="letterheadType"
+                                checked={!AWSPDFdownload}
+                                onChange={() => setAWSPDFdownload(false)}
+                            />
+                            <Form.Check
+                                type="radio"
+                                id="aws-radio"
+                                label="AWS Letterhead"
+                                name="letterheadType"
+                                checked={AWSPDFdownload}
+                                onChange={() => setAWSPDFdownload(true)}
+                            />
+                        </div>
+
+                        <small className="text-muted">
+                            {!AWSPDFdownload === true ? 'Suhad Letterhead - Litigation Services' : 'AWS Letterhead - Legal Services'}
+                        </small>
                     </div>
 
                     <div className={showLinkGenerator ? "container py-4" : "card mb-2 p-4"}>

@@ -1605,6 +1605,13 @@ const BasicCase = ({ token }) => {
 
 
 
+              {/* service sub type */}
+              <span className=" text-start" style={{
+                maxWidth: '200px',
+                minWidth: '200px',
+                height: 33,
+                color: 'white'
+              }}>Service Sub Type</span>
               {/* LFA Heading */}
               <span className=" text-start" style={{
                 maxWidth: '200px',
@@ -1756,7 +1763,7 @@ const BasicCase = ({ token }) => {
                           <span className="text-muted me-2" style={{ minWidth: "100px" }}>
                             Client:
                           </span>
-                          <span className="fw-medium">{item?.headerCase?.ClientName}</span>
+                          <span className="fw-medium text-wrap">{item?.headerCase?.ClientName}</span>
                         </div>
 
                         {/* CASE NUMBER */}
@@ -1789,6 +1796,12 @@ const BasicCase = ({ token }) => {
                             Service Type:
                           </span>
                           <span className="fw-medium">{item?.headerCase?.CaseSubType}</span>
+                        </div>
+                        <div className="d-flex flex-wrap">
+                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                            Service Sub Type:
+                          </span>
+                          <span className="fw-medium"></span>
                         </div>
 
                         {/* LFA */}
@@ -1960,7 +1973,7 @@ const BasicCase = ({ token }) => {
                               {/* CASE TYPE */}
                               <div className="d-flex flex-wrap">
                                 <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Type:
+                                  Type of Service:
                                 </span>
                                 <span className="fw-medium">{sub?.CaseType}</span>
                               </div>
@@ -1968,9 +1981,16 @@ const BasicCase = ({ token }) => {
                               {/* CASE SUB TYPE */}
                               <div className="d-flex flex-wrap">
                                 <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Sub Type:
+                                  Service Type:
                                 </span>
                                 <span className="fw-medium">{sub?.CaseSubType}</span>
+                              </div>
+                              {/* CASE SUB TYPE */}
+                              <div className="d-flex flex-wrap">
+                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
+                                  Service Sub Type:
+                                </span>
+                                <span className="fw-medium"></span>
                               </div>
 
                               {/* LFA */}
@@ -2073,10 +2093,22 @@ const BasicCase = ({ token }) => {
                             borderRight: "1px solid #ccc",
                             boxShadow: "2px 0 4px rgba(0, 0, 0, 0.03)",
                             paddingLeft: "1rem",
+                            paddingRight: "1rem",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            overflowWrap: "break-word",
+                            cursor: "pointer", // 👈 makes it look clickable
+                          }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (item?.headerCase?._id) {
+                              toggleExpand(item?.headerCase?._id);
+                            }
                           }}
                         >
                           {item?.headerCase?.ClientName}
                         </span>
+
                         {/* CASE NUMBER */}
                         <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
                           {item?.headerCase?.CaseNumber}
@@ -2092,6 +2124,10 @@ const BasicCase = ({ token }) => {
                         {/* CASE SUB TYPE */}
                         <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
                           {item?.headerCase?.CaseSubType}
+                        </span>
+                        {/* service SUB TYPE */}
+                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                          
                         </span>
                         {/* LFA */}
                         <div

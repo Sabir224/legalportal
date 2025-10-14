@@ -639,7 +639,7 @@ const Case_details = ({ token }) => {
           //   ? [{ label: "Form LFQ", onClick: handleFormLFQ }]
           //   : []),
 
-          ...((isLFQISfilled && isclientAssigned)
+          ...((isLFQISfilled)
             ? [{ label: "Form LFA", onClick: handleFormLFA }]
             : []),
 
