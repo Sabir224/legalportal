@@ -24,13 +24,18 @@ import {
   Select,
   FormControl,
   InputLabel,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Typography,
+  DialogActions,
 } from '@mui/material';
 import { Lock, Edit, ChevronDown } from '@mui/icons-material';
 import { Dropdown } from 'react-bootstrap';
 import SocketService from '../../../../SocketService';
 import { Navigate } from 'react-router-dom';
 
-const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
+const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
 
   const [selectedRole, setSelectedRole] = useState(user?.Role);
@@ -194,22 +199,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     setAdminData((prevData) => ({ ...prevData, phone: value }));
   };
 
-  // useEffect(() => {
-  //   if (!SocketService.socket || !SocketService.socket.connected) {
-  //     console.log('🔌 Connecting to socket...');
-  //     SocketService.socket.connect();
-  //   }
-
-  //   const handleMessagesDelivered = (data) => {
-  //     console.log( " Logout ")
-  //     // return <Navigate to="/" replace />;
-  //   };
-
-  //   SocketService.socket.off('UserLogOut', handleMessagesDelivered);
-  //  // SocketService.onUserVerification(handleMessagesDelivered);
-  //   SocketService.UserVerification(handleMessagesDelivered);
-  // }, []);
-
   // Save changes
   const handleSave = async () => {
     console.log(adminData);
@@ -241,6 +230,9 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
           //     handleEdting(); // Ensure `handleEdting` is defined before calling it
           //   }
           if (response.status === 200) {
+            if (onUserUpdate) {
+              onUserUpdate();
+            }
             setAdminData(null);
             setSelectedChat(null);
             setShow(false);
@@ -277,19 +269,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
         //   alert("Failed to update lawyer details.");
       }
     }
-
-    // await axios
-    //     .put(`${ApiEndPoint}/updateLawyerDetails/${user.Email}`, adminData)
-    //     .then((response) => {
-    //         if (response.status === 200) {
-    //             setAdminData(null);
-    //             setEditableFields(false);
-    //             setShow(false);
-    //         }
-    //     })
-    //     .catch((error) => {
-    //         console.error(error);
-    //     });
   };
   const handleProfilePicClick = () => {
     if (editableFields && fileInputRef.current) {
@@ -303,6 +282,9 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       .delete(`${ApiEndPoint}/deleteUserAndClean/${user._id}`)
       .then((response) => {
         if (response.status === 200) {
+          if (onUserUpdate) {
+            onUserUpdate();
+          }
           setAdminData(null);
           setSelectedChat(null);
           setShow(false);
@@ -317,46 +299,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
       .catch((error) => {
         console.error(error);
       });
-  };
-
-  const containerStyle = {
-    position: 'relative',
-    display: 'inline-block',
-    width: '100px',
-    height: '100px',
-    marginTop: '20px',
-  };
-
-  const profilePicStyle = {
-    width: '100%',
-    height: '100%',
-    border: '1px solid #d3b386',
-    borderRadius: '50%',
-    boxShadow: '#85929e 0px 2px 5px',
-    backgroundImage: pic ? `url(${pic})` : `url(${Contactprofile})`,
-    backgroundSize: 'cover',
-    backgroundRepeat: 'no-repeat',
-    backgroundColor: '#fff',
-    position: 'relative',
-    overflow: 'hidden',
-  };
-
-  const cameraOverlayStyle = {
-    display: 'none', // Hidden by default
-    position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    color: '#d3b386',
-    fontSize: '24px',
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    background: 'rgba(0, 0, 0, 0.3)',
-    zIndex: 1,
-
-    // Center the icon within the overlay
   };
 
   const handleMouseEnter = (e) => {
@@ -387,6 +329,19 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     sortBy: 'createdAt',
     sortOrder: 'desc',
   });
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    userId: null,
+    action: '',
+    message: '',
+  });
+  const [resultDialog, setResultDialog] = useState({
+    open: false,
+    type: '', // 'success' or 'error'
+    title: '',
+    message: '',
+  });
+
   // console.log("_________Token:0", token.Role);
 
   const dispatch = useDispatch();
@@ -439,26 +394,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
   // Calculate total pages
   const totalPages = Math.ceil(data.length / itemsPerPage);
 
-  // Get data for the current page
-  // const handleSearch = (query) => {
-  //   setSearchQuery(query);
-
-  //   if (!query) {
-  //     setFilteredData(data);
-  //     return;
-  //   }
-
-  //   const lowerCaseQuery = query.toLowerCase();
-
-  //   const filtered = data.filter(
-  //     (item) =>
-  //       item.CaseNumber.toLowerCase().includes(lowerCaseQuery) ||
-  //       item.Name.toLowerCase().includes(lowerCaseQuery) ||
-  //       item.Status.toLowerCase().includes(lowerCaseQuery)
-  //   );
-
-  //   setFilteredData(filtered);
-  // };
   const handleSearch = (query) => {
     setSearchQuery(query);
   };
@@ -518,24 +453,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     return filteredData.slice(startIndex, endIndex);
   };
 
-  // const fetchCases = async () => {
-  //     try {
-  //         const response = await axios.get(`${ApiEndPoint}getcase`, {
-  //             withCredentials: true,
-  //         }); // API endpoint
-  //         console.log("data of case", response.data.data); // Assuming the API returns data in the `data` field
-  //         setData(response.data.data);
-  //         setLoading(false);
-  //     } catch (err) {
-  //         setError(err.message);
-  //         setLoading(false);
-  //     }
-  // };
-
-  // useEffect(() => {
-  //     fetchCases();
-  // }, []);
-
   const fetchCases = async () => {
     try {
       const response = await axios.get(`${ApiEndPoint}getcase`, {
@@ -563,6 +480,78 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
     } catch (err) {
       setError(err.message);
       setLoading(false);
+    }
+  };
+  const handleActivation = (userId, action) => {
+    const confirmMsg =
+      action === 'activate'
+        ? 'Are you sure you want to activate this user?'
+        : action === 'deactivate'
+        ? 'Are you sure you want to deactivate this user?'
+        : action === 'approve'
+        ? 'Are you sure you want to approve this user and send login credentials?'
+        : 'Are you sure you want to reject this user?';
+
+    setConfirmDialog({
+      open: true,
+      userId,
+      action,
+      message: confirmMsg,
+    });
+  };
+
+  const handleConfirmAction = async () => {
+    try {
+      const { userId, action } = confirmDialog;
+
+      const response = await axios.post(`${ApiEndPoint}activation/${userId}/action`, { action });
+
+      if (response.status === 200) {
+        // Determine the new status values
+        const newIsActive = action === 'deactivate' ? false : action === 'activate' ? true : user.isActive;
+        const newIsApproved = action === 'approve' ? true : action === 'reject' ? false : user.isApproved;
+        const newApprovalStatus =
+          action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : user.approvalStatus;
+
+        // Show success in dialog
+        setResultDialog({
+          open: true,
+          type: 'success',
+          title: 'Success',
+          message: response.data.message,
+        });
+
+        // Update local admin data
+        setAdminData((prev) => ({
+          ...prev,
+          isActive: newIsActive,
+          isApproved: newIsApproved,
+          approvalStatus: newApprovalStatus,
+        }));
+
+        // Prepare updated user data to pass to parent
+        const updatedUserData = {
+          _id: user._id,
+          isActive: newIsActive,
+          isApproved: newIsApproved,
+          approvalStatus: newApprovalStatus,
+        };
+
+        // Call the update callback with the updated user data
+        if (onUserUpdate) {
+          onUserUpdate(updatedUserData);
+        }
+      }
+    } catch (error) {
+      // Show error in dialog
+      setResultDialog({
+        open: true,
+        type: 'error',
+        title: 'Error',
+        message: error.response?.data?.message || 'An unexpected error occurred',
+      });
+    } finally {
+      setConfirmDialog({ open: false, userId: null, action: '', message: '' });
     }
   };
 
@@ -674,6 +663,43 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
                   onChange={handleFileInputUpdateChange}
                   style={{ display: 'none' }}
                 />
+              </div>
+              <div className="text-center mb-3">
+                <div className="d-flex justify-content-center gap-3">
+                  {/* Activate / Deactivate */}
+                  <button
+                    onClick={() => handleActivation(user._id, user.isActive ? 'deactivate' : 'activate')}
+                    className="btn"
+                    style={{
+                      color: 'white',
+                      background: user.isActive ? '#dc3545' : '#198754',
+                      height: '40px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: 500,
+                      width: '120px',
+                    }}
+                  >
+                    {user.isActive ? 'Deactivate' : 'Activate'}
+                  </button>
+
+                  {/* Approve / Reject */}
+                  <button
+                    onClick={() => handleActivation(user._id, user.isApproved ? 'reject' : 'approve')}
+                    className="btn"
+                    style={{
+                      color: 'white',
+                      background: user.isApproved ? '#dc3545' : '#198754',
+                      height: '40px',
+                      border: 'none',
+                      borderRadius: '10px',
+                      fontWeight: 500,
+                      width: '120px',
+                    }}
+                  >
+                    {user.isApproved ? 'Reject' : 'Approve'}
+                  </button>
+                </div>
               </div>
 
               {/* Edit Icon */}
@@ -1006,41 +1032,46 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
               {/* Save and Delete Buttons */}
               {editableFields && (
                 <div
-                  className="d-flex justify-content-between gap-3 mt-3"
+                  className="d-flex flex-column gap-3 mt-3"
                   style={{
                     width: '100%',
                   }}
                 >
-                  <button
-                    onClick={handleSave}
-                    className="btn"
-                    style={{
-                      flex: 1,
-                      color: 'white',
-                      background: '#18273e',
-                      height: '40px',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    Update
-                  </button>
-                  <button
-                    onClick={handleDelete}
-                    className="btn"
-                    style={{
-                      flex: 1,
-                      color: 'white',
-                      background: '#d3b386',
-                      height: '40px',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 500,
-                    }}
-                  >
-                    Delete
-                  </button>
+                  {/* Save and Delete Buttons */}
+                  <div className="d-flex justify-content-between gap-3">
+                    <button
+                      onClick={handleSave}
+                      className="btn"
+                      style={{
+                        flex: 1,
+                        color: 'white',
+                        background: '#18273e',
+                        height: '40px',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Update
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      className="btn"
+                      style={{
+                        flex: 1,
+                        color: 'white',
+                        background: '#d3b386',
+                        height: '40px',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 500,
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+
+                  {/* Activation & Approval Buttons */}
                 </div>
               )}
             </div>
@@ -1346,6 +1377,328 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat }) => {
           {showCaseSheet ? 'Hide Cases' : 'View Cases'}
         </button>
       )}
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, userId: null, action: '', message: '' })}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            minWidth: 400,
+            maxWidth: 500,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          },
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          {/* Dynamic header accent based on action type */}
+          <Box
+            sx={{
+              height: 4,
+              background:
+                confirmDialog.action?.includes('delete') || confirmDialog.action === 'reject'
+                  ? 'linear-gradient(90deg, #f44336, #ff7961)'
+                  : 'linear-gradient(90deg, #2196f3, #21cbf3)',
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+            }}
+          />
+
+          <DialogTitle
+            sx={{
+              pb: 1,
+              pt: 2,
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              color:
+                confirmDialog.action?.includes('delete') || confirmDialog.action === 'reject' ? '#c62828' : '#1a237e',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background:
+                  confirmDialog.action?.includes('delete') || confirmDialog.action === 'reject'
+                    ? 'linear-gradient(135deg, #f44336, #d32f2f)'
+                    : 'linear-gradient(135deg, #2196f3, #1976d2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '0.875rem',
+                fontWeight: 'bold',
+              }}
+            >
+              !
+            </Box>
+            Confirm Action
+          </DialogTitle>
+
+          <DialogContent sx={{ py: 2, px: 3 }}>
+            <Box
+              sx={{
+                p: 2,
+                mb: 1,
+                borderRadius: 1,
+                backgroundColor:
+                  confirmDialog.action?.includes('delete') || confirmDialog.action === 'reject'
+                    ? 'rgba(244, 67, 54, 0.04)'
+                    : 'rgba(33, 150, 243, 0.04)',
+                border:
+                  confirmDialog.action?.includes('delete') || confirmDialog.action === 'reject'
+                    ? '1px solid rgba(244, 67, 54, 0.1)'
+                    : '1px solid rgba(33, 150, 243, 0.1)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: '#37474f',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.5,
+                  textAlign: 'center',
+                  fontWeight: 500,
+                }}
+              >
+                {confirmDialog.message}
+              </Typography>
+            </Box>
+
+            {/* Warning for destructive actions */}
+            {(confirmDialog.action === 'reject' || confirmDialog.action === 'deactivate') && (
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  mt: 1,
+                  p: 1,
+                  backgroundColor: 'rgba(244, 67, 54, 0.08)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(244, 67, 54, 0.2)',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: '50%',
+                    backgroundColor: '#f44336',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  ⚠
+                </Box>
+                <Typography
+                  sx={{
+                    fontSize: '0.8rem',
+                    color: '#d32f2f',
+                    fontWeight: 500,
+                  }}
+                >
+                  {confirmDialog.action === 'reject'
+                    ? 'User will be rejected and cannot login'
+                    : 'User will be deactivated and cannot login'}
+                </Typography>
+              </Box>
+            )}
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3, pt: 1, gap: 1 }}>
+            <Button
+              onClick={() => setConfirmDialog({ open: false, userId: null, action: '', message: '' })}
+              color="inherit"
+              variant="outlined"
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                borderColor: '#e0e0e0',
+                color: '#666',
+                fontWeight: 500,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                '&:hover': {
+                  backgroundColor: '#f5f5f5',
+                  borderColor: '#bdbdbd',
+                },
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmAction}
+              color="primary"
+              variant="contained"
+              sx={{
+                px: 3,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                boxShadow: '0 2px 8px rgba(33, 150, 243, 0.3)',
+                background:
+                  confirmDialog.action === 'reject' || confirmDialog.action === 'deactivate'
+                    ? 'linear-gradient(135deg, #f44336, #e53935)'
+                    : 'linear-gradient(135deg, #4caf50, #2e7d32)',
+                '&:hover': {
+                  boxShadow: '0 4px 12px rgba(33, 150, 243, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              {confirmDialog.action === 'activate'
+                ? 'Activate'
+                : confirmDialog.action === 'deactivate'
+                ? 'Deactivate'
+                : confirmDialog.action === 'approve'
+                ? 'Approve'
+                : confirmDialog.action === 'reject'
+                ? 'Reject'
+                : 'Confirm'}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
+
+      {/* Result Dialog for Success/Error Messages */}
+      <Dialog
+        open={resultDialog.open}
+        onClose={() => setResultDialog({ open: false, type: '', title: '', message: '' })}
+        PaperProps={{
+          sx: {
+            borderRadius: 2,
+            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+            minWidth: 400,
+            maxWidth: 500,
+            background: 'linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%)',
+          },
+        }}
+      >
+        <Box sx={{ position: 'relative' }}>
+          {/* Dynamic header accent based on message type */}
+          <Box
+            sx={{
+              height: 4,
+              background:
+                resultDialog.type === 'error'
+                  ? 'linear-gradient(90deg, #f44336, #ff7961)'
+                  : 'linear-gradient(90deg, #4caf50, #81c784)',
+              borderTopLeftRadius: 8,
+              borderTopRightRadius: 8,
+            }}
+          />
+
+          <DialogTitle
+            sx={{
+              pb: 1,
+              pt: 2,
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              color: resultDialog.type === 'error' ? '#c62828' : '#2e7d32',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+            }}
+          >
+            <Box
+              component="span"
+              sx={{
+                width: 32,
+                height: 32,
+                borderRadius: '50%',
+                background:
+                  resultDialog.type === 'error'
+                    ? 'linear-gradient(135deg, #f44336, #d32f2f)'
+                    : 'linear-gradient(135deg, #4caf50, #2e7d32)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '1rem',
+                fontWeight: 'bold',
+              }}
+            >
+              {resultDialog.type === 'error' ? '✕' : '✓'}
+            </Box>
+            {resultDialog.title}
+          </DialogTitle>
+
+          <DialogContent sx={{ py: 2, px: 3 }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: 1,
+                backgroundColor: resultDialog.type === 'error' ? 'rgba(244, 67, 54, 0.04)' : 'rgba(76, 175, 80, 0.04)',
+                border:
+                  resultDialog.type === 'error'
+                    ? '1px solid rgba(244, 67, 54, 0.1)'
+                    : '1px solid rgba(76, 175, 80, 0.1)',
+              }}
+            >
+              <Typography
+                sx={{
+                  color: resultDialog.type === 'error' ? '#d32f2f' : '#2e7d32',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.5,
+                  textAlign: 'center',
+                  fontWeight: 500,
+                }}
+              >
+                {resultDialog.message}
+              </Typography>
+            </Box>
+          </DialogContent>
+
+          <DialogActions sx={{ p: 3, pt: 1, justifyContent: 'center' }}>
+            <Button
+              onClick={() => setResultDialog({ open: false, type: '', title: '', message: '' })}
+              variant="contained"
+              sx={{
+                px: 4,
+                py: 1,
+                borderRadius: 2,
+                fontWeight: 600,
+                textTransform: 'none',
+                fontSize: '0.875rem',
+                background:
+                  resultDialog.type === 'error'
+                    ? 'linear-gradient(135deg, #f44336, #e53935)'
+                    : 'linear-gradient(135deg, #4caf50, #2e7d32)',
+                boxShadow:
+                  resultDialog.type === 'error'
+                    ? '0 2px 8px rgba(244, 67, 54, 0.3)'
+                    : '0 2px 8px rgba(76, 175, 80, 0.3)',
+                '&:hover': {
+                  boxShadow:
+                    resultDialog.type === 'error'
+                      ? '0 4px 12px rgba(244, 67, 54, 0.4)'
+                      : '0 4px 12px rgba(76, 175, 80, 0.4)',
+                  transform: 'translateY(-1px)',
+                },
+                transition: 'all 0.2s ease-in-out',
+              }}
+            >
+              OK
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
     </center>
   );
 };

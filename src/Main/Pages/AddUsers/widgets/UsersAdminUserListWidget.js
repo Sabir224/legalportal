@@ -9,7 +9,7 @@ import SocketService from '../../../../SocketService';
 import { useCookies } from 'react-cookie';
 import { useDispatch } from 'react-redux';
 import { clientEmail } from '../../../../REDUX/sliece';
-export default function UsersAdminUserListWidget({ setSelectedChat, userData, searchQuery, screen }) {
+export default function UsersAdminUserListWidget({ setSelectedChat, userData, searchQuery, screen, refreshTrigger }) {
   const [users, setUsers] = useState([]);
   const [chats, setChats] = useState([]);
   const [buttonSelected, setbuttonSelected] = useState('All');
@@ -67,7 +67,7 @@ export default function UsersAdminUserListWidget({ setSelectedChat, userData, se
     };
 
     loadUsers();
-  }, [userData, userData?.email]);
+  }, [userData, userData?.email, refreshTrigger]);
 
   // Handle user click (select chat)
   const handleUserClick = async (selectedUserEmail) => {
@@ -162,51 +162,69 @@ export default function UsersAdminUserListWidget({ setSelectedChat, userData, se
           Team
         </button>
       </div>
-      {searchedUsers
-        .filter((user) => user?.isApproved === true)
-        .map((user) => (
+      {searchedUsers.map((user) => (
+        <div
+          key={user._id}
+          className="d-flex d-block align-items-center"
+          onClick={() => handleUserClick(user)}
+          style={{
+            cursor: 'pointer',
+            padding: '5px',
+            transition: 'all 0.3s ease',
+          }}
+        >
+          {/* Profile Picture */}
           <div
-            key={user._id}
-            className="d-flex d-block align-items-center"
-            onClick={() => handleUserClick(user)}
+            className="rounded-circle"
             style={{
-              cursor: 'pointer',
-              padding: '5px',
+              backgroundImage: user?.ProfilePicture ? `url(${user?.ProfilePicture})` : `url(${Contactprofile})`,
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              width: '30px',
+              height: '30px',
+              marginRight: isCompact ? '5px' : '10px',
+              border: '1px solid #d3b386',
               transition: 'all 0.3s ease',
             }}
-          >
-            {/* Profile Picture */}
-            <div
-              className="rounded-circle"
-              style={{
-                backgroundImage: user?.ProfilePicture ? `url(${user?.ProfilePicture})` : `url(${Contactprofile})`,
-                backgroundSize: 'cover',
-                backgroundRepeat: 'no-repeat',
-                width: '30px',
-                height: '30px',
-                marginRight: isCompact ? '5px' : '10px',
-                border: '1px solid #d3b386',
-                transition: 'all 0.3s ease',
-              }}
-            />
+          />
 
+          {/* User Info */}
+          <div
+            className="flex-grow-1"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+            }}
+          >
             {/* User Name */}
-            <div className="flex-grow-1" style={{ fontSize: '14px', display: 'flex', alignItems: 'center' }}>
-              <span className="username">
-                {user.UserName &&
-                  (user.UserName.includes(' ')
-                    ? `${
-                        user.UserName.split(' ')[0].length > 10
-                          ? user.UserName.split(' ')[0].slice(0, 10) + '...'
-                          : user.UserName.split(' ')[0]
-                      } ${user.UserName.split(' ')[1]?.[0] || ''}`
-                    : user.UserName.length > 10
-                    ? user.UserName.slice(0, 10) + '...'
-                    : user.UserName)}
+            <span style={{ fontSize: '14px', fontWeight: '500' }}>
+              {user.UserName &&
+                (user.UserName.includes(' ')
+                  ? `${user.UserName.split(' ')[0]} ${user.UserName.split(' ')[1]?.[0] || ''}.`
+                  : user.UserName)}
+            </span>
+
+            {/* User Status */}
+            <div>
+              <span className={`badge bg-${user.isActive ? 'success' : 'danger'} me-1`}>
+                {user.isActive ? 'Active' : 'Deactivated'}
+              </span>
+              <span
+                className={`badge ${
+                  user.approvalStatus === 'approved'
+                    ? 'bg-success'
+                    : user.approvalStatus === 'pending'
+                    ? 'bg-warning text-dark'
+                    : 'bg-danger'
+                }`}
+              >
+                {user.approvalStatus}
               </span>
             </div>
           </div>
-        ))}
+        </div>
+      ))}
     </>
   );
 }

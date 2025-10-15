@@ -46,6 +46,7 @@ import {
   Work,
   Payment,
   EventBusy,
+  Refresh,
 } from '@mui/icons-material';
 import { Today, CalendarMonth, ArrowBack, EventAvailable, History } from '@mui/icons-material';
 
@@ -949,7 +950,6 @@ export default function PaymentDashboard() {
   //   .reduce((sum, item) => sum + (item.payment?.amount || 0), 0);
   // Update the calculations for these StatCards
   // For appointment-based calculations (use link date)
-  const totalClients = filterDataByDateRange(data, totalAppointmentsFilter, false).length;
 
   const paidPayments = filterDataByDateRange(data, paidPaymentsFilter, true).filter(
     (item) => item.payment?.status === 'paid'
@@ -1091,6 +1091,7 @@ export default function PaymentDashboard() {
   // Enhanced filter function
 
   // Calculate revenue metrics with date filters
+  const totalClients = filterDataByDateRange(data, totalAppointmentsFilter, false).length;
   const revenueToday = filterDataByDateRange(data, revenueTodayFilter, true)
     .filter((item) => {
       const paymentDate = item.payment?.createdAt ? new Date(item.payment.createdAt) : null;
@@ -1234,6 +1235,27 @@ export default function PaymentDashboard() {
               Payment Dashboard
             </Typography>
           </Box>
+          <Box sx={{ position: 'relative' }}>
+            {/* Top-right Clear Button */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 2, color: lightTheme.accentColor }}>
+              <Button
+                variant="outlined"
+                color={lightTheme.accentColor}
+                startIcon={<Refresh />}
+                onClick={() => {
+                  // Reset all filters
+                  setConsultationsLastMonthFilter({});
+                  setConsultationsThisMonthFilter({});
+                  setConsultationsTodayFilter({});
+                  setRevenueLastMonthFilter({});
+                  setRevenueThisMonthFilter({});
+                  setRevenueTodayFilter({});
+                }}
+              >
+                Clear Stats Filters
+              </Button>
+            </Box>
+          </Box>
           <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: { xs: 2, sm: 3, md: 4 } }}>
             {/* First Column - 3 cards */}
             <Grid item xs={12} md={6}>
@@ -1242,7 +1264,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Consultations Last Month"
                     value={consultationsLastMonth}
-                    subtitle={`$${revenueLastMonth.toLocaleString()} revenue`}
+                    subtitle={``}
                     icon={History}
                     dateFilter={{
                       onOpen: (e) =>
@@ -1261,7 +1283,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Consultations This Month"
                     value={consultationsThisMonth}
-                    subtitle={`$${revenueThisMonth.toLocaleString()} revenue`}
+                    subtitle={``}
                     icon={DateRange}
                     dateFilter={{
                       onOpen: (e) =>
@@ -1280,7 +1302,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Consultations Today"
                     value={consultationsToday}
-                    subtitle={`$${revenueToday.toLocaleString()} revenue`}
+                    subtitle={``}
                     icon={EventAvailable}
                     dateFilter={{
                       onOpen: (e) =>
@@ -1304,7 +1326,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Revenue Last Month"
                     value={revenueLastMonth}
-                    subtitle={`${consultationsLastMonth} consultations`}
+                    subtitle={``}
                     icon={ArrowBack}
                     isCurrency
                     dateFilter={{
@@ -1319,7 +1341,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Revenue This Month"
                     value={revenueThisMonth}
-                    subtitle={`${consultationsThisMonth} consultations`}
+                    subtitle={``}
                     icon={CalendarMonth}
                     isCurrency
                     dateFilter={{
@@ -1334,7 +1356,7 @@ export default function PaymentDashboard() {
                   <StatCard
                     title="Revenue Today"
                     value={revenueToday}
-                    subtitle={`${consultationsToday} consultations`}
+                    subtitle={``}
                     icon={Today}
                     isCurrency
                     dateFilter={{
