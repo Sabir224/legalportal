@@ -1645,170 +1645,262 @@ const BasicCase = ({ token }) => {
                     {/* Mobile View */}
                     {/* MOBILE VIEW */}
                     <div
-                      className="d-md-none p-3"
+                      className="d-md-none p-2"
                       style={{
-                        overflowX: "hidden",
                         maxWidth: "100%",
                         maxHeight: "83vh",
+                        overflowY: "auto",
+                        overflowX: "hidden",
                       }}
                     >
-                      <div className="d-flex justify-content-start mt-2 mb-2">
-                        <Dropdown
-                          show={dropdownOpen === item?.headerCase?._id}
-                          onToggle={(isOpen) =>
-                            setDropdownOpen(isOpen ? item?.headerCase?._id : null)
-                          }
-                        >
-                          <Dropdown.Toggle
-                            variant=""
-                            size="sm"
-                            className="custom-dropdown-toggle"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDropdownOpen(
-                                dropdownOpen === item?.headerCase?._id ? null : item?.headerCase?._id
-                              );
-                            }}
-                          ></Dropdown.Toggle>
+                      {/* Header with dropdown and case info */}
+                      <div className="d-flex justify-content-end align-items-start mb-3">
+                        {/* Dropdown */}
+                        <div className="me-2 flex-shrink-0">
+                          <Dropdown
+                            show={dropdownOpen === item?.headerCase?._id}
+                            onToggle={(isOpen) =>
+                              setDropdownOpen(isOpen ? item?.headerCase?._id : null)
+                            }
+                          >
+                            <Dropdown.Toggle
+                              variant=""
+                              size="sm"
+                              className="custom-dropdown-toggle"
+                              style={{
+                                minWidth: "36px",
+                                minHeight: "36px",
+                              }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDropdownOpen(
+                                  dropdownOpen === item?.headerCase?._id ? null : item?.headerCase?._id
+                                );
+                              }}
+                            >
+                              <i className=" fa-ellipsis-v"></i>
+                            </Dropdown.Toggle>
 
-                          <Dropdown.Menu>
-                            {token.Role === "admin" && reduxCaseCloseType === "" && (
-                              <>
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    handleOpenModal(item?.headerCase);
-                                  }}
-                                >
-                                  Assign Case
-                                </Dropdown.Item>
+                            <Dropdown.Menu>
+                              {token.Role === "admin" && reduxCaseCloseType === "" && (
+                                <>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleOpenModal(item?.headerCase);
+                                    }}
+                                  >
+                                    Assign Case
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={async (event) => {
-                                    event.stopPropagation();
-                                    setLoaderOpen(true);
-                                    try {
-                                      const response = await updateFunction(item?.headerCase);
-                                      if (response?.success) setLoaderOpen(false);
-                                    } catch (err) {
-                                      console.error("Update failed", err);
-                                      setLoaderOpen(false);
-                                    }
-                                  }}
-                                >
-                                  Update Case
-                                </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={async (event) => {
+                                      event.stopPropagation();
+                                      setLoaderOpen(true);
+                                      try {
+                                        const response = await updateFunction(item?.headerCase);
+                                        if (response?.success) setLoaderOpen(false);
+                                      } catch (err) {
+                                        console.error("Update failed", err);
+                                        setLoaderOpen(false);
+                                      }
+                                    }}
+                                  >
+                                    Update Case
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowMergeModal(true);
-                                  }}
-                                >
-                                  Merge With
-                                </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowMergeModal(true);
+                                    }}
+                                  >
+                                    Merge With
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCloseType(true);
-                                  }}
-                                >
-                                  Close Type
-                                </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCloseType(true);
+                                    }}
+                                  >
+                                    Close Type
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCaseType(true);
-                                  }}
-                                >
-                                  {item?.headerCase?.CaseType ? "Update" : "Add"} Type of Service
-                                </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCaseType(true);
+                                    }}
+                                  >
+                                    {item?.headerCase?.CaseType ? "Update" : "Add"} Type of Service
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowSubCaseType(true);
-                                  }}
-                                >
-                                  {item?.headerCase?.CaseSubType ? "Update" : "Add"} Service Type
-                                </Dropdown.Item>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowSubCaseType(true);
+                                    }}
+                                  >
+                                    {item?.headerCase?.CaseSubType ? "Update" : "Add"} Service Type
+                                  </Dropdown.Item>
 
-                                <Dropdown.Item
-                                  onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCaseStages(true);
-                                  }}
-                                >
-                                  Set Case Stage
-                                </Dropdown.Item>
-                              </>
-                            )}
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCaseStages(true);
+                                    }}
+                                  >
+                                    Set Case Stage
+                                  </Dropdown.Item>
+                                </>
+                              )}
 
-                            <Dropdown.Item>View Details</Dropdown.Item>
-                          </Dropdown.Menu>
-                        </Dropdown>
+                              <Dropdown.Item>View Details</Dropdown.Item>
+                            </Dropdown.Menu>
+                          </Dropdown>
+                        </div>
+
+
                       </div>
 
-                      {/* Parent Case Details */}
-                      <div className="d-flex flex-column gap-2 mb-2">
-                        {/* CLIENT NAME */}
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Client:
-                          </span>
-                          <span className="fw-medium text-wrap">{item?.headerCase?.ClientName}</span>
-                        </div>
+                      {/* Additional Case Details */}
+                      <div className="d-flex flex-column gap-2 mb-3">
+                        {/* Case Info */}
+                        <div className="flex-grow-1">
+                          <div className="d-flex flex-column gap-1">
+                            {/* CLIENT NAME */}
+                            <div className="d-flex flex-column gap-1">
+                              <span className="text-muted small">Client : </span>
+                              <span
+                                className="fw-medium text-break"
+                                style={{
+                                  display: "block",           // ensures wrapping works
+                                  whiteSpace: "normal",       // allows text to wrap
+                                  width: "30vw",
+                                  overflowWrap: "break-word", // handles long words
+                                  wordBreak: "break-word",    // extra safety
+                                  fontSize: "0.9rem",         // smaller font for mobile
+                                  // lineHeight: "1.3",          // better readability
+                                }}
+                              >
+                                {item?.headerCase?.ClientName}
+                              </span>
+                            </div>
 
-                        {/* CASE NUMBER */}
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Case #:
-                          </span>
-                          <span className="fw-medium">{item?.headerCase?.CaseNumber}</span>
+                            {/* CASE NUMBER */}
+                            <div className="d-flex flex-row gap-1">
+                              <span className="text-muted small">Case # </span>
+                              <span
+                                className="fw-medium text-break"
+                                style={{
+                                  display: "block",           // ensures wrapping works
+                                  whiteSpace: "normal",       // allows text to wrap
+                                  width: "30vw",
+                                  overflowWrap: "break-word", // handles long words
+                                  wordBreak: "break-word",    // extra safety
+                                  fontSize: "0.9rem",         // smaller font for mobile
+                                  // lineHeight: "1.3",          // better readability
+                                }}
+                              >
+                                {item?.headerCase?.CaseNumber}
+                              </span>
+                            </div>
+                          </div>
                         </div>
-
                         {/* SERIAL NUMBER */}
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Request #:
+                        <div className="d-flex flex-row gap-1">
+                          <span className="text-muted small">Request # </span>
+                          <span className="fw-medium text-break"
+                            style={{
+                              display: "block",           // ensures wrapping works
+                              whiteSpace: "normal",       // allows text to wrap
+                              width: "30vw",
+                              overflowWrap: "break-word", // handles long words
+                              wordBreak: "break-word",    // extra safety
+                              fontSize: "0.9rem",         // smaller font for mobile
+                              // lineHeight: "1.3",          // better readability
+                            }}
+                          >
+                            {item?.headerCase?.SerialNumber}
                           </span>
-                          <span className="fw-medium">{item?.headerCase?.SerialNumber}</span>
                         </div>
 
                         {/* CASE TYPE */}
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Type of Service:
+                        <div className="d-flex flex-row gap-1">
+                          <span className="text-muted small">Type of Service : </span>
+                          <span
+                            className="fw-medium text-break"
+                            style={{
+                              display: "block",           // ensures wrapping works
+                              whiteSpace: "normal",       // allows text to wrap
+                              width: "30vw",
+                              overflowWrap: "break-word", // handles long words
+                              wordBreak: "break-word",    // extra safety
+                              fontSize: "0.9rem",         // smaller font for mobile
+                              // lineHeight: "1.3",          // better readability
+                            }}>
+                            {item?.headerCase?.CaseType || "N/A"}
                           </span>
-                          <span className="fw-medium">{item?.headerCase?.CaseType}</span>
                         </div>
 
                         {/* CASE SUB TYPE */}
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Service Type:
+                        <div className="d-flex flex-row gap-1">
+                          <span className="text-muted small">Service Type : </span>
+                          <span
+                            className="fw-medium text-break"
+                            style={{
+                              display: "block",           // ensures wrapping works
+                              whiteSpace: "normal",       // allows text to wrap
+                              width: "30vw",
+                              overflowWrap: "break-word", // handles long words
+                              wordBreak: "break-word",    // extra safety
+                              fontSize: "0.9rem",         // smaller font for mobile
+                              // lineHeight: "1.3",          // better readability
+                            }}
+                          >{item?.headerCase?.CaseSubType || "N/A"}
                           </span>
-                          <span className="fw-medium">{item?.headerCase?.CaseSubType}</span>
                         </div>
-                        <div className="d-flex flex-wrap">
-                          <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                            Service Sub Type:
+
+                        {/* SERVICE SUB TYPE */}
+                        <div className="d-flex flex-row gap-1">
+                          <span className="text-muted small">Service Sub Type : </span>
+                          <span
+                            className="fw-medium text-break"
+                            style={{
+                              display: "block",           // ensures wrapping works
+                              whiteSpace: "normal",       // allows text to wrap
+                              width: "30vw",
+                              overflowWrap: "break-word", // handles long words
+                              wordBreak: "break-word",    // extra safety
+                              fontSize: "0.9rem",         // smaller font for mobile
+                              // lineHeight: "1.3",          // better readability
+                            }}
+                          >
+                            {item?.headerCase?.ServiceSubType || "N/A"}
                           </span>
-                          <span className="fw-medium"></span>
                         </div>
 
                         {/* LFA */}
                         {item?.headerCase?.IsLFA && (
                           <div
-                            className="text-primary"
-                            style={{ textDecoration: "underline", cursor: "pointer" }}
+
+                            className="fw-medium text-break text-primary text-decoration-underline"
+                            style={{
+                              display: "block",           // ensures wrapping works
+                              whiteSpace: "normal",       // allows text to wrap
+                              width: "40vw",
+                              overflowWrap: "break-word", // handles long words
+                              wordBreak: "break-word",    // extra safety
+                              fontSize: "0.9rem",         // smaller font for mobile
+                              lineHeight: "1.3",          // better readability
+                              cursor: "pointer"
+                            }}
                             onClick={(e) => {
                               e.stopPropagation();
                               dispatch(Caseinfo(item?.headerCase));
@@ -1818,29 +1910,67 @@ const BasicCase = ({ token }) => {
                             Go To LFA
                           </div>
                         )}
-
-                        {/* NOTES */}
-                        <div>
-                          <div className="text-muted mb-1">Purpose:</div>
-                          <input
-                            className="form-control form-control-sm"
-                            value={item?.headerCase.notes || item?.notes}
-                            onChange={(e) => handleEdit(item?.headerCase, e.target.value)}
-                            onClick={(e) => e.stopPropagation()}
-                            onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
-                          />
-                        </div>
                       </div>
+
+                      {/* NOTES */}
+                      <div className="w-100 ">
+                        <div className="text-muted small mb-1">Purpose</div>
+                        <textarea
+                          className="form-control text-wrap"
+                          rows="2"
+                          value={item?.headerCase?.notes || item?.notes || ""}
+                          onChange={(e) => handleEdit(item?.headerCase, e.target.value)}
+                          onClick={(e) => e.stopPropagation()}
+                          onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
+                          style={{
+                            resize: "vertical",           // allow resize on larger screens
+                            minHeight: "30px",            // good base height
+                            width: "100%",                // full width responsiveness
+                            minWidth: "20px",            // safe min width for tiny screens
+                            wordWrap: "break-word",       // wrap long text
+                            overflowWrap: "break-word",   // ensure wrapping
+                            // fontSize: "0.9rem",           // smaller font for mobile readability
+                          }}
+                        />
+                      </div>
+
 
                       {/* BUTTON TO TOGGLE SUBCASES */}
                       {item?.subcases?.length > 0 && (
                         <button
-                          className="btn btn-sm btn-outline-primary mb-2"
+                          className=""
+                          style={{
+                            backgroundColor: "#16213e",
+                            color: "white",
+                            width: "150px",
+                            minWidth: "100px",
+                            maxWidth: "200px",
+                            padding: "8px 20px",
+                            borderRadius: "4px",
+                            marginTop: 10,
+                            fontSize: "14px",
+                            cursor: "pointer",
+                            textAlign: "center",
+                            border: "2px solid #16213e",
+                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+                            transition: "all 0.3s ease",
+                            fontWeight: "500",
+                          }}
                           onClick={() =>
                             setExpanded(expanded === item?.headerCase?._id ? null : item?.headerCase?._id)
                           }
                         >
-                          {expanded === item?.headerCase?._id ? "Hide Subcases" : "Show Subcases"}
+                          {expanded === item?.headerCase?._id ? (
+                            <>
+                              <i className="fas fa-chevron-up me-2"></i>
+                              Hide Subcases ({item?.subcases?.length})
+                            </>
+                          ) : (
+                            <>
+                              <i className="fas fa-chevron-down me-2"></i>
+                              Show Subcases ({item?.subcases?.length})
+                            </>
+                          )}
                         </button>
                       )}
 
@@ -1848,156 +1978,229 @@ const BasicCase = ({ token }) => {
                       {item?.headerCase?._id &&
                         expanded === item?.headerCase?._id &&
                         item?.subcases?.map((sub, subIndex) => (
+                          <div
+                            key={sub?._id}
+                            className="border rounded p-2 mb-3"
+                            style={{ backgroundColor: "#f8f9fa" }}
+                          >
+                            {/* Subcase Header with Dropdown */}
+                            <div className="d-flex align-items-start mb-2">
+                              <div className="me-2 flex-shrink-0">
+                                <Dropdown
+                                  show={dropdownOpen === sub?._id}
+                                  onToggle={(isOpen) => setDropdownOpen(isOpen ? sub._id : null)}
+                                >
+                                  <Dropdown.Toggle
+                                    variant=""
+                                    size="sm"
+                                    className="border rounded-circle"
+                                    style={{
+                                      minWidth: "32px",
+                                      minHeight: "32px",
+                                    }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDropdownOpen(dropdownOpen === sub._id ? null : sub._id);
+                                    }}
+                                  >
+                                    <i className="fa-ellipsis-v small"></i>
+                                  </Dropdown.Toggle>
 
-                          <>
-                            {/* ACTIONS DROPDOWN */}
-                            <div className="d-flex justify-content-start mt-2 mb-2">
-                              <Dropdown
-                                show={dropdownOpen === sub?._id}
-                                onToggle={(isOpen) => setDropdownOpen(isOpen ? sub._id : null)}
-                              >
-                                <Dropdown.Toggle
-                                  variant=""
-                                  size="sm"
-                                  className="border rounded-circle"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDropdownOpen(dropdownOpen === sub._id ? null : sub._id);
-                                  }}
-                                ></Dropdown.Toggle>
-
-                                <Dropdown.Menu>
-                                  {token.Role === "admin" && reduxCaseCloseType === "" && (
-                                    <>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          handleOpenModal(sub);
-                                        }}
-                                      >
-                                        Assign Case
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={async (event) => {
-                                          event.stopPropagation();
-                                          setLoaderOpen(true);
-                                          try {
-                                            const response = await updateFunction(sub);
-                                            if (response?.success) setLoaderOpen(false);
-                                          } catch (err) {
-                                            console.error("Update failed", err);
-                                            setLoaderOpen(false);
-                                          }
-                                        }}
-                                      >
-                                        Update Case
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          setSelectedCase(sub);
-                                          setShowMergeModal(true);
-                                        }}
-                                      >
-                                        Merge With
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          setSelectedCase(sub);
-                                          setShowCloseType(true);
-                                        }}
-                                      >
-                                        Close Type
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          setSelectedCase(sub);
-                                          setShowCaseType(true);
-                                        }}
-                                      >
-                                        {sub?.CaseType ? "Update" : "Add"} Type of Service
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          setSelectedCase(sub);
-                                          setShowSubCaseType(true);
-                                        }}
-                                      >
-                                        {sub?.CaseSubType ? "Update" : "Add"} Service Type
-                                      </Dropdown.Item>
-                                      <Dropdown.Item
-                                        onClick={(event) => {
-                                          event.stopPropagation();
-                                          setSelectedCase(sub);
-                                          setShowCaseStages(true);
-                                        }}
-                                      >
-                                        Set Case Stage
-                                      </Dropdown.Item>
-                                    </>
-                                  )}
-                                  <Dropdown.Item>View Details</Dropdown.Item>
-                                </Dropdown.Menu>
-                              </Dropdown>
-                            </div>
-
-                            <div
-                              key={sub?._id}
-                              className="border rounded p-2 mb-2"
-                              style={{ backgroundColor: "#fafafa" }}
-                              onClick={(e) => {
-                                if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
-                                  handleClick(1, sub);
-                                }
-                              }}
-                            >
-                              {/* CASE NUMBER */}
-                              <div className="d-flex flex-wrap">
-                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Case #:
-                                </span>
-                                <span className="fw-medium">{sub?.CaseNumber}</span>
+                                  <Dropdown.Menu>
+                                    {token.Role === "admin" && reduxCaseCloseType === "" && (
+                                      <>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            handleOpenModal(sub);
+                                          }}
+                                        >
+                                          Assign Case
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={async (event) => {
+                                            event.stopPropagation();
+                                            setLoaderOpen(true);
+                                            try {
+                                              const response = await updateFunction(sub);
+                                              if (response?.success) setLoaderOpen(false);
+                                            } catch (err) {
+                                              console.error("Update failed", err);
+                                              setLoaderOpen(false);
+                                            }
+                                          }}
+                                        >
+                                          Update Case
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedCase(sub);
+                                            setShowMergeModal(true);
+                                          }}
+                                        >
+                                          Merge With
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedCase(sub);
+                                            setShowCloseType(true);
+                                          }}
+                                        >
+                                          Close Type
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedCase(sub);
+                                            setShowCaseType(true);
+                                          }}
+                                        >
+                                          {sub?.CaseType ? "Update" : "Add"} Type of Service
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedCase(sub);
+                                            setShowSubCaseType(true);
+                                          }}
+                                        >
+                                          {sub?.CaseSubType ? "Update" : "Add"} Service Type
+                                        </Dropdown.Item>
+                                        <Dropdown.Item
+                                          onClick={(event) => {
+                                            event.stopPropagation();
+                                            setSelectedCase(sub);
+                                            setShowCaseStages(true);
+                                          }}
+                                        >
+                                          Set Case Stage
+                                        </Dropdown.Item>
+                                      </>
+                                    )}
+                                    <Dropdown.Item>View Details</Dropdown.Item>
+                                  </Dropdown.Menu>
+                                </Dropdown>
                               </div>
 
-                              {/* SERIAL NUMBER */}
-                              <div className="d-flex flex-wrap">
-                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Request #:
+                              <div className="flex-grow-1" onClick={(e) => {
+                                if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
+                                  handleClick(1, sub);
+                                }
+                              }}>
+
+                              </div>
+                            </div>
+
+                            {/* Subcase Details */}
+                            <div className="d-flex flex-column gap-2">
+
+                              <div className="d-flex flex-row text-wrap gap-1">
+                                <span className="text-muted small">Case # </span>
+                                <span
+                                  className="fw-medium text-break"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    // lineHeight: "1.3",          // better readability
+                                  }}
+                                >{sub?.CaseNumber}
                                 </span>
-                                <span className="fw-medium">{sub?.SerialNumber}</span>
+                              </div>
+                              {/* SERIAL NUMBER */}
+                              <div className="d-flex flex-row gap-1">
+                                <span className="text-muted small">Request # </span>
+                                <span
+                                  className="fw-medium text-break"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    // lineHeight: "1.3",          // better readability
+                                  }}
+                                >{sub?.SerialNumber}
+                                </span>
                               </div>
 
                               {/* CASE TYPE */}
-                              <div className="d-flex flex-wrap">
-                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Type of Service:
+                              <div className="d-flex flex-row gap-1">
+                                <span className="text-muted small">Type of Service : </span>
+                                <span
+                                  className="fw-medium text-break"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    // lineHeight: "1.3",          // better readability
+                                  }}
+
+
+                                >{sub?.CaseType || "N/A"}
                                 </span>
-                                <span className="fw-medium">{sub?.CaseType}</span>
                               </div>
 
                               {/* CASE SUB TYPE */}
-                              <div className="d-flex flex-wrap">
-                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Service Type:
+                              <div className="d-flex flex-row gap-1">
+                                <span className="text-muted small">Service Type</span>
+                                <span
+                                  className="fw-medium text-break"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    // lineHeight: "1.3",          // better readability
+                                  }}
+                                >{sub?.CaseSubType || "N/A"}
                                 </span>
-                                <span className="fw-medium">{sub?.CaseSubType}</span>
                               </div>
-                              {/* CASE SUB TYPE */}
-                              <div className="d-flex flex-wrap">
-                                <span className="text-muted me-2" style={{ minWidth: "100px" }}>
-                                  Service Sub Type:
+
+                              {/* SERVICE SUB TYPE */}
+                              <div className="d-flex flex-row gap-1">
+                                <span className="text-muted small">Service Sub Type</span>
+                                <span className="fw-medium text-break"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    // lineHeight: "1.3",          // better readability
+                                  }}
+                                >{sub?.ServiceSubType || "N/A"}
                                 </span>
-                                <span className="fw-medium"></span>
                               </div>
 
                               {/* LFA */}
                               {sub?.IsLFA && (
                                 <div
-                                  className="text-primary"
-                                  style={{ textDecoration: "underline", cursor: "pointer" }}
+
+                                  className="fw-medium text-break text-primary text-decoration-underline"
+                                  style={{
+                                    display: "block",           // ensures wrapping works
+                                    whiteSpace: "normal",       // allows text to wrap
+                                    width: "30vw",
+                                    overflowWrap: "break-word", // handles long words
+                                    wordBreak: "break-word",    // extra safety
+                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    lineHeight: "1.3",
+                                    cursor: "pointer"        // better readability
+                                  }}
+                                  // style={{ cursor: "pointer" }}
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     dispatch(Caseinfo(sub));
@@ -2009,21 +2212,28 @@ const BasicCase = ({ token }) => {
                               )}
 
                               {/* NOTES */}
-                              <div>
-                                <div className="text-muted mb-1">Purpose:</div>
-                                <input
-                                  className="form-control form-control-sm"
-                                  type="text"
+                              <div className="w-100">
+                                <div className="text-muted small mb-1">Purpose</div>
+                                <textarea
+                                  className="form-control text-wrap"
+                                  rows="2"
                                   value={sub.notes || ""}
                                   onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
                                   onBlur={(e) => handleNoteBlur(sub?._id, e.target.value)}
                                   onClick={(e) => e.stopPropagation()}
+                                  style={{
+                                    resize: "vertical",           // allow resize on larger screens
+                                    minHeight: "50px",            // good base height
+                                    width: "100%",                // full width responsiveness
+                                    minWidth: "20px",            // safe min width for tiny screens
+                                    wordWrap: "break-word",       // wrap long text
+                                    overflowWrap: "break-word",   // ensure wrapping
+                                    fontSize: "0.9rem",
+                                  }}
                                 />
                               </div>
-
-
                             </div>
-                          </>
+                          </div>
                         ))}
                     </div>
 
@@ -2127,7 +2337,7 @@ const BasicCase = ({ token }) => {
                         </span>
                         {/* service SUB TYPE */}
                         <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-                          
+
                         </span>
                         {/* LFA */}
                         <div
@@ -2300,6 +2510,10 @@ const BasicCase = ({ token }) => {
 
                             <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
                               {sub?.CaseSubType}
+                            </span>
+                            {/** service sub type */}
+                            <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+
                             </span>
 
                             {/* LFA */}
