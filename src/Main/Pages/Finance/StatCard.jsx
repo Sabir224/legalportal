@@ -99,7 +99,7 @@ const StatCard = ({ title, value, subtitle, icon: Icon, isCurrency = false, date
             fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' },
           }}
         >
-          {isCurrency ? `$${value.toLocaleString()}` : value}
+          {isCurrency ? `AED ${value.toLocaleString()}` : value}
         </Typography>
 
         <Typography

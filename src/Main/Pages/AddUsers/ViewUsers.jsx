@@ -4,7 +4,7 @@ import ViewUsersAdminWidget from './widgets/ViewUsersAdminWidget';
 import { useMediaQuery } from 'react-responsive';
 import { GrContactInfo } from 'react-icons/gr';
 
-export default function ViewUsers({ token, screen }) {
+export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -90,7 +90,12 @@ export default function ViewUsers({ token, screen }) {
         }}
       >
         {selectedChat ? (
-          <ViewUsersAdminWidget user={selectedChat} setSelectedChat={setSelectedChat} onUserUpdate={refreshUsersList} />
+          <ViewUsersAdminWidget
+            user={selectedChat}
+            setSelectedChat={setSelectedChat}
+            onUserUpdate={refreshUsersList}
+            registerCloseHandler={onRegisterAdminHandler}
+          />
         ) : (
           <div
             className="gap-3 text-center d-flex flex-column justify-content-center align-items-center h-100 w-100"

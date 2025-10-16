@@ -35,7 +35,7 @@ import { Dropdown } from 'react-bootstrap';
 import SocketService from '../../../../SocketService';
 import { Navigate } from 'react-router-dom';
 
-const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate }) => {
+const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerCloseHandler }) => {
   const [profilePicBase64, setProfilePicBase64] = useState(null);
 
   const [selectedRole, setSelectedRole] = useState(user?.Role);
@@ -345,7 +345,19 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate }) => {
   // console.log("_________Token:0", token.Role);
 
   const dispatch = useDispatch();
-
+  const handleCloseCaseSheet = () => {
+    setShowCaseSheet(false);
+    setShow(true);
+    setIsProfile(true);
+  };
+  useEffect(() => {
+    if (registerCloseHandler) {
+      registerCloseHandler({
+        handleCloseCaseSheet,
+        getShowSheet: () => showCaseSheet, // expose current value
+      });
+    }
+  }, [showCaseSheet, registerCloseHandler]);
   const [responseData, setResponseData] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [selectedCase, setSelectedCase] = useState(null);
@@ -666,39 +678,63 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate }) => {
               </div>
               <div className="text-center mb-3">
                 <div className="d-flex justify-content-center gap-3">
-                  {/* Activate / Deactivate */}
-                  <button
-                    onClick={() => handleActivation(user._id, user.isActive ? 'deactivate' : 'activate')}
-                    className="btn"
-                    style={{
-                      color: 'white',
-                      background: user.isActive ? '#dc3545' : '#198754',
-                      height: '40px',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 500,
-                      width: '120px',
-                    }}
-                  >
-                    {user.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
+                  {/* Show Approve/Reject buttons if status is pending */}
+                  {user.approvalStatus === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => handleActivation(user._id, 'approve')}
+                        className="btn"
+                        style={{
+                          color: 'white',
+                          background: '#198754', // green
+                          height: '40px',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontWeight: 500,
+                          width: '120px',
+                        }}
+                      >
+                        Approve
+                      </button>
 
-                  {/* Approve / Reject */}
-                  <button
-                    onClick={() => handleActivation(user._id, user.isApproved ? 'reject' : 'approve')}
-                    className="btn"
-                    style={{
-                      color: 'white',
-                      background: user.isApproved ? '#dc3545' : '#198754',
-                      height: '40px',
-                      border: 'none',
-                      borderRadius: '10px',
-                      fontWeight: 500,
-                      width: '120px',
-                    }}
-                  >
-                    {user.isApproved ? 'Reject' : 'Approve'}
-                  </button>
+                      <button
+                        onClick={() => handleActivation(user._id, 'reject')}
+                        className="btn"
+                        style={{
+                          color: 'white',
+                          background: '#dc3545', // red
+                          height: '40px',
+                          border: 'none',
+                          borderRadius: '10px',
+                          fontWeight: 500,
+                          width: '120px',
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+
+                  {/* Show Activate/Deactivate only if approved */}
+                  {user.approvalStatus === 'approved' && (
+                    <button
+                      onClick={() => handleActivation(user._id, user.isActive ? 'deactivate' : 'activate')}
+                      className="btn"
+                      style={{
+                        color: 'white',
+                        background: user.isActive ? '#dc3545' : '#198754',
+                        height: '40px',
+                        border: 'none',
+                        borderRadius: '10px',
+                        fontWeight: 500,
+                        width: '120px',
+                      }}
+                    >
+                      {user.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                  )}
+
+                  {/* Nothing for rejected users */}
                 </div>
               </div>
 
@@ -1078,27 +1114,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate }) => {
           )}{' '}
           {showCaseSheet && (
             <div className="card mb-3 shadow">
-              {/* Add Back Button at the top of cases view */}
-              <div className="card-header d-flex justify-content-between align-items-center px-3">
-                <button
-                  onClick={() => {
-                    setShowCaseSheet(false);
-                    // Show profile if it was open before
-
-                    setShow(true);
-                    setIsProfile(true);
-                  }}
-                  className="btn btn-sm btn-outline-secondary"
-                  style={{
-                    borderColor: '#d3b386',
-                    color: '#18273e',
-                  }}
-                >
-                  <FaArrowLeft size={14} color="white" className="me-1" />
-                </button>
-                <span className="d-none d-md-block">Cases List</span>
-                <div style={{ width: '28px' }}></div> {/* Spacer for alignment */}
-              </div>
               {/* Table Header - Hidden on mobile */}
               <div className="card-header d-none d-md-flex justify-content-between align-items-center px-3">
                 <span className="col text-start">Status</span>

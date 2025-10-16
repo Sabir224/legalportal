@@ -136,6 +136,7 @@ const Dashboard = () => {
   const [ShowFinanceOptions, setShowFinanceOptions] = useState(false);
   // Add state at top of component
   const [showFormOptions, setShowFormOptions] = useState(false);
+  const [adminWidgetHandler, setAdminWidgetHandler] = useState(null);
 
   // console.log("________", cookies.token);
   // Get the decoded token
@@ -324,7 +325,7 @@ const Dashboard = () => {
       case 9:
         setCurrentScreen(
           <AlertProvider>
-            <ViewUsers token={decodedToken} screen={currenScreen} />
+            <ViewUsers token={decodedToken} screen={currenScreen} onRegisterAdminHandler={setAdminWidgetHandler} />
             <GlobalAlert />
           </AlertProvider>
         );
@@ -558,11 +559,11 @@ const Dashboard = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  const ScreenHeader = ({ title }) => (
+  const ScreenHeader = ({ title, onBack }) => (
     <div className="d-flex align-items-center">
       {title !== 'Active' && title !== 'Close Negative' && title !== 'Close Positive' && (
         <button
-          onClick={handleGoBack}
+          onClick={() => (onBack ? onBack() : handleGoBack())}
           style={{
             background: 'none',
             border: 'none',
@@ -1133,7 +1134,20 @@ const Dashboard = () => {
               {screen === 5 && <ScreenHeader title="Profile" />}
               {screen === 7 && <ScreenHeader title={`View Client${caseDetailsScreenTitle}`} />}
               {screen === 8 && <ScreenHeader title="Add User" />}
-              {screen === 9 && <ScreenHeader title="View User" />}
+              {screen === 9 && (
+                <ScreenHeader
+                  title="View User"
+                  onBack={() => {
+                    if (adminWidgetHandler && adminWidgetHandler.getShowSheet && adminWidgetHandler.getShowSheet()) {
+                      // console.log('🚀 showCaseSheet is true — calling closeSheet()');
+                      adminWidgetHandler.handleCloseCaseSheet();
+                    } else {
+                      // console.log('⚙️ showCaseSheet is false — calling handleGoBack()');
+                      handleGoBack();
+                    }
+                  }}
+                />
+              )}
               {screen === 10 && <ScreenHeader title={`View Client${caseDetailsScreenTitle}`} />}
               {screen === 11 && <ScreenHeader title="Add Case" />}
               {screen === 12 && <ScreenHeader title={`View Folder${caseDetailsScreenTitle}`} onBack={handleBack} />}

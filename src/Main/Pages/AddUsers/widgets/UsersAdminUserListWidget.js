@@ -219,7 +219,9 @@ export default function UsersAdminUserListWidget({ setSelectedChat, userData, se
                     : 'bg-danger'
                 }`}
               >
-                {user.approvalStatus}
+                {user.approvalStatus === 'rejected'
+                  ? 'Rejected By Admin'
+                  : user.approvalStatus.charAt(0).toUpperCase() + user.approvalStatus.slice(1)}
               </span>
             </div>
           </div>

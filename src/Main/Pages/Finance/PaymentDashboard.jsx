@@ -1605,7 +1605,7 @@ export default function PaymentDashboard() {
                                     <Box display="flex" alignItems="center" gap={1}>
                                       <AttachMoney fontSize="small" sx={{ color: lightTheme.accentColor }} />
                                       <Typography variant="body2" sx={{ color: lightTheme.textPrimary }}>
-                                        {item.payment?.amount ? `$${item.payment.amount}` : '—'}
+                                        {item.payment?.amount ? `AED ${item.payment.amount}` : '—'}
                                       </Typography>
                                     </Box>
 
@@ -2219,6 +2219,7 @@ export default function PaymentDashboard() {
 
             <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={enGB}>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+                {/* Start Date */}
                 <DatePicker
                   label="Start Date"
                   value={
@@ -2239,6 +2240,7 @@ export default function PaymentDashboard() {
                   }}
                 />
 
+                {/* End Date */}
                 <DatePicker
                   label="End Date"
                   value={
@@ -2250,6 +2252,14 @@ export default function PaymentDashboard() {
                   }
                   onChange={(newValue) => handleDateFilterChange('endDate', newValue)}
                   format="dd/MM/yyyy"
+                  disabled={!dateFilterPopover.tempStartDate && !dateFilterPopover.currentFilter?.startDate} // disable until start date selected
+                  minDate={
+                    dateFilterPopover.tempStartDate
+                      ? new Date(dateFilterPopover.tempStartDate)
+                      : dateFilterPopover.currentFilter?.startDate
+                      ? new Date(dateFilterPopover.currentFilter.startDate)
+                      : new Date() // fallback to today if no start date
+                  }
                   slotProps={{
                     textField: {
                       size: 'small',
