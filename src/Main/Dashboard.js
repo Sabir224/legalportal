@@ -561,7 +561,7 @@ const Dashboard = () => {
 
   const ScreenHeader = ({ title, onBack }) => (
     <div className="d-flex align-items-center">
-      {title !== 'Active' && title !== 'Close Negative' && title !== 'Close Positive' && (
+      {title && !['Active', 'Close Negative', 'Close Positive'].includes(title.trim()) && (
         <button
           onClick={() => (onBack ? onBack() : handleGoBack())}
           style={{
@@ -574,6 +574,7 @@ const Dashboard = () => {
           <FaArrowLeft color="white" />
         </button>
       )}
+
       <span>
         {/* Show normal font size on desktop */}
         <span className="d-none d-md-inline fs-4 text-white">{title}</span>
@@ -1139,7 +1140,7 @@ const Dashboard = () => {
                   title="View User"
                   onBack={() => {
                     if (adminWidgetHandler && adminWidgetHandler.getShowSheet && adminWidgetHandler.getShowSheet()) {
-                      // console.log('🚀 showCaseSheet is true — calling closeSheet()');
+                      console.log('🚀 showCaseSheet is true — calling closeSheet()');
                       adminWidgetHandler.handleCloseCaseSheet();
                     } else {
                       // console.log('⚙️ showCaseSheet is false — calling handleGoBack()');
@@ -1150,26 +1151,23 @@ const Dashboard = () => {
               )}
               {screen === 10 && <ScreenHeader title={`View Client${caseDetailsScreenTitle}`} />}
               {screen === 11 && <ScreenHeader title="Add Case" />}
-              {screen === 12 && <ScreenHeader title={`View Folder${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 20 && <ScreenHeader title={`Case Update${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {/* {screen === 13 && (
-                <ScreenHeader title="Task Management" onBack={handleBack} />
-              )} */}
-              {screen === 14 && <ScreenHeader title={`View Task${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 15 && <ScreenHeader title={`Add Task${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 16 && <ScreenHeader title={`Form C${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 18 && <ScreenHeader title="Form C List" onBack={handleBack} />}
-              {screen === 17 && <ScreenHeader title={`Form H${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 22 && <ScreenHeader title="Form H List" onBack={handleBack} />}
-              {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 24 && <ScreenHeader title="Meeting Calendar" onBack={handleBack} />}
-              {screen === 26 && <ScreenHeader title="Case Summary" onBack={handleBack} />}
-              {screen === 27 && <ScreenHeader title={`View LFA${caseDetailsScreenTitle}`} onBack={handleBack} />}
-              {screen === 28 && <ScreenHeader title={`View LFQ${caseDetailsScreenTitle}`} onBack={handleBack} />}{' '}
-              {screen === 29 && (
-                <ScreenHeader title={`Payment Dashboard${caseDetailsScreenTitle}`} onBack={handleBack} />
-              )}
-              {screen === 30 && <ScreenHeader title={`Finance ${caseDetailsScreenTitle}`} onBack={handleBack} />}
+              {screen === 12 && <ScreenHeader title={`View Folder${caseDetailsScreenTitle}`} />}
+              {screen === 20 && <ScreenHeader title={`Case Update${caseDetailsScreenTitle}`} />}
+              {screen === 21 && <ScreenHeader title="FAQS" />}
+              {screen === 14 && <ScreenHeader title={`View Task${caseDetailsScreenTitle}`} />}
+              {screen === 15 && <ScreenHeader title={`Add Task${caseDetailsScreenTitle}`} />}
+              {screen === 16 && <ScreenHeader title={`Form C${caseDetailsScreenTitle}`} />}
+              {screen === 18 && <ScreenHeader title="Form C List" />}
+              {screen === 17 && <ScreenHeader title={`Form H${caseDetailsScreenTitle}`} />}
+              {screen === 22 && <ScreenHeader title="Form H List" />}
+              {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} />}
+              {screen === 24 && <ScreenHeader title="Meeting Calendar" />}
+              {screen === 26 && <ScreenHeader title="Case Summary" />}
+              {screen === 27 && <ScreenHeader title={`View LFA${caseDetailsScreenTitle}`} />}
+              {screen === 28 && <ScreenHeader title={`View LFQ${caseDetailsScreenTitle}`} />}{' '}
+              {screen === 29 && <ScreenHeader title={`Payment Dashboard`} />}
+              {screen === 30 && <ScreenHeader title={`Finance ${caseDetailsScreenTitle}`} />}
+              {screen === 31 && <ScreenHeader title={`Legal Service Dashboard `} />}
             </h3>
 
             {/* Admin Buttons */}
