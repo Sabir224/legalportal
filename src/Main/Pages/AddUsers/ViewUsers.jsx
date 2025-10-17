@@ -44,6 +44,8 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
         backgroundColor: '#fff',
         borderRadius: '10px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+        gap: '10px', // ✅ use gap instead of margin on children
+        padding: '10px',
       }}
     >
       {/* User List Widget */}
@@ -51,11 +53,10 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
         className={`d-flex flex-column p-3 ${isMobile && selectedChat ? 'd-none' : 'd-block'}`}
         style={{
           width: isMobile ? '100%' : '300px',
-          height: '82vh',
+          height: '100%', // ✅ match parent height
           backgroundColor: '#fff',
           borderRadius: '10px',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-          margin: '10px',
           transition: 'margin-left 0.3s ease-in-out',
         }}
       >
@@ -73,7 +74,7 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
             searchQuery={searchQuery}
             token={token}
             screen={null}
-            refreshTrigger={usersRefreshTrigger} // Pass refresh trigger
+            refreshTrigger={usersRefreshTrigger}
           />
         </div>
       </div>
@@ -82,11 +83,12 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
       <div
         className={`d-flex flex-column flex-grow-1 ${isMobile && !selectedChat ? 'd-none' : 'd-block'}`}
         style={{
-          height: '82vh',
-          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-          margin: '10px',
+          height: '100%', // ✅ fills available height
+          backgroundColor: '#fff',
           borderRadius: '10px',
+          boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
           transition: 'opacity 0.3s ease-in-out',
+          overflow: 'hidden', // optional
         }}
       >
         {selectedChat ? (
