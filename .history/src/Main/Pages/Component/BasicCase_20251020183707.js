@@ -1605,7 +1605,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                             </Dropdown.Toggle>
 
                             <Dropdown.Menu>
-                              {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase===false && (
+                              {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                 <>
                                   <Dropdown.Item
                                     onClick={(event) => {
@@ -1927,7 +1927,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                                   </Dropdown.Toggle>
 
                                   <Dropdown.Menu>
-                                    {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase===false && (
+                                    {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                       <>
                                         <Dropdown.Item
                                           onClick={(event) => {
@@ -2491,7 +2491,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                                 ></Dropdown.Toggle>
 
                                 <Dropdown.Menu>
-                                  {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase===false && (
+                                  {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                     <>
                                       <Dropdown.Item
                                         onClick={(event) => {
