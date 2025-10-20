@@ -1225,16 +1225,17 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
   };
 
   return (
-    <center
+    <div
       style={{
         width: '100%',
         height: '100%',
         position: 'relative',
         boxShadow: '5px 5px 5px gray',
         overflowY: 'auto',
-        scrollbarWidth: 'thin', // For Firefox
+        scrollbarWidth: 'thin',
         scrollbarColor: '#d2a85a #16213e',
         padding: '20px',
+        textAlign: 'left', // ✅ prevents inherited center alignment for children
       }}
     >
       {/* Close Button at the Top Level */}
@@ -1744,7 +1745,8 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
           )}{' '}
           {showCaseSheet && (
             <BasicCase
-              token={user} // Make sure this matches your user object structure
+              token={user}
+              isViewCase={true} // Make sure this matches your user object structure
             />
           )}
         </div>
@@ -1760,26 +1762,35 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
       )}
 
       {!editableFields && (
-        <button
-          onClick={handleFloatingButtonClick}
-          title={showCaseSheet ? 'Hide Cases' : 'View Cases'}
-          style={{
-            backgroundColor: '#f4e9d8',
-            color: '#18273e',
-            border: '1px solid #d3b386',
-            borderRadius: '20%',
-            boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
-            display: 'flex',
-            padding: 10,
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.0rem',
-            cursor: 'pointer',
-          }}
-        >
-          {showCaseSheet ? 'Hide Cases' : 'View Cases'}
-        </button>
+        <>
+          {!showCaseSheet ? (
+            <button
+              onClick={handleFloatingButtonClick}
+              title={'View Cases'}
+              style={{
+                position: 'absolute',
+                bottom: '-70%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                backgroundColor: '#f4e9d8',
+                color: '#18273e',
+                border: '1px solid #d3b386',
+                borderRadius: '20%',
+                boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
+                display: 'flex',
+                padding: 10,
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '1.0rem',
+                cursor: 'pointer',
+              }}
+            >
+              {'View Cases'}
+            </button>
+          ) : null}
+        </>
       )}
+
       {/* Confirmation Dialog */}
       <Dialog
         open={confirmDialog.open}
@@ -2102,7 +2113,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
           </DialogActions>
         </Box>
       </Dialog>
-    </center>
+    </div>
   );
 };
 

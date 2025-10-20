@@ -1,27 +1,27 @@
-import React, { useState, useEffect, useRef } from "react";
-import "bootstrap/dist/css/bootstrap.min.css";
-import "./BasicCase.css";
-import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { Caseinfo, screenChange } from "../../../REDUX/sliece";
-import * as XLSX from "xlsx";
-import filepath from "../../../utils/dataset.csv";
-import axios from "axios";
-import { ApiEndPoint } from "./utils/utlis";
-import CaseAssignmentForm from "../cases/CaseAssignment";
-import { Button, Dropdown, Form, Modal } from "react-bootstrap";
-import { Backdrop, CircularProgress } from "@mui/material";
-import { useAlert } from "../../../Component/AlertContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faFilter } from "@fortawesome/free-solid-svg-icons";
-import { FaChevronDown, FaChevronRight } from "react-icons/fa";
+import React, { useState, useEffect, useRef } from 'react';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import './BasicCase.css';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Caseinfo, screenChange } from '../../../REDUX/sliece';
+import * as XLSX from 'xlsx';
+import filepath from '../../../utils/dataset.csv';
+import axios from 'axios';
+import { ApiEndPoint } from './utils/utlis';
+import CaseAssignmentForm from '../cases/CaseAssignment';
+import { Button, Dropdown, Form, Modal } from 'react-bootstrap';
+import { Backdrop, CircularProgress } from '@mui/material';
+import { useAlert } from '../../../Component/AlertContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faFilter } from '@fortawesome/free-solid-svg-icons';
+import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 
-const BasicCase = ({ token }) => {
-  const [caseNumber, setCaseNumber] = useState("");
-  const [caseName, setCaseName] = useState("");
+const BasicCase = ({ token, isViewCase = false }) => {
+  const [caseNumber, setCaseNumber] = useState('');
+  const [caseName, setCaseName] = useState('');
   const [check, setcheck] = useState(true);
   const screen = useSelector((state) => state.screen.value);
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState('');
   const [filteredData, setFilteredData] = useState([]);
   const [showMergeModal, setShowMergeModal] = useState(false);
   const [showCaseStages, setShowCaseStages] = useState(false);
@@ -34,16 +34,15 @@ const BasicCase = ({ token }) => {
   const [showCaseSubTypeFilter, setCaseSubTypeFilter] = useState(false);
   // const [selectedCase, setSelectedCase] = useState(null);
   const [selectedCase, setSelectedCase] = useState(null);
-  const [selectedCourtCaseId, setSelectedCourtCaseId] = useState("");
+  const [selectedCourtCaseId, setSelectedCourtCaseId] = useState('');
   const [selectedCaseType, setSelectedCaseType] = useState();
   const [selectedSubCaseType, setSelectedSubCaseType] = useState();
   const [selectedCloseType, setSelectedCloseType] = useState();
-  const [selectedCaseStage, setSelectedCaseStage] = useState("");
+  const [selectedCaseStage, setSelectedCaseStage] = useState('');
   const [availableCases, setAvailableCases] = useState([]); // populate this list as needed
 
-  console.log("Token change =", token?.Role)
+  console.log('Token change =', token?.Role);
   const reduxCaseCloseType = useSelector((state) => state.screen.CloseType);
-
 
   const caseSubTypeRef = useRef(null);
   const caseTypeRef = useRef(null);
@@ -52,59 +51,48 @@ const BasicCase = ({ token }) => {
   // ✅ Close dropdown on outside click
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        caseSubTypeRef.current &&
-        !caseSubTypeRef.current.contains(event.target)
-      ) {
-        handleApplyFilter("CaseSubType");
+      if (caseSubTypeRef.current && !caseSubTypeRef.current.contains(event.target)) {
+        handleApplyFilter('CaseSubType');
         setCaseSubTypeFilter(false);
       }
-
 
       if (caseNumberRef.current && !caseNumberRef.current.contains(event.target)) {
         setCaseFilter(false);
       }
 
-      if (
-        caseTypeRef.current &&
-        !caseTypeRef.current.contains(event.target)
-      ) {
-        handleApplyFilter("CaseType");
+      if (caseTypeRef.current && !caseTypeRef.current.contains(event.target)) {
+        handleApplyFilter('CaseType');
         setCaseTypeFilter(false);
       }
     }
 
-    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showCaseSubTypeFilter, showCaseTypeFilter, showCaseFilter]);
-
 
   const { showLoading, showDataLoading, showSuccess, showError } = useAlert();
 
   const casesPerPage = 50; // Show 50 cases per page
   const [filters, setFilters] = useState({
-    status: [],       // Array of selected statuses
-    CaseType: [],     // Array of selected case types
-    CaseSubType: [],     // Array of selected case types
-    priority: [],     // Optional if you add it later
-    sortBy: "createdAt",
-    sortOrder: "desc",
+    status: [], // Array of selected statuses
+    CaseType: [], // Array of selected case types
+    CaseSubType: [], // Array of selected case types
+    priority: [], // Optional if you add it later
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
   });
 
   const [Subtypelist, setSubtypelist] = useState([]);
   const [CaseTypeList, setCaseTypeList] = useState([]);
   const [casetypeslistFilteroption, setcasetypeslistFilteroption] = useState([]);
 
-
-
   const [expanded, setExpanded] = useState(null); // track expanded row
   const [SubCasedropdownOpen, setSubCaseDropdownOpen] = useState(null);
 
-
   const toggleExpand = (id) => {
-    console.log("👉 toggleExpand called with:", id);
+    console.log('👉 toggleExpand called with:', id);
 
     if (!id) return; // agar id null/undefined hai to return kar do
     if (expanded === id) {
@@ -114,53 +102,49 @@ const BasicCase = ({ token }) => {
     }
   };
 
-
-
-
-
   useEffect(() => {
     // Add "" to include blank values as part of filter
     setFilters((prev) => ({
       ...prev,
-      CaseSubType: [...Subtypelist, ""],
-      CaseType: [...CaseTypeList, ""],
+      CaseSubType: [...Subtypelist, ''],
+      CaseType: [...CaseTypeList, ''],
     }));
   }, []);
 
   // console.log("_________Token:0", token.Role);
 
   const COURT_STAGES = [
-    "Pre-Litigation",
-    "Filing a Case",
-    "Initial Review",
-    "Evidence Submission",
-    "Hearings",
-    "Judgment",
-    "Appeals",
-    "Execution",
-    "Specialized Stages",
-    "Under Review",
-    "Cassation"
+    'Pre-Litigation',
+    'Filing a Case',
+    'Initial Review',
+    'Evidence Submission',
+    'Hearings',
+    'Judgment',
+    'Appeals',
+    'Execution',
+    'Specialized Stages',
+    'Under Review',
+    'Cassation',
   ];
 
   const UpdateSubtypelist = [
-    "Civil Law",
-    "Commercial Law",
-    "Criminal Law",
-    "Family Law",
-    "Real Estate Law",
-    "Labor Law",
-    "Construction Law",
-    "Maritime Law",
-    "Personal Injury Law", ,
-    "Technology Law",
-    "Financial Law",
-    "Public Law",
-    "Consumer Law",
-    "Environmental Law",
-    "Rental Law"
-  ]
-
+    'Civil Law',
+    'Commercial Law',
+    'Criminal Law',
+    'Family Law',
+    'Real Estate Law',
+    'Labor Law',
+    'Construction Law',
+    'Maritime Law',
+    'Personal Injury Law',
+    ,
+    'Technology Law',
+    'Financial Law',
+    'Public Law',
+    'Consumer Law',
+    'Environmental Law',
+    'Rental Law',
+  ];
 
   const dispatch = useDispatch();
 
@@ -173,25 +157,22 @@ const BasicCase = ({ token }) => {
     setLoaderOpen(true); // 🔄 Show loader before request
 
     try {
-      const response = await fetch(
-        "https://api.aws-legalgroup.com/Receive_Case_Number",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            SerialNumber: item["SerialNumber"],
-          }),
-        }
-      );
+      const response = await fetch('https://api.aws-legalgroup.com/Receive_Case_Number', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          SerialNumber: item['SerialNumber'],
+        }),
+      });
 
       const result = await response.json();
-      console.log("✅ Server response:", result);
+      console.log('✅ Server response:', result);
 
       return result;
     } catch (error) {
-      console.error("❌ Error:", error);
+      console.error('❌ Error:', error);
     } finally {
       setLoaderOpen(false); // ✅ Hide loader after response or error
     }
@@ -208,29 +189,25 @@ const BasicCase = ({ token }) => {
     setSelectedCase(caseinfo?._id);
     try {
       const response = await axios.put(`${ApiEndPoint}updateCaseStatus/${caseinfo?._id}`);
-      fetchCases()
-      console.log("Status updated:", response.data);
+      fetchCases();
+      console.log('Status updated:', response.data);
       // Optionally update UI or state here
     } catch (error) {
-      console.error("Error updating case status:", error.response?.data || error.message);
+      console.error('Error updating case status:', error.response?.data || error.message);
     }
     setcasedetails(caseinfo);
   };
 
-
   const mergeCaseWithCourt = async (oldCaseId, newCaseId) => {
-
     //  console.log(oldCaseId,"  oldCaseId   ",newCaseId)
     try {
-      const response = await axios.put(
-        `${ApiEndPoint}MergeCaseWithCourt/${oldCaseId}/${newCaseId}`
-      );
-      showSuccess("Merge Successfully")
-      fetchCases()
-      console.log("response.data of merge", response.data);
+      const response = await axios.put(`${ApiEndPoint}MergeCaseWithCourt/${oldCaseId}/${newCaseId}`);
+      showSuccess('Merge Successfully');
+      fetchCases();
+      console.log('response.data of merge', response.data);
     } catch (error) {
-      console.error("Error merging cases:", error);
-      showError("Error merging cases");
+      console.error('Error merging cases:', error);
+      showError('Error merging cases');
     }
   };
   const handleCloseModal = () => {
@@ -238,7 +215,7 @@ const BasicCase = ({ token }) => {
     setSelectedCase(null);
   };
   const [data, setData] = useState([]);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   // State to handle errors
   const [loading, setLoading] = useState(true); // State to handle loading
@@ -258,17 +235,16 @@ const BasicCase = ({ token }) => {
     setData(updatedData);
   };
 
-
   const handleClick = async (scr, item) => {
     // const newParams = { CaseId:item.CaseId };
     // dispatch(setParams(newParams));
-    console.log("item = ", item)
+    console.log('item = ', item);
     global.CaseId = item;
     dispatch(Caseinfo(item));
-    console.log("  global.CaseId ", item?._id);
-    localStorage.removeItem("redirectPath");
-    localStorage.removeItem("pendingCaseId");
-    localStorage.removeItem("pendingUserId");
+    console.log('  global.CaseId ', item?._id);
+    localStorage.removeItem('redirectPath');
+    localStorage.removeItem('pendingCaseId');
+    localStorage.removeItem('pendingUserId');
     dispatch(screenChange(1));
 
     await setcheck(!check);
@@ -326,10 +302,7 @@ const BasicCase = ({ token }) => {
   //   setCurrentPage(1); // Reset to first page when filter changes
   // };
 
-
   const handleFilterChange = async (filterType, value) => {
-
-
     // if (filterType === "CaseType") {
     //   try {
     //     const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/true`, {
@@ -345,18 +318,17 @@ const BasicCase = ({ token }) => {
     //   }
     // }
 
-
     setFilters((prevFilters) => {
       const currentValues = prevFilters[filterType] || [];
 
       // Handle "Select All"
-      if (value === "__SELECT_ALL__") {
+      if (value === '__SELECT_ALL__') {
         const fullList =
-          filterType === "CaseType"
-            ? [...CaseTypeList, ""] // include blank
-            : filterType === "CaseSubType"
-              ? [...Subtypelist, ""]
-              : [];
+          filterType === 'CaseType'
+            ? [...CaseTypeList, ''] // include blank
+            : filterType === 'CaseSubType'
+            ? [...Subtypelist, '']
+            : [];
 
         return {
           ...prevFilters,
@@ -367,7 +339,7 @@ const BasicCase = ({ token }) => {
       // Toggle individual value (including blank "")
       const updatedValues = currentValues.includes(value)
         ? currentValues.filter((v) => v !== value) // remove if selected
-        : [...currentValues, value];              // add if not selected
+        : [...currentValues, value]; // add if not selected
 
       return {
         ...prevFilters,
@@ -375,53 +347,38 @@ const BasicCase = ({ token }) => {
       };
     });
 
-
-
-
     setCurrentPage(1); // reset to page 1 when filter changes
   };
 
-
-
   const handleApplyFilter = async (filterType) => {
-    console.log("Apply filter for:", filterType);
+    console.log('Apply filter for:', filterType);
     // You can add custom logic here like closing the dropdown or calling API
-    if (filterType === "CaseSubType") {
-
+    if (filterType === 'CaseSubType') {
       try {
         const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/false`, {
           caseTypes: filters?.CaseSubType,
         });
 
         // ✅ Update Subtypelist (used in UI)
-        console.log("response.data.subTypes = ", response.data.subTypes)
+        console.log('response.data.subTypes = ', response.data.subTypes);
         await setCaseTypeList(response.data.subTypes || []);
-
-
-
-
       } catch (error) {
-
         setCaseSubTypeFilter(false); // close dropdown
       }
-
-    }
-    else if (filterType === "CaseType") {
+    } else if (filterType === 'CaseType') {
       try {
         const response = await axios.post(`${ApiEndPoint}getCaseSubTypesorCaseTypes/true`, {
           caseTypes: filters?.CaseType,
         });
 
         // ✅ Update Subtypelist (used in UI)
-        console.log("response.data.subTypes = ", response.data.subTypes)
+        console.log('response.data.subTypes = ', response.data.subTypes);
         await setSubtypelist(response.data.subTypes || []);
       } catch (error) {
-
         setCaseTypeFilter(false); // close dropdown
       }
     }
   };
-
 
   // const getFilteredCases = () => {
   //   let filteredCases = data;
@@ -486,7 +443,6 @@ const BasicCase = ({ token }) => {
 
   //   return filteredCases;
   // };
-
 
   // const getFilteredCases = () => {
   //   let filteredCases = data;
@@ -568,8 +524,7 @@ const BasicCase = ({ token }) => {
 
     // 🔒 Agar CaseType ya CaseSubType filter empty ho to kuch bhi na dikhaye
     const hasEmptyFilter =
-      (filters.CaseType && filters.CaseType.length === 0) ||
-      (filters.CaseSubType && filters.CaseSubType.length === 0);
+      (filters.CaseType && filters.CaseType.length === 0) || (filters.CaseSubType && filters.CaseSubType.length === 0);
 
     if (hasEmptyFilter) return [];
 
@@ -582,14 +537,14 @@ const BasicCase = ({ token }) => {
 
         // headerCase check
         const headerMatch = Object.entries(header).some(([key, value]) => {
-          if (typeof value !== "string") return false;
+          if (typeof value !== 'string') return false;
           return value.toLowerCase().includes(query);
         });
 
         // subcases check
         const subcaseMatch = subcases.some((sub) =>
           Object.entries(sub).some(([key, value]) => {
-            if (typeof value !== "string") return false;
+            if (typeof value !== 'string') return false;
             return value.toLowerCase().includes(query);
           })
         );
@@ -601,23 +556,19 @@ const BasicCase = ({ token }) => {
     // 📂 Filter by CaseType (headerCase + subcases)
     if (filters.CaseType && filters.CaseType.length > 0) {
       filteredCases = filteredCases.filter((item) => {
-        const headerType = item.headerCase?.CaseType || "";
-        const subTypes = item.subcases.map((s) => s.CaseType || "");
-        return (
-          filters.CaseType.includes(headerType) ||
-          subTypes.some((st) => filters.CaseType.includes(st))
-        );
+        const headerType = item.headerCase?.CaseType || '';
+        const subTypes = item.subcases.map((s) => s.CaseType || '');
+        return filters.CaseType.includes(headerType) || subTypes.some((st) => filters.CaseType.includes(st));
       });
     }
 
     // 📂 Filter by CaseSubType (headerCase + subcases)
     if (filters.CaseSubType && filters.CaseSubType.length > 0) {
       filteredCases = filteredCases.filter((item) => {
-        const headerSubType = item.headerCase?.CaseSubType || "";
-        const subSubTypes = item.subcases.map((s) => s.CaseSubType || "");
+        const headerSubType = item.headerCase?.CaseSubType || '';
+        const subSubTypes = item.subcases.map((s) => s.CaseSubType || '');
         return (
-          filters.CaseSubType.includes(headerSubType) ||
-          subSubTypes.some((sst) => filters.CaseSubType.includes(sst))
+          filters.CaseSubType.includes(headerSubType) || subSubTypes.some((sst) => filters.CaseSubType.includes(sst))
         );
       });
     }
@@ -630,26 +581,16 @@ const BasicCase = ({ token }) => {
 
         if (aVal == null || bVal == null) return 0;
 
-        if (typeof aVal === "string" && typeof bVal === "string") {
-          return filters.sortOrder === "asc"
-            ? aVal.localeCompare(bVal)
-            : bVal.localeCompare(aVal);
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return filters.sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
         }
 
-        return filters.sortOrder === "asc"
-          ? aVal > bVal
-            ? 1
-            : -1
-          : aVal < bVal
-            ? 1
-            : -1;
+        return filters.sortOrder === 'asc' ? (aVal > bVal ? 1 : -1) : aVal < bVal ? 1 : -1;
       });
     }
 
     return filteredCases;
   };
-
-
 
   const getCurrentPageData = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
@@ -681,34 +622,26 @@ const BasicCase = ({ token }) => {
       const allCases = response.data.data;
       let filteredCases = [];
 
-      console.log("reduxCaseCloseType=", reduxCaseCloseType);
+      console.log('reduxCaseCloseType=', reduxCaseCloseType);
 
-      if (token.Role?.toLowerCase() === "client") {
+      if (token.Role?.toLowerCase() === 'client') {
         // Show only client's own cases
         filteredCases = allCases.filter(
-          (caseItem) =>
-            caseItem.ClientId === token?._id &&
-            caseItem.CloseType === reduxCaseCloseType
+          (caseItem) => caseItem.ClientId === token?._id && caseItem.CloseType === reduxCaseCloseType
         );
-      } else if (token.Role?.toLowerCase() === "admin") {
+      } else if (token.Role?.toLowerCase() === 'admin') {
         // Admin sees all cases
-        filteredCases = allCases.filter(
-          (caseItem) => caseItem.CloseType === reduxCaseCloseType
-        );
+        filteredCases = allCases.filter((caseItem) => caseItem.CloseType === reduxCaseCloseType);
       } else {
         // Legal users: show only assigned cases
         filteredCases = allCases.filter((caseItem) =>
           caseItem.AssignedUsers?.some(
-            (user) =>
-              user.UserId?.toString() === token._id?.toString() &&
-              caseItem.CloseType === reduxCaseCloseType
+            (user) => user.UserId?.toString() === token._id?.toString() && caseItem.CloseType === reduxCaseCloseType
           )
         );
       }
 
-
-
-      console.log(" filterCase =", filteredCases)
+      console.log(' filterCase =', filteredCases);
       // 🔹 Grouping logic: {header: clientName/id, subcases:[cases]}
       // const groupedCases = Object.values(
       //   filteredCases.reduce((acc, caseItem) => {
@@ -737,14 +670,13 @@ const BasicCase = ({ token }) => {
       //   }, {})
       // );
 
-
       const groupedCases = Object.values(
         filteredCases
           // 🔹 Step 1: sort pehle hi kar lo → latest first
           .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
           .reduce((acc, caseItem) => {
             const clientId = caseItem.ClientId;
-            const header = caseItem.ClientName || clientId || "Unknown Client";
+            const header = caseItem.ClientName || clientId || 'Unknown Client';
 
             if (!clientId) {
               // Agar ClientId hi nahi hai → har case ek independent header
@@ -773,16 +705,13 @@ const BasicCase = ({ token }) => {
         group.subcases.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       });
 
-      console.log("Group Cases = ", groupedCases)
+      console.log('Group Cases = ', groupedCases);
       await setData(groupedCases);
       showDataLoading(false);
     } catch (err) {
       setError(err.message);
       showDataLoading(false);
     }
-
-
-
 
     // for filter
     try {
@@ -798,11 +727,10 @@ const BasicCase = ({ token }) => {
       await setcasetypeslistFilteroption(filtercasetypeslist);
       await setCaseTypeList(filtercasetype);
 
-
       setFilters((prev) => ({
         ...prev,
-        CaseSubType: [...filtercasesubtype, ""],
-        CaseType: [...filtercasetype, ""],
+        CaseSubType: [...filtercasesubtype, ''],
+        CaseType: [...filtercasetype, ''],
       }));
       showDataLoading(false);
     } catch (err) {
@@ -811,68 +739,57 @@ const BasicCase = ({ token }) => {
     }
   };
 
-
-
-
   const updateCaseStage = async (caseId, newStage) => {
     try {
       const response = await axios.put(`${ApiEndPoint}updateCaseStage/${caseId}/${newStage}`);
 
-      console.log("Update successful:", response.data);
+      console.log('Update successful:', response.data);
       return response.data;
     } catch (error) {
-      console.error("Error updating case stage:", error.response?.data || error.message);
+      console.error('Error updating case stage:', error.response?.data || error.message);
     }
   };
 
-
-
   const updateCaseTypeAndFolder = async (caseId, newCaseType) => {
     try {
-      showLoading()
-      const response = await axios.post(
-        `${ApiEndPoint}updateCaseTypeAndFolder/${caseId}/${newCaseType}`
-      );
-      fetchCases()
-      showSuccess("✅ Success:", response.data.message);
-      console.log("🔄 Updated Folder Name:", response.data.updatedFolderName);
+      showLoading();
+      const response = await axios.post(`${ApiEndPoint}updateCaseTypeAndFolder/${caseId}/${newCaseType}`);
+      fetchCases();
+      showSuccess('✅ Success:', response.data.message);
+      console.log('🔄 Updated Folder Name:', response.data.updatedFolderName);
     } catch (error) {
-      console.log("error", error?.response?.data?.message)
+      console.log('error', error?.response?.data?.message);
       showError(`❌ Error: ${error?.response?.data?.message}`);
     }
   };
   const updateCaseSubTypeAndFolder = async (caseId, newCaseType) => {
     try {
-      showLoading()
-      const response = await axios.post(
-        `${ApiEndPoint}updateCaseSubType/${caseId}/${newCaseType}`
-      );
-      fetchCases()
-      showSuccess("✅ Success:", response.data.message);
-      console.log("🔄 Updated CaseType:", response.data.Case);
+      showLoading();
+      const response = await axios.post(`${ApiEndPoint}updateCaseSubType/${caseId}/${newCaseType}`);
+      fetchCases();
+      showSuccess('✅ Success:', response.data.message);
+      console.log('🔄 Updated CaseType:', response.data.Case);
     } catch (error) {
-      console.log("error", error?.response?.data?.message)
+      console.log('error', error?.response?.data?.message);
       showError(`❌ Error: ${error?.response?.data?.message}`);
     }
   };
   const updateCaseCloseType = async (caseId, newCaseCloseType) => {
     try {
-      console.log("caseId", caseId)
-      showLoading()
-      const response = await axios.put(
-        `${ApiEndPoint}updateCloseType/${caseId}/${newCaseCloseType}`
-      );
-      fetchCases()
-      showSuccess("✅ Success:", response.data.message);
-      console.log("🔄 Updated CaseType:", response.data.Case);
+      console.log('caseId', caseId);
+      showLoading();
+      const response = await axios.put(`${ApiEndPoint}updateCloseType/${caseId}/${newCaseCloseType}`);
+      fetchCases();
+      showSuccess('✅ Success:', response.data.message);
+      console.log('🔄 Updated CaseType:', response.data.Case);
     } catch (error) {
-      console.log("error", error?.response?.data?.message)
+      console.log('error', error?.response?.data?.message);
       showError(`❌ Error: ${error?.response?.data?.message}`);
     }
   };
 
   useEffect(() => {
-    console.log("Token received in useEffect:", token);
+    console.log('Token received in useEffect:', token);
     if (token && token?._id && token.Role) {
       fetchCases();
     }
@@ -1211,59 +1128,47 @@ const BasicCase = ({ token }) => {
   //   </div>
   // );
 
-
   // Allowed transitions
-
-
 
   const handleNoteBlur = async (id, value) => {
     try {
       // optional: skip if value is unchanged or empty
-      if (value.trim() === "") return;
+      if (value.trim() === '') return;
 
-      console.log("value= ", value)
+      console.log('value= ', value);
       const res = await fetch(`${ApiEndPoint}updatePurpose/${id}/notes`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: value }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        console.log("Notes updated:", data);
+        console.log('Notes updated:', data);
       } else {
-        console.error("Error:", data.message);
+        console.error('Error:', data.message);
       }
     } catch (err) {
-      console.error("Server error:", err);
+      console.error('Server error:', err);
     }
   };
 
-
-
-  const allowedTransitions = [
-    "Consultation->Non-Litigation",
-    "Consultation->Litigation",
-    "Non-Litigation->Litigation",
-  ];
+  const allowedTransitions = ['Consultation->Non-Litigation', 'Consultation->Litigation', 'Non-Litigation->Litigation'];
 
   return (
     <div className="container-fluid p-0 mb-1 d-flex justify-content-center">
-
-
-
       <div
         className="card shadow p-2"
         style={{
-          height: "86vh",
+          height: '86vh',
           // overflowY: "auto",
           maxWidth: '86vw',
           // minWidth:"50px",
-          width: "86vw"
+          width: '86vw',
         }}
       >
-        <div className="row mb-3 g-2 align-items-center px-2" >
+        <div className="row mb-3 g-2 align-items-center px-2">
           <div className="">
             <input
               type="text"
@@ -1274,40 +1179,53 @@ const BasicCase = ({ token }) => {
             />
           </div>
         </div>
-        <div className="card shadow " style={{ overflowX: "auto", scrollbarWidth: 'thin', scrollbarColor: "#c0a262 #f1f1f1", maxWidth: "100%", width: "100%", minHeight: "76vh", minWidth: "150px" }}>
-
-          <div style={{ minWidth: "max-content" }}>
+        <div
+          className="card shadow "
+          style={{
+            overflowX: 'auto',
+            scrollbarWidth: 'thin',
+            scrollbarColor: '#c0a262 #f1f1f1',
+            maxWidth: '100%',
+            width: '100%',
+            minHeight: '76vh',
+            minWidth: '150px',
+          }}
+        >
+          <div style={{ minWidth: 'max-content' }}>
             <div
               className="d-none d-md-flex justify-content-between align-items-center gap-2 p-3 border-bottom"
               style={{
-                backgroundColor: "#18273e",
-                color: "white",
-                position: "sticky",
+                backgroundColor: '#18273e',
+                color: 'white',
+                position: 'sticky',
                 top: 0,
                 zIndex: 10,
               }}
             >
-
-              <span className="d-flex gap-2 text-start"
+              <span
+                className="d-flex gap-2 text-start"
                 style={{
-                  maxWidth: "180px",
-                  minWidth: "180px",
-                  position: "sticky",
+                  maxWidth: '180px',
+                  minWidth: '180px',
+                  position: 'sticky',
                   left: 0,
                   paddingLeft: 20,
                   height: 35,
                   // marginBottom:10,
                   zIndex: 2,
-                  background: "#18273e",
-                }}>
-                ClientName</span>
+                  background: '#18273e',
+                }}
+              >
+                ClientName
+              </span>
               {/* CASE NUMBER Filter */}
               <span
                 ref={caseNumberRef}
-                className="d-flex gap-2 text-start" style={{
+                className="d-flex gap-2 text-start"
+                style={{
                   maxWidth: '150px',
                   minWidth: '150px',
-                  color: 'white'
+                  color: 'white',
                 }}
               >
                 Case Number
@@ -1323,8 +1241,8 @@ const BasicCase = ({ token }) => {
                   >
                     <FontAwesomeIcon icon={faFilter} />
                   </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ maxHeight: "200px", overflowY: "auto" }}>
-                    {["asc", "desc"].map((order) => (
+                  <Dropdown.Menu style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {['asc', 'desc'].map((order) => (
                       <Dropdown.Item
                         key={order}
                         onClick={(e) => {
@@ -1333,40 +1251,35 @@ const BasicCase = ({ token }) => {
                           setCaseFilter(false); // ✅ close on selection
                         }}
                       >
-                        {order === "asc" ? "Ascending" : "Descending"}
+                        {order === 'asc' ? 'Ascending' : 'Descending'}
                       </Dropdown.Item>
                     ))}
                   </Dropdown.Menu>
                 </Dropdown>
               </span>
 
-
               {/* REQUEST NUMBER Headings */}
 
-
-              <span className=" text-start" style={{
-                maxWidth: '150px',
-                height: 33,
-                minWidth: '150px',
-                color: 'white'
-              }}>Request Number</span>
-
-
-
-
-
+              <span
+                className=" text-start"
+                style={{
+                  maxWidth: '150px',
+                  height: 33,
+                  minWidth: '150px',
+                  color: 'white',
+                }}
+              >
+                Request Number
+              </span>
 
               {/* CASE TYPE Filter */}
               <span
                 ref={caseTypeRef}
                 className="d-flex gap-2 text-start"
-                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+                style={{ maxWidth: '200px', minWidth: '200px', color: 'white' }}
               >
                 Type of Service
-                <Dropdown
-                  show={showCaseTypeFilter}
-                  onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}
-                >
+                <Dropdown show={showCaseTypeFilter} onToggle={() => setCaseTypeFilter(!showCaseTypeFilter)}>
                   <Dropdown.Toggle
                     variant=""
                     size="sm"
@@ -1383,18 +1296,18 @@ const BasicCase = ({ token }) => {
                       style={{
                         color:
                           filters.CaseType &&
-                            filters.CaseType.length > 0 &&
-                            filters.CaseType.length <= CaseTypeList.length
-                            ? "red"
-                            : "white",
+                          filters.CaseType.length > 0 &&
+                          filters.CaseType.length <= CaseTypeList.length
+                            ? 'red'
+                            : 'white',
                       }}
                     />
                   </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                  <Dropdown.Menu style={{ maxHeight: '250px', overflowY: 'auto' }}>
                     <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseType", "__SELECT_ALL__");
+                        handleFilterChange('CaseType', '__SELECT_ALL__');
                       }}
                     >
                       Select All
@@ -1412,18 +1325,18 @@ const BasicCase = ({ token }) => {
                     <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseType", "");
+                        handleFilterChange('CaseType', '');
                       }}
                       style={{
-                        backgroundColor: filters.CaseType.includes("") ? "" : "",
-                        color: "white",
+                        backgroundColor: filters.CaseType.includes('') ? '' : '',
+                        color: 'white',
                       }}
                     >
                       <Form.Check
                         type="checkbox"
                         label="(Blank)"
-                        checked={filters.CaseType.includes("")}
-                        onChange={() => { }}
+                        checked={filters.CaseType.includes('')}
+                        onChange={() => {}}
                       />
                     </Dropdown.Item>
 
@@ -1433,18 +1346,18 @@ const BasicCase = ({ token }) => {
                         key={type}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFilterChange("CaseType", type);
+                          handleFilterChange('CaseType', type);
                         }}
                         style={{
-                          backgroundColor: filters.CaseType.includes(type) ? "" : "",
-                          color: "white",
+                          backgroundColor: filters.CaseType.includes(type) ? '' : '',
+                          color: 'white',
                         }}
                       >
                         <Form.Check
                           type="checkbox"
                           label={type}
                           checked={filters.CaseType.includes(type)}
-                          onChange={() => { }}
+                          onChange={() => {}}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1454,17 +1367,17 @@ const BasicCase = ({ token }) => {
                       <div
                         role="button"
                         style={{
-                          padding: "4px 12px",
-                          border: "1px solid #18273e",
-                          borderRadius: "4px",
-                          color: "white",
-                          backgroundColor: "#18273e",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                          display: "inline-block",
+                          padding: '4px 12px',
+                          border: '1px solid #18273e',
+                          borderRadius: '4px',
+                          color: 'white',
+                          backgroundColor: '#18273e',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          display: 'inline-block',
                         }}
                         onClick={() => {
-                          handleApplyFilter("CaseType");
+                          handleApplyFilter('CaseType');
                           setCaseTypeFilter(false);
                         }}
                       >
@@ -1479,13 +1392,10 @@ const BasicCase = ({ token }) => {
               <span
                 ref={caseSubTypeRef}
                 className="d-flex gap-2 text-start"
-                style={{ maxWidth: "200px", minWidth: "200px", color: "white" }}
+                style={{ maxWidth: '200px', minWidth: '200px', color: 'white' }}
               >
                 Service Type
-                <Dropdown
-                  show={showCaseSubTypeFilter}
-                  onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}
-                >
+                <Dropdown show={showCaseSubTypeFilter} onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}>
                   <Dropdown.Toggle
                     variant=""
                     size="sm"
@@ -1502,18 +1412,18 @@ const BasicCase = ({ token }) => {
                       style={{
                         color:
                           filters.CaseSubType &&
-                            filters.CaseSubType.length > 0 &&
-                            filters.CaseSubType.length <= Subtypelist.length
-                            ? "red" // kuch select hain lekin sab nahi
-                            : "white",
+                          filters.CaseSubType.length > 0 &&
+                          filters.CaseSubType.length <= Subtypelist.length
+                            ? 'red' // kuch select hain lekin sab nahi
+                            : 'white',
                       }}
                     />
                   </Dropdown.Toggle>
-                  <Dropdown.Menu style={{ maxHeight: "250px", overflowY: "auto" }}>
+                  <Dropdown.Menu style={{ maxHeight: '250px', overflowY: 'auto' }}>
                     <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseSubType", "__SELECT_ALL__");
+                        handleFilterChange('CaseSubType', '__SELECT_ALL__');
                       }}
                     >
                       Select All
@@ -1531,18 +1441,18 @@ const BasicCase = ({ token }) => {
                     <Dropdown.Item
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleFilterChange("CaseSubType", "");
+                        handleFilterChange('CaseSubType', '');
                       }}
                       style={{
-                        backgroundColor: filters.CaseSubType.includes("") ? "" : "",
-                        color: "white",
+                        backgroundColor: filters.CaseSubType.includes('') ? '' : '',
+                        color: 'white',
                       }}
                     >
                       <Form.Check
                         type="checkbox"
                         label="(Blank)"
-                        checked={filters.CaseSubType.includes("")}
-                        onChange={() => { }}
+                        checked={filters.CaseSubType.includes('')}
+                        onChange={() => {}}
                       />
                     </Dropdown.Item>
 
@@ -1552,18 +1462,18 @@ const BasicCase = ({ token }) => {
                         key={type}
                         onClick={(e) => {
                           e.stopPropagation();
-                          handleFilterChange("CaseSubType", type);
+                          handleFilterChange('CaseSubType', type);
                         }}
                         style={{
-                          backgroundColor: filters.CaseSubType.includes(type) ? "" : "",
-                          color: "white",
+                          backgroundColor: filters.CaseSubType.includes(type) ? '' : '',
+                          color: 'white',
                         }}
                       >
                         <Form.Check
                           type="checkbox"
                           label={type}
                           checked={filters.CaseSubType.includes(type)}
-                          onChange={() => { }}
+                          onChange={() => {}}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1573,17 +1483,17 @@ const BasicCase = ({ token }) => {
                       <div
                         role="button"
                         style={{
-                          padding: "4px 12px",
-                          border: "1px solid #18273e",
-                          borderRadius: "4px",
-                          color: "white",
-                          backgroundColor: "#18273e",
-                          fontSize: "14px",
-                          cursor: "pointer",
-                          display: "inline-block",
+                          padding: '4px 12px',
+                          border: '1px solid #18273e',
+                          borderRadius: '4px',
+                          color: 'white',
+                          backgroundColor: '#18273e',
+                          fontSize: '14px',
+                          cursor: 'pointer',
+                          display: 'inline-block',
                         }}
                         onClick={() => {
-                          handleApplyFilter("CaseSubType");
+                          handleApplyFilter('CaseSubType');
                           setCaseSubTypeFilter(false);
                         }}
                       >
@@ -1594,7 +1504,6 @@ const BasicCase = ({ token }) => {
                 </Dropdown>
               </span>
 
-
               {/* LFQ Heading */}
               {/* <span className=" text-start" style={{
                 maxWidth: '200px',
@@ -1603,38 +1512,56 @@ const BasicCase = ({ token }) => {
                 color: 'white'
               }}>Legal Fee Quatation</span> */}
 
-
-
               {/* service sub type */}
-              <span className=" text-start" style={{
-                maxWidth: '200px',
-                minWidth: '200px',
-                height: 33,
-                color: 'white'
-              }}>Service Sub Type</span>
+              <span
+                className=" text-start"
+                style={{
+                  maxWidth: '200px',
+                  minWidth: '200px',
+                  height: 33,
+                  color: 'white',
+                }}
+              >
+                Service Sub Type
+              </span>
               {/* LFA Heading */}
-              <span className=" text-start" style={{
-                maxWidth: '200px',
-                minWidth: '200px',
-                height: 33,
-                color: 'white'
-              }}>Legal Fee Agreement</span>
+              <span
+                className=" text-start"
+                style={{
+                  maxWidth: '200px',
+                  minWidth: '200px',
+                  height: 33,
+                  color: 'white',
+                }}
+              >
+                Legal Fee Agreement
+              </span>
               {/* PURPOSE Heading */}
-              <span className=" text-start" style={{
-                maxWidth: '250px',
-                minWidth: '250px',
-                height: 33,
-                color: 'white'
-              }}>Purpose</span>
+              <span
+                className=" text-start"
+                style={{
+                  maxWidth: '250px',
+                  minWidth: '250px',
+                  height: 33,
+                  color: 'white',
+                }}
+              >
+                Purpose
+              </span>
 
               {/* ACTION Heading */}
-              <span className=" text-end" style={{
-                maxWidth: '100px',
-                minWidth: '100px',
-                height: 33,
+              <span
+                className=" text-end"
+                style={{
+                  maxWidth: '100px',
+                  minWidth: '100px',
+                  height: 33,
 
-                color: 'white'
-              }}>Action</span>
+                  color: 'white',
+                }}
+              >
+                Action
+              </span>
             </div>
 
             {[
@@ -1647,10 +1574,10 @@ const BasicCase = ({ token }) => {
                     <div
                       className="d-md-none p-2"
                       style={{
-                        maxWidth: "100%",
-                        maxHeight: "83vh",
-                        overflowY: "auto",
-                        overflowX: "hidden",
+                        maxWidth: '100%',
+                        maxHeight: '83vh',
+                        overflowY: 'auto',
+                        overflowX: 'hidden',
                       }}
                     >
                       {/* Header with dropdown and case info */}
@@ -1659,30 +1586,26 @@ const BasicCase = ({ token }) => {
                         <div className="me-2 flex-shrink-0">
                           <Dropdown
                             show={dropdownOpen === item?.headerCase?._id}
-                            onToggle={(isOpen) =>
-                              setDropdownOpen(isOpen ? item?.headerCase?._id : null)
-                            }
+                            onToggle={(isOpen) => setDropdownOpen(isOpen ? item?.headerCase?._id : null)}
                           >
                             <Dropdown.Toggle
                               variant=""
                               size="sm"
                               className="custom-dropdown-toggle"
                               style={{
-                                minWidth: "36px",
-                                minHeight: "36px",
+                                minWidth: '36px',
+                                minHeight: '36px',
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setDropdownOpen(
-                                  dropdownOpen === item?.headerCase?._id ? null : item?.headerCase?._id
-                                );
+                                setDropdownOpen(dropdownOpen === item?.headerCase?._id ? null : item?.headerCase?._id);
                               }}
                             >
                               <i className=" fa-ellipsis-v"></i>
                             </Dropdown.Toggle>
 
                             <Dropdown.Menu>
-                              {token.Role === "admin" && reduxCaseCloseType === "" && (
+                              {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                 <>
                                   <Dropdown.Item
                                     onClick={(event) => {
@@ -1701,7 +1624,7 @@ const BasicCase = ({ token }) => {
                                         const response = await updateFunction(item?.headerCase);
                                         if (response?.success) setLoaderOpen(false);
                                       } catch (err) {
-                                        console.error("Update failed", err);
+                                        console.error('Update failed', err);
                                         setLoaderOpen(false);
                                       }
                                     }}
@@ -1736,7 +1659,7 @@ const BasicCase = ({ token }) => {
                                       setShowCaseType(true);
                                     }}
                                   >
-                                    {item?.headerCase?.CaseType ? "Update" : "Add"} Type of Service
+                                    {item?.headerCase?.CaseType ? 'Update' : 'Add'} Type of Service
                                   </Dropdown.Item>
 
                                   <Dropdown.Item
@@ -1746,7 +1669,7 @@ const BasicCase = ({ token }) => {
                                       setShowSubCaseType(true);
                                     }}
                                   >
-                                    {item?.headerCase?.CaseSubType ? "Update" : "Add"} Service Type
+                                    {item?.headerCase?.CaseSubType ? 'Update' : 'Add'} Service Type
                                   </Dropdown.Item>
 
                                   <Dropdown.Item
@@ -1765,8 +1688,6 @@ const BasicCase = ({ token }) => {
                             </Dropdown.Menu>
                           </Dropdown>
                         </div>
-
-
                       </div>
 
                       {/* Additional Case Details */}
@@ -1780,12 +1701,12 @@ const BasicCase = ({ token }) => {
                               <span
                                 className="fw-medium text-break"
                                 style={{
-                                  display: "block",           // ensures wrapping works
-                                  whiteSpace: "normal",       // allows text to wrap
-                                  width: "30vw",
-                                  overflowWrap: "break-word", // handles long words
-                                  wordBreak: "break-word",    // extra safety
-                                  fontSize: "0.9rem",         // smaller font for mobile
+                                  display: 'block', // ensures wrapping works
+                                  whiteSpace: 'normal', // allows text to wrap
+                                  width: '30vw',
+                                  overflowWrap: 'break-word', // handles long words
+                                  wordBreak: 'break-word', // extra safety
+                                  fontSize: '0.9rem', // smaller font for mobile
                                   // lineHeight: "1.3",          // better readability
                                 }}
                               >
@@ -1799,12 +1720,12 @@ const BasicCase = ({ token }) => {
                               <span
                                 className="fw-medium text-break"
                                 style={{
-                                  display: "block",           // ensures wrapping works
-                                  whiteSpace: "normal",       // allows text to wrap
-                                  width: "30vw",
-                                  overflowWrap: "break-word", // handles long words
-                                  wordBreak: "break-word",    // extra safety
-                                  fontSize: "0.9rem",         // smaller font for mobile
+                                  display: 'block', // ensures wrapping works
+                                  whiteSpace: 'normal', // allows text to wrap
+                                  width: '30vw',
+                                  overflowWrap: 'break-word', // handles long words
+                                  wordBreak: 'break-word', // extra safety
+                                  fontSize: '0.9rem', // smaller font for mobile
                                   // lineHeight: "1.3",          // better readability
                                 }}
                               >
@@ -1816,14 +1737,15 @@ const BasicCase = ({ token }) => {
                         {/* SERIAL NUMBER */}
                         <div className="d-flex flex-row gap-1">
                           <span className="text-muted small">Request # </span>
-                          <span className="fw-medium text-break"
+                          <span
+                            className="fw-medium text-break"
                             style={{
-                              display: "block",           // ensures wrapping works
-                              whiteSpace: "normal",       // allows text to wrap
-                              width: "30vw",
-                              overflowWrap: "break-word", // handles long words
-                              wordBreak: "break-word",    // extra safety
-                              fontSize: "0.9rem",         // smaller font for mobile
+                              display: 'block', // ensures wrapping works
+                              whiteSpace: 'normal', // allows text to wrap
+                              width: '30vw',
+                              overflowWrap: 'break-word', // handles long words
+                              wordBreak: 'break-word', // extra safety
+                              fontSize: '0.9rem', // smaller font for mobile
                               // lineHeight: "1.3",          // better readability
                             }}
                           >
@@ -1837,15 +1759,16 @@ const BasicCase = ({ token }) => {
                           <span
                             className="fw-medium text-break"
                             style={{
-                              display: "block",           // ensures wrapping works
-                              whiteSpace: "normal",       // allows text to wrap
-                              width: "30vw",
-                              overflowWrap: "break-word", // handles long words
-                              wordBreak: "break-word",    // extra safety
-                              fontSize: "0.9rem",         // smaller font for mobile
+                              display: 'block', // ensures wrapping works
+                              whiteSpace: 'normal', // allows text to wrap
+                              width: '30vw',
+                              overflowWrap: 'break-word', // handles long words
+                              wordBreak: 'break-word', // extra safety
+                              fontSize: '0.9rem', // smaller font for mobile
                               // lineHeight: "1.3",          // better readability
-                            }}>
-                            {item?.headerCase?.CaseType || "N/A"}
+                            }}
+                          >
+                            {item?.headerCase?.CaseType || 'N/A'}
                           </span>
                         </div>
 
@@ -1855,15 +1778,16 @@ const BasicCase = ({ token }) => {
                           <span
                             className="fw-medium text-break"
                             style={{
-                              display: "block",           // ensures wrapping works
-                              whiteSpace: "normal",       // allows text to wrap
-                              width: "30vw",
-                              overflowWrap: "break-word", // handles long words
-                              wordBreak: "break-word",    // extra safety
-                              fontSize: "0.9rem",         // smaller font for mobile
+                              display: 'block', // ensures wrapping works
+                              whiteSpace: 'normal', // allows text to wrap
+                              width: '30vw',
+                              overflowWrap: 'break-word', // handles long words
+                              wordBreak: 'break-word', // extra safety
+                              fontSize: '0.9rem', // smaller font for mobile
                               // lineHeight: "1.3",          // better readability
                             }}
-                          >{item?.headerCase?.CaseSubType || "N/A"}
+                          >
+                            {item?.headerCase?.CaseSubType || 'N/A'}
                           </span>
                         </div>
 
@@ -1873,33 +1797,32 @@ const BasicCase = ({ token }) => {
                           <span
                             className="fw-medium text-break"
                             style={{
-                              display: "block",           // ensures wrapping works
-                              whiteSpace: "normal",       // allows text to wrap
-                              width: "30vw",
-                              overflowWrap: "break-word", // handles long words
-                              wordBreak: "break-word",    // extra safety
-                              fontSize: "0.9rem",         // smaller font for mobile
+                              display: 'block', // ensures wrapping works
+                              whiteSpace: 'normal', // allows text to wrap
+                              width: '30vw',
+                              overflowWrap: 'break-word', // handles long words
+                              wordBreak: 'break-word', // extra safety
+                              fontSize: '0.9rem', // smaller font for mobile
                               // lineHeight: "1.3",          // better readability
                             }}
                           >
-                            {item?.headerCase?.ServiceSubType || "N/A"}
+                            {item?.headerCase?.ServiceSubType || 'N/A'}
                           </span>
                         </div>
 
                         {/* LFA */}
                         {item?.headerCase?.IsLFA && (
                           <div
-
                             className="fw-medium text-break text-primary text-decoration-underline"
                             style={{
-                              display: "block",           // ensures wrapping works
-                              whiteSpace: "normal",       // allows text to wrap
-                              width: "40vw",
-                              overflowWrap: "break-word", // handles long words
-                              wordBreak: "break-word",    // extra safety
-                              fontSize: "0.9rem",         // smaller font for mobile
-                              lineHeight: "1.3",          // better readability
-                              cursor: "pointer"
+                              display: 'block', // ensures wrapping works
+                              whiteSpace: 'normal', // allows text to wrap
+                              width: '40vw',
+                              overflowWrap: 'break-word', // handles long words
+                              wordBreak: 'break-word', // extra safety
+                              fontSize: '0.9rem', // smaller font for mobile
+                              lineHeight: '1.3', // better readability
+                              cursor: 'pointer',
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
@@ -1918,47 +1841,44 @@ const BasicCase = ({ token }) => {
                         <textarea
                           className="form-control text-wrap"
                           rows="2"
-                          value={item?.headerCase?.notes || item?.notes || ""}
+                          value={item?.headerCase?.notes || item?.notes || ''}
                           onChange={(e) => handleEdit(item?.headerCase, e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                           onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
                           style={{
-                            resize: "vertical",           // allow resize on larger screens
-                            minHeight: "30px",            // good base height
-                            width: "100%",                // full width responsiveness
-                            minWidth: "20px",            // safe min width for tiny screens
-                            wordWrap: "break-word",       // wrap long text
-                            overflowWrap: "break-word",   // ensure wrapping
+                            resize: 'vertical', // allow resize on larger screens
+                            minHeight: '30px', // good base height
+                            width: '100%', // full width responsiveness
+                            minWidth: '20px', // safe min width for tiny screens
+                            wordWrap: 'break-word', // wrap long text
+                            overflowWrap: 'break-word', // ensure wrapping
                             // fontSize: "0.9rem",           // smaller font for mobile readability
                           }}
                         />
                       </div>
-
 
                       {/* BUTTON TO TOGGLE SUBCASES */}
                       {item?.subcases?.length > 0 && (
                         <button
                           className=""
                           style={{
-                            backgroundColor: "#16213e",
-                            color: "white",
-                            width: "150px",
-                            minWidth: "100px",
-                            maxWidth: "200px",
-                            padding: "8px 20px",
-                            borderRadius: "4px",
+                            backgroundColor: '#16213e',
+                            color: 'white',
+                            width: '150px',
+                            minWidth: '100px',
+                            maxWidth: '200px',
+                            padding: '8px 20px',
+                            borderRadius: '4px',
                             marginTop: 10,
-                            fontSize: "14px",
-                            cursor: "pointer",
-                            textAlign: "center",
-                            border: "2px solid #16213e",
-                            boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                            transition: "all 0.3s ease",
-                            fontWeight: "500",
+                            fontSize: '14px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            border: '2px solid #16213e',
+                            boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                            transition: 'all 0.3s ease',
+                            fontWeight: '500',
                           }}
-                          onClick={() =>
-                            setExpanded(expanded === item?.headerCase?._id ? null : item?.headerCase?._id)
-                          }
+                          onClick={() => setExpanded(expanded === item?.headerCase?._id ? null : item?.headerCase?._id)}
                         >
                           {expanded === item?.headerCase?._id ? (
                             <>
@@ -1981,7 +1901,7 @@ const BasicCase = ({ token }) => {
                           <div
                             key={sub?._id}
                             className="border rounded p-2 mb-3"
-                            style={{ backgroundColor: "#f7f3e9" }}
+                            style={{ backgroundColor: '#f8f9fa' }}
                           >
                             {/* Subcase Header with Dropdown */}
                             <div className="d-flex align-items-start mb-2">
@@ -1995,8 +1915,8 @@ const BasicCase = ({ token }) => {
                                     size="sm"
                                     className="border rounded-circle"
                                     style={{
-                                      minWidth: "32px",
-                                      minHeight: "32px",
+                                      minWidth: '32px',
+                                      minHeight: '32px',
                                     }}
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -2007,7 +1927,7 @@ const BasicCase = ({ token }) => {
                                   </Dropdown.Toggle>
 
                                   <Dropdown.Menu>
-                                    {token.Role === "admin" && reduxCaseCloseType === "" && (
+                                    {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                       <>
                                         <Dropdown.Item
                                           onClick={(event) => {
@@ -2025,7 +1945,7 @@ const BasicCase = ({ token }) => {
                                               const response = await updateFunction(sub);
                                               if (response?.success) setLoaderOpen(false);
                                             } catch (err) {
-                                              console.error("Update failed", err);
+                                              console.error('Update failed', err);
                                               setLoaderOpen(false);
                                             }
                                           }}
@@ -2057,7 +1977,7 @@ const BasicCase = ({ token }) => {
                                             setShowCaseType(true);
                                           }}
                                         >
-                                          {sub?.CaseType ? "Update" : "Add"} Type of Service
+                                          {sub?.CaseType ? 'Update' : 'Add'} Type of Service
                                         </Dropdown.Item>
                                         <Dropdown.Item
                                           onClick={(event) => {
@@ -2066,7 +1986,7 @@ const BasicCase = ({ token }) => {
                                             setShowSubCaseType(true);
                                           }}
                                         >
-                                          {sub?.CaseSubType ? "Update" : "Add"} Service Type
+                                          {sub?.CaseSubType ? 'Update' : 'Add'} Service Type
                                         </Dropdown.Item>
                                         <Dropdown.Item
                                           onClick={(event) => {
@@ -2084,32 +2004,37 @@ const BasicCase = ({ token }) => {
                                 </Dropdown>
                               </div>
 
-                              <div className="flex-grow-1" onClick={(e) => {
-                                if (e.target.tagName !== "INPUT" && e.target.tagName !== "TEXTAREA" && e.target.tagName !== "BUTTON") {
-                                  handleClick(1, sub);
-                                }
-                              }}>
-
-                              </div>
+                              <div
+                                className="flex-grow-1"
+                                onClick={(e) => {
+                                  if (
+                                    e.target.tagName !== 'INPUT' &&
+                                    e.target.tagName !== 'TEXTAREA' &&
+                                    e.target.tagName !== 'BUTTON'
+                                  ) {
+                                    handleClick(1, sub);
+                                  }
+                                }}
+                              ></div>
                             </div>
 
                             {/* Subcase Details */}
                             <div className="d-flex flex-column gap-2">
-
                               <div className="d-flex flex-row text-wrap gap-1">
                                 <span className="text-muted small">Case # </span>
                                 <span
                                   className="fw-medium text-break"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
                                     // lineHeight: "1.3",          // better readability
                                   }}
-                                >{sub?.CaseNumber}
+                                >
+                                  {sub?.CaseNumber}
                                 </span>
                               </div>
                               {/* SERIAL NUMBER */}
@@ -2118,15 +2043,16 @@ const BasicCase = ({ token }) => {
                                 <span
                                   className="fw-medium text-break"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
                                     // lineHeight: "1.3",          // better readability
                                   }}
-                                >{sub?.SerialNumber}
+                                >
+                                  {sub?.SerialNumber}
                                 </span>
                               </div>
 
@@ -2136,17 +2062,16 @@ const BasicCase = ({ token }) => {
                                 <span
                                   className="fw-medium text-break"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
                                     // lineHeight: "1.3",          // better readability
                                   }}
-
-
-                                >{sub?.CaseType || "N/A"}
+                                >
+                                  {sub?.CaseType || 'N/A'}
                                 </span>
                               </div>
 
@@ -2156,49 +2081,51 @@ const BasicCase = ({ token }) => {
                                 <span
                                   className="fw-medium text-break"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
                                     // lineHeight: "1.3",          // better readability
                                   }}
-                                >{sub?.CaseSubType || "N/A"}
+                                >
+                                  {sub?.CaseSubType || 'N/A'}
                                 </span>
                               </div>
 
                               {/* SERVICE SUB TYPE */}
                               <div className="d-flex flex-row gap-1">
                                 <span className="text-muted small">Service Sub Type</span>
-                                <span className="fw-medium text-break"
+                                <span
+                                  className="fw-medium text-break"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
                                     // lineHeight: "1.3",          // better readability
                                   }}
-                                >{sub?.ServiceSubType || "N/A"}
+                                >
+                                  {sub?.ServiceSubType || 'N/A'}
                                 </span>
                               </div>
 
                               {/* LFA */}
                               {sub?.IsLFA && (
                                 <div
-
                                   className="fw-medium text-break text-primary text-decoration-underline"
                                   style={{
-                                    display: "block",           // ensures wrapping works
-                                    whiteSpace: "normal",       // allows text to wrap
-                                    width: "30vw",
-                                    overflowWrap: "break-word", // handles long words
-                                    wordBreak: "break-word",    // extra safety
-                                    fontSize: "0.9rem",         // smaller font for mobile
-                                    lineHeight: "1.3",
-                                    cursor: "pointer"        // better readability
+                                    display: 'block', // ensures wrapping works
+                                    whiteSpace: 'normal', // allows text to wrap
+                                    width: '30vw',
+                                    overflowWrap: 'break-word', // handles long words
+                                    wordBreak: 'break-word', // extra safety
+                                    fontSize: '0.9rem', // smaller font for mobile
+                                    lineHeight: '1.3',
+                                    cursor: 'pointer', // better readability
                                   }}
                                   // style={{ cursor: "pointer" }}
                                   onClick={(e) => {
@@ -2217,18 +2144,18 @@ const BasicCase = ({ token }) => {
                                 <textarea
                                   className="form-control text-wrap"
                                   rows="2"
-                                  value={sub.notes || ""}
+                                  value={sub.notes || ''}
                                   onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
                                   onBlur={(e) => handleNoteBlur(sub?._id, e.target.value)}
                                   onClick={(e) => e.stopPropagation()}
                                   style={{
-                                    resize: "vertical",           // allow resize on larger screens
-                                    minHeight: "50px",            // good base height
-                                    width: "100%",                // full width responsiveness
-                                    minWidth: "20px",            // safe min width for tiny screens
-                                    wordWrap: "break-word",       // wrap long text
-                                    overflowWrap: "break-word",   // ensure wrapping
-                                    fontSize: "0.9rem",
+                                    resize: 'vertical', // allow resize on larger screens
+                                    minHeight: '50px', // good base height
+                                    width: '100%', // full width responsiveness
+                                    minWidth: '20px', // safe min width for tiny screens
+                                    wordWrap: 'break-word', // wrap long text
+                                    overflowWrap: 'break-word', // ensure wrapping
+                                    fontSize: '0.9rem',
                                   }}
                                 />
                               </div>
@@ -2237,38 +2164,22 @@ const BasicCase = ({ token }) => {
                         ))}
                     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                     {/* Desktop View - Horizontal Layout */}
 
                     <div key={item.headerCase?._id}>
                       {/* 🔹 HEADER CASE */}
                       <div
                         className="d-none d-md-flex justify-content-between align-items-center gap-2 p-1"
-                        style={{ cursor: "pointer", backgroundColor: "#ffffff" }}
+                        style={{ cursor: 'pointer', backgroundColor: '#ffffff' }}
                         onClick={(e) => {
-                          if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+                          if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
                             handleClick(1, item?.headerCase);
                           }
                         }}
                       >
                         {/* Arrow button */}
                         <span
-                          style={{ width: "30px", cursor: "pointer", textAlign: "center" }}
+                          style={{ width: '30px', cursor: 'pointer', textAlign: 'center' }}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (item?.headerCase?._id) {
@@ -2276,38 +2187,36 @@ const BasicCase = ({ token }) => {
                             }
                           }}
                         >
-                          {item.subcases.length > 0 && item?.headerCase?._id
-                            ? expanded === item?.headerCase?._id
-                              ? (
-                                <FaChevronDown />
-                              ) : (
-                                <FaChevronRight />
-                              )
-                            : (
-                              ""
-                            )}
+                          {item.subcases.length > 0 && item?.headerCase?._id ? (
+                            expanded === item?.headerCase?._id ? (
+                              <FaChevronDown />
+                            ) : (
+                              <FaChevronRight />
+                            )
+                          ) : (
+                            ''
+                          )}
                         </span>
-
 
                         {/* CLIENT NAME */}
                         <span
                           className="text-start d-flex align-items-center"
                           style={{
-                            maxWidth: "150px",
-                            minWidth: "150px",
-                            position: "sticky",
-                            height: "15vh",
+                            maxWidth: '150px',
+                            minWidth: '150px',
+                            position: 'sticky',
+                            height: '15vh',
                             left: 0,
-                            backgroundColor: "#ffffff",
+                            backgroundColor: '#ffffff',
                             zIndex: 2,
-                            borderRight: "1px solid #ccc",
-                            boxShadow: "2px 0 4px rgba(0, 0, 0, 0.03)",
-                            paddingLeft: "1rem",
-                            paddingRight: "1rem",
-                            whiteSpace: "normal",
-                            wordBreak: "break-word",
-                            overflowWrap: "break-word",
-                            cursor: "pointer", // 👈 makes it look clickable
+                            borderRight: '1px solid #ccc',
+                            boxShadow: '2px 0 4px rgba(0, 0, 0, 0.03)',
+                            paddingLeft: '1rem',
+                            paddingRight: '1rem',
+                            whiteSpace: 'normal',
+                            wordBreak: 'break-word',
+                            overflowWrap: 'break-word',
+                            cursor: 'pointer', // 👈 makes it look clickable
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2320,34 +2229,32 @@ const BasicCase = ({ token }) => {
                         </span>
 
                         {/* CASE NUMBER */}
-                        <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
+                        <span className="text-start" style={{ maxWidth: '150px', minWidth: '150px' }}>
                           {item?.headerCase?.CaseNumber}
                         </span>
                         {/* SERIAL NUMBER */}
-                        <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
+                        <span className="text-start" style={{ maxWidth: '150px', minWidth: '150px' }}>
                           {item?.headerCase?.SerialNumber}
                         </span>
                         {/* CASE TYPE */}
-                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                        <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}>
                           {item?.headerCase?.CaseType}
                         </span>
                         {/* CASE SUB TYPE */}
-                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                        <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}>
                           {item?.headerCase?.CaseSubType}
                         </span>
                         {/* service SUB TYPE */}
-                        <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-
-                        </span>
+                        <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span>
                         {/* LFA */}
                         <div
                           className="text-start"
                           style={{
-                            maxWidth: "200px",
-                            minWidth: "200px",
-                            color: "#007bff",
-                            cursor: "pointer",
-                            textDecoration: "underline",
+                            maxWidth: '200px',
+                            minWidth: '200px',
+                            color: '#007bff',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -2355,10 +2262,10 @@ const BasicCase = ({ token }) => {
                             dispatch(screenChange(27));
                           }}
                         >
-                          {item?.headerCase?.IsLFA ? "Go To LFA" : ""}
+                          {item?.headerCase?.IsLFA ? 'Go To LFA' : ''}
                         </div>
                         {/* NOTES */}
-                        <div className="" style={{ maxWidth: "250px", minWidth: "250px" }}>
+                        <div className="" style={{ maxWidth: '250px', minWidth: '250px' }}>
                           <input
                             className="form-control"
                             type="text"
@@ -2369,10 +2276,13 @@ const BasicCase = ({ token }) => {
                           />
                         </div>
 
-                        <div className="col d-flex justify-content-end" style={{
-                          maxWidth: '100px',
-                          minWidth: '100px',
-                        }}>
+                        <div
+                          className="col d-flex justify-content-end"
+                          style={{
+                            maxWidth: '100px',
+                            minWidth: '100px',
+                          }}
+                        >
                           <Dropdown
                             show={dropdownOpen === index}
                             onToggle={(isOpen) => setDropdownOpen(isOpen ? index : null)}
@@ -2388,65 +2298,79 @@ const BasicCase = ({ token }) => {
                             ></Dropdown.Toggle>
 
                             <Dropdown.Menu>
-                              {token.Role === "admin" && reduxCaseCloseType === "" && (
+                              {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                 <>
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    handleOpenModal(item?.headerCase);
-                                  }}>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      handleOpenModal(item?.headerCase);
+                                    }}
+                                  >
                                     Assign Case
                                   </Dropdown.Item>
 
-                                  <Dropdown.Item onClick={async (event) => {
-                                    event.stopPropagation();
-                                    setLoaderOpen(true);
-                                    try {
-                                      const response = await updateFunction(item?.headerCase);
-                                      if (response?.success) setLoaderOpen(false);
-                                    } catch (err) {
-                                      console.error("Update failed", err);
-                                      setLoaderOpen(false);
-                                    }
-                                  }}>
+                                  <Dropdown.Item
+                                    onClick={async (event) => {
+                                      event.stopPropagation();
+                                      setLoaderOpen(true);
+                                      try {
+                                        const response = await updateFunction(item?.headerCase);
+                                        if (response?.success) setLoaderOpen(false);
+                                      } catch (err) {
+                                        console.error('Update failed', err);
+                                        setLoaderOpen(false);
+                                      }
+                                    }}
+                                  >
                                     Update Case
                                   </Dropdown.Item>
 
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowMergeModal(true);
-                                  }}>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowMergeModal(true);
+                                    }}
+                                  >
                                     Merge With
                                   </Dropdown.Item>
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCloseType(true);
-                                  }}>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCloseType(true);
+                                    }}
+                                  >
                                     Close Type
                                   </Dropdown.Item>
 
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCaseType(true);
-                                  }}>
-                                    {item?.headerCase.CaseType ? "Update" : "Add"} Type of Service
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCaseType(true);
+                                    }}
+                                  >
+                                    {item?.headerCase.CaseType ? 'Update' : 'Add'} Type of Service
                                   </Dropdown.Item>
 
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowSubCaseType(true);
-                                  }}>
-                                    {item?.headerCase.CaseSubType ? "Update" : "Add"} Service Type
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowSubCaseType(true);
+                                    }}
+                                  >
+                                    {item?.headerCase.CaseSubType ? 'Update' : 'Add'} Service Type
                                   </Dropdown.Item>
 
-                                  <Dropdown.Item onClick={(event) => {
-                                    event.stopPropagation();
-                                    setSelectedCase(item?.headerCase);
-                                    setShowCaseStages(true);
-                                  }}>
+                                  <Dropdown.Item
+                                    onClick={(event) => {
+                                      event.stopPropagation();
+                                      setSelectedCase(item?.headerCase);
+                                      setShowCaseStages(true);
+                                    }}
+                                  >
                                     Set Case Stage
                                   </Dropdown.Item>
                                 </>
@@ -2465,66 +2389,64 @@ const BasicCase = ({ token }) => {
                             key={sub?._id}
                             className="d-none d-md-flex justify-content-between align-items-center gap-2 p-1"
                             style={{
-                              cursor: "pointer",
-                              backgroundColor: "#f7f3e9", // halka fark dikhane k liye optional
+                              cursor: 'pointer',
+                              backgroundColor: '#fafafa', // halka fark dikhane k liye optional
                             }}
                             onClick={(e) => {
-                              if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
+                              if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'BUTTON') {
                                 handleClick(1, sub);
                               }
                             }}
                           >
                             {/* Empty arrow space */}
-                            <span style={{ width: "30px" }}></span>
+                            <span style={{ width: '30px' }}></span>
 
                             {/* CLIENT NAME */}
                             <span
                               className="text-start d-flex align-items-center"
                               style={{
-                                maxWidth: "150px",
-                                minWidth: "150px",
-                                position: "sticky",
-                                height: "11vh",
+                                maxWidth: '150px',
+                                minWidth: '150px',
+                                position: 'sticky',
+                                height: '11vh',
                                 left: 0,
-                                backgroundColor: "#f7f3e9", // ✅ makes sure nothing behind it shows
+                                backgroundColor: '#ffffff',
                                 zIndex: 2,
-                                borderRight: "1px solid #ccc",
-                                boxShadow: "2px 0 4px rgba(0, 0, 0, 0.03)",
-                                paddingLeft: "1rem",
+                                borderRight: '1px solid #ccc',
+                                boxShadow: '2px 0 4px rgba(0, 0, 0, 0.03)',
+                                paddingLeft: '1rem',
                               }}
                             >
                               {/* {sub?.ClientName} */}
                             </span>
 
-                            <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
+                            <span className="text-start" style={{ maxWidth: '150px', minWidth: '150px' }}>
                               {sub?.CaseNumber}
                             </span>
 
-                            <span className="text-start" style={{ maxWidth: "150px", minWidth: "150px" }}>
+                            <span className="text-start" style={{ maxWidth: '150px', minWidth: '150px' }}>
                               {sub?.SerialNumber}
                             </span>
 
-                            <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                            <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}>
                               {sub?.CaseType}
                             </span>
 
-                            <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
+                            <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}>
                               {sub?.CaseSubType}
                             </span>
                             {/** service sub type */}
-                            <span className="text-start" style={{ maxWidth: "200px", minWidth: "200px" }}>
-
-                            </span>
+                            <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span>
 
                             {/* LFA */}
                             <div
                               className="text-start"
                               style={{
-                                maxWidth: "200px",
-                                minWidth: "200px",
-                                color: "#007bff",
-                                cursor: "pointer",
-                                textDecoration: "underline",
+                                maxWidth: '200px',
+                                minWidth: '200px',
+                                color: '#007bff',
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
                               }}
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -2532,25 +2454,28 @@ const BasicCase = ({ token }) => {
                                 dispatch(screenChange(27));
                               }}
                             >
-                              {sub?.IsLFA ? "Go To LFA" : ""}
+                              {sub?.IsLFA ? 'Go To LFA' : ''}
                             </div>
 
                             {/* NOTES */}
-                            <div className="" style={{ maxWidth: "250px", minWidth: "250px" }}>
+                            <div className="" style={{ maxWidth: '250px', minWidth: '250px' }}>
                               <input
                                 className="form-control"
                                 type="text"
-                                value={sub.notes || ""}
+                                value={sub.notes || ''}
                                 onChange={(e) => handleSubEdit(index, subIndex, e.target.value)}
                                 onBlur={(e) => handleNoteBlur(sub._id, e.target.value)}
                                 onClick={(e) => e.stopPropagation()}
                               />
                             </div>
 
-                            <div className="col d-flex justify-content-end" style={{
-                              maxWidth: '100px',
-                              minWidth: '100px',
-                            }}>
+                            <div
+                              className="col d-flex justify-content-end"
+                              style={{
+                                maxWidth: '100px',
+                                minWidth: '100px',
+                              }}
+                            >
                               <Dropdown
                                 show={dropdownOpen === sub?._id}
                                 onToggle={(isOpen) => setDropdownOpen(isOpen ? sub._id : null)}
@@ -2566,65 +2491,79 @@ const BasicCase = ({ token }) => {
                                 ></Dropdown.Toggle>
 
                                 <Dropdown.Menu>
-                                  {token.Role === "admin" && reduxCaseCloseType === "" && (
+                                  {token.Role === 'admin' && reduxCaseCloseType === '' && isViewCase && (
                                     <>
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        handleOpenModal(sub);
-                                      }}>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          handleOpenModal(sub);
+                                        }}
+                                      >
                                         Assign Case
                                       </Dropdown.Item>
 
-                                      <Dropdown.Item onClick={async (event) => {
-                                        event.stopPropagation();
-                                        setLoaderOpen(true);
-                                        try {
-                                          const response = await updateFunction(sub);
-                                          if (response?.success) setLoaderOpen(false);
-                                        } catch (err) {
-                                          console.error("Update failed", err);
-                                          setLoaderOpen(false);
-                                        }
-                                      }}>
+                                      <Dropdown.Item
+                                        onClick={async (event) => {
+                                          event.stopPropagation();
+                                          setLoaderOpen(true);
+                                          try {
+                                            const response = await updateFunction(sub);
+                                            if (response?.success) setLoaderOpen(false);
+                                          } catch (err) {
+                                            console.error('Update failed', err);
+                                            setLoaderOpen(false);
+                                          }
+                                        }}
+                                      >
                                         Update Case
                                       </Dropdown.Item>
 
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        setSelectedCase(sub);
-                                        setShowMergeModal(true);
-                                      }}>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowMergeModal(true);
+                                        }}
+                                      >
                                         Merge With
                                       </Dropdown.Item>
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        setSelectedCase(sub);
-                                        setShowCloseType(true);
-                                      }}>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCloseType(true);
+                                        }}
+                                      >
                                         Close Type
                                       </Dropdown.Item>
 
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        setSelectedCase(sub);
-                                        setShowCaseType(true);
-                                      }}>
-                                        {item?.CaseType ? "Update" : "Add"} Type of Service
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCaseType(true);
+                                        }}
+                                      >
+                                        {item?.CaseType ? 'Update' : 'Add'} Type of Service
                                       </Dropdown.Item>
 
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        setSelectedCase(sub);
-                                        setShowSubCaseType(true);
-                                      }}>
-                                        {item?.CaseSubType ? "Update" : "Add"} Service Type
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowSubCaseType(true);
+                                        }}
+                                      >
+                                        {item?.CaseSubType ? 'Update' : 'Add'} Service Type
                                       </Dropdown.Item>
 
-                                      <Dropdown.Item onClick={(event) => {
-                                        event.stopPropagation();
-                                        setSelectedCase(sub);
-                                        setShowCaseStages(true);
-                                      }}>
+                                      <Dropdown.Item
+                                        onClick={(event) => {
+                                          event.stopPropagation();
+                                          setSelectedCase(sub);
+                                          setShowCaseStages(true);
+                                        }}
+                                      >
                                         Set Case Stage
                                       </Dropdown.Item>
                                     </>
@@ -2636,26 +2575,22 @@ const BasicCase = ({ token }) => {
                           </div>
                         ))}
                     </div>
-
-
-
                   </div>
-                ))
+                )),
             ]}
-
           </div>
-          {(totalPages > 1 && !searchQuery) && (
+          {totalPages > 1 && !searchQuery && (
             <div className="p-3">
               <div
                 className="d-flex justify-content-center align-items-center"
                 style={{
-                  backgroundColor: "#18273e",
-                  padding: "10px",
-                  borderRadius: "8px",
-                  border: "2px solid #d4af37",
-                  margin: "auto",
-                  maxWidth: "100%",
-                  width: "fit-content",
+                  backgroundColor: '#18273e',
+                  padding: '10px',
+                  borderRadius: '8px',
+                  border: '2px solid #d4af37',
+                  margin: 'auto',
+                  maxWidth: '100%',
+                  width: 'fit-content',
                 }}
               >
                 <div className="d-flex flex-wrap justify-content-center align-items-center gap-2">
@@ -2667,32 +2602,21 @@ const BasicCase = ({ token }) => {
                     Previous
                   </button>
                   <div className="d-flex align-items-center">
-                    <span className="text-white me-2 d-none d-sm-block">
-                      Page
-                    </span>
+                    <span className="text-white me-2 d-none d-sm-block">Page</span>
                     <input
                       value={currentPage}
                       min={1}
                       max={totalPages}
-                      onChange={(e) =>
-                        goToPage(
-                          Math.max(
-                            1,
-                            Math.min(totalPages, Number(e.target.value))
-                          )
-                        )
-                      }
+                      onChange={(e) => goToPage(Math.max(1, Math.min(totalPages, Number(e.target.value))))}
                       className="form-control text-center"
                       style={{
-                        width: "60px",
-                        border: "2px solid #d4af37",
-                        backgroundColor: "#18273e",
-                        color: "white",
+                        width: '60px',
+                        border: '2px solid #d4af37',
+                        backgroundColor: '#18273e',
+                        color: 'white',
                       }}
                     />
-                    <span className="text-white ms-2 d-none d-sm-block">
-                      of {totalPages}
-                    </span>
+                    <span className="text-white ms-2 d-none d-sm-block">of {totalPages}</span>
                   </div>
                   <button
                     onClick={() => goToPage(currentPage + 1)}
@@ -2707,13 +2631,8 @@ const BasicCase = ({ token }) => {
           )}
         </div>
 
-
-
         {/* Pagination - Responsive */}
-
       </div>
-
-
 
       {/* Assign Modal */}
       <Modal show={showAssignModal} onHide={handleCloseModal}>
@@ -2721,46 +2640,40 @@ const BasicCase = ({ token }) => {
           <Modal.Title>Case Permissions</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <CaseAssignmentForm
-            selectedCase={selectedCase}
-            casedetails={casedetails}
-            onClose={handleCloseModal}
-          />
+          <CaseAssignmentForm selectedCase={selectedCase} casedetails={casedetails} onClose={handleCloseModal} />
         </Modal.Body>
       </Modal>
 
       {/* MUI Loader */}
-      {
-        loaderOpen && (
+      {loaderOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            backgroundColor: '#16213e',
+            padding: '24px 32px',
+            borderRadius: '12px',
+            boxShadow: '0 1px 4px rgba(0, 0, 0, 0.03)',
+            zIndex: 2000,
+            display: 'flex',
+            alignItems: 'center',
+            flexDirection: 'column',
+          }}
+        >
+          <CircularProgress sx={{ color: '#d2a85a' }} />
           <div
             style={{
-              position: "fixed",
-              top: "50%",
-              left: "50%",
-              transform: "translate(-50%, -50%)",
-              backgroundColor: "#16213e",
-              padding: "24px 32px",
-              borderRadius: "12px",
-              boxShadow: "0 1px 4px rgba(0, 0, 0, 0.03)",
-              zIndex: 2000,
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "column",
+              marginTop: 16,
+              fontWeight: '500',
+              color: 'white',
             }}
           >
-            <CircularProgress sx={{ color: "#d2a85a" }} />
-            <div
-              style={{
-                marginTop: 16,
-                fontWeight: "500",
-                color: "white",
-              }}
-            >
-              Updating Case...
-            </div>
+            Updating Case...
           </div>
-        )
-      }
+        </div>
+      )}
 
       <Modal show={showMergeModal} onHide={() => setShowMergeModal(false)} centered>
         <Modal.Header closeButton>
@@ -2790,7 +2703,6 @@ const BasicCase = ({ token }) => {
                   ))}
               </Form.Select>
             </Form.Group>
-
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -2800,12 +2712,9 @@ const BasicCase = ({ token }) => {
           <Button
             variant="primary"
             onClick={() => {
-              let old = selectedCase?.IsDubiCourts ? selectedCourtCaseId : selectedCase?._id
-              let newcase = selectedCase?.IsDubiCourts ? selectedCase?._id : selectedCourtCaseId
-              mergeCaseWithCourt(
-                old,
-                newcase,
-              );
+              let old = selectedCase?.IsDubiCourts ? selectedCourtCaseId : selectedCase?._id;
+              let newcase = selectedCase?.IsDubiCourts ? selectedCase?._id : selectedCourtCaseId;
+              mergeCaseWithCourt(old, newcase);
               setShowMergeModal(false);
             }}
             disabled={!selectedCourtCaseId}
@@ -2815,13 +2724,6 @@ const BasicCase = ({ token }) => {
         </Modal.Footer>
       </Modal>
 
-
-
-
-
-
-
-
       <Modal show={showCaseStages} onHide={() => setShowCaseStages(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Case Stage</Modal.Title>
@@ -2829,7 +2731,7 @@ const BasicCase = ({ token }) => {
         <Modal.Body>
           <Form>
             <Form.Group controlId="mergeWithCase" className="w-100">
-              <Form.Label>Select Case  Stage</Form.Label>
+              <Form.Label>Select Case Stage</Form.Label>
               <Form.Select
                 className="w-100"
                 value={selectedCaseStage}
@@ -2843,7 +2745,6 @@ const BasicCase = ({ token }) => {
                 ))}
               </Form.Select>
             </Form.Group>
-
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -2853,9 +2754,7 @@ const BasicCase = ({ token }) => {
           <Button
             variant="primary"
             onClick={() => {
-
-
-              updateCaseStage(selectedCase?._id, selectedCaseStage)
+              updateCaseStage(selectedCase?._id, selectedCaseStage);
               setShowCaseStages(false);
             }}
             disabled={!selectedCaseStage}
@@ -2865,14 +2764,9 @@ const BasicCase = ({ token }) => {
         </Modal.Footer>
       </Modal>
 
-
-
-
-
-
       <Modal show={showCaseType} onHide={() => setShowCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCase?.CaseType ? "Update" : "Add"} Type of Service</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseType ? 'Update' : 'Add'} Type of Service</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -2885,14 +2779,13 @@ const BasicCase = ({ token }) => {
                 onChange={(e) => setSelectedCaseType(e.target.value)}
               >
                 <option value="">Select the option</option>
-                {["Consultation", "Litigation", "Non-Litigation"].map((caseItem) => (
+                {['Consultation', 'Litigation', 'Non-Litigation'].map((caseItem) => (
                   <option key={caseItem} value={caseItem}>
                     {caseItem}
                   </option>
                 ))}
               </Form.Select>
             </Form.Group>
-
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -2902,21 +2795,20 @@ const BasicCase = ({ token }) => {
           <Button
             variant="primary"
             onClick={() => {
-              console.log("Selected case =", selectedCase);
+              console.log('Selected case =', selectedCase);
               updateCaseTypeAndFolder(selectedCase?._id, selectedCaseType);
               setShowCaseType(false);
             }}
             disabled={!selectedCaseType}
           >
-            {selectedCase?.CaseType ? "Update" : "Add"}
+            {selectedCase?.CaseType ? 'Update' : 'Add'}
           </Button>
         </Modal.Footer>
       </Modal>
 
-
       <Modal show={showSubCaseType} onHide={() => setShowSubCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCase?.CaseSubType ? "Update" : "Add"} Service Type</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseSubType ? 'Update' : 'Add'} Service Type</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
@@ -2945,17 +2837,16 @@ const BasicCase = ({ token }) => {
           <Button
             variant="primary"
             onClick={() => {
-              console.log("Selected case =", selectedCase);
+              console.log('Selected case =', selectedCase);
               updateCaseSubTypeAndFolder(selectedCase?._id, selectedSubCaseType);
               setShowSubCaseType(false);
             }}
             disabled={!selectedSubCaseType}
           >
-            {selectedCase?.CaseSubType ? "Update" : "Add"}
+            {selectedCase?.CaseSubType ? 'Update' : 'Add'}
           </Button>
         </Modal.Footer>
       </Modal>
-
 
       <Modal show={showCloseType} onHide={() => setShowCloseType(false)} centered>
         <Modal.Header closeButton>
@@ -2972,7 +2863,7 @@ const BasicCase = ({ token }) => {
                 onChange={(e) => setSelectedCloseType(e.target.value)}
               >
                 <option value="">Select the option</option>
-                {["Close Negative", "Close Positive"].map((caseItem) => (
+                {['Close Negative', 'Close Positive'].map((caseItem) => (
                   <option key={caseItem} value={caseItem}>
                     {caseItem}
                   </option>
@@ -2988,7 +2879,7 @@ const BasicCase = ({ token }) => {
           <Button
             variant="primary"
             onClick={() => {
-              console.log("Selected case =", selectedCase);
+              console.log('Selected case =', selectedCase);
               updateCaseCloseType(selectedCase?._id, selectedCloseType);
               setShowCloseType(false);
             }}
@@ -2998,9 +2889,7 @@ const BasicCase = ({ token }) => {
           </Button>
         </Modal.Footer>
       </Modal>
-
-
-    </div >
+    </div>
   );
 };
 
