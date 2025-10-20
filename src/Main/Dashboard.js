@@ -1126,10 +1126,8 @@ const Dashboard = () => {
 
           {[
             // CASE (now contains everything Dashboard had)
-            decodedToken?.Role === 'admin' ||
-              decodedToken?.Role === 'lawyer' ||
-              decodedToken?.Role === 'receptionist'
-              ? {
+        
+               {
                 icon: faScaleBalanced,
                 label: 'Cases',
                 style: {
@@ -1145,7 +1143,7 @@ const Dashboard = () => {
                 },
                 action: () => setShowCaseOptions(!showCaseOptions), // Toggle Case sub-menu
               }
-              : null,
+             ,
 
             // Show Case submenu items when expanded
             showCaseOptions
