@@ -212,8 +212,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
     // Build client permissions as a map (even if the client exists)
     const clientPermissionMap = CaseClient
       ? {
-          [CaseClient]: clientPermissions[CaseClient] || [],
-        }
+        [CaseClient]: clientPermissions[CaseClient] || [],
+      }
       : {};
 
     console.log("Users to Assign:", usersData);
@@ -308,9 +308,10 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
             setSelectedUsers(finalSelection);
           }}
           options={[
-            ...(!casedetails?.ClientId
-              ? users
-              : users.filter((u) => u.Role !== "client")
+            ...(
+              !casedetails?.ClientId
+                ? users.filter((u) => u.isActive) // ✅ sirf active users jab koi client nahi
+                : users.filter((u) => u.isActive && u.Role !== "client") // ✅ sirf active non-clients jab client selected hai
             ).map((user) => ({
               value: user,
               label: `${user.UserName} (${capitalizeFirst(user.Role)})`,
@@ -322,6 +323,7 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
           }
           styles={customStyles}
         />
+
 
         {selectedUsers.length > 0 && (
           <div
@@ -403,8 +405,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                               [user?.value?._id]: checked
                                 ? [...(prev[user?.value?._id] || []), perm]
                                 : (prev[user?.value?._id] || []).filter(
-                                    (p) => p !== perm
-                                  ),
+                                  (p) => p !== perm
+                                ),
                             }));
                           }}
                         />
@@ -444,8 +446,8 @@ const CaseAssignmentForm = ({ selectedCase, casedetails }) => {
                               [user?.value?._id]: checked
                                 ? [...(prev[user?.value?._id] || []), perm]
                                 : (prev[user?.value?._id] || []).filter(
-                                    (p) => p !== perm
-                                  ),
+                                  (p) => p !== perm
+                                ),
                             }));
                           }}
                         />
