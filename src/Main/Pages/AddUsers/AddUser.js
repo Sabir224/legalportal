@@ -24,6 +24,13 @@ import {
   FaCalendarAlt,
   FaDollarSign,
   FaAccessibleIcon,
+  FaBusinessTime,
+  FaMoneyBillWave,
+  FaPlus,
+  FaMinus,
+  FaArrowUp,
+  FaArrowDown,
+  FaChevronUp,
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { ApiEndPoint } from '../Component/utils/utlis';
@@ -72,6 +79,8 @@ const AddUser = () => {
   const servicesDropdownRef = useRef(null);
   const availabilityDropdownRef = useRef(null);
   const [focusedIndex, setFocusedIndex] = useState({ role: -1, services: -1, availability: -1 });
+  const [errors, setErrors] = useState({});
+
   // Options with DB value -> Human-readable label
   // DB values in array (for order + index navigation)
   const availabilityValues = ['InPerson', 'Online', 'InPerson/Online'];
@@ -288,11 +297,49 @@ const AddUser = () => {
       setPreview(URL.createObjectURL(file));
     }
   };
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Common required fields
+    if (!name.trim()) newErrors.name = 'Name is required';
+    if (!email.trim()) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email address';
+
+    if (!password) newErrors.password = 'Password is required';
+    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+
+    if (!confirmPassword) newErrors.confirmPassword = 'Please confirm your password';
+    else if (confirmPassword !== password) newErrors.confirmPassword = 'Passwords do not match';
+
+    if (!contactNumber) newErrors.contactNumber = 'Contact number is required';
+    if (!selectedRole) newErrors.role = 'Please select a role';
+
+    // ✅ Lawyer-specific required fields
+    if (selectedRole === 'lawyer') {
+      if (!experience.trim()) newErrors.experience = 'Years of experience is required';
+      else if (isNaN(experience) || Number(experience) <= 0) newErrors.experience = 'Enter a valid number of years';
+
+      if (!fee.trim()) newErrors.fee = 'Consultation fee is required';
+      else if (isNaN(fee) || Number(fee) < 0) newErrors.fee = 'Fee must be a valid positive number';
+
+      if (!expertise.trim()) newErrors.expertise = 'Please select a service';
+      if (!selectedAvailability) newErrors.selectedAvailability = 'Please select availability';
+    }
+
+    // ✅ Optional fields — no validation
+    // location, department, position, address, etc.
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleAddUser = async (e) => {
     e.preventDefault();
     try {
-      showLoading();
+      if (!validateForm()) {
+        return;
+      }
+
       const formData = new FormData();
       formData.append('UserName', name);
       formData.append('Email', email);
@@ -419,12 +466,18 @@ const AddUser = () => {
           </label>
           <input type="file" id="fileUpload" className="d-none" accept="image/*" onChange={handleFileChange} />
         </div>
-
         <form onSubmit={handleAddUser}>
           {/* Form Fields with labels on top */}
           <div className="row g-3">
             {[
-              { label: 'Name', icon: <FaUser />, state: name, setState: setName, required: true },
+              {
+                label: 'Name',
+                icon: <FaUser />,
+                state: name,
+                setState: setName,
+                required: true,
+                errorKey: 'name',
+              },
               {
                 label: 'Email',
                 icon: <FaRegEnvelope />,
@@ -432,6 +485,7 @@ const AddUser = () => {
                 setState: setEmail,
                 type: 'email',
                 required: true,
+                errorKey: 'email',
               },
               {
                 label: 'Password',
@@ -440,6 +494,7 @@ const AddUser = () => {
                 setState: setPassword,
                 type: 'password',
                 required: true,
+                errorKey: 'password',
               },
               {
                 label: 'Confirm Password',
@@ -448,35 +503,39 @@ const AddUser = () => {
                 setState: setConfirmPassword,
                 type: 'password',
                 required: true,
+                errorKey: 'confirmPassword',
               },
               {
                 label: 'Address',
                 icon: <FaMapMarkerAlt />,
                 state: address,
                 setState: setAddress,
+                errorKey: 'address',
               },
-
               selectedRole !== 'client' && {
                 label: 'Location',
                 icon: <FaMapMarkedAlt />,
                 state: location,
                 setState: setLocation,
+                errorKey: 'location',
               },
               selectedRole !== 'client' && {
                 label: 'Department',
                 icon: <FaBuilding />,
                 state: department,
                 setState: setDepartment,
+                errorKey: 'department',
               },
               selectedRole !== 'client' && {
                 label: 'Position',
                 icon: <FaChair />,
                 state: position,
                 setState: setPosition,
+                errorKey: 'position',
               },
             ]
               .filter(Boolean)
-              .map(({ label, icon, state, setState, type = 'text', required = false }, index) => (
+              .map(({ label, icon, state, setState, type = 'text', required = false, errorKey }, index) => (
                 <div key={index} className="col-12 col-sm-6 col-lg-4">
                   <div className="mb-3">
                     <label htmlFor={`input-${label}`} className="form-label fw-medium" style={{ color: '#18273e' }}>
@@ -488,7 +547,7 @@ const AddUser = () => {
                         style={{
                           backgroundColor: '#18273e',
                           color: '#d4af37',
-                          borderColor: '#18273e',
+                          borderColor: errors[errorKey] ? '#dc3545' : '#18273e',
                         }}
                       >
                         {icon}
@@ -499,26 +558,28 @@ const AddUser = () => {
                         id={`input-${label}`}
                         value={state}
                         style={{
-                          borderColor: '#18273e',
+                          borderColor: errors[errorKey] ? '#dc3545' : '#18273e',
                         }}
-                        onChange={(e) => setState(e.target.value)}
+                        onChange={(e) => {
+                          setState(e.target.value);
+                          // Clear error when user starts typing
+                          if (errors[errorKey]) {
+                            setErrors((prev) => ({ ...prev, [errorKey]: '' }));
+                          }
+                        }}
                         required={required}
                       />
                     </div>
+                    {errors[errorKey] && (
+                      <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                        {errors[errorKey]}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
-            {/* <div className="col-12 col-sm-6 col-lg-4">
-              <div className="mb-3">
-                <label
-                  className="form-label fw-semibold mb-2 d-block"
-                  style={{ color: '#18273e', fontSize: '0.95rem' }}
-                >
-                  Languages <span className="text-danger">*</span>
-                </label>
-                <LanguageDropdown selectedLanguages={language} setSelectedLanguages={setLanguage} />
-              </div>
-            </div> */}
+
+            {/* Contact Number Field with Error */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label className="form-label fw-medium" style={{ color: '#18273e' }}>
@@ -530,7 +591,7 @@ const AddUser = () => {
                     style={{
                       backgroundColor: '#18273e',
                       color: '#d4af37',
-                      borderColor: '#18273e',
+                      borderColor: errors.contactNumber ? '#dc3545' : '#18273e',
                     }}
                   >
                     <FaPhone />
@@ -539,7 +600,7 @@ const AddUser = () => {
                     style={{
                       flex: 1,
                       position: 'relative',
-                      border: '1px solid #18273e',
+                      border: errors.contactNumber ? '1px solid #dc3545' : '1px solid #18273e',
                       borderRadius: '0 4px 4px 0',
                       backgroundColor: 'white',
                     }}
@@ -548,10 +609,15 @@ const AddUser = () => {
                       international
                       Country={'AE'}
                       value={contactNumber}
-                      onChange={setContactNumber}
+                      onChange={(value) => {
+                        setContactNumber(value);
+                        if (errors.contactNumber) {
+                          setErrors((prev) => ({ ...prev, contactNumber: '' }));
+                        }
+                      }}
                       inputStyle={{
                         width: '100%',
-                        border: '1px solid #18273e',
+                        border: 'none',
                         boxShadow: 'none',
                         height: '38px',
                         fontSize: '0.9rem',
@@ -564,19 +630,18 @@ const AddUser = () => {
                       containerStyle={{
                         width: '100%',
                       }}
-                      onFocus={(e) => {
-                        e.target.style.borderColor = '#d3b386';
-                      }}
-                      onBlur={(e) => {
-                        e.target.style.borderColor = '#18273e';
-                      }}
                     />
                   </div>
                 </div>
+                {errors.contactNumber && (
+                  <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                    {errors.contactNumber}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Role Dropdown */}
+            {/* Role Dropdown with Error */}
             <div className="col-12 col-sm-6 col-lg-4">
               <div className="mb-3">
                 <label
@@ -596,7 +661,7 @@ const AddUser = () => {
                       className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
                       style={{
                         cursor: 'pointer',
-                        border: '1px solid #d3b386',
+                        border: errors.role ? '1px solid #dc3545' : '1px solid #d3b386',
                         borderRadius: '6px',
                         backgroundColor: 'white',
                         boxShadow: 'none',
@@ -634,11 +699,15 @@ const AddUser = () => {
                               cursor: 'pointer',
                               backgroundColor:
                                 index === focusedIndex.role ? '#f5e9d9' : role === selectedRole ? '#F8D4A1' : 'white',
-
-                              borderBottom: index !== roleOptions.length - 1 ? '1.5px solid #18273e' : 'none', // divider
+                              borderBottom: index !== roleOptions.length - 1 ? '1.5px solid #18273e' : 'none',
                               fontSize: '0.95rem',
                             }}
-                            onClick={() => handleRoleClick(role)}
+                            onClick={() => {
+                              handleRoleClick(role);
+                              if (errors.role) {
+                                setErrors((prev) => ({ ...prev, role: '' }));
+                              }
+                            }}
                             onMouseEnter={() => setFocusedIndex({ ...focusedIndex, role: index })}
                             role="option"
                             aria-selected={role === selectedRole}
@@ -650,11 +719,16 @@ const AddUser = () => {
                     )}
                   </div>
                 </div>
+                {errors.role && (
+                  <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                    {errors.role}
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Services Dropdown (for non-client roles) */}
-            {selectedRole !== 'client' && (
+            {/* Services Dropdown with Error (for lawyer role) */}
+            {selectedRole !== 'client' && selectedRole === 'lawyer' && (
               <div className="col-12 col-sm-6 col-lg-4">
                 <div className="mb-3">
                   <label
@@ -665,7 +739,7 @@ const AddUser = () => {
                       letterSpacing: '0.3px',
                     }}
                   >
-                    Services
+                    Services <span className="text-danger">*</span>
                   </label>
                   <div className="input-group" ref={servicesDropdownRef}>
                     <div className="position-relative w-100">
@@ -674,7 +748,7 @@ const AddUser = () => {
                         className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
                         style={{
                           cursor: 'pointer',
-                          border: '1px solid #d3b386',
+                          border: errors.expertise ? '1px solid #dc3545' : '1px solid #d3b386',
                           borderRadius: '6px',
                           backgroundColor: 'white',
                           boxShadow: 'none',
@@ -724,7 +798,12 @@ const AddUser = () => {
                                 transition: 'all 0.2s ease',
                                 fontSize: '0.95rem',
                               }}
-                              onClick={() => handleServiceSelect(service.name)}
+                              onClick={() => {
+                                handleServiceSelect(service.name);
+                                if (errors.expertise) {
+                                  setErrors((prev) => ({ ...prev, expertise: '' }));
+                                }
+                              }}
                               onMouseEnter={() => setFocusedIndex({ ...focusedIndex, services: index })}
                               role="option"
                               aria-selected={service.name === expertise}
@@ -736,6 +815,104 @@ const AddUser = () => {
                       )}
                     </div>
                   </div>
+                  {errors.expertise && (
+                    <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                      {errors.expertise}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            {selectedRole !== 'client' && selectedRole === 'lawyer' && (
+              <div className="col-12 col-md-4">
+                <div className="mb-3">
+                  <label
+                    className="form-label fw-medium mb-2 d-block"
+                    style={{
+                      color: '#18273e',
+                      fontSize: '0.95rem',
+                      letterSpacing: '0.3px',
+                    }}
+                  >
+                    Availability <span className="text-danger">*</span>
+                  </label>
+                  <div className="input-group" ref={availabilityDropdownRef}>
+                    <div className="position-relative w-100">
+                      <button
+                        type="button"
+                        className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                        style={{
+                          cursor: 'pointer',
+                          border: errors.selectedAvailability ? '1px solid #dc3545' : '1px solid #18273e',
+                          borderRadius: '6px',
+                          backgroundColor: 'white',
+                          height: '42px',
+                          fontSize: '0.95rem',
+                        }}
+                        onClick={toggleAvailabilityDropdown}
+                        onKeyDown={(e) => handleKeyDown('availability', e)}
+                        aria-expanded={availabilityDropdownOpen}
+                        aria-haspopup="listbox"
+                      >
+                        <span>
+                          {selectedAvailability ? availabilityOptions[selectedAvailability] : 'Select Availability'}
+                        </span>
+                        <FaChevronDown
+                          className={`transition-all fs-6 ${availabilityDropdownOpen ? 'rotate-180' : ''}`}
+                          style={{ color: '#18273e' }}
+                        />
+                      </button>
+
+                      {availabilityDropdownOpen && (
+                        <ul
+                          className="list-group position-absolute w-100 mt-1 shadow-sm"
+                          style={{
+                            zIndex: 1000,
+                            border: '1px solid #d3b386',
+                            borderRadius: '6px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                          }}
+                          role="listbox"
+                        >
+                          {Object.entries(availabilityOptions).map(([value, label], index) => (
+                            <li
+                              key={value}
+                              className="list-group-item list-group-item-action px-3 py-2"
+                              style={{
+                                cursor: 'pointer',
+                                backgroundColor:
+                                  index === focusedIndex.availability
+                                    ? '#f5e9d9'
+                                    : value === selectedAvailability
+                                    ? '#F8D4A1'
+                                    : 'white',
+                                border: 'none',
+                                borderBottom: '1px solid #f0f0f0',
+                                fontSize: '0.95rem',
+                              }}
+                              onClick={() => {
+                                handleAvailabilitySelect(value);
+                                if (errors.selectedAvailability) {
+                                  setErrors((prev) => ({ ...prev, selectedAvailability: '' }));
+                                }
+                              }}
+                              onMouseEnter={() => setFocusedIndex({ ...focusedIndex, availability: index })}
+                              role="option"
+                              aria-selected={value === selectedAvailability}
+                            >
+                              {label}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                  {errors.selectedAvailability && (
+                    <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                      {errors.selectedAvailability}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -744,94 +921,201 @@ const AddUser = () => {
           {/* Conditional Fields for Non-Client Roles */}
           {selectedRole && selectedRole !== 'client' && (
             <div className="row g-3 mt-2">
-              {/* Lawyer-specific fields */}
-
               {selectedRole === 'lawyer' && (
-                <div className="col-12 col-md-4">
-                  <div className="mb-3">
-                    <label
-                      className="form-label fw-medium mb-2 d-block"
-                      style={{
-                        color: '#18273e',
-                        fontSize: '0.95rem',
-                        letterSpacing: '0.3px',
-                      }}
-                    >
-                      Availability <span className="text-danger">*</span>
-                    </label>
-                    <div className="input-group" ref={availabilityDropdownRef}>
-                      <div className="position-relative w-100">
-                        <button
-                          type="button"
-                          className="form-control text-start d-flex align-items-center justify-content-between py-2 px-3"
+                <>
+                  {/* Experience Field */}
+                  <div className="col-12 col-sm-6 col-lg-4">
+                    <div className="mb-3">
+                      <label className="form-label fw-medium" style={{ color: '#18273e' }}>
+                        Years of Experience <span className="text-danger">*</span>
+                      </label>
+                      <div className="input-group">
+                        <span
+                          className="input-group-text"
                           style={{
-                            cursor: 'pointer',
-                            border: '1px solid #18273e',
-                            borderRadius: '6px',
-                            backgroundColor: 'white',
-                            height: '42px',
-                            fontSize: '0.95rem',
+                            backgroundColor: '#18273e',
+                            color: '#d4af37',
+                            borderColor: errors.experience ? '#dc3545' : '#18273e',
+                            borderRight: 'none',
                           }}
-                          onClick={toggleAvailabilityDropdown}
-                          onKeyDown={(e) => handleKeyDown('availability', e)}
-                          aria-expanded={availabilityDropdownOpen}
-                          aria-haspopup="listbox"
                         >
-                          <span>
-                            {selectedAvailability
-                              ? availabilityOptions[selectedAvailability] // show label
-                              : 'Select Availability'}
-                          </span>
-                          <FaChevronDown
-                            className={`transition-all fs-6 ${availabilityDropdownOpen ? 'rotate-180' : ''}`}
-                            style={{ color: '#18273e' }}
-                          />
-                        </button>
-
-                        {availabilityDropdownOpen && (
-                          <ul
-                            className="list-group position-absolute w-100 mt-1 shadow-sm"
+                          <FaBusinessTime />
+                        </span>
+                        <div className="position-relative flex-grow-1">
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={experience}
                             style={{
-                              zIndex: 1000,
-                              border: '1px solid #d3b386',
-                              borderRadius: '6px',
-                              maxHeight: '200px',
-                              overflowY: 'auto',
+                              borderColor: errors.experience ? '#dc3545' : '#18273e',
+                              paddingRight: '2.5rem',
+                              height: '100%',
+                              borderLeft: 'none', // Remove left border to connect with icon
+                              borderTopLeftRadius: 0, // Remove rounded corner on left
+                              borderBottomLeftRadius: 0, // Remove rounded corner on left
                             }}
-                            role="listbox"
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                                setExperience(value);
+                                if (errors.experience) {
+                                  setErrors((prev) => ({ ...prev, experience: '' }));
+                                }
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault();
+                            }}
+                            min="0"
+                            step="1"
+                            placeholder="0"
+                          />
+                          {/* Increment/Decrement Arrows */}
+                          <div
+                            className="position-absolute d-flex flex-column justify-content-between"
+                            style={{
+                              right: '8px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              height: '24px',
+                              width: '16px',
+                            }}
                           >
-                            {Object.entries(availabilityOptions).map(([value, label], index) => (
-                              <li
-                                key={value}
-                                className="list-group-item list-group-item-action px-3 py-2"
-                                style={{
-                                  cursor: 'pointer',
-                                  backgroundColor:
-                                    index === focusedIndex.availability
-                                      ? '#f5e9d9'
-                                      : value === selectedAvailability
-                                      ? '#F8D4A1'
-                                      : 'white',
-                                  border: 'none',
-                                  borderBottom: '1px solid #f0f0f0',
-                                  fontSize: '0.95rem',
-                                }}
-                                onClick={() => handleAvailabilitySelect(value)} // store DB value
-                                onMouseEnter={() => setFocusedIndex({ ...focusedIndex, availability: index })}
-                                role="option"
-                                aria-selected={value === selectedAvailability}
-                              >
-                                {label} {/* show human-readable label */}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                            <FaChevronUp
+                              size={10}
+                              style={{
+                                cursor: 'pointer',
+                                color: '#18273e',
+                                marginBottom: '2px',
+                              }}
+                              onClick={() => {
+                                const currentValue = parseFloat(experience) || 0;
+                                setExperience((currentValue + 1).toString());
+                                if (errors.experience) setErrors((prev) => ({ ...prev, experience: '' }));
+                              }}
+                            />
+                            <FaChevronDown
+                              size={10}
+                              style={{
+                                cursor: !experience || parseFloat(experience) <= 0 ? 'not-allowed' : 'pointer',
+                                color: !experience || parseFloat(experience) <= 0 ? '#999' : '#18273e',
+                              }}
+                              onClick={() => {
+                                const currentValue = parseFloat(experience) || 0;
+                                if (currentValue > 0) {
+                                  setExperience((currentValue - 1).toString());
+                                }
+                                if (errors.experience) setErrors((prev) => ({ ...prev, experience: '' }));
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
+                      {errors.experience && (
+                        <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                          {errors.experience}
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
 
+                  {/* Consultation Fee Field */}
+                  <div className="col-12 col-sm-6 col-lg-4">
+                    <div className="mb-3">
+                      <label className="form-label fw-medium" style={{ color: '#18273e' }}>
+                        Consultation Fee <span className="text-danger">*</span>
+                      </label>
+                      <div className="input-group">
+                        <span
+                          className="input-group-text"
+                          style={{
+                            backgroundColor: '#18273e',
+                            color: '#d4af37',
+                            borderColor: errors.fee ? '#dc3545' : '#18273e',
+                            borderRight: 'none',
+                          }}
+                        >
+                          <FaMoneyBillWave />
+                        </span>
+                        <div className="position-relative flex-grow-1">
+                          <input
+                            type="number"
+                            className="form-control"
+                            value={fee}
+                            style={{
+                              borderColor: errors.fee ? '#dc3545' : '#18273e',
+                              paddingRight: '2.5rem',
+                              height: '100%',
+                              borderLeft: 'none', // Remove left border to connect with icon
+                              borderTopLeftRadius: 0, // Remove rounded corner on left
+                              borderBottomLeftRadius: 0, // Remove rounded corner on left
+                            }}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                                setFee(value);
+                                if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
+                              }
+                            }}
+                            onKeyDown={(e) => {
+                              if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault();
+                            }}
+                            min="0"
+                            step="0.01"
+                            placeholder="0.00"
+                          />
+                          {/* Increment/Decrement Arrows */}
+                          <div
+                            className="position-absolute d-flex flex-column justify-content-between"
+                            style={{
+                              right: '8px',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              height: '24px',
+                              width: '16px',
+                            }}
+                          >
+                            <FaChevronUp
+                              size={10}
+                              style={{
+                                cursor: 'pointer',
+                                color: '#18273e',
+                                marginBottom: '2px',
+                              }}
+                              onClick={() => {
+                                const currentValue = parseFloat(fee) || 0;
+                                setFee((currentValue + 10).toFixed(2));
+                                if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
+                              }}
+                            />
+                            <FaChevronDown
+                              size={10}
+                              style={{
+                                cursor: !fee || parseFloat(fee) <= 0 ? 'not-allowed' : 'pointer',
+                                color: !fee || parseFloat(fee) <= 0 ? '#999' : '#18273e',
+                              }}
+                              onClick={() => {
+                                const currentValue = parseFloat(fee) || 0;
+                                if (currentValue >= 10) {
+                                  setFee((currentValue - 10).toFixed(2));
+                                } else if (currentValue > 0) {
+                                  setFee('0');
+                                }
+                                if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {errors.fee && (
+                        <div className="text-danger small mt-1" style={{ fontSize: '0.875rem' }}>
+                          {errors.fee}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
               {/* Bio Field */}
               <div className="col-12">
                 <div className="mb-3">
