@@ -3,6 +3,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './Dashboard.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
+  faA,
   faAddressCard,
   faArrowAltCircleDown,
   faArrowCircleDown,
@@ -17,6 +18,12 @@ import {
   faBriefcase,
   faCalendar,
   faCashRegister,
+  faChartArea,
+  faChartBar,
+  faChartColumn,
+  faChartLine,
+  faChartPie,
+  faChartSimple,
   faCheckCircle,
   faChevronDown,
   faChevronUp,
@@ -32,6 +39,7 @@ import {
   faListDots,
   faMessage,
   faMoneyBill1,
+  faMoneyCheckDollar,
   faNoteSticky,
   faPerson,
   faPersonCane,
@@ -42,6 +50,7 @@ import {
   faPowerOff,
   faQuestion,
   faRegistered,
+  faScaleBalanced,
   faSignOut,
   faStamp,
   faStreetView,
@@ -104,13 +113,14 @@ import FormTemplateUploader from './Pages/Component/Case_Forms/FormTemplateUploa
 import MOMEditor from './Pages/Component/Case_Forms/MOMEditor';
 import ReceptionistCalendar from './Pages/ReceptionistCalendar';
 import PublicAppointment from './Pages/AppointMents/Appointment';
-import { alignContent, alignItems, justifyContent, justifyItems, padding } from '@mui/system';
+import { alignContent, alignItems, fontSize, justifyContent, justifyItems, padding } from '@mui/system';
 import CaseSummary from './Pages/cases/CaseSummary';
 import LEA_Form from './Pages/Component/Case_Forms/LFA_form';
 import LFQ_ClientCaseEvaluationForm from './Pages/Component/Case_Forms/LFQFrom';
 import PaymentDashboard from './Pages/Finance/PaymentDashboard';
 import InvoiceForm from './Pages/Finance/Legalportal_Finance/InvoiceForm';
 import LegalServiceDashboard from './Pages/Finance/LegalServiceDashboard';
+import { faCog } from '@fortawesome/free-solid-svg-icons';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -137,6 +147,7 @@ const Dashboard = () => {
   // Add state at top of component
   const [showFormOptions, setShowFormOptions] = useState(false);
   const [adminWidgetHandler, setAdminWidgetHandler] = useState(null);
+  const [showSettingsOptions, setShowSettingsOptions] = useState(false);
 
   // console.log("________", cookies.token);
   // Get the decoded token
@@ -644,7 +655,7 @@ const Dashboard = () => {
         </div>
 
         {/* Sidebar Items */}
-        <div className="d-flex flex-column align-items-start px-2 mt-3">
+        {/* <div className="d-flex flex-column align-items-start px-2 mt-3">
           {[
             {
               icon: showOptions ? faChevronUp : faChevronDown,
@@ -1101,7 +1112,448 @@ const Dashboard = () => {
                 )}
               </div>
             ))}
+        </div> */}
+
+        <div className="d-flex flex-column align-items-center align-items-md-start px-3 mt-3">
+
+          {[
+            // CASE (now contains everything Dashboard had)
+            decodedToken?.Role === 'admin' ||
+              decodedToken?.Role === 'lawyer' ||
+              decodedToken?.Role === 'receptionist'
+              ? {
+                icon: faScaleBalanced,
+                label: 'Case',
+                style: {
+                  // padding: '5px',
+                  borderRadius: '6px',
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  // marginLeft: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => setShowCaseOptions(!showCaseOptions), // Toggle Case sub-menu
+              }
+              : null,
+
+            // Show Case submenu items when expanded
+            showCaseOptions
+              ? {
+                icon: faBolt,
+                label: 'Active Board',
+                style: {
+                  // backgroundColor: selectedOption === '' ? '#c0a262' : '#18273e',
+                  borderRadius: '6px',
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  // marginLeft: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => handleSelect(''),
+              }
+              : null,
+
+            showCaseOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faCheckCircle,
+                label: 'Close +ve Board',
+                style: {
+                  // backgroundColor:
+                  //   selectedOption === 'Close Positive' ? '#c0a262' : '#18273e',
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => handleSelect('Close Positive'),
+              }
+              : null,
+
+            showCaseOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faBan,
+                label: 'Close -ve Board',
+                style: {
+                  //marginLeft: 10,
+                  // backgroundColor:
+                  //   selectedOption === 'Close Negative' ? '#c0a262' : '#18273e',
+                  borderRadius: '6px',
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                },
+                action: () => handleSelect('Close Negative'),
+              }
+              : null,
+
+            // Additional Case submenu items
+            showCaseOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faBookOpen,
+                label: 'Add Case',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(11);
+                },
+              }
+              : null,
+
+            showCaseOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faBookReader,
+                label: 'Cases Summary',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(26);
+                },
+              }
+              : null,
+
+            // Messages
+            {
+              icon: faMessage,
+              label: 'Messages',
+              action: () => {
+                dispatch(clientEmail(null));
+                dispatch(FormCDetails(null));
+                dispatch(FormHDetails(null));
+                dispatch(Caseinfo(null));
+                handlescreen2(3);
+              },
+            },
+
+            // Form Dropdown (now also includes View Task)
+            decodedToken?.Role !== 'client'
+              ? {
+                icon: faWpforms,
+                label: 'Forms & Tasks',
+                style: {
+                  // padding: '5px',
+                  borderRadius: '6px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  // marginLeft: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => setShowFormOptions(!showFormOptions),
+              }
+              : null,
+
+            // === Form Submenu Items ===
+            showFormOptions && decodedToken?.Role !== 'client'
+              ? {
+                icon: faTasksAlt,
+                label: 'Tasks Board',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(14);
+                },
+              }
+              : null,
+
+            showFormOptions && decodedToken?.Role !== 'client'
+              ? {
+                icon: faList12,
+                label: 'Form C Board',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(18);
+                },
+              }
+              : null,
+
+            showFormOptions && decodedToken?.Role !== 'client'
+              ? {
+                icon: faList,
+                label: 'Form H Board',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(22);
+                },
+              }
+              : null,
+
+            // Receptionist only
+            decodedToken?.Role === 'receptionist'
+              ? {
+                icon: faCalendar,
+                label: 'Meeting Calendar',
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(24);
+                },
+              }
+              : null,
+
+            // Finance (Admin only)
+            decodedToken?.Role === 'admin'
+              ? {
+                icon: faChartColumn,
+                label: 'Finance',
+                style: {
+                  // padding: '5px',
+                  borderRadius: '6px',
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  // marginLeft: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => setShowFinanceOptions(!ShowFinanceOptions),
+              }
+              : null,
+
+            ShowFinanceOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faMoneyBill1,
+                label: 'Invoice',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(30);
+                },
+              }
+              : null,
+
+            ShowFinanceOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faChartLine,
+                label: 'Inquries Board',
+                style: {
+                  borderRadius: '6px',
+              
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(29);
+                },
+              }
+              : null,
+
+            ShowFinanceOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faChartArea,
+                label: 'Services Board',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => handlescreen2(31),
+              }
+              : null,
+
+            // === SETTINGS DROPDOWN ===
+            {
+              icon: faCog,
+              label: 'Settings',
+              action: () => setShowSettingsOptions(!showSettingsOptions),
+            },
+
+            // Settings submenu items
+            showSettingsOptions && decodedToken?.Role === 'admin'
+              ? {
+                icon: faPersonCircleCheck,
+                label: 'View Users',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(9);
+                },
+              }
+              : null,
+
+            showSettingsOptions
+              ? {
+                icon: faQuestionCircle,
+                label: 'FAQs',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: () => {
+                  dispatch(clientEmail(null));
+                  dispatch(Caseinfo(null));
+                  dispatch(FormCDetails(null));
+                  dispatch(FormHDetails(null));
+                  handlescreen2(21);
+                },
+              }
+              : null,
+
+            showSettingsOptions
+              ? {
+                icon: faSignOut,
+                label: 'Logout',
+                style: {
+                  borderRadius: '6px',
+                  // marginLeft: 10,
+                  // padding: '5px',
+                  gap: '10px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                action: handleLogOut,
+              }
+              : null,
+          ]
+            .filter(Boolean)
+            .map((item, index) => (
+              <div
+                key={index}
+                className="d-flex align-items-center my-2"
+                onClick={item.action}
+                style={!item.style ? { gap: '10px', cursor: 'pointer' } : item.style}
+              >
+                <FontAwesomeIcon
+                  icon={item.icon}
+                  title={item.label}
+                  style={{
+                    fontSize: '20px',
+                    color: 'white',
+                  }}
+                />
+                {!isCollapsed && (
+                  <span
+                    className="sidebar-label d-none d-lg-inline text-truncate"
+                    style={{ fontSize: '16px', maxWidth: '150px', marginRight: '6px' }}
+                  >
+                    {item.label}
+                  </span>
+                )}
+              </div>
+            ))}
         </div>
+
       </div>
 
       {/* Main Content */}
