@@ -1114,7 +1114,15 @@ const Dashboard = () => {
             ))}
         </div> */}
 
-        <div className="d-flex flex-column align-items-center align-items-md-start px-3 mt-3">
+        <div
+          className="d-flex flex-column align-items-center align-items-md-start px-3 mt-3 mb-3"
+          style={{
+            overflowY: "auto",
+            overflowX: "hidden",
+            scrollbarWidth: "none",     // hides scrollbar in Firefox
+            msOverflowStyle: "none",    // hides scrollbar in IE/Edge
+          }}
+        >
 
           {[
             // CASE (now contains everything Dashboard had)
@@ -1123,7 +1131,7 @@ const Dashboard = () => {
               decodedToken?.Role === 'receptionist'
               ? {
                 icon: faScaleBalanced,
-                label: 'Case',
+                label: 'Cases',
                 style: {
                   // padding: '5px',
                   borderRadius: '6px',
@@ -1415,7 +1423,7 @@ const Dashboard = () => {
                 label: 'Inquries Board',
                 style: {
                   borderRadius: '6px',
-              
+
                   // marginLeft: 10,
                   // padding: '5px',
                   gap: '10px',

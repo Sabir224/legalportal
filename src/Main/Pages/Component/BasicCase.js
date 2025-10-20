@@ -1981,7 +1981,7 @@ const BasicCase = ({ token }) => {
                           <div
                             key={sub?._id}
                             className="border rounded p-2 mb-3"
-                            style={{ backgroundColor: "#f8f9fa" }}
+                            style={{ backgroundColor: "#f7f3e9" }}
                           >
                             {/* Subcase Header with Dropdown */}
                             <div className="d-flex align-items-start mb-2">
@@ -2466,7 +2466,7 @@ const BasicCase = ({ token }) => {
                             className="d-none d-md-flex justify-content-between align-items-center gap-2 p-1"
                             style={{
                               cursor: "pointer",
-                              backgroundColor: "#fafafa", // halka fark dikhane k liye optional
+                              backgroundColor: "#f7f3e9", // halka fark dikhane k liye optional
                             }}
                             onClick={(e) => {
                               if (e.target.tagName !== "INPUT" && e.target.tagName !== "BUTTON") {
@@ -2486,7 +2486,7 @@ const BasicCase = ({ token }) => {
                                 position: "sticky",
                                 height: "11vh",
                                 left: 0,
-                                backgroundColor: "#ffffff",
+                                backgroundColor: "#f7f3e9", // ✅ makes sure nothing behind it shows
                                 zIndex: 2,
                                 borderRight: "1px solid #ccc",
                                 boxShadow: "2px 0 4px rgba(0, 0, 0, 0.03)",
