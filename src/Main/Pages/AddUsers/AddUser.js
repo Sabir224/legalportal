@@ -970,45 +970,6 @@ const AddUser = () => {
                             step="1"
                             placeholder="0"
                           />
-                          {/* Increment/Decrement Arrows */}
-                          <div
-                            className="position-absolute d-flex flex-column justify-content-between"
-                            style={{
-                              right: '8px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              height: '24px',
-                              width: '16px',
-                            }}
-                          >
-                            <FaChevronUp
-                              size={10}
-                              style={{
-                                cursor: 'pointer',
-                                color: '#18273e',
-                                marginBottom: '2px',
-                              }}
-                              onClick={() => {
-                                const currentValue = parseFloat(experience) || 0;
-                                setExperience((currentValue + 1).toString());
-                                if (errors.experience) setErrors((prev) => ({ ...prev, experience: '' }));
-                              }}
-                            />
-                            <FaChevronDown
-                              size={10}
-                              style={{
-                                cursor: !experience || parseFloat(experience) <= 0 ? 'not-allowed' : 'pointer',
-                                color: !experience || parseFloat(experience) <= 0 ? '#999' : '#18273e',
-                              }}
-                              onClick={() => {
-                                const currentValue = parseFloat(experience) || 0;
-                                if (currentValue > 0) {
-                                  setExperience((currentValue - 1).toString());
-                                }
-                                if (errors.experience) setErrors((prev) => ({ ...prev, experience: '' }));
-                              }}
-                            />
-                          </div>
                         </div>
                       </div>
                       {errors.experience && (
@@ -1046,65 +1007,24 @@ const AddUser = () => {
                               borderColor: errors.fee ? '#dc3545' : '#18273e',
                               paddingRight: '2.5rem',
                               height: '100%',
-                              borderLeft: 'none', // Remove left border to connect with icon
-                              borderTopLeftRadius: 0, // Remove rounded corner on left
-                              borderBottomLeftRadius: 0, // Remove rounded corner on left
+                              borderLeft: 'none',
+                              borderTopLeftRadius: 0,
+                              borderBottomLeftRadius: 0,
                             }}
                             onChange={(e) => {
                               const value = e.target.value;
-                              if (value === '' || /^\d*\.?\d{0,2}$/.test(value)) {
+                              if (value === '' || /^\d*$/.test(value)) {
                                 setFee(value);
                                 if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
                               }
                             }}
                             onKeyDown={(e) => {
-                              if (['-', 'e', 'E', '+'].includes(e.key)) e.preventDefault();
+                              if (['-', 'e', 'E', '+', '.'].includes(e.key)) e.preventDefault();
                             }}
                             min="0"
-                            step="0.01"
-                            placeholder="0.00"
+                            step="1"
+                            placeholder="0"
                           />
-                          {/* Increment/Decrement Arrows */}
-                          <div
-                            className="position-absolute d-flex flex-column justify-content-between"
-                            style={{
-                              right: '8px',
-                              top: '50%',
-                              transform: 'translateY(-50%)',
-                              height: '24px',
-                              width: '16px',
-                            }}
-                          >
-                            <FaChevronUp
-                              size={10}
-                              style={{
-                                cursor: 'pointer',
-                                color: '#18273e',
-                                marginBottom: '2px',
-                              }}
-                              onClick={() => {
-                                const currentValue = parseFloat(fee) || 0;
-                                setFee((currentValue + 10).toFixed(2));
-                                if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
-                              }}
-                            />
-                            <FaChevronDown
-                              size={10}
-                              style={{
-                                cursor: !fee || parseFloat(fee) <= 0 ? 'not-allowed' : 'pointer',
-                                color: !fee || parseFloat(fee) <= 0 ? '#999' : '#18273e',
-                              }}
-                              onClick={() => {
-                                const currentValue = parseFloat(fee) || 0;
-                                if (currentValue >= 10) {
-                                  setFee((currentValue - 10).toFixed(2));
-                                } else if (currentValue > 0) {
-                                  setFee('0');
-                                }
-                                if (errors.fee) setErrors((prev) => ({ ...prev, fee: '' }));
-                              }}
-                            />
-                          </div>
                         </div>
                       </div>
                       {errors.fee && (
@@ -1184,7 +1104,7 @@ const AddUser = () => {
               mb: 2,
             }}
           >
-            Are you sure you want to add this as{' '}
+            Are you sure you want to change the role to{' '}
             <b style={{ color: '#d4af37' }}>
               {pendingRole && pendingRole.charAt(0).toUpperCase() + pendingRole.slice(1)}
             </b>
