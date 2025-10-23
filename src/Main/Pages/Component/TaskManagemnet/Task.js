@@ -74,8 +74,18 @@ const Task = ({ token }) => {
     const fetchUsers = async () => {
         try {
             const response = await axios.get(`${ApiEndPoint}getAllUser`);
+            // const allUsers = response.data.users || [];
+
             const allUsers = response.data.users || [];
             setUsersList(allUsers);
+
+            // ✅ Filter only users assigned to this case
+            const caseAssignedIds =
+                caseInfo?.AssignedUsers?.map((u) => u.UserId || u._id) || [];
+            const filtered = allUsers.filter(
+                (user) => caseAssignedIds.includes(user._id.toString()) && user.IsActive
+            );
+            setUsersList(filtered);
             return allUsers;
         } catch (error) {
             console.error("Error fetching users:", error);
@@ -99,7 +109,7 @@ const Task = ({ token }) => {
     };
 
     const handleAddTask = async () => {
-        console.log("selectedUser",selectedUser)
+        console.log("selectedUser", selectedUser)
         let caseData = {
             "caseId": caseInfo?._id,  // Assuming casenumber is unique for the case
             "title": TaskTitle,  // Title of the task, replace with the actual state

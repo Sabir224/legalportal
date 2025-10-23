@@ -1165,7 +1165,7 @@ const Dashboard = () => {
               }
               : null,
 
-            showCaseOptions && decodedToken?.Role === 'admin'
+            showCaseOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faCheckCircle,
                 label: 'Close +ve Board',
@@ -1185,7 +1185,7 @@ const Dashboard = () => {
               }
               : null,
 
-            showCaseOptions && decodedToken?.Role === 'admin'
+            showCaseOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faBan,
                 label: 'Close -ve Board',
@@ -1203,7 +1203,7 @@ const Dashboard = () => {
               : null,
 
             // Additional Case submenu items
-            showCaseOptions && decodedToken?.Role === 'admin'
+            showCaseOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faBookOpen,
                 label: 'Add Case',
@@ -1227,7 +1227,7 @@ const Dashboard = () => {
               }
               : null,
 
-            showCaseOptions && decodedToken?.Role === 'admin'
+            showCaseOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faBookReader,
                 label: 'Cases Summary',
@@ -1372,7 +1372,7 @@ const Dashboard = () => {
               : null,
 
             // Finance (Admin only)
-            decodedToken?.Role === 'admin'
+            (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faChartColumn,
                 label: 'Finance',
@@ -1391,7 +1391,7 @@ const Dashboard = () => {
               }
               : null,
 
-            ShowFinanceOptions && decodedToken?.Role === 'admin'
+            ShowFinanceOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faMoneyBill1,
                 label: 'Invoice',
@@ -1415,7 +1415,7 @@ const Dashboard = () => {
               }
               : null,
 
-            ShowFinanceOptions && decodedToken?.Role === 'admin'
+            ShowFinanceOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faChartLine,
                 label: 'Inquries Board',
@@ -1440,7 +1440,7 @@ const Dashboard = () => {
               }
               : null,
 
-            ShowFinanceOptions && decodedToken?.Role === 'admin'
+            ShowFinanceOptions && (decodedToken?.Role === 'admin' || decodedToken?.Role === 'finance')
               ? {
                 icon: faChartArea,
                 label: 'Services Board',

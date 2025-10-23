@@ -91,7 +91,7 @@ const AddUser = () => {
     'InPerson/Online': 'In Person & Online',
   };
 
-  const roleOptions = ['client', 'lawyer', 'finance', 'receptionist', 'paralegal'];
+  const roleOptions = ['client', 'lawyer', "admin", 'finance', 'receptionist', 'paralegal'];
 
   const handleAvailabilitySelect = (option) => {
     setSelectedAvailability(option);
@@ -791,8 +791,8 @@ const AddUser = () => {
                                   index === focusedIndex.services
                                     ? '#f5e9d9'
                                     : service.name === expertise
-                                    ? '#F8D4A1'
-                                    : 'white',
+                                      ? '#F8D4A1'
+                                      : 'white',
                                 border: 'none',
                                 borderBottom: '1px solid #f0f0f0',
                                 transition: 'all 0.2s ease',
@@ -885,8 +885,8 @@ const AddUser = () => {
                                   index === focusedIndex.availability
                                     ? '#f5e9d9'
                                     : value === selectedAvailability
-                                    ? '#F8D4A1'
-                                    : 'white',
+                                      ? '#F8D4A1'
+                                      : 'white',
                                 border: 'none',
                                 borderBottom: '1px solid #f0f0f0',
                                 fontSize: '0.95rem',

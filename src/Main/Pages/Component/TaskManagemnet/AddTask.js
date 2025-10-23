@@ -28,7 +28,7 @@ import {
 const AddTask = ({ token }) => {
   const dispatch = useDispatch();
   const [dueDate, setDueDate] = useState(new Date());
-  const [selectedUsers, setSelectedUsers] = useState([]); 
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]); // ✅ new state
   const caseInfo = useSelector((state) => state.screen.Caseinfo);
@@ -52,10 +52,10 @@ const AddTask = ({ token }) => {
       // ✅ Filter only users assigned to this case
       const caseAssignedIds =
         caseInfo?.AssignedUsers?.map((u) => u.UserId || u._id) || [];
-
-      const filtered = allUsers.filter((user) =>
-        caseAssignedIds.includes(user._id)
+      const filtered = allUsers.filter(
+        (user) => caseAssignedIds.includes(user._id.toString()) && user.IsActive
       );
+
 
       setFilteredUsers(filtered);
     } catch (error) {
@@ -68,13 +68,13 @@ const AddTask = ({ token }) => {
       caseId: caseInfo?._id,
       title: TaskTitle,
       description: discription,
-      assignedUsers: selectedUsers, 
+      assignedUsers: selectedUsers,
       createdBy: token?._id,
       dueDate
     };
 
-    console.log("selectedUsers= ",selectedUsers)
-    
+    console.log("selectedUsers= ", selectedUsers)
+
     try {
       showLoading();
       await axios.post(`${ApiEndPoint}createTask`, caseData);
@@ -82,7 +82,7 @@ const AddTask = ({ token }) => {
       setCaseNumber("");
       setTaskTitle("");
       setDiscription("");
-      setSelectedUsers([]); 
+      setSelectedUsers([]);
       setDueDate(new Date());
     } catch (error) {
       console.error('Error creating task:', error);
@@ -105,10 +105,10 @@ const AddTask = ({ token }) => {
 
   const getSelectedUserNames = () => {
     if (!selectedUsers || selectedUsers.length === 0) return 'Select Users';
-    const selectedUserObjects = filteredUsers.filter(user => 
+    const selectedUserObjects = filteredUsers.filter(user =>
       selectedUsers.includes(user._id)
     );
-    return selectedUserObjects.map(user => 
+    return selectedUserObjects.map(user =>
       `${user.UserName} (${capitalizeFirst(user.Role)})`
     ).join(', ');
   };
@@ -120,18 +120,18 @@ const AddTask = ({ token }) => {
         <div className="row">
           {[{
             label: "Case Number",
-            icon: <Bs123 style={{ color: "#d3b386" }} />, 
-            value: caseInfo?.CaseNumber, 
+            icon: <Bs123 style={{ color: "#d3b386" }} />,
+            value: caseInfo?.CaseNumber,
             setter: setCaseNumber
           }, {
             label: "Task Title",
-            icon: <FaTasks style={{ color: "#d3b386" }} />, 
-            value: TaskTitle, 
+            icon: <FaTasks style={{ color: "#d3b386" }} />,
+            value: TaskTitle,
             setter: setTaskTitle
           }, {
             label: "Task Description",
-            icon: <FaAudioDescription style={{ color: "#d3b386" }} />, 
-            value: discription, 
+            icon: <FaAudioDescription style={{ color: "#d3b386" }} />,
+            value: discription,
             setter: setDiscription
           }].map(({ label, icon, value, setter }, idx) => (
             <div className="col-12 col-md-6 mb-3" key={idx}>
@@ -187,7 +187,7 @@ const AddTask = ({ token }) => {
                     displayEmpty
                     renderValue={() => (
                       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', px: 2, py: 0.5 }}>
-                        <span style={{ 
+                        <span style={{
                           color: selectedUsers.length === 0 ? '#6c757d' : '#000',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -237,7 +237,7 @@ const AddTask = ({ token }) => {
                       }
                     }}
                   >
-                    <MenuItem 
+                    <MenuItem
                       value=""
                       disabled
                       sx={{
@@ -247,10 +247,10 @@ const AddTask = ({ token }) => {
                     >
                       <em>Select Users</em>
                     </MenuItem>
-                    
+
                     {filteredUsers.map((user) => (  // ✅ only case assigned users
                       <MenuItem key={user._id} value={user._id}>
-                        <Checkbox 
+                        <Checkbox
                           checked={selectedUsers.includes(user._id)}
                           sx={{
                             color: '#d3b386',
@@ -259,13 +259,13 @@ const AddTask = ({ token }) => {
                             },
                           }}
                         />
-                        <ListItemText 
+                        <ListItemText
                           primary={`${user.UserName} (${capitalizeFirst(user.Role)})`}
                           sx={{ ml: 1 }}
                         />
                       </MenuItem>
                     ))}
-                    
+
                     {/* Done Button */}
                     {/* <MenuItem 
                       sx={{ 

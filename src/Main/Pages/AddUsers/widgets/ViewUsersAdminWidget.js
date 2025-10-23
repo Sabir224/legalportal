@@ -209,8 +209,8 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
           user?.Role === 'lawyer'
             ? response.data.lawyerDetails?.Contact
             : response.data?.Contact
-            ? response.data?.Contact
-            : '',
+              ? response.data?.Contact
+              : '',
         profilePicture: user?.ProfilePicture,
         experience: user?.Role === 'lawyer' ? response.data.lawyerDetails?.YearOfExperience : '',
         fee: user?.Role === 'lawyer' ? response.data.lawyerDetails?.ConsultationFee : '',
@@ -648,8 +648,8 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
           filterType === 'CaseType'
             ? [...CaseTypeList, ''] // include blank
             : filterType === 'CaseSubType'
-            ? [...Subtypelist, '']
-            : [];
+              ? [...Subtypelist, '']
+              : [];
 
         return {
           ...prevFilters,
@@ -1133,10 +1133,10 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
       action === 'activate'
         ? 'Are you sure you want to activate this user?'
         : action === 'deactivate'
-        ? 'Are you sure you want to deactivate this user?'
-        : action === 'approve'
-        ? 'Are you sure you want to approve this user and send login credentials?'
-        : 'Are you sure you want to reject this user?';
+          ? 'Are you sure you want to deactivate this user?'
+          : action === 'approve'
+            ? 'Are you sure you want to approve this user and send login credentials?'
+            : 'Are you sure you want to reject this user?';
 
     setConfirmDialog({
       open: true,
@@ -1601,7 +1601,7 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
                           className="list-group position-absolute bg-dark border rounded shadow w-100 mt-1"
                           style={{ zIndex: 1000 }}
                         >
-                          {['Client', 'Lawyer', 'Finance', 'Receptionist'].map((role) => (
+                          {['client', 'lawyer', 'finance', 'receptionist', "admin"].map((role) => (
                             <li
                               key={role}
                               className="list-group-item list-group-item-action text-white bg-dark border-secondary"
@@ -1611,7 +1611,8 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
                               }}
                               onClick={() => handleRoleSelect(role)}
                             >
-                              {role}
+
+                              {role.charAt(0).toUpperCase() + role.slice(1)}
                             </li>
                           ))}
                         </ul>
@@ -1978,12 +1979,12 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
               {confirmDialog.action === 'activate'
                 ? 'Activate'
                 : confirmDialog.action === 'deactivate'
-                ? 'Deactivate'
-                : confirmDialog.action === 'approve'
-                ? 'Approve'
-                : confirmDialog.action === 'reject'
-                ? 'Reject'
-                : 'Confirm'}
+                  ? 'Deactivate'
+                  : confirmDialog.action === 'approve'
+                    ? 'Approve'
+                    : confirmDialog.action === 'reject'
+                      ? 'Reject'
+                      : 'Confirm'}
             </Button>
           </DialogActions>
         </Box>
