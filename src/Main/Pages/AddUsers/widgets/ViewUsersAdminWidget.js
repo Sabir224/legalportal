@@ -1364,7 +1364,27 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
                       {user.isActive ? 'Deactivate' : 'Activate'}
                     </button>
                   )}
-
+                  {!editableFields && (
+                    <>
+                      {!showCaseSheet ? (
+                        <button
+                          className="btn"
+                          onClick={handleFloatingButtonClick}
+                          title={'View Cases'}
+                          style={{
+                            backgroundColor: '#f4e9d8',
+                            height: '40px',
+                            border: 'none',
+                            borderRadius: '10px',
+                            fontWeight: 500,
+                            width: '120px',
+                          }}
+                        >
+                          {'View Cases'}
+                        </button>
+                      ) : null}
+                    </>
+                  )}
                   {/* Nothing for rejected users */}
                 </div>
               </div>
@@ -1760,36 +1780,6 @@ const ViewUsersAdminWidget = ({ user, setSelectedChat, onUserUpdate, registerClo
             <p>Click any Admin to view details</p>
           </div>
         </div>
-      )}
-
-      {!editableFields && (
-        <>
-          {!showCaseSheet ? (
-            <button
-              onClick={handleFloatingButtonClick}
-              title={'View Cases'}
-              style={{
-                position: 'absolute',
-                bottom: '-70%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                backgroundColor: '#f4e9d8',
-                color: '#18273e',
-                border: '1px solid #d3b386',
-                borderRadius: '20%',
-                boxShadow: '0px 2px 8px rgba(0,0,0,0.2)',
-                display: 'flex',
-                padding: 10,
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.0rem',
-                cursor: 'pointer',
-              }}
-            >
-              {'View Cases'}
-            </button>
-          ) : null}
-        </>
       )}
 
       {/* Confirmation Dialog */}
