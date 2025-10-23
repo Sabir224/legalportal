@@ -224,7 +224,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
 
   const handleEdit = (index, value) => {
     const updatedData = [...data];
-    updatedData[index].notes = value;
+    updatedData[index].headerCase.notes = value;
     setData(updatedData);
   };
   // Fetch cases on component mount
@@ -327,8 +327,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
           filterType === 'CaseType'
             ? [...CaseTypeList, ''] // include blank
             : filterType === 'CaseSubType'
-            ? [...Subtypelist, '']
-            : [];
+              ? [...Subtypelist, '']
+              : [];
 
         return {
           ...prevFilters,
@@ -1296,8 +1296,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
                       style={{
                         color:
                           filters.CaseType &&
-                          filters.CaseType.length > 0 &&
-                          filters.CaseType.length <= CaseTypeList.length
+                            filters.CaseType.length > 0 &&
+                            filters.CaseType.length <= CaseTypeList.length
                             ? 'red'
                             : 'white',
                       }}
@@ -1336,7 +1336,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseType.includes('')}
-                        onChange={() => {}}
+                        onChange={() => { }}
                       />
                     </Dropdown.Item>
 
@@ -1357,7 +1357,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseType.includes(type)}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1412,8 +1412,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
                       style={{
                         color:
                           filters.CaseSubType &&
-                          filters.CaseSubType.length > 0 &&
-                          filters.CaseSubType.length <= Subtypelist.length
+                            filters.CaseSubType.length > 0 &&
+                            filters.CaseSubType.length <= Subtypelist.length
                             ? 'red' // kuch select hain lekin sab nahi
                             : 'white',
                       }}
@@ -1452,7 +1452,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseSubType.includes('')}
-                        onChange={() => {}}
+                        onChange={() => { }}
                       />
                     </Dropdown.Item>
 
@@ -1473,7 +1473,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseSubType.includes(type)}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1513,7 +1513,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
               }}>Legal Fee Quatation</span> */}
 
               {/* service sub type */}
-              <span
+              {/* <span
                 className=" text-start"
                 style={{
                   maxWidth: '200px',
@@ -1523,7 +1523,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                 }}
               >
                 Service Sub Type
-              </span>
+              </span> */}
               {/* LFA Heading */}
               <span
                 className=" text-start"
@@ -1841,8 +1841,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
                         <textarea
                           className="form-control text-wrap"
                           rows="2"
-                          value={item?.headerCase?.notes || item?.notes || ''}
-                          onChange={(e) => handleEdit(item?.headerCase, e.target.value)}
+                          value={item?.headerCase?.notes || ''}
+                          onChange={(e) => handleEdit(index, e.target.value)}
                           onClick={(e) => e.stopPropagation()}
                           onBlur={(e) => handleNoteBlur(item?.headerCase?._id, e.target.value)}
                           style={{
@@ -2095,7 +2095,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                               </div>
 
                               {/* SERVICE SUB TYPE */}
-                              <div className="d-flex flex-row gap-1">
+                              {/* <div className="d-flex flex-row gap-1">
                                 <span className="text-muted small">Service Sub Type</span>
                                 <span
                                   className="fw-medium text-break"
@@ -2111,7 +2111,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                                 >
                                   {sub?.ServiceSubType || 'N/A'}
                                 </span>
-                              </div>
+                              </div> */}
 
                               {/* LFA */}
                               {sub?.IsLFA && (
@@ -2245,7 +2245,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                           {item?.headerCase?.CaseSubType}
                         </span>
                         {/* service SUB TYPE */}
-                        <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span>
+                        {/* <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span> */}
                         {/* LFA */}
                         <div
                           className="text-start"
@@ -2436,7 +2436,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                               {sub?.CaseSubType}
                             </span>
                             {/** service sub type */}
-                            <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span>
+                            {/* <span className="text-start" style={{ maxWidth: '200px', minWidth: '200px' }}></span> */}
 
                             {/* LFA */}
                             <div
