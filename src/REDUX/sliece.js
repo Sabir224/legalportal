@@ -1,16 +1,30 @@
-import { createSlice } from "@reduxjs/toolkit";
+// screenSlice.js
+import { createSlice } from '@reduxjs/toolkit';
 
 const screenSlice = createSlice({
-  name: "screen",
+  name: 'screen',
   initialState: {
     value: 0, // current screen
-    clientEmail: "",
+    clientEmail: '',
     Caseinfo: null,
     FormCDetails: null,
     FormHDetails: null,
     LitigationFormH: null,
-    CloseType: "",
+    CloseType: '',
     history: [], // screen history stack
+    adminWidgetState: {
+      // Add admin widget state
+      selectedChat: null,
+      showCaseSheet: false,
+      isProfile: true,
+      adminData: null,
+      profilePicBase64: null,
+      selectedRole: null,
+      editableFields: false,
+      showLFA: false, // Add this
+      selectedCase: null, // Add this to store the case for LFA
+      navigationLevel: 1, // 1=Profile, 2=CaseSheet, 3=LFA
+    },
   },
   reducers: {
     screenChange: (state, action) => {
@@ -22,6 +36,7 @@ const screenSlice = createSlice({
     goBackScreen: (state) => {
       if (state.history.length > 0) {
         state.value = state.history.pop(); // set value to previous screen
+        console.log('🔄 Redux: Going back from screen', state.value, 'to screen', state.value);
       }
     },
     clientEmail: (state, action) => {
@@ -45,6 +60,27 @@ const screenSlice = createSlice({
     CloseType: (state, action) => {
       state.CloseType = action.payload;
     },
+    // New reducers for admin widget state
+    setAdminWidgetState: (state, action) => {
+      state.adminWidgetState = { ...state.adminWidgetState, ...action.payload };
+    },
+    setSelectedChat: (state, action) => {
+      state.adminWidgetState.selectedChat = action.payload;
+    },
+    setShowCaseSheet: (state, action) => {
+      state.adminWidgetState.showCaseSheet = action.payload;
+    },
+    resetAdminWidget: (state) => {
+      state.adminWidgetState = {
+        selectedChat: null,
+        showCaseSheet: false,
+        isProfile: true,
+        adminData: null,
+        profilePicBase64: null,
+        selectedRole: null,
+        editableFields: false,
+      };
+    },
   },
 });
 
@@ -57,6 +93,10 @@ export const {
   FormHDetails,
   LitigationFormH,
   Caseinfo,
-  CloseType
+  CloseType,
+  setAdminWidgetState,
+  setSelectedChat,
+  setShowCaseSheet,
+  resetAdminWidget,
 } = screenSlice.actions;
 export default screenSlice.reducer;

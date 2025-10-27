@@ -106,19 +106,6 @@ export default function UsersAdminUserListWidget({ setSelectedChat, userData, se
     }
   };
 
-  // Create a new chat between two users
-  const createChat = async (participants) => {
-    try {
-      const response = await axios.post(`${ApiEndPoint}chats`, {
-        participants,
-      });
-      console.log('New Chat Created:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating chat:', error);
-      return null;
-    }
-  };
   const searchedUsers = users?.filter((user) => {
     if (!searchQuery) return true; // If no search query, return all users
 

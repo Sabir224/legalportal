@@ -4,30 +4,88 @@ import ViewUsersAdminWidget from './widgets/ViewUsersAdminWidget';
 import { useMediaQuery } from 'react-responsive';
 import { GrContactInfo } from 'react-icons/gr';
 
+import { useDispatch, useSelector } from 'react-redux';
+import { setSelectedChat, setAdminWidgetState, resetAdminWidget, goBackScreen } from '../../../REDUX/sliece';
+
 export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
+  const dispatch = useDispatch();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const [selectedChat, setSelectedChat] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [usersRefreshTrigger, setUsersRefreshTrigger] = useState(0);
+
+  // Get admin widget state from Redux
+  const adminWidgetState = useSelector((state) => state.screen.adminWidgetState);
+  const selectedChat = adminWidgetState.selectedChat;
+  const [adminWidgetHandler, setAdminWidgetHandler] = useState(null);
+
+  const updateAdminWidgetState = (updates) => {
+    dispatch(setAdminWidgetState(updates));
+  };
+  const handleRegisterAdminHandler = (handler) => {
+    console.log('📝 Storing admin widget handler:', handler);
+    setAdminWidgetHandler(handler);
+  };
+
+  // When selecting a chat
+  const handleSelectChat = (chat) => {
+    dispatch(setSelectedChat(chat));
+    updateAdminWidgetState({
+      showCaseSheet: false,
+      isProfile: true,
+      adminData: null,
+      profilePicBase64: null,
+      selectedRole: chat?.Role || null,
+      editableFields: false,
+    });
+  };
+
+  // Handle widget close
+  // ViewUsers.js mein
+  const handleWidgetClose = () => {
+    // ✅ SABSE PEHLE isProfile ki state change karen - always set to false
+    dispatch(
+      setAdminWidgetState({
+        isProfile: false, // ✅ Pehle isProfile false karen
+        showLFA: false,
+        showCaseSheet: false,
+        navigationLevel: 1,
+        selectedChat: null,
+        adminData: null,
+        profilePicBase64: null,
+        selectedRole: null,
+        editableFields: false,
+        selectedCase: null,
+      })
+    );
+    dispatch(resetAdminWidget());
+  };
+
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+
   // Function to refresh users list
   const refreshUsersList = (updatedUserData = null) => {
     setUsersRefreshTrigger((prev) => prev + 1);
 
-    // If updated user data is provided and it matches the selected chat, update selected chat
     if (updatedUserData && selectedChat && selectedChat._id === updatedUserData._id) {
-      setSelectedChat((prevSelected) => ({
-        ...prevSelected,
-        ...updatedUserData,
-      }));
+      dispatch(
+        setSelectedChat({
+          ...selectedChat,
+          ...updatedUserData,
+        })
+      );
+      updateAdminWidgetState({
+        selectedChat: {
+          ...adminWidgetState.selectedChat,
+          ...updatedUserData,
+        },
+      });
     }
   };
 
   // Update isMobile state on screen resize
   useEffect(() => {
-    // console.log("currenScreen", screen.type.name)
     const handleResize = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -35,6 +93,7 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
 
   const isDesktop = useMediaQuery({ minWidth: 992 });
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 991 });
+
   return (
     <div
       className="p-0 m-0 d-flex position-relative"
@@ -44,7 +103,7 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
         backgroundColor: '#fff',
         borderRadius: '10px',
         boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-        gap: '10px', // ✅ use gap instead of margin on children
+        gap: '10px',
         padding: '10px',
       }}
     >
@@ -53,7 +112,7 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
         className={`d-flex flex-column p-3 ${isMobile && selectedChat ? 'd-none' : 'd-block'}`}
         style={{
           width: isMobile ? '100%' : '300px',
-          height: '100%', // ✅ match parent height
+          height: '100%',
           backgroundColor: '#fff',
           borderRadius: '10px',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
@@ -69,7 +128,7 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
         />
         <div className="d-flex flex-column p-3 overflow-y-auto">
           <UsersAdminUserListWidget
-            setSelectedChat={(chat) => setSelectedChat(chat)}
+            setSelectedChat={handleSelectChat}
             userData={token}
             searchQuery={searchQuery}
             token={token}
@@ -83,19 +142,21 @@ export default function ViewUsers({ token, screen, onRegisterAdminHandler }) {
       <div
         className={`d-flex flex-column flex-grow-1 ${isMobile && !selectedChat ? 'd-none' : 'd-block'}`}
         style={{
-          height: '100%', // ✅ fills available height
+          height: '100%',
           backgroundColor: '#fff',
           borderRadius: '10px',
           boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
           transition: 'opacity 0.3s ease-in-out',
-          overflow: 'hidden', // optional
+          overflow: 'hidden',
         }}
       >
         {selectedChat ? (
           <ViewUsersAdminWidget
             user={selectedChat}
-            setSelectedChat={setSelectedChat}
+            widgetState={adminWidgetState}
+            updateWidgetState={updateAdminWidgetState}
             onUserUpdate={refreshUsersList}
+            onClose={handleWidgetClose}
             registerCloseHandler={onRegisterAdminHandler}
           />
         ) : (

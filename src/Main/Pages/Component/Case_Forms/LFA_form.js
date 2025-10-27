@@ -89,19 +89,37 @@ const LEA_Form = ({ token }) => {
     'Mergers & Acquisitions',
     'Real Estate Law',
     'Success Fee',
-    // "Alternative Dispute Resolution / Arbitration / Dispute Resolution",
-    // "Debt Collection"
   ];
 
   const awsServices = [
     'Business Setup',
-    'Under Corporate Services',
     'Golden Visa',
     'Partner Visa',
     'Bank Account',
     'Drafted Legal Agreement',
     'Prepared NOC Draft',
     'Legal Advice',
+  ];
+
+  // NEW: Corporate Services with Authority Cost (No VAT) and AWS Service Fee (VAT)
+  const corporateServices = [
+    'License fee',
+    'License with 1 visa',
+    'License with 2 visas',
+    'Activity fee',
+    'Corporate Bank account',
+    'Personal Bank Account',
+    'Virtual Office Rental',
+    'Physical Office Rental',
+    'Employee visa',
+    'Establishment card',
+    'MOA',
+    'Notary fees to sign MOA',
+    'Court fees based on company capital',
+    'DM permit',
+    'RERA permit',
+    'Immigration Card',
+    'Quota',
   ];
 
   const [servicesList, setServicesList] = useState(suhadServices);
@@ -111,14 +129,21 @@ const LEA_Form = ({ token }) => {
   const [selectedService, setSelectedService] = useState('');
   const [serviceFees, setServiceFees] = useState('');
   const [currentSection, setCurrentSection] = useState(''); // To track which section the button was clicked from
+  const [showLinkCopiedModal, setShowLinkCopiedModal] = useState(false);
+
+  // NEW: State for service category within modal - FIXED: This is just the DEFAULT for new services
+  const [serviceCategory, setServiceCategory] = useState('legal'); // "litigation", "legal" or "corporate"
 
   const [services, setServices] = useState([
     {
       id: uuidv4(),
       selectedService: '',
       serviceFees: '',
-      vatCharges: '', // NEW: VAT Charges field
-      awsFees: '', // NEW: AWS Fees field
+      vatCharges: '5%', // FIXED: Default VAT for legal services
+      awsFees: '',
+      serviceCategory: 'legal', // FIXED: Each service has its own category
+      authorityCost: '',
+      additionalText: '',
     },
   ]);
 
@@ -137,7 +162,10 @@ const LEA_Form = ({ token }) => {
     navigator.clipboard
       .writeText(finalLink)
       .then(() => {
-        alert('Encrypted link copied to clipboard!');
+        setShowLinkCopiedModal(true);
+        setTimeout(() => {
+          setShowLinkCopiedModal(false);
+        }, 2000);
       })
       .catch((err) => {
         console.error('Failed to copy: ', err);
@@ -266,8 +294,15 @@ const LEA_Form = ({ token }) => {
 
   // NEW: Function to calculate service total
   const calculateServiceTotal = (service) => {
-    const baseFee = parseFloat(service.serviceFees) || 0;
+    let baseFee = parseFloat(service.serviceFees) || 0;
     let vatAmount = 0;
+    let awsFee = parseFloat(service.awsFees) || 0;
+    let authorityCost = parseFloat(service.authorityCost) || 0;
+
+    // For corporate services, include authority cost in base
+    if (service.serviceCategory === 'corporate') {
+      baseFee += authorityCost;
+    }
 
     // Calculate VAT based on percentage or fixed amount
     if (service.vatCharges) {
@@ -278,8 +313,6 @@ const LEA_Form = ({ token }) => {
         vatAmount = parseFloat(service.vatCharges) || 0;
       }
     }
-
-    const awsFee = parseFloat(service.awsFees) || 0;
 
     return baseFee + vatAmount + awsFee;
   };
@@ -293,17 +326,17 @@ const LEA_Form = ({ token }) => {
 
   // NEW: Functions for Services and Fees Modal
   const handleAddService = () => {
-    setServices([
-      ...services,
-      {
-        id: uuidv4(),
-        selectedService: '',
-        serviceFees: '',
-        vatCharges: '', // NEW: VAT Charges field
-        awsFees: '', // NEW: AWS Fees field
-        additionalText: '', // FIXED: Ensure additionalText is empty for new services
-      },
-    ]);
+    const newService = {
+      id: uuidv4(),
+      selectedService: '',
+      serviceFees: '',
+      vatCharges: serviceCategory === 'legal' ? '5%' : serviceCategory === 'litigation' ? '5%' : '', // FIXED: Set proper VAT default based on current category
+      awsFees: '',
+      serviceCategory: serviceCategory, // FIXED: Use current category for new service
+      authorityCost: '',
+      additionalText: '',
+    };
+    setServices([...services, newService]);
   };
 
   const handleRemoveService = (serviceId) => {
@@ -314,6 +347,12 @@ const LEA_Form = ({ token }) => {
 
   const handleServiceChange = (serviceId, field, value) => {
     setServices(services.map((service) => (service.id === serviceId ? { ...service, [field]: value } : service)));
+  };
+
+  // FIXED: Handle service category change - ONLY update the DEFAULT for NEW services, not existing ones
+  const handleServiceCategoryChange = (category) => {
+    setServiceCategory(category);
+    // DO NOT update existing services - each service maintains its own category
   };
 
   const handleSaveAllServices = async () => {
@@ -343,6 +382,8 @@ const LEA_Form = ({ token }) => {
         serviceFees: service.serviceFees,
         vatCharges: service.vatCharges,
         awsFees: service.awsFees,
+        serviceCategory: service.serviceCategory,
+        authorityCost: service.authorityCost,
         additionalText: service.additionalText || '', // Ensure additionalText is not undefined
       }));
 
@@ -405,6 +446,11 @@ const LEA_Form = ({ token }) => {
 
       // Build the service text with each component on separate lines
       let serviceText = `<strong>${service.selectedService}: AED ${service.serviceFees}</strong><br/>`;
+
+      // Add Authority Cost for corporate services
+      if (service.serviceCategory === 'corporate' && service.authorityCost && service.authorityCost !== '') {
+        serviceText += `<strong>Authority Cost: AED ${service.authorityCost}</strong><br/>`;
+      }
 
       // Add VAT charges if provided (now supports percentages)
       if (service.vatCharges && service.vatCharges !== '') {
@@ -478,6 +524,10 @@ const LEA_Form = ({ token }) => {
         id: service.id || uuidv4(),
       }));
       setServices(servicesWithIds);
+      // Set service category based on first service (just for display, doesn't affect existing services)
+      if (servicesWithIds.length > 0) {
+        setServiceCategory(servicesWithIds[0].serviceCategory || 'legal');
+      }
     } else {
       // Also check if there are services in the current section content
       const sectionIndex = fixedHeadings.findIndex((h) => h.title === section);
@@ -489,6 +539,10 @@ const LEA_Form = ({ token }) => {
 
         if (parsedServices.length > 0) {
           setServices(parsedServices);
+          // Set service category based on first service
+          if (parsedServices.length > 0) {
+            setServiceCategory(parsedServices[0].serviceCategory || 'legal');
+          }
           // Also update savedServices to maintain consistency
           setSavedServices((prev) => ({
             ...prev,
@@ -501,8 +555,10 @@ const LEA_Form = ({ token }) => {
               id: uuidv4(),
               selectedService: '',
               serviceFees: '',
-              vatCharges: '', // NEW: VAT Charges field
-              awsFees: '', // NEW: AWS Fees field
+              vatCharges: serviceCategory === 'legal' ? '5%' : serviceCategory === 'litigation' ? '5%' : '', // FIXED: Set proper default based on current category
+              awsFees: '',
+              serviceCategory: serviceCategory, // FIXED: Use current category
+              authorityCost: '',
               additionalText: '',
             },
           ]);
@@ -514,8 +570,10 @@ const LEA_Form = ({ token }) => {
             id: uuidv4(),
             selectedService: '',
             serviceFees: '',
-            vatCharges: '', // NEW: VAT Charges field
-            awsFees: '', // NEW: AWS Fees field
+            vatCharges: serviceCategory === 'legal' ? '5%' : serviceCategory === 'litigation' ? '5%' : '', // FIXED: Set proper default based on current category
+            awsFees: '',
+            serviceCategory: serviceCategory, // FIXED: Use current category
+            authorityCost: '',
             additionalText: '',
           },
         ]);
@@ -539,36 +597,55 @@ const LEA_Form = ({ token }) => {
         if (serviceMatch) {
           const [, serviceName, feeAmount] = serviceMatch;
 
-          // Parse VAT charges, AWS fees, and additional text from separate lines
+          // Parse Authority Cost, VAT charges, AWS fees, and additional text from separate lines
+          let authorityCost = '';
           let vatCharges = '';
           let awsFees = '';
           let additionalText = '';
+          let serviceCategory = 'legal'; // Default to legal
 
           // Split by <br/> to get separate lines
           const lines = point.text.split(/<br\/?>/);
 
           if (lines.length > 1) {
-            // Parse VAT charges from second line
-            if (lines[1]) {
-              const vatMatch = lines[1].match(/<strong>VAT Charges:\s*([^<]+)<\/strong>/);
+            let lineIndex = 1;
+
+            // Check for Authority Cost (indicates corporate service)
+            if (lines[lineIndex] && lines[lineIndex].includes('Authority Cost')) {
+              const authorityMatch = lines[lineIndex].match(/<strong>Authority Cost: AED\s*([^<]+)<\/strong>/);
+              if (authorityMatch) {
+                authorityCost = authorityMatch[1].trim();
+                serviceCategory = 'corporate';
+              }
+              lineIndex++;
+            }
+
+            // Parse VAT charges
+            if (lines[lineIndex] && lines[lineIndex].includes('VAT Charges')) {
+              const vatMatch = lines[lineIndex].match(/<strong>VAT Charges:\s*([^<]+)<\/strong>/);
               if (vatMatch) {
                 vatCharges = vatMatch[1].trim();
               }
+              lineIndex++;
             }
 
-            // Parse AWS fees from third line
-            if (lines[2]) {
-              const awsMatch = lines[2].match(/<strong>AWS Fees:\s*([^<]+)<\/strong>/);
+            // Parse AWS fees
+            if (lines[lineIndex] && lines[lineIndex].includes('AWS Fees')) {
+              const awsMatch = lines[lineIndex].match(/<strong>AWS Fees:\s*([^<]+)<\/strong>/);
               if (awsMatch) {
                 awsFees = awsMatch[1].trim();
               }
+              lineIndex++;
             }
 
-            // Parse total from fourth line (we don't need to store this as it's calculated)
+            // Parse total (we don't need to store this as it's calculated)
+            if (lines[lineIndex] && lines[lineIndex].includes('Total: AED')) {
+              lineIndex++;
+            }
 
-            // Additional text starts from fifth line
-            if (lines.length > 4) {
-              additionalText = lines.slice(4).join(' ').trim();
+            // Additional text starts from remaining lines
+            if (lines.length > lineIndex) {
+              additionalText = lines.slice(lineIndex).join(' ').trim();
             }
           }
 
@@ -578,6 +655,8 @@ const LEA_Form = ({ token }) => {
             serviceFees: feeAmount.replace(/,/g, ''), // Remove commas from fee
             vatCharges: vatCharges,
             awsFees: awsFees,
+            serviceCategory: serviceCategory,
+            authorityCost: authorityCost,
             additionalText: additionalText,
           });
         }
@@ -585,6 +664,23 @@ const LEA_Form = ({ token }) => {
     });
 
     return services;
+  };
+
+  const buttonStyle = {
+    backgroundColor: '#16213e',
+    color: 'white',
+    width: '150px',
+    minWidth: '100px',
+    maxWidth: '200px',
+    padding: '8px 20px',
+    borderRadius: '4px',
+    fontSize: '14px',
+    cursor: 'pointer',
+    textAlign: 'center',
+    border: '2px solid #16213e',
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.3s ease',
+    fontWeight: '500',
   };
 
   const FetchLFA = async (caseIdToFetch = null) => {
@@ -1475,6 +1571,7 @@ const LEA_Form = ({ token }) => {
       alert('Error submitting form. Please try again.');
     }
   };
+
   const handleUpdateClientSubmit = async () => {
     try {
       const formData = new FormData();
@@ -1597,8 +1694,6 @@ const LEA_Form = ({ token }) => {
       }
 
       // Save all services to database
-      // Save all services to database
-      // In handleUpdateLawyerSubmit function, replace the service saving section:
       if (allServicesToSave.length > 0) {
         try {
           for (const serviceGroup of allServicesToSave) {
@@ -1780,15 +1875,15 @@ const LEA_Form = ({ token }) => {
     const combinedHtml = list
       .map(
         (heading, hIndex) => `
-            <div style="margin-bottom: 20px;">
-                <strong>${heading.title || ''}</strong>
-                <ol type="a" style="margin: 8px 0; padding-left: 24px;">
-                    ${(heading.points || [])
-                      .map((p) => `<li style="margin: 4px 0; text-align: justify;">${p.text || ''}</li>`)
-                      .join('')}
-                </ol>
-            </div>
-        `
+                <div style="margin-bottom: 20px;">
+                    <strong>${heading.title || ''}</strong>
+                    <ol type="a" style="margin: 8px 0; padding-left: 24px;">
+                        ${(heading.points || [])
+                          .map((p) => `<li style="margin: 4px 0; text-align: justify;">${p.text || ''}</li>`)
+                          .join('')}
+                    </ol>
+                </div>
+            `
       )
       .join('');
 
@@ -1981,18 +2076,34 @@ const LEA_Form = ({ token }) => {
     );
   };
 
+  const renderLinkCopiedModal = () => {
+    return (
+      <Modal show={showLinkCopiedModal} onHide={() => setShowLinkCopiedModal(false)} centered>
+        <Modal.Body className="text-center py-4">
+          <div className="mb-3">
+            <BsDownload size={32} className="text-success" />
+          </div>
+          <h5 className="mb-2">Link Copied!</h5>
+          <p className="text-muted mb-0">Encrypted link has been copied to clipboard</p>
+        </Modal.Body>
+      </Modal>
+    );
+  };
+
   const renderServicesModal = () => {
-    // Combine all services for the dropdown
-    const allServices = [
-      {
-        group: 'Litigation Services (Suhad)',
-        services: suhadServices,
-      },
-      {
-        group: 'Legal Services (AWS)',
-        services: awsServices,
-      },
-    ];
+    // Get available services based on service category
+    const getAvailableServices = () => {
+      if (serviceCategory === 'corporate') {
+        return corporateServices;
+      } else if (serviceCategory === 'litigation') {
+        return suhadServices;
+      } else {
+        // Legal services - show AWS services
+        return awsServices;
+      }
+    };
+
+    const availableServices = getAvailableServices();
 
     return (
       <Modal show={showServicesModal} onHide={() => setShowServicesModal(false)} size="lg">
@@ -2005,27 +2116,72 @@ const LEA_Form = ({ token }) => {
           </div>
         </Modal.Header>
         <Modal.Body style={{ maxHeight: '70vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          {/* Service Category Selection */}
+          <div className="card p-3 mb-4">
+            <label className="form-label fw-bold">Select Service Category for NEW Services</label>
+            <div className="d-flex gap-3 flex-wrap">
+              <Form.Check
+                type="radio"
+                id="legal-category"
+                label="Legal Service"
+                name="serviceCategory"
+                checked={serviceCategory === 'legal'}
+                onChange={() => handleServiceCategoryChange('legal')}
+              />
+              <Form.Check
+                type="radio"
+                id="corporate-category"
+                label="Corporate Service"
+                name="serviceCategory"
+                checked={serviceCategory === 'corporate'}
+                onChange={() => handleServiceCategoryChange('corporate')}
+              />
+            </div>
+            <small className="text-muted">
+              {serviceCategory === 'legal'
+                ? 'Legal Service: 5% VAT applies to all services'
+                : 'Corporate Service: Authority Cost (No VAT) + AWS Service Fee (5% VAT)'}
+            </small>
+          </div>
+
           {/* Header with Add Service button */}
           <div className="mb-3">
             <div className="d-flex justify-content-between align-items-center">
-              <h6 className="mb-0">All Available Services</h6>
+              <h6 className="mb-0">Services List</h6>
               <Button
                 variant="outline-primary"
                 size="sm"
                 onClick={handleAddService}
                 className="d-flex align-items-center"
               >
-                <BsPlus className="me-1" /> Add Another Service
+                <BsPlus className="me-1" /> Add New Service
               </Button>
             </div>
           </div>
 
-          {/* Scrollable services area - FIXED: Better styling for text areas */}
+          {/* Scrollable services area */}
           <div style={{ flex: 1, overflowY: 'auto', paddingRight: '5px' }}>
             {services.map((service, serviceIndex) => (
               <div key={service.id} className="border rounded p-3 mb-3">
                 <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h6 className="mb-0">Service {serviceIndex + 1}</h6>
+                  <h6 className="mb-0">
+                    Service {serviceIndex + 1}
+                    <span
+                      className={`badge ms-2 ${
+                        service.serviceCategory === 'legal'
+                          ? 'bg-info'
+                          : service.serviceCategory === 'corporate'
+                          ? 'bg-warning'
+                          : 'bg-secondary'
+                      }`}
+                    >
+                      {service.serviceCategory === 'legal'
+                        ? 'Legal'
+                        : service.serviceCategory === 'corporate'
+                        ? 'Corporate'
+                        : 'Litigation'}
+                    </span>
+                  </h6>
                   {services.length > 1 && (
                     <Button variant="outline-danger" size="sm" onClick={() => handleRemoveService(service.id)}>
                       <BsDash />
@@ -2040,60 +2196,90 @@ const LEA_Form = ({ token }) => {
                     onChange={(e) => handleServiceChange(service.id, 'selectedService', e.target.value)}
                   >
                     <option value="">Choose a service...</option>
-                    {/* Show all service groups by default */}
-                    {allServices.map((serviceGroup, groupIndex) => (
-                      <optgroup key={groupIndex} label={serviceGroup.group}>
-                        {serviceGroup.services.map((serviceOption, index) => (
-                          <option key={`${groupIndex}-${index}`} value={serviceOption}>
-                            {serviceOption}
-                          </option>
-                        ))}
-                      </optgroup>
+                    {availableServices.map((serviceOption, index) => (
+                      <option key={index} value={serviceOption}>
+                        {serviceOption}
+                      </option>
                     ))}
                   </Form.Select>
                 </Form.Group>
 
+                {/* Corporate Service: Authority Cost */}
+                {service.serviceCategory === 'corporate' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Authority Cost </Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>AED</InputGroup.Text>
+                      <Form.Control
+                        type="number"
+                        placeholder="Enter authority cost"
+                        value={service.authorityCost}
+                        onChange={(e) => handleServiceChange(service.id, 'authorityCost', e.target.value)}
+                      />
+                    </InputGroup>
+                  </Form.Group>
+                )}
+
                 <Form.Group className="mb-3">
-                  <Form.Label>Service Fees</Form.Label>
+                  <Form.Label>
+                    {service.serviceCategory === 'corporate' ? 'AWS Service Fee' : 'Service Fees'}
+                  </Form.Label>
                   <InputGroup>
                     <InputGroup.Text>AED</InputGroup.Text>
                     <Form.Control
                       type="number"
-                      placeholder="Enter fee amount"
+                      placeholder={`Enter ${
+                        service.serviceCategory === 'corporate' ? 'AWS service fee' : 'service fee'
+                      }`}
                       value={service.serviceFees}
                       onChange={(e) => handleServiceChange(service.id, 'serviceFees', e.target.value)}
                     />
                   </InputGroup>
-                </Form.Group>
-
-                {/* VAT Charges Field */}
-                <Form.Group className="mb-3">
-                  <Form.Label>VAT Charges</Form.Label>
-                  <Form.Control
-                    type="text"
-                    placeholder="Enter VAT charges (e.g., 5% or 100 AED)"
-                    value={service.vatCharges}
-                    onChange={(e) => handleServiceChange(service.id, 'vatCharges', e.target.value)}
-                  />
                   <Form.Text className="text-muted">
-                    Optional: Enter VAT charges as percentage (5%) or fixed amount (100 AED)
+                    {service.serviceCategory === 'corporate' ? '' : 'Professional fees - 5% VAT applies'}
                   </Form.Text>
                 </Form.Group>
 
-                {/* AWS Fees Field */}
-                <Form.Group className="mb-3">
-                  <Form.Label>AWS Fees Charge</Form.Label>
-                  <InputGroup>
-                    <InputGroup.Text>AED</InputGroup.Text>
-                    <Form.Control
-                      type="number"
-                      placeholder="Enter AWS fees"
-                      value={service.awsFees}
-                      onChange={(e) => handleServiceChange(service.id, 'awsFees', e.target.value)}
-                    />
-                  </InputGroup>
-                  <Form.Text className="text-muted">Optional: Enter AWS fees for this service</Form.Text>
-                </Form.Group>
+                {/* VAT Charges Field - Only show for non-corporate services */}
+                {service.serviceCategory !== 'corporate' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>VAT Charges</Form.Label>
+                    {service.serviceCategory === 'litigation' || service.serviceCategory === 'legal' ? (
+                      <Form.Control type="text" value="5%" readOnly className="bg-light" />
+                    ) : (
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter VAT charges (e.g., 5% or 100 AED)"
+                        value={service.vatCharges}
+                        onChange={(e) => handleServiceChange(service.id, 'vatCharges', e.target.value)}
+                      />
+                    )}
+                    <Form.Text className="text-muted">
+                      {service.serviceCategory === 'litigation' || service.serviceCategory === 'legal'
+                        ? 'Automatically includes 5% VAT'
+                        : 'Optional: Enter VAT charges as percentage (5%) or fixed amount'}
+                    </Form.Text>
+                  </Form.Group>
+                )}
+
+                {/* AWS Fees Field - Only show for non-corporate services */}
+                {service.serviceCategory !== 'corporate' && (
+                  <Form.Group className="mb-3">
+                    <Form.Label>Additional AWS Fees</Form.Label>
+                    <InputGroup>
+                      <InputGroup.Text>AED</InputGroup.Text>
+                      <Form.Control
+                        type="number"
+                        placeholder="Enter additional AWS fees"
+                        value={service.awsFees}
+                        onChange={(e) => handleServiceChange(service.id, 'awsFees', e.target.value)}
+                      />
+                    </InputGroup>
+                    <Form.Text className="text-muted">
+                      Optional: Enter any additional AWS fees for this service
+                    </Form.Text>
+                  </Form.Group>
+                )}
 
                 {/* Individual Service Total Display */}
                 <div className="border-top pt-2 mb-3">
@@ -2103,7 +2289,7 @@ const LEA_Form = ({ token }) => {
                   </div>
                 </div>
 
-                {/* Additional Text Field for Service - FIXED: Better textarea styling */}
+                {/* Additional Text Field for Service */}
                 <Form.Group className="mb-3">
                   <Form.Label>Additional Text (Optional)</Form.Label>
                   <Form.Control
@@ -2118,23 +2304,10 @@ const LEA_Form = ({ token }) => {
                       maxHeight: '150px',
                     }}
                   />
-                  <Form.Text className="text-muted">
-                    This text will be appended after the service fee in the agreement
-                  </Form.Text>
                 </Form.Group>
               </div>
             ))}
           </div>
-
-          {/* Grand Total Display */}
-          {/* <div className="border-top pt-3 mt-3">
-          <div className="d-flex justify-content-between align-items-center bg-light p-3 rounded">
-            <h5 className="mb-0">Section Grand Total:</h5>
-            <h4 className="mb-0 text-primary">
-              AED {calculateGrandTotal(services).toFixed(2)}
-            </h4>
-          </div>
-        </div> */}
         </Modal.Body>
         <Modal.Footer className="justify-content-center">
           <div className="d-flex gap-3">
@@ -2163,8 +2336,10 @@ const LEA_Form = ({ token }) => {
                       id: uuidv4(),
                       selectedService: '',
                       serviceFees: '',
-                      vatCharges: '', // NEW: VAT Charges field
-                      awsFees: '', // NEW: AWS Fees field
+                      vatCharges: serviceCategory === 'legal' ? '5%' : serviceCategory === 'litigation' ? '5%' : '',
+                      awsFees: '',
+                      serviceCategory: serviceCategory,
+                      authorityCost: '',
                       additionalText: '',
                     },
                   ]);
@@ -2199,6 +2374,7 @@ const LEA_Form = ({ token }) => {
       </Modal>
     );
   };
+
   const ThankYouMessage = () => (
     <div className="text-center py-5">
       <h3>Thank You!</h3>
@@ -2757,6 +2933,8 @@ const LEA_Form = ({ token }) => {
 
       {/* NEW: Services and Fees Modal */}
       {renderServicesModal()}
+      {/* NEW: Link Copied Modal */}
+      {renderLinkCopiedModal()}
     </div>
   );
 };

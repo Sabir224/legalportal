@@ -16,7 +16,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faFilter } from '@fortawesome/free-solid-svg-icons';
 import { FaChevronDown, FaChevronRight } from 'react-icons/fa';
 
-const BasicCase = ({ token, isViewCase = false }) => {
+const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
   const [caseNumber, setCaseNumber] = useState('');
   const [caseName, setCaseName] = useState('');
   const [check, setcheck] = useState(true);
@@ -327,8 +327,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
           filterType === 'CaseType'
             ? [...CaseTypeList, ''] // include blank
             : filterType === 'CaseSubType'
-              ? [...Subtypelist, '']
-              : [];
+            ? [...Subtypelist, '']
+            : [];
 
         return {
           ...prevFilters,
@@ -1296,8 +1296,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
                       style={{
                         color:
                           filters.CaseType &&
-                            filters.CaseType.length > 0 &&
-                            filters.CaseType.length <= CaseTypeList.length
+                          filters.CaseType.length > 0 &&
+                          filters.CaseType.length <= CaseTypeList.length
                             ? 'red'
                             : 'white',
                       }}
@@ -1336,7 +1336,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseType.includes('')}
-                        onChange={() => { }}
+                        onChange={() => {}}
                       />
                     </Dropdown.Item>
 
@@ -1357,7 +1357,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseType.includes(type)}
-                          onChange={() => { }}
+                          onChange={() => {}}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1412,8 +1412,8 @@ const BasicCase = ({ token, isViewCase = false }) => {
                       style={{
                         color:
                           filters.CaseSubType &&
-                            filters.CaseSubType.length > 0 &&
-                            filters.CaseSubType.length <= Subtypelist.length
+                          filters.CaseSubType.length > 0 &&
+                          filters.CaseSubType.length <= Subtypelist.length
                             ? 'red' // kuch select hain lekin sab nahi
                             : 'white',
                       }}
@@ -1452,7 +1452,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseSubType.includes('')}
-                        onChange={() => { }}
+                        onChange={() => {}}
                       />
                     </Dropdown.Item>
 
@@ -1473,7 +1473,7 @@ const BasicCase = ({ token, isViewCase = false }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseSubType.includes(type)}
-                          onChange={() => { }}
+                          onChange={() => {}}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1752,7 +1752,6 @@ const BasicCase = ({ token, isViewCase = false }) => {
                             {item?.headerCase?.SerialNumber}
                           </span>
                         </div>
-
                         {/* CASE TYPE */}
                         <div className="d-flex flex-row gap-1">
                           <span className="text-muted small">Type of Service : </span>
@@ -1771,7 +1770,6 @@ const BasicCase = ({ token, isViewCase = false }) => {
                             {item?.headerCase?.CaseType || 'N/A'}
                           </span>
                         </div>
-
                         {/* CASE SUB TYPE */}
                         <div className="d-flex flex-row gap-1">
                           <span className="text-muted small">Service Type : </span>
@@ -1790,7 +1788,6 @@ const BasicCase = ({ token, isViewCase = false }) => {
                             {item?.headerCase?.CaseSubType || 'N/A'}
                           </span>
                         </div>
-
                         {/* SERVICE SUB TYPE */}
                         <div className="d-flex flex-row gap-1">
                           <span className="text-muted small">Service Sub Type : </span>
@@ -1809,25 +1806,31 @@ const BasicCase = ({ token, isViewCase = false }) => {
                             {item?.headerCase?.ServiceSubType || 'N/A'}
                           </span>
                         </div>
-
                         {/* LFA */}
+                       
                         {item?.headerCase?.IsLFA && (
                           <div
                             className="fw-medium text-break text-primary text-decoration-underline"
                             style={{
-                              display: 'block', // ensures wrapping works
-                              whiteSpace: 'normal', // allows text to wrap
+                              display: 'block',
+                              whiteSpace: 'normal',
                               width: '40vw',
-                              overflowWrap: 'break-word', // handles long words
-                              wordBreak: 'break-word', // extra safety
-                              fontSize: '0.9rem', // smaller font for mobile
-                              lineHeight: '1.3', // better readability
+                              overflowWrap: 'break-word',
+                              wordBreak: 'break-word',
+                              fontSize: '0.9rem',
+                              lineHeight: '1.3',
                               cursor: 'pointer',
                             }}
                             onClick={(e) => {
                               e.stopPropagation();
-                              dispatch(Caseinfo(item?.headerCase));
-                              dispatch(screenChange(27));
+                              if (onGoToLFA) {
+                                // Use the callback to navigate within the widget
+                                onGoToLFA(item?.headerCase);
+                              } else {
+                                // Fallback: use normal screen navigation
+                                dispatch(Caseinfo(item?.headerCase));
+                                dispatch(screenChange(27));
+                              }
                             }}
                           >
                             Go To LFA

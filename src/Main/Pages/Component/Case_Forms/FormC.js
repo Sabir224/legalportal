@@ -1,49 +1,234 @@
-import React, { useState, useEffect } from "react";
-import backgroundImage from "../../../Pages/Images/bg.jpg";
-import { ApiEndPoint } from "../utils/utlis";
-import SuccessModal from "../../AlertModels/SuccessModal";
-import { useAlert } from "../../../../Component/AlertContext";
-import { FaCross, FaDiscord, FaRemoveFormat } from "react-icons/fa";
-import { useSelector } from "react-redux";
-import axios from "axios";
+import React, { useState, useEffect, useRef } from 'react';
+import backgroundImage from '../../../Pages/Images/bg.jpg';
+import { ApiEndPoint } from '../utils/utlis';
+import SuccessModal from '../../AlertModels/SuccessModal';
+import { useAlert } from '../../../../Component/AlertContext';
+import { FaCross, FaDiscord, FaRemoveFormat, FaSearch } from 'react-icons/fa';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
 
-import {
-  Form,
-  Button,
-  Card,
-  Container,
-  Row,
-  Col,
-  Dropdown,
-  DropdownButton,
-  InputGroup,
-} from "react-bootstrap";
+import { Form, Button, Card, Container, Row, Col, InputGroup } from 'react-bootstrap';
 
 const ClientConsultationForm = ({ token }) => {
-
-
   const FormCDetails = useSelector((state) => state.screen.FormCDetails);
   const [fileName, setFileName] = useState(null);
-  const [encryptedLink, setEncryptedLink] = useState("");
+  const [encryptedLink, setEncryptedLink] = useState('');
   const [copied, setCopied] = useState(false);
-  const [showLinkGenerator, setShowLinkGenerator] = useState(true); // To control whether the link generator is shown or not
+  const [showLinkGenerator, setShowLinkGenerator] = useState(true);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState('');
   const { showLoading, showSuccess, showError } = useAlert();
+
+  // Country codes with flag images from CDN
+  const countryCodes = [
+    { code: '+1', flag: 'https://flagcdn.com/w20/us.png', name: 'United States', iso: 'us' },
+    { code: '+44', flag: 'https://flagcdn.com/w20/gb.png', name: 'United Kingdom', iso: 'gb' },
+    { code: '+91', flag: 'https://flagcdn.com/w20/in.png', name: 'India', iso: 'in' },
+    { code: '+92', flag: 'https://flagcdn.com/w20/pk.png', name: 'Pakistan', iso: 'pk' },
+    { code: '+86', flag: 'https://flagcdn.com/w20/cn.png', name: 'China', iso: 'cn' },
+    { code: '+49', flag: 'https://flagcdn.com/w20/de.png', name: 'Germany', iso: 'de' },
+    { code: '+33', flag: 'https://flagcdn.com/w20/fr.png', name: 'France', iso: 'fr' },
+    { code: '+39', flag: 'https://flagcdn.com/w20/it.png', name: 'Italy', iso: 'it' },
+    { code: '+34', flag: 'https://flagcdn.com/w20/es.png', name: 'Spain', iso: 'es' },
+    { code: '+7', flag: 'https://flagcdn.com/w20/ru.png', name: 'Russia', iso: 'ru' },
+    { code: '+81', flag: 'https://flagcdn.com/w20/jp.png', name: 'Japan', iso: 'jp' },
+    { code: '+82', flag: 'https://flagcdn.com/w20/kr.png', name: 'South Korea', iso: 'kr' },
+    { code: '+55', flag: 'https://flagcdn.com/w20/br.png', name: 'Brazil', iso: 'br' },
+    { code: '+61', flag: 'https://flagcdn.com/w20/au.png', name: 'Australia', iso: 'au' },
+    { code: '+64', flag: 'https://flagcdn.com/w20/nz.png', name: 'New Zealand', iso: 'nz' },
+    { code: '+27', flag: 'https://flagcdn.com/w20/za.png', name: 'South Africa', iso: 'za' },
+    { code: '+20', flag: 'https://flagcdn.com/w20/eg.png', name: 'Egypt', iso: 'eg' },
+    { code: '+971', flag: 'https://flagcdn.com/w20/ae.png', name: 'UAE', iso: 'ae' },
+    { code: '+966', flag: 'https://flagcdn.com/w20/sa.png', name: 'Saudi Arabia', iso: 'sa' },
+    { code: '+965', flag: 'https://flagcdn.com/w20/kw.png', name: 'Kuwait', iso: 'kw' },
+    { code: '+973', flag: 'https://flagcdn.com/w20/bh.png', name: 'Bahrain', iso: 'bh' },
+    { code: '+974', flag: 'https://flagcdn.com/w20/qa.png', name: 'Qatar', iso: 'qa' },
+    { code: '+968', flag: 'https://flagcdn.com/w20/om.png', name: 'Oman', iso: 'om' },
+    { code: '+60', flag: 'https://flagcdn.com/w20/my.png', name: 'Malaysia', iso: 'my' },
+    { code: '+65', flag: 'https://flagcdn.com/w20/sg.png', name: 'Singapore', iso: 'sg' },
+    { code: '+66', flag: 'https://flagcdn.com/w20/th.png', name: 'Thailand', iso: 'th' },
+    { code: '+84', flag: 'https://flagcdn.com/w20/vn.png', name: 'Vietnam', iso: 'vn' },
+    { code: '+62', flag: 'https://flagcdn.com/w20/id.png', name: 'Indonesia', iso: 'id' },
+    { code: '+63', flag: 'https://flagcdn.com/w20/ph.png', name: 'Philippines', iso: 'ph' },
+    { code: '+90', flag: 'https://flagcdn.com/w20/tr.png', name: 'Turkey', iso: 'tr' },
+    { code: '+31', flag: 'https://flagcdn.com/w20/nl.png', name: 'Netherlands', iso: 'nl' },
+    { code: '+46', flag: 'https://flagcdn.com/w20/se.png', name: 'Sweden', iso: 'se' },
+    { code: '+47', flag: 'https://flagcdn.com/w20/no.png', name: 'Norway', iso: 'no' },
+    { code: '+45', flag: 'https://flagcdn.com/w20/dk.png', name: 'Denmark', iso: 'dk' },
+    { code: '+358', flag: 'https://flagcdn.com/w20/fi.png', name: 'Finland', iso: 'fi' },
+    { code: '+41', flag: 'https://flagcdn.com/w20/ch.png', name: 'Switzerland', iso: 'ch' },
+    { code: '+43', flag: 'https://flagcdn.com/w20/at.png', name: 'Austria', iso: 'at' },
+    { code: '+32', flag: 'https://flagcdn.com/w20/be.png', name: 'Belgium', iso: 'be' },
+    { code: '+351', flag: 'https://flagcdn.com/w20/pt.png', name: 'Portugal', iso: 'pt' },
+    { code: '+30', flag: 'https://flagcdn.com/w20/gr.png', name: 'Greece', iso: 'gr' },
+    { code: '+48', flag: 'https://flagcdn.com/w20/pl.png', name: 'Poland', iso: 'pl' },
+    { code: '+36', flag: 'https://flagcdn.com/w20/hu.png', name: 'Hungary', iso: 'hu' },
+    { code: '+40', flag: 'https://flagcdn.com/w20/ro.png', name: 'Romania', iso: 'ro' },
+    { code: '+420', flag: 'https://flagcdn.com/w20/cz.png', name: 'Czech Republic', iso: 'cz' },
+    { code: '+52', flag: 'https://flagcdn.com/w20/mx.png', name: 'Mexico', iso: 'mx' },
+    { code: '+54', flag: 'https://flagcdn.com/w20/ar.png', name: 'Argentina', iso: 'ar' },
+    { code: '+56', flag: 'https://flagcdn.com/w20/cl.png', name: 'Chile', iso: 'cl' },
+    { code: '+57', flag: 'https://flagcdn.com/w20/co.png', name: 'Colombia', iso: 'co' },
+    { code: '+51', flag: 'https://flagcdn.com/w20/pe.png', name: 'Peru', iso: 'pe' },
+    { code: '+58', flag: 'https://flagcdn.com/w20/ve.png', name: 'Venezuela', iso: 've' },
+    { code: '+93', flag: 'https://flagcdn.com/w20/af.png', name: 'Afghanistan', iso: 'af' },
+    { code: '+355', flag: 'https://flagcdn.com/w20/al.png', name: 'Albania', iso: 'al' },
+    { code: '+213', flag: 'https://flagcdn.com/w20/dz.png', name: 'Algeria', iso: 'dz' },
+    { code: '+376', flag: 'https://flagcdn.com/w20/ad.png', name: 'Andorra', iso: 'ad' },
+  ];
+
+  // Practice areas with subtypes
+  const practiceAreas = {
+    'Civil Law': [
+      'Contract Disputes',
+      'Property Disputes',
+      'Tort Claims',
+      'Civil Rights',
+      'Debt Recovery',
+      'Other Civil Matters',
+    ],
+    'Commercial Law': [
+      'Business Formation',
+      'Mergers & Acquisitions',
+      'Commercial Contracts',
+      'Banking & Finance',
+      'Insolvency & Bankruptcy',
+      'Other Commercial Matters',
+    ],
+    'Criminal Law': [
+      'White Collar Crimes',
+      'Drug Offenses',
+      'Violent Crimes',
+      'Cyber Crimes',
+      'Traffic Violations',
+      'Other Criminal Matters',
+    ],
+    'Family Law': ['Divorce', 'Child Custody', 'Adoption', 'Alimony', 'Prenuptial Agreements', 'Other Family Matters'],
+    'Real Estate Law': [
+      'Property Purchase/Sale',
+      'Leasing Agreements',
+      'Landlord-Tenant Disputes',
+      'Property Development',
+      'Mortgage & Financing',
+      'Other Real Estate Matters',
+    ],
+    'Labor Law': [
+      'Employment Contracts',
+      'Workplace Discrimination',
+      'Wrongful Termination',
+      'Wage & Hour Disputes',
+      'Workers Compensation',
+      'Other Labor Matters',
+    ],
+    'Construction Law': [
+      'Construction Contracts',
+      'Construction Defects',
+      'Mechanic Liens',
+      'Building Regulations',
+      'Construction Disputes',
+      'Other Construction Matters',
+    ],
+    'Maritime Law': [
+      'Shipping Disputes',
+      'Marine Insurance',
+      'Cargo Claims',
+      'Maritime Injuries',
+      'Admiralty Law',
+      'Other Maritime Matters',
+    ],
+    'Personal Injury Law': [
+      'Car Accidents',
+      'Medical Malpractice',
+      'Slip & Fall',
+      'Product Liability',
+      'Workplace Injuries',
+      'Other Personal Injury Matters',
+    ],
+    'Technology Law': [
+      'IT Contracts',
+      'Data Privacy',
+      'Intellectual Property',
+      'Software Licensing',
+      'Cybersecurity',
+      'Other Technology Matters',
+    ],
+    'Financial Law': [
+      'Securities Regulation',
+      'Tax Law',
+      'Banking Compliance',
+      'Financial Fraud',
+      'Investment Disputes',
+      'Other Financial Matters',
+    ],
+    'Public Law': [
+      'Administrative Law',
+      'Constitutional Law',
+      'Human Rights',
+      'Immigration Law',
+      'Municipal Law',
+      'Other Public Law Matters',
+    ],
+    'Consumer Law': [
+      'Consumer Protection',
+      'Product Liability',
+      'False Advertising',
+      'Debt Collection',
+      'Warranty Disputes',
+      'Other Consumer Matters',
+    ],
+    'Environmental Law': [
+      'Environmental Compliance',
+      'Pollution Control',
+      'Natural Resources',
+      'Climate Change Law',
+      'Environmental Litigation',
+      'Other Environmental Matters',
+    ],
+    'Rental Law': [
+      'Residential Leases',
+      'Commercial Leases',
+      'Eviction Proceedings',
+      'Rent Control',
+      'Security Deposits',
+      'Other Rental Matters',
+    ],
+  };
+
+  // Custom dropdown state for country selector
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const countryDropdownRef = useRef(null);
+
+  // Filter countries based on search
+  const filteredCountries = countryCodes.filter(
+    (country) =>
+      country.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      country.code.includes(searchQuery) ||
+      country.iso.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (countryDropdownRef.current && !countryDropdownRef.current.contains(event.target)) {
+        setShowCountryDropdown(false);
+        setSearchQuery('');
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleGenerateLink = () => {
     const data = JSON.stringify({ token, timestamp: Date.now() });
     const encrypted = btoa(data);
-    const link = `${window.location.origin
-      }/client-consultation?data=${encodeURIComponent(encrypted)}`;
+    const link = `${window.location.origin}/client-consultation?data=${encodeURIComponent(encrypted)}`;
     setEncryptedLink(link);
     setCopied(false);
   };
-
-  //   const showSuccess = (msg) => {
-  //     setSuccessMessage(msg);
-  //     setShowSuccessModal(true);
-  //   };
 
   const handleCopy = async () => {
     if (encryptedLink) {
@@ -51,7 +236,7 @@ const ClientConsultationForm = ({ token }) => {
         await navigator.clipboard.writeText(encryptedLink);
         setCopied(true);
       } catch (err) {
-        console.error("Copy failed:", err);
+        console.error('Copy failed:', err);
       }
     }
   };
@@ -59,76 +244,78 @@ const ClientConsultationForm = ({ token }) => {
   // Check if URL contains the encrypted link (using query params)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has("data")) {
-      setShowLinkGenerator(false); // Hide link generator if opening from link
+    if (urlParams.has('data')) {
+      setShowLinkGenerator(false);
     }
   }, []);
 
-  const [clientName, setClientName] = useState("");
-  const [CaseNumber, setCaseNumber] = useState("");
-  const [countryCode, setCountryCode] = useState("+92");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [email, setEmail] = useState("");
-  const [contactAddress, setContactAddress] = useState("");
-  const [individualOrCompany, setIndividualOrCompany] = useState("");
+  const [clientName, setClientName] = useState('');
+  const [CaseNumber, setCaseNumber] = useState('');
+  const [countryCode, setCountryCode] = useState('+92');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [contactAddress, setContactAddress] = useState('');
+  const [individualOrCompany, setIndividualOrCompany] = useState('');
 
   // Extra Info
-  const [companyName, setCompanyName] = useState("");
-  const [occupation, setOccupation] = useState("");
-  const [opponentDetails, setOpponentDetails] = useState("");
-  const [legalService, setLegalService] = useState("Select");
-  const [practiceArea, setPracticeArea] = useState("Select");
-  const [serviceDetails, setServiceDetails] = useState("");
-  const [desiredOutcome, setDesiredOutcome] = useState("");
+  const [companyName, setCompanyName] = useState('');
+  const [occupation, setOccupation] = useState('');
+  const [opponentDetails, setOpponentDetails] = useState('');
+  const [legalService, setLegalService] = useState('Select');
+  const [practiceArea, setPracticeArea] = useState('Select');
+  const [practiceSubtype, setPracticeSubtype] = useState('Select');
+  const [serviceDetails, setServiceDetails] = useState('');
+  const [desiredOutcome, setDesiredOutcome] = useState('');
 
   // File Upload - Multiple files
   const [files, setFiles] = useState([]);
 
   // Referred By
-  const [referredBy, setReferredBy] = useState("");
+  const [referredBy, setReferredBy] = useState('');
 
   const isDisabled = FormCDetails !== null;
+
   useEffect(() => {
-    console.log("FormCDetails", FormCDetails)
+    console.log('FormCDetails', FormCDetails);
     if (!FormCDetails) return;
 
     const fetchForm = async () => {
       try {
-        const response = await axios.get(
-          `${ApiEndPoint}consultation-forms/${FormCDetails?.checklist?.cForm}`
-        );
+        const response = await axios.get(`${ApiEndPoint}consultation-forms/${FormCDetails?.checklist?.cForm}`);
 
         const data = response.data.form;
 
-        setClientName(data.clientName || "");
-        setCaseNumber(data.caseNumber || "");
-        setCountryCode(data.phone?.countryCode || "+92");
-        setPhoneNumber(data.phone?.number || "");
-        setEmail(data.email || "");
-        setContactAddress(data.address || "");
-        setIndividualOrCompany(data.clientType || "");
+        setClientName(data.clientName || '');
+        setCaseNumber(data.caseNumber || '');
+        setCountryCode(data.phone?.countryCode || '+92');
+        setPhoneNumber(data.phone?.number || '');
+        setEmail(data.email || '');
+        setContactAddress(data.address || '');
+        setIndividualOrCompany(data.clientType || '');
 
-        setCompanyName(data.companyName || "");
-        setOccupation(data.occupation || "");
-        setOpponentDetails(data.opponentDetails || "");
-        setLegalService(data.serviceType || "Select");
-        setPracticeArea(data.practiceArea || "Select");
-        setServiceDetails(data.serviceDetails || "");
-        setDesiredOutcome(data.desiredOutcome || "");
+        setCompanyName(data.companyName || '');
+        setOccupation(data.occupation || '');
+        setOpponentDetails(data.opponentDetails || '');
+        setLegalService(data.serviceType || 'Select');
+        setPracticeArea(data.practiceArea || 'Select');
+        setPracticeSubtype(data.practiceSubtype || 'Select');
+        setServiceDetails(data.serviceDetails || '');
+        setDesiredOutcome(data.desiredOutcome || '');
 
         setFiles(data.documents || []);
-        setReferredBy(data.referredBy || "");
-
-        // setForm(response.data.form);
-        // setError('');
+        setReferredBy(data.referredBy || '');
       } catch (err) {
-        console.error(err.response?.data?.message || "Failed to fetch form");
-      } finally {
+        console.error(err.response?.data?.message || 'Failed to fetch form');
       }
     };
 
     fetchForm();
   }, [FormCDetails]);
+
+  // Reset subtype when practice area changes
+  useEffect(() => {
+    setPracticeSubtype('Select');
+  }, [practiceArea]);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -139,7 +326,7 @@ const ClientConsultationForm = ({ token }) => {
     const droppedFiles = Array.from(e.dataTransfer.files);
 
     if (files.length + droppedFiles.length > 5) {
-      alert("You can only upload up to 5 files.");
+      alert('You can only upload up to 5 files.');
       return;
     }
 
@@ -150,7 +337,7 @@ const ClientConsultationForm = ({ token }) => {
     const selected = Array.from(e.target.files);
 
     if (files.length + selected.length > 5) {
-      alert("You can only upload up to 5 files.");
+      alert('You can only upload up to 5 files.');
       return;
     }
 
@@ -164,25 +351,23 @@ const ClientConsultationForm = ({ token }) => {
   const submitForm = async (formData) => {
     try {
       const response = await fetch(`${ApiEndPoint}createConsultation`, {
-        method: "POST",
+        method: 'POST',
         body: formData,
-        // headers are automatically set by browser for FormData
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || "Submission failed");
+        throw new Error(data.message || 'Submission failed');
       }
 
       return data;
     } catch (error) {
-      console.error("Submission error:", error);
+      console.error('Submission error:', error);
       throw error;
     }
   };
 
-  // Modify your handleSubmit function
   const handleSubmit = async (e) => {
     showLoading();
     e.preventDefault();
@@ -190,94 +375,158 @@ const ClientConsultationForm = ({ token }) => {
     const formData = new FormData();
 
     // Append all form fields
-    formData.append("clientName", clientName);
-    formData.append("caseNumber", CaseNumber);
-    formData.append("phoneNumber", `${countryCode}${phoneNumber}`);
-    formData.append("email", email);
-    formData.append("address", contactAddress);
-    formData.append("clientType", individualOrCompany);
-    formData.append("companyName", companyName);
-    formData.append("occupation", occupation);
-    formData.append("opponentDetails", opponentDetails);
-    formData.append("serviceType", legalService);
-    formData.append("practiceArea", practiceArea);
-    formData.append("serviceDetails", serviceDetails);
-    formData.append("desiredOutcome", desiredOutcome);
-    formData.append("referredBy", referredBy);
+    formData.append('clientName', clientName);
+    formData.append('caseNumber', CaseNumber);
+    formData.append('phoneNumber', `${countryCode}${phoneNumber}`);
+    formData.append('email', email);
+    formData.append('address', contactAddress);
+    formData.append('clientType', individualOrCompany);
+    formData.append('companyName', companyName);
+    formData.append('occupation', occupation);
+    formData.append('opponentDetails', opponentDetails);
+    formData.append('serviceType', legalService);
+    formData.append('practiceArea', practiceArea);
+    formData.append('practiceSubtype', practiceSubtype);
+    formData.append('serviceDetails', serviceDetails);
+    formData.append('desiredOutcome', desiredOutcome);
+    formData.append('referredBy', referredBy);
 
     // Append each file
     files.forEach((file) => {
-      formData.append("files", file);
+      formData.append('files', file);
     });
 
     try {
       const result = await submitForm(formData);
-      console.log("Success:", result);
-      // Show success message, redirect, etc.
-      // alert('Form submitted successfully!');
-      showSuccess("Form submitted successfully!");
+      console.log('Success:', result);
+      showSuccess('Form submitted successfully!');
 
-      setClientName("");
-      setCountryCode("");
-      setPhoneNumber("");
-      setEmail("");
-      setContactAddress("");
-      setIndividualOrCompany("");
-      setCompanyName("");
-      setOccupation("");
-      setOpponentDetails("");
-      setLegalService("Select");
-      setPracticeArea("Select");
-      setServiceDetails("");
-      setDesiredOutcome("");
-      setReferredBy("");
+      setClientName('');
+      setCountryCode('');
+      setPhoneNumber('');
+      setEmail('');
+      setContactAddress('');
+      setIndividualOrCompany('');
+      setCompanyName('');
+      setOccupation('');
+      setOpponentDetails('');
+      setLegalService('Select');
+      setPracticeArea('Select');
+      setPracticeSubtype('Select');
+      setServiceDetails('');
+      setDesiredOutcome('');
+      setReferredBy('');
       setFiles([]);
-
-      //   showSuccess("Form C is added ");
     } catch (error) {
-      setDesiredOutcome("");
+      setDesiredOutcome('');
       if (error.response) {
-        showError("Error submitting the form.", error.response);
+        showError('Error submitting the form.', error.response);
       } else {
-        showError("Network or server error:", error.message);
+        showError('Network or server error:', error.message);
       }
-      // Show error to user
     }
   };
 
-
   const fetchSignedUrl = async (filePath) => {
     try {
-      console.log(filePath)
+      console.log(filePath);
       const response = await fetch(`${ApiEndPoint}/downloadFileByUrl/${encodeURIComponent(filePath)}`);
       const data = await response.json();
 
-      console.log("data=", data)
+      console.log('data=', data);
       if (response.ok) {
-        window.open(data.url, '_blank'); // <-- Open in new tab
-        // return data.signedUrl;
+        window.open(data.url, '_blank');
         return data.url;
       } else {
-        throw new Error(data.error || "Unknown error");
+        throw new Error(data.error || 'Unknown error');
       }
     } catch (err) {
-      console.error("Error fetching signed URL:", err);
+      console.error('Error fetching signed URL:', err);
       return null;
     }
+  };
+
+  // Get selected country display
+  const getSelectedCountry = () => {
+    const selected = countryCodes.find((country) => country.code === countryCode);
+    if (selected) {
+      return (
+        <span className="d-flex align-items-center">
+          <img
+            src={selected.flag}
+            alt={selected.name}
+            style={{
+              width: '20px',
+              height: '15px',
+              marginRight: '8px',
+              borderRadius: '2px',
+            }}
+          />
+          <span className="fw-bold">{selected.code}</span>
+        </span>
+      );
+    }
+    return (
+      <span className="d-flex align-items-center">
+        <img
+          src="https://flagcdn.com/w20/pk.png"
+          alt="Pakistan"
+          style={{
+            width: '20px',
+            height: '15px',
+            marginRight: '8px',
+            borderRadius: '2px',
+          }}
+        />
+        <span className="fw-bold">+92</span>
+      </span>
+    );
+  };
+
+  // Handle country selection
+  const handleCountrySelect = (code) => {
+    setCountryCode(code);
+    setShowCountryDropdown(false);
+    setSearchQuery('');
+  };
+
+  // Render country display with flag image
+  const renderCountryDisplay = (country) => {
+    return (
+      <div className="d-flex align-items-center w-100">
+        <img
+          src={country.flag}
+          alt={country.name}
+          style={{
+            width: '20px',
+            height: '15px',
+            marginRight: '12px',
+            borderRadius: '2px',
+            flexShrink: 0,
+          }}
+        />
+        <span className="fw-bold me-2" style={{ minWidth: '50px', flexShrink: 0 }}>
+          {country.code}
+        </span>
+        <span className="text-muted" style={{ flex: 1 }}>
+          {country.name}
+        </span>
+      </div>
+    );
   };
 
   return (
     <Container
       fluid
       style={{
-        backgroundImage: showLinkGenerator ? "none" : `url(${backgroundImage})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        minHeight: showLinkGenerator ? "auto" : "100vh",
-        display: showLinkGenerator ? "block" : "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundImage: showLinkGenerator ? 'none' : `url(${backgroundImage})`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: showLinkGenerator ? 'auto' : '100vh',
+        display: showLinkGenerator ? 'block' : 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         padding: 0,
       }}
     >
@@ -285,29 +534,33 @@ const ClientConsultationForm = ({ token }) => {
         <Col xl={8} lg={10} md={10} sm={12} className="px-0">
           <Card
             className="shadow-sm mt-1"
-            style={{ maxHeight: "86vh", overflowY: "auto" }}
+            style={{
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              marginBottom: '20px',
+            }}
           >
-            <Card.Body>
+            <Card.Body style={{ padding: '25px' }}>
               {/* Header */}
               <div className="mb-4">
                 <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                   <Card.Img
                     src="/logo.png"
                     alt="Legal Group Logo"
-                    style={{ height: "40px", width: "auto" }}
+                    style={{ height: '40px', width: 'auto' }}
                     className="mb-2 mb-md-0"
                   />
 
-                  {showLinkGenerator && token?.Role !== "client" && (
+                  {showLinkGenerator && token?.Role !== 'client' && (
                     <div>
                       <div className="d-flex flex-wrap m-0 p-0 align-items-center gap-2">
                         <Button
                           variant="primary"
                           className="d-flex align-items-center justify-content-center"
                           style={{
-                            minWidth: "160px",
-                            height: "45px",
-                            lineHeight: "1.2",
+                            minWidth: '160px',
+                            height: '45px',
+                            lineHeight: '1.2',
                           }}
                           onClick={handleGenerateLink}
                         >
@@ -319,16 +572,13 @@ const ClientConsultationForm = ({ token }) => {
                             variant="primary"
                             className="d-flex align-items-center justify-content-center"
                             onClick={handleCopy}
-                            title={copied ? "Copied!" : "Copy Link"}
+                            title={copied ? 'Copied!' : 'Copy Link'}
                             style={{
-                              width: "45px",
-                              height: "45px",
+                              width: '45px',
+                              height: '45px',
                             }}
                           >
-                            <i
-                              className={`fas ${copied ? "fa-check-circle" : "fa-copy"
-                                }`}
-                            ></i>
+                            <i className={`fas ${copied ? 'fa-check-circle' : 'fa-copy'}`}></i>
                           </Button>
                         )}
                       </div>
@@ -336,9 +586,7 @@ const ClientConsultationForm = ({ token }) => {
                   )}
                 </div>
 
-                <Card.Title className="mb-2">
-                  Client Consultation Brief
-                </Card.Title>
+                <Card.Title className="mb-2">Client Consultation Brief</Card.Title>
                 <Card.Text className="text-muted small">
                   Greetings from AWS Legal Group!
                   <br />
@@ -348,7 +596,7 @@ const ClientConsultationForm = ({ token }) => {
 
               <Form onSubmit={handleSubmit}>
                 {/* Personal Info */}
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>
                     Case Number(Optional) <span className="text-danger">*</span>
                   </Form.Label>
@@ -359,12 +607,10 @@ const ClientConsultationForm = ({ token }) => {
                     onChange={(e) => setCaseNumber(e.target.value)}
                     disabled={isDisabled}
                   />
-                  <Form.Text className="text-end">
-                    {CaseNumber.length}/255
-                  </Form.Text>
+                  <Form.Text className="text-end d-block mt-1">{CaseNumber.length}/255</Form.Text>
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>
                     Client Name(s) <span className="text-danger">*</span>
                   </Form.Label>
@@ -376,28 +622,92 @@ const ClientConsultationForm = ({ token }) => {
                     required
                     disabled={isDisabled}
                   />
-                  <Form.Text className="text-end">
-                    {clientName.length}/255
-                  </Form.Text>
+                  <Form.Text className="text-end d-block mt-1">{clientName.length}/255</Form.Text>
                 </Form.Group>
 
-                {/* Phone Number - Fixed with InputGroup */}
-
-                <Form.Group className="mb-3">
+                {/* Phone Number - Custom Country Selector with Search and Flag Images */}
+                <Form.Group className="mb-4">
                   <Form.Label>
                     Phone Number <span className="text-danger">*</span>
                   </Form.Label>
                   <InputGroup>
-                    <Form.Select
-                      value={countryCode}
-                      onChange={(e) => setCountryCode(e.target.value)}
-                      style={{ maxWidth: "120px" }}
-                      disabled={isDisabled}
-                    >
-                      <option value="+92">+92</option>
-                      <option value="+1">+1</option>
-                      <option value="+44">+44</option>
-                    </Form.Select>
+                    {/* Custom Country Selector */}
+                    <div className="position-relative" ref={countryDropdownRef}>
+                      <Button
+                        variant="outline-secondary"
+                        className="d-flex align-items-center justify-content-between"
+                        style={{
+                          minWidth: '140px',
+                          maxWidth: '160px',
+                          borderTopRightRadius: 0,
+                          borderBottomRightRadius: 0,
+                          borderRight: 'none',
+                          height: '38px',
+                          padding: '0.375rem 0.75rem',
+                        }}
+                        onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                        disabled={isDisabled}
+                        type="button"
+                      >
+                        {getSelectedCountry()}
+                        <i className="fas fa-chevron-down ms-2 small"></i>
+                      </Button>
+
+                      {/* Custom Dropdown Menu with Search */}
+                      {showCountryDropdown && (
+                        <div
+                          className="position-absolute start-0 bg-white border rounded shadow-sm mt-1"
+                          style={{
+                            zIndex: 1060,
+                            maxHeight: '350px',
+                            overflowY: 'auto',
+                            top: '100%',
+                            minWidth: '300px',
+                            width: '100%',
+                          }}
+                        >
+                          {/* Search Box */}
+                          <div className="p-2 border-bottom bg-light">
+                            <div className="d-flex align-items-center">
+                              <FaSearch className="text-muted me-2" size={14} />
+                              <input
+                                type="text"
+                                className="form-control form-control-sm border-0 bg-light"
+                                placeholder="Search country..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                autoFocus
+                                style={{ outline: 'none', boxShadow: 'none' }}
+                              />
+                            </div>
+                          </div>
+
+                          {/* Country List */}
+                          <div style={{ maxHeight: '250px', overflowY: 'auto' }}>
+                            {filteredCountries.length > 0 ? (
+                              filteredCountries.map((country) => (
+                                <div
+                                  key={country.code}
+                                  className={`d-flex align-items-center px-3 py-2 ${
+                                    countryCode === country.code ? 'bg-primary text-white' : 'hover-bg-light'
+                                  }`}
+                                  onClick={() => handleCountrySelect(country.code)}
+                                  style={{
+                                    cursor: 'pointer',
+                                    borderBottom: '1px solid #f8f9fa',
+                                    minHeight: '44px',
+                                  }}
+                                >
+                                  {renderCountryDisplay(country)}
+                                </div>
+                              ))
+                            ) : (
+                              <div className="px-3 py-3 text-muted text-center">No countries found</div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     <Form.Control
                       type="tel"
@@ -405,12 +715,18 @@ const ClientConsultationForm = ({ token }) => {
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       required
                       disabled={isDisabled}
+                      style={{
+                        borderTopLeftRadius: 0,
+                        borderBottomLeftRadius: 0,
+                        flex: 1,
+                      }}
+                      placeholder="Enter phone number"
                     />
                   </InputGroup>
                 </Form.Group>
 
-
-                <Form.Group className="mb-3">
+                {/* Rest of your form components remain the same */}
+                <Form.Group className="mb-4">
                   <Form.Label>
                     Email Address <span className="text-danger">*</span>
                   </Form.Label>
@@ -420,78 +736,62 @@ const ClientConsultationForm = ({ token }) => {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={isDisabled}
+                    placeholder="Enter email address"
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Contact Address</Form.Label>
                   <Form.Control
                     type="text"
                     value={contactAddress}
                     onChange={(e) => setContactAddress(e.target.value)}
                     disabled={isDisabled}
+                    placeholder="Enter contact address"
                   />
                 </Form.Group>
 
-                {/* Individual/Company Dropdown - Fixed */}
-                <Form.Group className="mb-3">
+                {/* Individual/Company Dropdown */}
+                <Form.Group className="mb-4">
                   <Form.Label>
                     Individual or Company <span className="text-danger">*</span>
                   </Form.Label>
-                  <InputGroup>
-                    <Dropdown className="w-100">
-                      <Dropdown.Toggle
-                        variant="outline-secondary"
-                        id="dropdown-individual-company"
-                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
-                        disabled={isDisabled}
-                      >
-                        <span>
-                          {individualOrCompany === "individual"
-                            ? "Individual"
-                            : individualOrCompany === "company"
-                              ? "Company"
-                              : "Select"}
-                        </span>
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className="w-100">
-                        <Dropdown.Item
-                          onClick={() => setIndividualOrCompany("individual")}
-                        >
-                          Individual
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => setIndividualOrCompany("company")}
-                        >
-                          Company
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </InputGroup>
+                  <Form.Select
+                    value={individualOrCompany}
+                    onChange={(e) => setIndividualOrCompany(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  >
+                    <option value="">Select</option>
+                    <option value="individual">Individual</option>
+                    <option value="company">Company</option>
+                  </Form.Select>
                 </Form.Group>
 
                 {/* Extra Info */}
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Company Name</Form.Label>
                   <Form.Control
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     disabled={isDisabled}
+                    placeholder="Enter company name"
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Client Occupation / Business Activity</Form.Label>
                   <Form.Control
                     type="text"
                     value={occupation}
                     onChange={(e) => setOccupation(e.target.value)}
                     disabled={isDisabled}
+                    placeholder="Enter occupation or business activity"
                   />
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Opponent Details</Form.Label>
                   <Form.Control
                     as="textarea"
@@ -500,92 +800,33 @@ const ClientConsultationForm = ({ token }) => {
                     value={opponentDetails}
                     onChange={(e) => setOpponentDetails(e.target.value)}
                     disabled={isDisabled}
+                    placeholder="Enter opponent details"
+                    style={{ resize: 'vertical' }}
                   />
-                  <Form.Text className="text-end">
-                    {opponentDetails.length}/2000
-                  </Form.Text>
+                  <Form.Text className="text-end d-block mt-1">{opponentDetails.length}/2000</Form.Text>
                 </Form.Group>
 
                 {/* Legal Service Dropdown */}
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>
-                    Legal Service Required{" "}
-                    <span className="text-danger">*</span>
+                    Legal Service Required <span className="text-danger">*</span>
                   </Form.Label>
-                  <InputGroup>
-                    <Dropdown className="w-100">
-                      <Dropdown.Toggle
-                        variant="outline-secondary"
-                        id="dropdown-legal-service"
-                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
-                        disabled={isDisabled}
-                      >
-                        <span>
-                          {legalService !== "" && legalService !== "Select"
-                            ? legalService
-                            : "Select"}
-                        </span>
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className="w-100">
-                        <Dropdown.Item
-                          onClick={() => setLegalService("Consultation")}
-                        >
-                          Consultation
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => setLegalService("Representation")}
-                        >
-                          Representation
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </InputGroup>
+                  <Form.Select
+                    value={legalService}
+                    onChange={(e) => setLegalService(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  >
+                    <option value="Select">Select</option>
+                    <option value="Consultation">Consultation</option>
+                    <option value="Representation">Representation</option>
+                  </Form.Select>
                 </Form.Group>
 
-                {/* Practice Area Dropdown */}
-                <Form.Group className="mb-3">
+                {/* MOVED: Practice Area Dropdown - Now placed after Service Details */}
+                <Form.Group className="mb-4">
                   <Form.Label>
-                    Practice Area <span className="text-danger">*</span>
-                  </Form.Label>
-                  <InputGroup>
-                    <Dropdown className="w-100">
-                      <Dropdown.Toggle
-                        variant="outline-secondary"
-                        id="dropdown-practice-area"
-                        className="w-100 text-start d-flex justify-content-between align-items-center pe-3"
-                        disabled={isDisabled}
-                      >
-                        <span>
-                          {practiceArea !== "" && practiceArea !== "Select"
-                            ? practiceArea
-                            : "Select"}
-                        </span>
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className="w-100">
-                        <Dropdown.Item
-                          onClick={() => setPracticeArea("Civil Law")}
-                        >
-                          Civil Law
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => setPracticeArea("Corporate Law")}
-                        >
-                          Corporate Law
-                        </Dropdown.Item>
-                        <Dropdown.Item
-                          onClick={() => setPracticeArea("Criminal Law")}
-                        >
-                          Criminal Law
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </InputGroup>
-                </Form.Group>
-
-                <Form.Group className="mb-3">
-                  <Form.Label>
-                    Details on Service Required{" "}
-                    <span className="text-danger">*</span>
+                    Details on Service Required <span className="text-danger">*</span>
                   </Form.Label>
                   <Form.Control
                     as="textarea"
@@ -595,16 +836,55 @@ const ClientConsultationForm = ({ token }) => {
                     onChange={(e) => setServiceDetails(e.target.value)}
                     required
                     disabled={isDisabled}
+                    placeholder="Enter details about the legal service required"
+                    style={{ resize: 'vertical' }}
                   />
-                  <Form.Text className="text-end">
-                    {serviceDetails.length}/2000
-                  </Form.Text>
+                  <Form.Text className="text-end d-block mt-1">{serviceDetails.length}/2000</Form.Text>
                 </Form.Group>
 
-                <Form.Group className="mb-3">
+                {/* Practice Area Dropdown - MOVED TO BOTTOM */}
+                <Form.Group className="mb-4">
                   <Form.Label>
-                    Desired Outcome / Suggested Action{" "}
-                    <span className="text-danger">*</span>
+                    Practice Area <span className="text-danger">*</span>
+                  </Form.Label>
+                  <Form.Select
+                    value={practiceArea}
+                    onChange={(e) => setPracticeArea(e.target.value)}
+                    required
+                    disabled={isDisabled}
+                  >
+                    <option value="Select">Select</option>
+                    {Object.keys(practiceAreas).map((area) => (
+                      <option key={area} value={area}>
+                        {area}
+                      </option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+
+                {/* Practice Subtype Dropdown
+                {practiceArea !== "Select" && (
+                  <Form.Group className="mb-4">
+                    <Form.Label>
+                      Practice Subtype <span className="text-danger">*</span>
+                    </Form.Label>
+                    <Form.Select
+                      value={practiceSubtype}
+                      onChange={(e) => setPracticeSubtype(e.target.value)}
+                      required
+                      disabled={isDisabled}
+                    >
+                      <option value="Select">Select</option>
+                      {practiceAreas[practiceArea].map(subtype => (
+                        <option key={subtype} value={subtype}>{subtype}</option>
+                      ))}
+                    </Form.Select>
+                  </Form.Group>
+                )} */}
+
+                <Form.Group className="mb-4">
+                  <Form.Label>
+                    Desired Outcome / Suggested Action <span className="text-danger">*</span>
                   </Form.Label>
                   <Form.Control
                     as="textarea"
@@ -614,19 +894,19 @@ const ClientConsultationForm = ({ token }) => {
                     onChange={(e) => setDesiredOutcome(e.target.value)}
                     required
                     disabled={isDisabled}
+                    placeholder="Enter desired outcome or suggested action"
+                    style={{ resize: 'vertical' }}
                   />
-                  <Form.Text className="text-end">
-                    {desiredOutcome.length}/2000
-                  </Form.Text>
+                  <Form.Text className="text-end d-block mt-1">{desiredOutcome.length}/2000</Form.Text>
                 </Form.Group>
 
                 {/* File Upload */}
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-4">
                   <Form.Label>Relevant Documents</Form.Label>
                   <Card className="border-dashed p-4 text-center">
                     <Card.Body
                       className="p-4 text-center"
-                      style={{ cursor: "pointer", border: "2px dashed #ccc" }}
+                      style={{ cursor: 'pointer', border: '2px dashed #ccc' }}
                       onDragOver={handleDragOver}
                       onDrop={handleDrop}
                     >
@@ -640,17 +920,15 @@ const ClientConsultationForm = ({ token }) => {
                       />
                       <Form.Label
                         htmlFor="fileUpload"
-                        className={`d-block ${files.length >= 5 || isDisabled ? "text-muted" : ""
-                          }`}
+                        className={`d-block ${files.length >= 5 || isDisabled ? 'text-muted' : ''}`}
+                        style={{ cursor: files.length >= 5 || isDisabled ? 'not-allowed' : 'pointer' }}
                       >
                         <i className="bi bi-upload fs-2"></i>
                         <br />
                         <span className="text-primary text-decoration-underline">
-                          {files.length >= 5
-                            ? "Maximum files selected"
-                            : "Choose files to upload"}
-                        </span>{" "}
-                        {!files.length >= 5 && "or drag and drop here"}
+                          {files.length >= 5 ? 'Maximum files selected' : 'Choose files to upload'}
+                        </span>{' '}
+                        {!files.length >= 5 && 'or drag and drop here'}
                       </Form.Label>
                     </Card.Body>
 
@@ -663,10 +941,8 @@ const ClientConsultationForm = ({ token }) => {
                               key={index}
                               className="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2"
                             >
-                              <span className="text-break w-100">
-                                {file.name}
-                              </span>
-                              {isDisabled &&
+                              <span className="text-break w-100">{file.name}</span>
+                              {isDisabled && (
                                 <button
                                   type="button"
                                   className="btn btn-sm btn-outline-danger align-self-end align-self-sm-center"
@@ -674,7 +950,7 @@ const ClientConsultationForm = ({ token }) => {
                                 >
                                   download
                                 </button>
-                              }
+                              )}
                               <Button
                                 variant="outline-danger"
                                 size="sm"
@@ -687,8 +963,7 @@ const ClientConsultationForm = ({ token }) => {
                           ))}
                         </ul>
                         <div className="text-muted mt-1">
-                          {files.length} file{files.length !== 1 && "s"}{" "}
-                          selected
+                          {files.length} file{files.length !== 1 && 's'} selected
                         </div>
                       </div>
                     )}
@@ -703,14 +978,16 @@ const ClientConsultationForm = ({ token }) => {
                     value={referredBy}
                     onChange={(e) => setReferredBy(e.target.value)}
                     disabled={isDisabled}
+                    placeholder="Enter referral source"
                   />
                 </Form.Group>
 
                 <Button
                   variant="primary"
                   type="submit"
-                  className="w-100 mt-3 mb-2"
+                  className="w-100 mt-3 mb-2 py-2"
                   disabled={isDisabled}
+                  style={{ fontSize: '1.1rem' }}
                 >
                   Submit
                 </Button>
