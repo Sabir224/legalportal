@@ -55,12 +55,6 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
       return;
     }
 
-    // Don't allow adding your own email
-    if (email === userData?.email || email === userData?.Email) {
-      setError('You cannot add yourself to the group');
-      return;
-    }
-
     setSelectedEmails([...selectedEmails, email]);
     setEmailInput('');
     setError('');
@@ -76,8 +70,8 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
       return;
     }
 
-    if (selectedEmails.length < 1) {
-      setError('Please add at least 1 member to create a group');
+    if (selectedEmails.length < 2) {
+      setError('Please add at least 2 members to create a group');
       return;
     }
 
@@ -85,48 +79,20 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
     setError('');
 
     try {
-      // Include current user's email in the participant list
-      const allParticipants = [userData?.email || userData?.Email, ...selectedEmails];
-
-      const response = await axios.post(
-        `${ApiEndPoint}chats/group`,
-        {
-          groupName: groupName.trim(),
-          groupDescription: groupDescription.trim(),
-          emailList: allParticipants, // Include creator in the participants
-          createdBy: userData?.email || userData?.Email,
-          groupAvatar: '', // You can add avatar functionality later
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await axios.post(`${ApiEndPoint}chats/group`, {
+        groupName: groupName.trim(),
+        groupDescription: groupDescription.trim(),
+        emailList: selectedEmails,
+        createdBy: userData?.email || userData?.Email,
+      });
 
       if (response.data.chat) {
         onGroupCreated(response.data.chat);
         handleClose();
-      } else if (response.data.message) {
-        // If group already exists, still call onGroupCreated with the existing chat
-        if (response.data.chat) {
-          onGroupCreated(response.data.chat);
-          handleClose();
-        } else {
-          setError(response.data.message || 'Group creation failed');
-        }
       }
     } catch (err) {
+      setError(err.response?.data?.error || 'Failed to create group');
       console.error('Error creating group:', err);
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection.');
-      } else {
-        setError('Failed to create group. Please try again.');
-      }
     } finally {
       setLoading(false);
     }
@@ -140,19 +106,14 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
   };
 
   const handleClose = () => {
-    if (!loading) {
-      // Reset form
-      setGroupName('');
-      setGroupDescription('');
-      setSelectedEmails([]);
-      setEmailInput('');
-      setError('');
-      onClose();
-    }
+    // Reset form
+    setGroupName('');
+    setGroupDescription('');
+    setSelectedEmails([]);
+    setEmailInput('');
+    setError('');
+    onClose();
   };
-
-  // Add current user info display
-  const currentUserEmail = userData?.email || userData?.Email;
 
   return (
     <Dialog
@@ -214,45 +175,20 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
                 overflow: 'hidden',
               },
             }}
-            onClose={() => setError('')}
           >
             {error}
           </Alert>
         )}
 
         <Stack spacing={3}>
-          {/* Current User Info */}
-          <Box
-            sx={{
-              p: 2,
-              backgroundColor: 'grey.50',
-              borderRadius: 1,
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Group Creator
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Email color="action" fontSize="small" />
-              {currentUserEmail}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              You will be the group admin
-            </Typography>
-          </Box>
-
           <TextField
-            label="Group Name *"
+            label="Group Name"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
             placeholder="Enter group name"
             disabled={loading}
             fullWidth
             required
-            error={!groupName.trim()}
-            helperText={!groupName.trim() ? 'Group name is required' : ''}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -299,11 +235,10 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 onKeyPress={handleKeyPress}
-                placeholder="Enter member's email address"
+                placeholder="Enter email address"
                 disabled={loading}
                 fullWidth
                 size="small"
-                error={!!error && error.includes('email')}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -326,7 +261,6 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
                   minWidth: 'auto',
                   width: isMobile ? '100%' : 'auto',
                   height: isMobile ? '40px' : 'auto',
-                  whiteSpace: 'nowrap',
                 }}
               >
                 Add
@@ -363,7 +297,8 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
                     onDelete={() => handleRemoveEmail(email)}
                     disabled={loading}
                     color="primary"
-                    variant="filled"
+                    variant="outlined"
+                    deleteIcon={<Close />}
                     size={isMobile ? 'medium' : 'small'}
                     sx={{
                       maxWidth: isMobile ? '100%' : 200,
@@ -375,9 +310,6 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
                   />
                 ))}
               </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                Total members: {selectedEmails.length + 1} (including you)
-              </Typography>
             </Box>
           )}
         </Stack>
@@ -398,29 +330,21 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
           color="inherit"
           fullWidth={isMobile}
           size={isMobile ? 'large' : 'medium'}
-          variant="outlined"
         >
           Cancel
         </Button>
         <Button
           onClick={handleCreateGroup}
-          disabled={loading || selectedEmails.length < 1 || !groupName.trim()}
+          disabled={loading || selectedEmails.length < 2 || !groupName.trim()}
           variant="contained"
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <GroupAdd />}
+          startIcon={loading ? <CircularProgress size={16} /> : <GroupAdd />}
           sx={{
-            minWidth: 140,
+            minWidth: 120,
             width: isMobile ? '100%' : 'auto',
           }}
           size={isMobile ? 'large' : 'medium'}
         >
-          {loading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={16} color="inherit" />
-              Creating...
-            </Box>
-          ) : (
-            `Create Group (${selectedEmails.length + 1})`
-          )}
+          {loading ? 'Creating...' : 'Create Group'}
         </Button>
       </DialogActions>
     </Dialog>
