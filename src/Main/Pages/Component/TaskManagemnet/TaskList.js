@@ -2583,12 +2583,70 @@ export default function TaskList({ token }) {
   // Add these state declarations with your other useState calls
 const [tempSelectedUsers, setTempSelectedUsers] = useState({});
 const [tempSubtaskSelectedUsers, setTempSubtaskSelectedUsers] = useState({});
-// Mobile-specific states
 const [editingAssignedUserMobile, setEditingAssignedUserMobile] = useState(null);
 const [editingAssignedSubtaskIdMobile, setEditingAssignedSubtaskIdMobile] = useState(null);
 const [tempSelectedUsersMobile, setTempSelectedUsersMobile] = useState({});
 const [tempSubtaskSelectedUsersMobile, setTempSubtaskSelectedUsersMobile] = useState({});
+// Add these helper functions before the return statement
+const initializeTempUsers = (taskId, selectedUserIds) => {
+  setTempSelectedUsers(prev => ({
+    ...prev,
+    [taskId]: [...selectedUserIds] // Create a copy to avoid reference issues
+  }));
+};
 
+const initializeTempSubtaskUsers = (subtaskId, selectedUserIds) => {
+  setTempSubtaskSelectedUsers(prev => ({
+    ...prev,
+    [subtaskId]: [...selectedUserIds]
+  }));
+};
+
+const initializeTempUsersMobile = (taskId, selectedUserIds) => {
+  setTempSelectedUsersMobile(prev => ({
+    ...prev,
+    [taskId]: [...selectedUserIds]
+  }));
+};
+
+const initializeTempSubtaskUsersMobile = (subtaskId, selectedUserIds) => {
+  setTempSubtaskSelectedUsersMobile(prev => ({
+    ...prev,
+    [subtaskId]: [...selectedUserIds]
+  }));
+};
+
+const cleanupTempUsers = (taskId) => {
+  setTempSelectedUsers(prev => {
+    const newState = { ...prev };
+    delete newState[taskId];
+    return newState;
+  });
+};
+
+const cleanupTempSubtaskUsers = (subtaskId) => {
+  setTempSubtaskSelectedUsers(prev => {
+    const newState = { ...prev };
+    delete newState[subtaskId];
+    return newState;
+  });
+};
+
+const cleanupTempUsersMobile = (taskId) => {
+  setTempSelectedUsersMobile(prev => {
+    const newState = { ...prev };
+    delete newState[taskId];
+    return newState;
+  });
+};
+
+const cleanupTempSubtaskUsersMobile = (subtaskId) => {
+  setTempSubtaskSelectedUsersMobile(prev => {
+    const newState = { ...prev };
+    delete newState[subtaskId];
+    return newState;
+  });
+};
   const { showDataLoading } = useAlert();
 
   const toggleSubtasks = (id) => {
@@ -3208,21 +3266,23 @@ const useTempUserSelection = (initialUsers = []) => {
                                     {todo.createdBy?.value?.UserName || ''}
                                   </Typography>
                                 );
-                            } else if (key === 'assignedUsers') {
+                       } else if (key === 'assignedUsers') {
   const usersList = todo?.assignedUsers?.value || [];
-  const selectedUserIds = usersList.map(u => u.id) || [];
+  const selectedUserIds = usersList.map(u => u._id) || []; // FIXED: changed u.id to u._id
   
-  // Initialize temp state for this task if it doesn't exist
-  if (editingAssignedUser === taskId && !tempSelectedUsers[taskId]) {
+  // Initialize temp state when editing starts
+  if (editingAssignedUser === taskId && tempSelectedUsers[taskId] === undefined) {
     setTempSelectedUsers(prev => ({
       ...prev,
-      [taskId]: selectedUserIds
+      [taskId]: [...selectedUserIds]
     }));
   }
 
+  const currentTempUsers = tempSelectedUsers[taskId] !== undefined 
+    ? tempSelectedUsers[taskId] 
+    : selectedUserIds;
+
   if (editingAssignedUser === taskId) {
-    const currentTempUsers = tempSelectedUsers[taskId] || selectedUserIds;
-    
     content = (
       <Box>
         <FormControl fullWidth size="small">
@@ -3233,15 +3293,16 @@ const useTempUserSelection = (initialUsers = []) => {
             open={true}
             onOpen={() => {
               fetchUsers(todo?.caseId?.value?._id);
-              // Initialize temp state when opening
               setTempSelectedUsers(prev => ({
                 ...prev,
-                [taskId]: selectedUserIds
+                [taskId]: [...selectedUserIds]
               }));
             }}
             renderValue={(selected) => {
               const selectedUsers = users.filter(user => selected.includes(user.id));
-              return selectedUsers.map(user => user.UserName).join(', ');
+              return selectedUsers.length > 0 
+                ? selectedUsers.map(user => user.UserName).join(', ')
+                : 'Assign Users';
             }}
             className="select-field"
             MenuProps={{
@@ -3261,43 +3322,47 @@ const useTempUserSelection = (initialUsers = []) => {
             }}
             displayEmpty
           >
-            {users?.map((user) => (
-              <MenuItem key={user?.id} value={user?.id}>
-                <Checkbox 
-                  checked={currentTempUsers.includes(user.id)}
-                  onChange={(e) => {
-                    const userId = user.id;
-                    const isChecked = e.target.checked;
-                    
-                    setTempSelectedUsers(prev => {
-                      const currentUsers = prev[taskId] || [];
-                      let newUsers;
+            {users && users.length > 0 ? (
+              users.map((user) => (
+                <MenuItem key={user?.id} value={user?.id}>
+                  <Checkbox 
+                    checked={currentTempUsers.includes(user.id)}
+                    onChange={(e) => {
+                      const userId = user.id;
+                      const isChecked = e.target.checked;
                       
-                      if (isChecked) {
-                        newUsers = [...currentUsers, userId];
-                      } else {
-                        newUsers = currentUsers.filter(id => id !== userId);
-                      }
-                      
-                      return {
-                        ...prev,
-                        [taskId]: newUsers
-                      };
-                    });
-                  }}
-                  sx={{
-                    color: '#D4AF37',
-                    '&.Mui-checked': {
+                      setTempSelectedUsers(prev => {
+                        const currentUsers = prev[taskId] || [];
+                        let newUsers;
+                        
+                        if (isChecked) {
+                          newUsers = [...currentUsers, userId];
+                        } else {
+                          newUsers = currentUsers.filter(id => id !== userId);
+                        }
+                        
+                        return {
+                          ...prev,
+                          [taskId]: newUsers
+                        };
+                      });
+                    }}
+                    sx={{
                       color: '#D4AF37',
-                    },
-                  }}
-                />
-                <ListItemText 
-                  primary={`${user?.UserName} (${capitalizeFirst(user?.Role)})`}
-                  sx={{ ml: 1 }}
-                />
-              </MenuItem>
-            ))}
+                      '&.Mui-checked': {
+                        color: '#D4AF37',
+                      },
+                    }}
+                  />
+                  <ListItemText 
+                    primary={`${user?.UserName} (${capitalizeFirst(user?.Role)})`}
+                    sx={{ ml: 1 }}
+                  />
+                </MenuItem>
+              ))
+            ) : (
+              <MenuItem disabled>Loading users...</MenuItem>
+            )}
             
             {/* Done Button */}
             <MenuItem 
@@ -3312,7 +3377,6 @@ const useTempUserSelection = (initialUsers = []) => {
                 const finalSelectedUsers = tempSelectedUsers[taskId] || selectedUserIds;
                 handleFieldBlur(taskId, key, finalSelectedUsers, false, null);
                 setEditingAssignedUser(null);
-                // Clean up temp state
                 setTempSelectedUsers(prev => {
                   const newState = { ...prev };
                   delete newState[taskId];
@@ -3358,7 +3422,16 @@ const useTempUserSelection = (initialUsers = []) => {
         }}
         onMouseEnter={() => setHoveredTaskId(taskId)}
         onMouseLeave={() => setHoveredTaskId(null)}
-        onClick={() => !isclient && setEditingAssignedUser(taskId)}
+        onClick={() => {
+          if (!isclient) {
+            setEditingAssignedUser(taskId);
+            setTempSelectedUsers(prev => ({
+              ...prev,
+              [taskId]: [...selectedUserIds]
+            }));
+            fetchUsers(todo?.caseId?.value?._id);
+          }
+        }}
       >
         <Typography variant="inherit" noWrap sx={{ flex: 1 }}>
           {usersList.length > 0 
@@ -3550,15 +3623,15 @@ const useTempUserSelection = (initialUsers = []) => {
                                           {subtask.createdBy?.value?.UserName || ''}
                                         </Typography>
                                       );
-                                   } else if (key === 'assignedUsers') {
+                               } else if (key === 'assignedUsers') {
   const usersList = subtask.assignedUsers?.value || [];
-  const selectedUserIds = usersList.map(u => u.id) || [];
+  const selectedUserIds = usersList.map(u => u._id) || [];
   
-  // Initialize temp state for this subtask if it doesn't exist
+  // Initialize temp state when editing starts (without useEffect)
   if (editingAssignedSubtaskId === subtaskId && !tempSubtaskSelectedUsers[subtaskId]) {
     setTempSubtaskSelectedUsers(prev => ({
       ...prev,
-      [subtaskId]: selectedUserIds
+      [subtaskId]: [...selectedUserIds]
     }));
   }
 
@@ -3576,10 +3649,12 @@ const useTempUserSelection = (initialUsers = []) => {
             onOpen={() => {
               fetchUsers(todo?.caseId?.value?._id);
               // Initialize temp state when opening
-              setTempSubtaskSelectedUsers(prev => ({
-                ...prev,
-                [subtaskId]: selectedUserIds
-              }));
+              if (!tempSubtaskSelectedUsers[subtaskId]) {
+                setTempSubtaskSelectedUsers(prev => ({
+                  ...prev,
+                  [subtaskId]: [...selectedUserIds]
+                }));
+              }
             }}
             renderValue={(selected) => {
               const selectedUsers = users.filter(user => selected.includes(user.id));
@@ -3654,7 +3729,6 @@ const useTempUserSelection = (initialUsers = []) => {
                 const finalSelectedUsers = tempSubtaskSelectedUsers[subtaskId] || selectedUserIds;
                 handleSubtaskFieldBlur(taskId, key, finalSelectedUsers, subtaskId);
                 setEditingAssignedSubtaskId(null);
-                // Clean up temp state
                 setTempSubtaskSelectedUsers(prev => {
                   const newState = { ...prev };
                   delete newState[subtaskId];
@@ -3685,7 +3759,15 @@ const useTempUserSelection = (initialUsers = []) => {
     content = (
       <Box
         className="select-box"
-        onClick={() => !isclient && setEditingAssignedSubtaskId(subtaskId)}
+        onClick={() => {
+          if (!isclient) {
+            setEditingAssignedSubtaskId(subtaskId);
+            setTempSubtaskSelectedUsers(prev => ({
+              ...prev,
+              [subtaskId]: [...selectedUserIds]
+            }));
+          }
+        }}
         sx={{
           display: 'flex',
           alignItems: 'center',
@@ -4031,7 +4113,7 @@ const useTempUserSelection = (initialUsers = []) => {
                                     );
                                } else if (key === 'assignedUsers') {
   const usersList = todo?.assignedUsers?.value || [];
-  const selectedUserIds = usersList.map(u => u.id) || [];
+ const selectedUserIds = usersList.map(u => u._id) || [];
   const isEditingMobile = editingAssignedUserMobile === taskId;
   
   // Initialize temp state for this task if it doesn't exist
@@ -4465,7 +4547,7 @@ const useTempUserSelection = (initialUsers = []) => {
                                             );
                                } else if (key === 'assignedUsers') {
   const usersList = subtask.assignedUsers?.value || [];
-  const selectedUserIds = usersList.map(u => u.id) || [];
+  const selectedUserIds = usersList.map(u => u._id) || [];
   const isEditingMobile = editingAssignedSubtaskIdMobile === subtaskId;
   
   // Initialize temp state for this subtask if it doesn't exist

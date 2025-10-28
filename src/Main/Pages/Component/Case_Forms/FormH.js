@@ -18,7 +18,9 @@ const FormHandover = ({ token }) => {
   const [errors, setErrors] = useState({});
   const [FormhOrFormCDetails, setFormhOrFormCDetails] = useState([]);
   const [isFilled, setIsFilled] = useState(false);
-  const [loading, setLoading] = useState(true); // Added loading state
+  const [loading, setLoading] = useState(true);
+  const [hasMatchingFormC, setHasMatchingFormC] = useState(false);
+  const [showFormH, setShowFormH] = useState(false);
 
   const [selectedDrafts, setSelectedDrafts] = useState('Select Draft');
   const [successMessage, setSuccessMessage] = useState('');
@@ -63,11 +65,20 @@ const FormHandover = ({ token }) => {
 
   const getData = async () => {
     try {
-      setLoading(true); // Start loading
+      setLoading(true);
       console.log('reduxCaseInfo?._id', reduxCaseInfo?._id);
       const result = await fetchFormHData(reduxCaseInfo?._id);
       setFormhOrFormCDetails(result);
       console.log('form c', FormCselected);
+      
+      // Check if there's a matching Form C with the same case number
+      const currentCaseNumber = reduxCaseInfo?.CaseNumber;
+      const hasMatchingFormC = result?.formC?.some(form => form.caseNumber === currentCaseNumber);
+      setHasMatchingFormC(hasMatchingFormC);
+      
+      // Only show Form H if there's a matching Form C
+      setShowFormH(hasMatchingFormC);
+
       // If Form H exists
       if (result?.form) {
         const form = result.form;
@@ -126,7 +137,7 @@ const FormHandover = ({ token }) => {
     } catch (err) {
       console.error('Error loading Form H or related data:', err);
     } finally {
-      setLoading(false); // Stop loading
+      setLoading(false);
     }
   };
 
@@ -220,7 +231,6 @@ const FormHandover = ({ token }) => {
     if (!formData.legalOpinion?.trim()) newErrors.legalOpinion = 'Written Legal Opinion is required.';
     if (!formData.caseStrategy?.trim()) newErrors.caseStrategy = 'Case Strategy is required.';
     if (!formData.receiverSignature) newErrors.receiverSignature = 'Receiving lawyer must be selected.';
-    // if (!formData.relatedDocs || formData.relatedDocs.length === 0) newErrors.relatedDocs = "Please upload at least one document.";
 
     // If errors exist, set them and scroll to the first one
     if (Object.keys(newErrors).length > 0) {
@@ -295,6 +305,7 @@ const FormHandover = ({ token }) => {
       }
     }
   };
+
   const handleSubmitDrafts = async (e) => {
     e.preventDefault();
 
@@ -305,7 +316,6 @@ const FormHandover = ({ token }) => {
     if (!formData.legalOpinion?.trim()) newErrors.legalOpinion = 'Written Legal Opinion is required.';
     if (!formData.caseStrategy?.trim()) newErrors.caseStrategy = 'Case Strategy is required.';
     if (!formData.receiverSignature) newErrors.receiverSignature = 'Receiving lawyer must be selected.';
-    // if (!formData.relatedDocs || formData.relatedDocs.length === 0) newErrors.relatedDocs = "Please upload at least one document.";
 
     // If errors exist, set them and scroll to the first one
     if (Object.keys(newErrors).length > 0) {
@@ -372,7 +382,6 @@ const FormHandover = ({ token }) => {
       console.log('data=', data);
       if (response.ok) {
         window.open(data.url, '_blank'); // <-- Open in new tab
-        // return data.signedUrl;
         return data.url;
       } else {
         throw new Error(data.error || 'Unknown error');
@@ -382,6 +391,7 @@ const FormHandover = ({ token }) => {
       return null;
     }
   };
+
   const handlegotoform = async (formCid, item) => {
     if (item.name === 'cForm') {
       console.log(formData);
@@ -390,11 +400,56 @@ const FormHandover = ({ token }) => {
     }
   };
 
+  // New function to navigate to Form C
+  const handleGoToFormC = () => {
+    dispatch(screenChange(16)); // Navigate to Form C screen
+  };
+
   const isReadOnly = !!formData?.checklist;
 
   function getCaseNumberById(id) {
     const match = (FormhOrFormCDetails?.formC || []).find((form) => form._id === id);
     return match?.caseNumber || 'N/A';
+  }
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no matching Form C exists
+  if (!showFormH) {
+    return (
+      <div className="card shadow-sm mt-1" style={{ maxHeight: '86vh', overflowY: 'auto' }}>
+        <div className="card-body">
+          <div className="mb-4 text-center">
+            <img src="/logo.png" alt="Legal Group Logo" className="mb-3" style={{ height: '40px' }} />
+            <h5 className="card-title text-danger">
+              <u>Form H (Handover)</u>
+            </h5>
+          </div>
+          <div className="alert alert-warning text-center">
+            <h6>Form C Required</h6>
+            <p>Please fill out Form C first before accessing Form H.</p>
+            <div className="mt-3">
+              <Button 
+                variant="primary" 
+                onClick={handleGoToFormC}
+                className="me-2"
+              >
+                Go to Form C
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -437,7 +492,6 @@ const FormHandover = ({ token }) => {
                             key={index}
                             onClick={() => {
                               const form = area;
-                              // setIsFilled(true);
                               setFormData({
                                 clientName: form.clientName || '',
                                 caseNumber: form.caseNumber || reduxCaseInfo?.CaseNumber || '',
@@ -457,10 +511,6 @@ const FormHandover = ({ token }) => {
                                 receiverSignature: form.receiverSignature || '',
                                 isrecevied: form.isReceived || false,
                               });
-                              // if (FormCselected) {
-                              //     setFormData(FormCselected)
-                              // }
-
                               setSelectedDrafts(index);
                             }}
                           >
@@ -490,10 +540,14 @@ const FormHandover = ({ token }) => {
                     name="caseNumber"
                     className="form-control"
                     value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
+                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
                     disabled={true}
                     onChange={handleChange}
-                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? 'No case number available' : ''}
+                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? "No case number available" : ""}
                   />
+                  {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
+                    <div className="text-muted small mt-1">Case number will be auto-generated</div>
+                  )}
                   {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
                     <div className="text-muted small mt-1">Case number will be auto-generated</div>
                   )}
@@ -555,12 +609,12 @@ const FormHandover = ({ token }) => {
                             id={item.name}
                             disabled={item.name === 'cForm'}
                           />
-                          <label
-                            className="form-check-label me-2"
+                          <label 
+                            className="form-check-label me-2" 
                             htmlFor={item.name}
-                            style={{
+                            style={{ 
                               color: !isChecked ? '#6c757d' : 'inherit',
-                              fontWeight: !isChecked ? '500' : 'normal',
+                              fontWeight: !isChecked ? '500' : 'normal'
                             }}
                           >
                             {item.label}
@@ -594,9 +648,7 @@ const FormHandover = ({ token }) => {
                                 }));
                               }}
                             >
-                              <option value="">
-                                {FormhOrFormCDetails?.formC?.length > 0 ? 'Select Case Number' : 'No Form C available'}
-                              </option>
+                              <option value="">{FormhOrFormCDetails?.formC?.length > 0 ? "Select Case Number" : "No Form C available"}</option>
                               {(FormhOrFormCDetails?.formC || [])
                                 .filter((form) => form?.caseNumber?.trim())
                                 .map((form) => (
@@ -805,13 +857,13 @@ const FormHandover = ({ token }) => {
 
                 <div className="mb-3">
                   <label className="form-label">Case #:</label>
-                  <input
-                    type="text"
-                    name="caseNumber"
-                    className="form-control"
-                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
-                    disabled
-                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? 'No case number available' : ''}
+                  <input 
+                    type="text" 
+                    name="caseNumber" 
+                    className="form-control" 
+                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''} 
+                    disabled 
+                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? "No case number available" : ""}
                   />
                   {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
                     <div className="text-muted small mt-1">Case number will be auto-generated</div>
@@ -856,12 +908,12 @@ const FormHandover = ({ token }) => {
                             disabled
                             id={item.name}
                           />
-                          <label
-                            className="form-check-label me-2"
+                          <label 
+                            className="form-check-label me-2" 
                             htmlFor={item.name}
-                            style={{
+                            style={{ 
                               color: !isChecked ? '#6c757d' : 'inherit',
-                              fontWeight: !isChecked ? '500' : 'normal',
+                              fontWeight: !isChecked ? '500' : 'normal'
                             }}
                           >
                             {item.label}
@@ -899,11 +951,7 @@ const FormHandover = ({ token }) => {
                                   }));
                                 }}
                               >
-                                <option value="">
-                                  {FormhOrFormCDetails?.formC?.length > 0
-                                    ? 'Select Case Number'
-                                    : 'No Form C available'}
-                                </option>
+                                <option value="">{FormhOrFormCDetails?.formC?.length > 0 ? "Select Case Number" : "No Form C available"}</option>
                                 {(FormhOrFormCDetails?.formC || [])
                                   .filter((form) => form?.caseNumber?.trim())
                                   .map((form) => (
@@ -1066,7 +1114,6 @@ const FormHandover = ({ token }) => {
                     Please make sure all the mentioned documents are included in the file before signing the Handover
                     Form.
                   </p>
-                  {/* <label className="form-label">Signature :</label> */}
                   <input
                     type="text"
                     name="providerSignature"
@@ -1080,7 +1127,6 @@ const FormHandover = ({ token }) => {
                 {!formData?.isrecevied ? (
                   <div className="mb-4">
                     <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
-                    {/* <label className="form-label">Signature :</label> */}
                     <input
                       type="text"
                       name="providerSignature"
@@ -1094,7 +1140,6 @@ const FormHandover = ({ token }) => {
                 ) : (
                   <div className="mb-4">
                     <h6 className="text-danger fw-bold">The Lawyer Receiving the CD File:</h6>
-                    {/* <label className="form-label">Signature :</label> */}
                     <h6 className="text-primary fw-bold">Received By {formData.receiverName}</h6>
                   </div>
                 )}
