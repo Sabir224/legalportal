@@ -86,7 +86,7 @@ export default function UserListWidget({ setSelectedChat, userData, searchQuery 
 
   // Handle user click - create/get private chat
   const handleUserClick = async (selectedUser) => {
-    const chat = await getOrCreatePrivateChat(selectedUser.Email);
+    const chat = await getOrCreatePrivateChat(selectedUser?.Email);
     if (chat) {
       setSelectedChat(chat);
       // Refresh chats list to include the new chat
