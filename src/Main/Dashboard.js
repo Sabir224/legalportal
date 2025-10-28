@@ -1615,9 +1615,9 @@ const Dashboard = () => {
               {screen === 14 && <ScreenHeader title={`View Task${caseDetailsScreenTitle}`} />}
               {screen === 15 && <ScreenHeader title={`Add Task${caseDetailsScreenTitle}`} />}
               {screen === 16 && <ScreenHeader title={`Form C${caseDetailsScreenTitle}`} />}
-              {screen === 18 && <ScreenHeader title="Form C List" />}
+              {screen === 18 && <ScreenHeader title="Form C Board" />}
               {screen === 17 && <ScreenHeader title={`Form H${caseDetailsScreenTitle}`} />}
-              {screen === 22 && <ScreenHeader title="Form H List" />}
+              {screen === 22 && <ScreenHeader title="Form H Board" />}
               {screen === 23 && <ScreenHeader title={`View Form MOM${caseDetailsScreenTitle}`} />}
               {screen === 24 && <ScreenHeader title="Meeting Calendar" />}
               {screen === 26 && <ScreenHeader title="Case Summary" />}
