@@ -212,6 +212,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
   };
   const handleCloseModal = () => {
     setShowAssignModal(false);
+    fetchCases();       // new function to call after closing
     setSelectedCase(null);
   };
   const [data, setData] = useState([]);
@@ -327,8 +328,8 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
           filterType === 'CaseType'
             ? [...CaseTypeList, ''] // include blank
             : filterType === 'CaseSubType'
-            ? [...Subtypelist, '']
-            : [];
+              ? [...Subtypelist, '']
+              : [];
 
         return {
           ...prevFilters,
@@ -1296,8 +1297,8 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                       style={{
                         color:
                           filters.CaseType &&
-                          filters.CaseType.length > 0 &&
-                          filters.CaseType.length <= CaseTypeList.length
+                            filters.CaseType.length > 0 &&
+                            filters.CaseType.length <= CaseTypeList.length
                             ? 'red'
                             : 'white',
                       }}
@@ -1336,7 +1337,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseType.includes('')}
-                        onChange={() => {}}
+                        onChange={() => { }}
                       />
                     </Dropdown.Item>
 
@@ -1357,7 +1358,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseType.includes(type)}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1412,8 +1413,8 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                       style={{
                         color:
                           filters.CaseSubType &&
-                          filters.CaseSubType.length > 0 &&
-                          filters.CaseSubType.length <= Subtypelist.length
+                            filters.CaseSubType.length > 0 &&
+                            filters.CaseSubType.length <= Subtypelist.length
                             ? 'red' // kuch select hain lekin sab nahi
                             : 'white',
                       }}
@@ -1452,7 +1453,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                         type="checkbox"
                         label="(Blank)"
                         checked={filters.CaseSubType.includes('')}
-                        onChange={() => {}}
+                        onChange={() => { }}
                       />
                     </Dropdown.Item>
 
@@ -1473,7 +1474,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                           type="checkbox"
                           label={type}
                           checked={filters.CaseSubType.includes(type)}
-                          onChange={() => {}}
+                          onChange={() => { }}
                         />
                       </Dropdown.Item>
                     ))}
@@ -1807,7 +1808,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                           </span>
                         </div>
                         {/* LFA */}
-                       
+
                         {item?.headerCase?.IsLFA && (
                           <div
                             className="fw-medium text-break text-primary text-decoration-underline"
@@ -2643,7 +2644,13 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
           <Modal.Title>Case Permissions</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <CaseAssignmentForm selectedCase={selectedCase} casedetails={casedetails} onClose={handleCloseModal} />
+          <CaseAssignmentForm
+            selectedCase={selectedCase}
+            casedetails={casedetails}
+            onClose={() => {
+              handleCloseModal();  // existing close function
+            }}
+          />
         </Modal.Body>
       </Modal>
 

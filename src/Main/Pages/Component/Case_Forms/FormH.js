@@ -455,13 +455,7 @@ const FormHandover = ({ token }) => {
   return (
     <div>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        {loading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        ) : !isFilled ? (
+        {!isFilled ? (
           <div className="card shadow-sm mt-1" style={{ maxHeight: '86vh', overflowY: 'auto' }}>
             <div className="card-body">
               <div className="mb-4 text-center">
@@ -540,14 +534,10 @@ const FormHandover = ({ token }) => {
                     name="caseNumber"
                     className="form-control"
                     value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
-                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
                     disabled={true}
                     onChange={handleChange}
                     placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? "No case number available" : ""}
                   />
-                  {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
-                    <div className="text-muted small mt-1">Case number will be auto-generated</div>
-                  )}
                   {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
                     <div className="text-muted small mt-1">Case number will be auto-generated</div>
                   )}

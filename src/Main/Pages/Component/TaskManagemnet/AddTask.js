@@ -53,7 +53,7 @@ const AddTask = ({ token }) => {
       const caseAssignedIds =
         caseInfo?.AssignedUsers?.map((u) => u.UserId || u._id) || [];
       const filtered = allUsers.filter(
-        (user) => caseAssignedIds.includes(user._id.toString()) && user.IsActive
+        (user) => caseAssignedIds.includes(user._id.toString()) && user.isActive
       );
 
 
