@@ -8,8 +8,10 @@ import axios from 'axios';
 import { useMediaQuery } from 'react-responsive';
 import SocketService from '../../../../SocketService';
 import { useCookies } from 'react-cookie';
+import { Tooltip } from '@mui/material';
+import { colorScheme } from './GroupCreationModal';
 
-export default function UserListWidget({ setSelectedChat, userData, searchQuery }) {
+export default function UserListWidget({ setSelectedChat, userData, searchQuery, onGroupCreated }) {
   const [users, setUsers] = useState([]);
   const [allChats, setAllChats] = useState([]); // Both private and group chats
   const [loading, setLoading] = useState(true);
@@ -83,6 +85,32 @@ export default function UserListWidget({ setSelectedChat, userData, searchQuery 
       loadData();
     }
   }, [userData, userData?.email]);
+
+  // Handle when a new group is created (from parent component)
+  useEffect(() => {
+    if (onGroupCreated) {
+      // This function will be called by parent when a group is created
+      const handleExternalGroupCreated = (newGroup) => {
+        console.log('New group received in UserListWidget:', newGroup);
+
+        // Add the new group to allChats state
+        setAllChats((prevChats) => {
+          // Check if group already exists to avoid duplicates
+          const exists = prevChats.some((chat) => chat._id === newGroup._id);
+          if (exists) {
+            return prevChats;
+          }
+          return [newGroup, ...prevChats];
+        });
+
+        // Optionally select the new group
+        setSelectedChat(newGroup);
+      };
+
+      // Assign the handler
+      onGroupCreated.current = handleExternalGroupCreated;
+    }
+  }, [onGroupCreated, setSelectedChat]);
 
   // Handle user click - create/get private chat
   const handleUserClick = async (selectedUser) => {
@@ -166,20 +194,38 @@ export default function UserListWidget({ setSelectedChat, userData, searchQuery 
               <div
                 className="rounded-circle d-flex align-items-center justify-content-center"
                 style={{
-                  backgroundColor: '#1976d2',
+                  backgroundColor: colorScheme.navy,
                   width: '40px',
                   height: '40px',
                   marginRight: '10px',
                   border: '1px solid #d3b386',
                 }}
               >
-                <GroupIcon style={{ color: 'white', fontSize: '20px' }} />
+                <GroupIcon style={{ color: colorScheme.gold, fontSize: '20px' }} />
               </div>
               <div className="flex-grow-1">
                 <div style={{ fontSize: '14px', fontWeight: '500' }}>{group.groupName}</div>
                 <div style={{ fontSize: '12px', color: '#6c757d' }}>
                   {group.participants?.length || 0} members
-                  {group.groupDescription && ` • ${group.groupDescription}`}
+                  {group.groupDescription && (
+                    <>
+                      {' • '}
+                      <Tooltip title={group.groupDescription} arrow placement="top">
+                        <span
+                          style={{
+                            display: 'inline-block',
+                            maxWidth: '150px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            verticalAlign: 'bottom',
+                          }}
+                        >
+                          {group.groupDescription}
+                        </span>
+                      </Tooltip>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -201,7 +247,7 @@ export default function UserListWidget({ setSelectedChat, userData, searchQuery 
 
             return (
               <div
-                key={chat._id}
+                key={chat?._id}
                 className="d-flex align-items-center p-2 hover-bg"
                 onClick={() => setSelectedChat(chat)}
                 style={{

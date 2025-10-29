@@ -1,5 +1,5 @@
 // GroupCreationModal.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
   Dialog,
@@ -19,55 +19,150 @@ import {
   Divider,
   useMediaQuery,
   useTheme,
+  Card,
+  CardContent,
+  Checkbox,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  Avatar,
+  Badge,
+  Tabs,
+  Tab,
+  Paper,
+  alpha,
 } from '@mui/material';
-import { Close, GroupAdd, PersonAdd, Email } from '@mui/icons-material';
+import { Close, GroupAdd, PersonAdd, Email, Search, CheckCircle, Circle, People, Person } from '@mui/icons-material';
 import { ApiEndPoint } from '../../Component/utils/utlis';
+import { Star } from 'lucide-react';
+import { color } from '@mui/system';
+
+// Clean color scheme
+export const colorScheme = {
+  navy: '#18273e',
+  gold: '#b8941f',
+  white: '#ffffff',
+  background: '#f8f9fa',
+  textPrimary: '#2c3e50',
+  textSecondary: '#6c757d',
+};
 
 const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
   const [groupName, setGroupName] = useState('');
   const [groupDescription, setGroupDescription] = useState('');
-  const [selectedEmails, setSelectedEmails] = useState([]);
-  const [emailInput, setEmailInput] = useState('');
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [fetchingUsers, setFetchingUsers] = useState(false);
   const [error, setError] = useState('');
+  const [availableUsers, setAvailableUsers] = useState([]);
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const handleAddEmail = () => {
-    const email = emailInput.trim();
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!email) {
-      setError('Please enter an email address');
-      return;
-    }
-
-    if (!emailRegex.test(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    if (selectedEmails.includes(email)) {
-      setError('This email is already added');
-      return;
-    }
-
-    // Don't allow adding your own email
-    if (email === userData?.email || email === userData?.Email) {
-      setError('You cannot add yourself to the group');
-      return;
-    }
-
-    setSelectedEmails([...selectedEmails, email]);
-    setEmailInput('');
-    setError('');
+  // Text field styles based on color scheme
+  const textFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: colorScheme.textSecondary,
+        borderWidth: '1px',
+      },
+      '&:hover fieldset': {
+        borderColor: colorScheme.gold,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colorScheme.gold,
+        borderWidth: '2px',
+      },
+      '&.Mui-error fieldset': {
+        borderColor: '#d32f2f',
+      },
+    },
+    '& .MuiInputLabel-root': {
+      color: colorScheme.textSecondary,
+      '&.Mui-focused': {
+        color: colorScheme.gold,
+      },
+      '&.Mui-error': {
+        color: '#d32f2f',
+      },
+    },
+    '& .MuiInputBase-input': {
+      color: colorScheme.textPrimary,
+      '&::placeholder': {
+        color: colorScheme.textSecondary,
+        opacity: 0.7,
+      },
+    },
+    '& .MuiFormHelperText-root': {
+      color: colorScheme.textSecondary,
+      '&.Mui-error': {
+        color: '#d32f2f',
+      },
+    },
   };
 
-  const handleRemoveEmail = (emailToRemove) => {
-    setSelectedEmails(selectedEmails.filter((email) => email !== emailToRemove));
+  // Search field styles
+  const searchFieldStyles = {
+    '& .MuiOutlinedInput-root': {
+      '& fieldset': {
+        borderColor: '#e0e0e0',
+      },
+      '&:hover fieldset': {
+        borderColor: colorScheme.gold,
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: colorScheme.gold,
+        borderWidth: '1px',
+      },
+    },
+    '& .MuiInputBase-input': {
+      color: colorScheme.textPrimary,
+      '&::placeholder': {
+        color: colorScheme.textSecondary,
+        opacity: 0.7,
+      },
+    },
+  };
+
+  // Fetch available users when modal opens
+  useEffect(() => {
+    if (show && userData?.email) {
+      fetchAvailableUsers();
+    }
+  }, [show, userData?.email]);
+
+  const fetchAvailableUsers = async () => {
+    try {
+      setFetchingUsers(true);
+      const response = await axios.get(`${ApiEndPoint}getUsersForChat/${userData?.email}`, {
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.data) {
+        const filteredUsers = response.data.filter((user) => user.Email !== (userData?.email || userData?.Email));
+        setAvailableUsers(filteredUsers);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setError('Failed to load users list');
+    } finally {
+      setFetchingUsers(false);
+    }
+  };
+
+  const handleUserSelect = (user) => {
+    const isSelected = selectedUsers.some((selected) => selected.Email === user.Email);
+
+    if (isSelected) {
+      setSelectedUsers(selectedUsers.filter((selected) => selected.Email !== user.Email));
+    } else {
+      setSelectedUsers([...selectedUsers, user]);
+    }
   };
 
   const handleCreateGroup = async () => {
@@ -76,8 +171,8 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
       return;
     }
 
-    if (selectedEmails.length < 1) {
-      setError('Please add at least 1 member to create a group');
+    if (selectedUsers.length < 1) {
+      setError('Please select at least 1 member to create a group');
       return;
     }
 
@@ -85,7 +180,7 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
     setError('');
 
     try {
-      // Include current user's email in the participant list
+      const selectedEmails = selectedUsers.map((user) => user.Email);
       const allParticipants = [userData?.email || userData?.Email, ...selectedEmails];
 
       const response = await axios.post(
@@ -93,9 +188,9 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
         {
           groupName: groupName.trim(),
           groupDescription: groupDescription.trim(),
-          emailList: allParticipants, // Include creator in the participants
+          emailList: allParticipants,
           createdBy: userData?.email || userData?.Email,
-          groupAvatar: '', // You can add avatar functionality later
+          groupAvatar: '',
         },
         {
           headers: {
@@ -107,23 +202,16 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
       if (response.data.chat) {
         onGroupCreated(response.data.chat);
         handleClose();
-      } else if (response.data.message) {
-        // If group already exists, still call onGroupCreated with the existing chat
-        if (response.data.chat) {
-          onGroupCreated(response.data.chat);
-          handleClose();
-        } else {
-          setError(response.data.message || 'Group creation failed');
-        }
+      } else if (response.data.message && response.data.chat) {
+        onGroupCreated(response.data.chat);
+        handleClose();
+      } else {
+        setError(response.data.message || 'Group creation failed');
       }
     } catch (err) {
       console.error('Error creating group:', err);
       if (err.response?.data?.error) {
         setError(err.response.data.error);
-      } else if (err.response?.data?.message) {
-        setError(err.response.data.message);
-      } else if (err.code === 'NETWORK_ERROR') {
-        setError('Network error. Please check your connection.');
       } else {
         setError('Failed to create group. Please try again.');
       }
@@ -132,26 +220,25 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddEmail();
-    }
-  };
-
   const handleClose = () => {
     if (!loading) {
-      // Reset form
       setGroupName('');
       setGroupDescription('');
-      setSelectedEmails([]);
-      setEmailInput('');
+      setSelectedUsers([]);
+      setSearchQuery('');
       setError('');
       onClose();
     }
   };
 
-  // Add current user info display
+  // Filter users based on search query
+  const filteredUsers = availableUsers.filter(
+    (user) =>
+      user.UserName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.Email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.Role?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   const currentUserEmail = userData?.email || userData?.Email;
 
   return (
@@ -163,56 +250,54 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          borderRadius: isMobile ? 0 : 2,
-          boxShadow: 24,
-          minHeight: isMobile ? '100vh' : 'auto',
-          m: isMobile ? 0 : 2,
+          borderRadius: 2,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.1)',
         },
       }}
     >
+      {/* Header */}
       <DialogTitle
         sx={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: 'primary.main',
-          color: 'white',
+          backgroundColor: colorScheme.navy,
+          color: colorScheme.white,
           py: 2,
           px: 3,
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <GroupAdd sx={{ mr: 1 }} />
-          <Typography variant="h6">Create New Group</Typography>
+          <GroupAdd sx={{ mr: 2, fontSize: 24, color: colorScheme.gold }} />
+          <Box>
+            <Typography variant="h6" fontWeight="600">
+              Create Group Chat
+            </Typography>
+            <Typography variant="body2" sx={{ opacity: 0.9 }}>
+              Select members to add to your group
+            </Typography>
+          </Box>
         </Box>
         <IconButton
           onClick={handleClose}
           disabled={loading}
-          sx={{ color: 'white' }}
-          size={isMobile ? 'medium' : 'small'}
+          sx={{
+            color: colorScheme.white,
+          }}
+          size="small"
         >
           <Close />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent
-        sx={{
-          pt: 3,
-          px: 3,
-          pb: 1,
-          '&:first-of-type': {
-            pt: 3,
-          },
-        }}
-      >
+      <DialogContent sx={{ p: 0 }}>
         {error && (
           <Alert
             severity="error"
             sx={{
-              mb: 2,
-              '& .MuiAlert-message': {
-                overflow: 'hidden',
-              },
+              m: 2,
+              mb: 1,
+              borderRadius: 1,
             }}
             onClose={() => setError('')}
           >
@@ -220,207 +305,258 @@ const GroupCreationModal = ({ show, onClose, userData, onGroupCreated }) => {
           </Alert>
         )}
 
-        <Stack spacing={3}>
-          {/* Current User Info */}
-          <Box
+        <Box sx={{ p: 2 }}>
+          {/* Group Info Section */}
+          <Card
             sx={{
-              p: 2,
-              backgroundColor: 'grey.50',
+              mb: 2,
               borderRadius: 1,
-              border: '1px solid',
-              borderColor: 'divider',
+              border: `1px solid #e0e0e0`,
             }}
           >
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Group Creator
-            </Typography>
-            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Email color="action" fontSize="small" />
-              {currentUserEmail}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              You will be the group admin
-            </Typography>
-          </Box>
+            <CardContent>
+              <Stack spacing={2}>
+                {/* Current User Info */}
+                <Box
+                  sx={{
+                    p: 1.5,
+                    backgroundColor: '#f8f9fa',
+                    borderRadius: 1,
+                    border: `1px solid #e0e0e0`,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Avatar
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        backgroundColor: colorScheme.navy,
+                        fontSize: '0.75rem',
+                      }}
+                    >
+                      <Email sx={{ fontSize: 16 }} />
+                    </Avatar>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="subtitle2" fontWeight="600">
+                        {userData?.UserName || 'You'}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        Group Admin • {currentUserEmail}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
 
-          <TextField
-            label="Group Name *"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            placeholder="Enter group name"
-            disabled={loading}
-            fullWidth
-            required
-            error={!groupName.trim()}
-            helperText={!groupName.trim() ? 'Group name is required' : ''}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <GroupAdd color="action" />
-                </InputAdornment>
-              ),
-            }}
+                <TextField
+                  label="Group Name"
+                  value={groupName}
+                  onChange={(e) => setGroupName(e.target.value)}
+                  placeholder="Enter group name"
+                  disabled={loading}
+                  fullWidth
+                  required
+                  error={!groupName.trim()}
+                  helperText={!groupName.trim() ? 'Group name is required' : ''}
+                  sx={textFieldStyles}
+                />
+
+                <TextField
+                  label="Description (Optional)"
+                  value={groupDescription}
+                  onChange={(e) => setGroupDescription(e.target.value)}
+                  placeholder="Group description"
+                  disabled={loading}
+                  fullWidth
+                  multiline
+                  rows={2}
+                  sx={textFieldStyles}
+                />
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {/* Member Selection Section */}
+          <Card
             sx={{
-              '& .MuiInputBase-root': {
-                borderRadius: 1,
-              },
+              borderRadius: 1,
+              border: `1px solid #e0e0e0`,
             }}
-          />
+          >
+            <CardContent sx={{ p: 0 }}>
+              {/* Header with search and selection count */}
+              <Box sx={{ p: 2, borderBottom: '1px solid #e0e0e0' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                  <Typography variant="subtitle1" fontWeight="600">
+                    Select Members
+                  </Typography>
+                  {selectedUsers.length > 0 && (
+                    <Chip
+                      label={`${selectedUsers.length} selected`}
+                      size="small"
+                      sx={{
+                        backgroundColor: colorScheme.gold,
+                        color: colorScheme.white,
+                        fontWeight: 500,
+                      }}
+                    />
+                  )}
+                </Box>
+                <TextField
+                  fullWidth
+                  size="small"
+                  placeholder="Search users..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search color="action" />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={searchFieldStyles}
+                />
+              </Box>
 
-          <TextField
-            label="Description"
-            value={groupDescription}
-            onChange={(e) => setGroupDescription(e.target.value)}
-            placeholder="Enter group description (optional)"
-            disabled={loading}
-            fullWidth
-            multiline
-            rows={isMobile ? 2 : 3}
-            sx={{
-              '& .MuiInputBase-root': {
-                borderRadius: 1,
-              },
-            }}
-          />
+              {/* Users List with scroll and max-height */}
+              <Box sx={{ maxHeight: '40vh', overflow: 'auto' }}>
+                {fetchingUsers ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : filteredUsers.length === 0 ? (
+                  <Box sx={{ textAlign: 'center', p: 3 }}>
+                    <People sx={{ fontSize: 40, color: 'text.secondary', mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      {searchQuery ? 'No users found' : 'No users available'}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <List disablePadding>
+                    {filteredUsers.map((user) => {
+                      const isSelected = selectedUsers.some((selected) => selected.Email === user.Email);
 
-          <Box>
-            <Typography variant="subtitle2" gutterBottom>
-              Add Members *
-            </Typography>
+                      return (
+                        <ListItem
+                          key={user._id}
+                          button
+                          onClick={() => handleUserSelect(user)}
+                          sx={{
+                            borderBottom: '1px solid #f0f0f0',
+                            backgroundColor: isSelected ? '#fff8e1' : 'transparent',
+                            py: 1.5,
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 40 }}>
+                            <Checkbox
+                              edge="start"
+                              checked={isSelected}
+                              tabIndex={-1}
+                              disableRipple
+                              icon={<Circle />}
+                              checkedIcon={<CheckCircle sx={{ color: colorScheme.gold }} />}
+                            />
+                          </ListItemIcon>
+                          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1, gap: 2 }}>
+                            <Badge
+                              overlap="circular"
+                              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                              variant="dot"
+                              color={user.isOnline ? 'success' : 'default'}
+                            >
+                              <Avatar
+                                src={user.ProfilePicture}
+                                sx={{
+                                  width: 40,
+                                  height: 40,
+                                  backgroundColor: colorScheme.navy,
+                                }}
+                              >
+                                {user.UserName?.charAt(0).toUpperCase()}
+                              </Avatar>
+                            </Badge>
+                            <Box sx={{ flex: 1, minWidth: 0 }}>
+                              <Typography variant="subtitle2" fontWeight="500">
+                                {user.UserName}
+                              </Typography>
+                              <Typography variant="body2" color="text.secondary" noWrap>
+                                {user.Email}
+                              </Typography>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                                <Typography variant="caption" color="text.secondary">
+                                  {user.Role}
+                                </Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        </ListItem>
+                      );
+                    })}
+                  </List>
+                )}
+              </Box>
+            </CardContent>
+          </Card>
+
+          {/* Selection Summary */}
+          {selectedUsers.length > 0 && (
             <Box
               sx={{
-                display: 'flex',
-                gap: 1,
-                mb: 2,
-                flexDirection: isMobile ? 'column' : 'row',
+                mt: 2,
+                p: 1.5,
+                backgroundColor: '#f8f9fa',
+                borderRadius: 1,
+                border: `1px solid #e0e0e0`,
               }}
             >
-              <TextField
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter member's email address"
-                disabled={loading}
-                fullWidth
-                size="small"
-                error={!!error && error.includes('email')}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Email color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{
-                  '& .MuiInputBase-root': {
-                    borderRadius: 1,
-                  },
-                }}
-              />
-              <Button
-                variant="outlined"
-                onClick={handleAddEmail}
-                disabled={loading || !emailInput.trim()}
-                startIcon={<PersonAdd />}
-                sx={{
-                  minWidth: 'auto',
-                  width: isMobile ? '100%' : 'auto',
-                  height: isMobile ? '40px' : 'auto',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                Add
-              </Button>
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              Press Enter or click Add to include members
-            </Typography>
-          </Box>
-
-          {selectedEmails.length > 0 && (
-            <Box>
-              <Typography variant="subtitle2" gutterBottom>
-                Selected Members ({selectedEmails.length})
-              </Typography>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: 1,
-                  maxHeight: isMobile ? 120 : 150,
-                  overflow: 'auto',
-                  p: 1,
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  borderRadius: 1,
-                  backgroundColor: 'grey.50',
-                }}
-              >
-                {selectedEmails.map((email, index) => (
-                  <Chip
-                    key={index}
-                    label={email}
-                    onDelete={() => handleRemoveEmail(email)}
-                    disabled={loading}
-                    color="primary"
-                    variant="filled"
-                    size={isMobile ? 'medium' : 'small'}
-                    sx={{
-                      maxWidth: isMobile ? '100%' : 200,
-                      '& .MuiChip-label': {
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                      },
-                    }}
-                  />
-                ))}
-              </Box>
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                Total members: {selectedEmails.length + 1} (including you)
+              <Typography variant="body2" fontWeight="500">
+                {selectedUsers.length + 1} members will be added to the group (including you)
               </Typography>
             </Box>
           )}
-        </Stack>
+        </Box>
       </DialogContent>
 
       <Divider />
 
-      <DialogActions
-        sx={{
-          p: 3,
-          flexDirection: isMobile ? 'column' : 'row',
-          gap: isMobile ? 1 : 0,
-        }}
-      >
+      <DialogActions sx={{ p: 2, justifyContent: 'center' }}>
         <Button
           onClick={handleClose}
           disabled={loading}
-          color="inherit"
-          fullWidth={isMobile}
-          size={isMobile ? 'large' : 'medium'}
           variant="outlined"
+          sx={{
+            minWidth: 100,
+            borderColor: 'none',
+            color: colorScheme.white,
+            backgroundColor: '#d32f2f',
+            '&:hover': {
+              backgroundColor: '#b71c1c',
+            },
+            '&:disabled': {
+              backgroundColor: 'grey.300',
+              color: 'grey.500',
+            },
+          }}
         >
           Cancel
         </Button>
         <Button
           onClick={handleCreateGroup}
-          disabled={loading || selectedEmails.length < 1 || !groupName.trim()}
+          disabled={loading || selectedUsers.length < 1 || !groupName.trim()}
           variant="contained"
           startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <GroupAdd />}
           sx={{
             minWidth: 140,
-            width: isMobile ? '100%' : 'auto',
+            backgroundColor: colorScheme.gold,
+            '&:hover': {
+              backgroundColor: '#9c7c1a',
+            },
+            '&:disabled': {
+              backgroundColor: 'grey.300',
+            },
           }}
-          size={isMobile ? 'large' : 'medium'}
         >
-          {loading ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <CircularProgress size={16} color="inherit" />
-              Creating...
-            </Box>
-          ) : (
-            `Create Group (${selectedEmails.length + 1})`
-          )}
+          {loading ? 'Creating...' : `Create Group`}
         </Button>
       </DialogActions>
     </Dialog>

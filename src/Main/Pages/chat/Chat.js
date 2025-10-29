@@ -12,7 +12,7 @@ import { Socket } from 'socket.io-client';
 import SocketService from '../../../SocketService';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { Offcanvas } from 'bootstrap/dist/js/bootstrap.bundle.min';
-import GroupCreationModal from './widgets/GroupCreationModal';
+import GroupCreationModal, { colorScheme } from './widgets/GroupCreationModal';
 import { Box, IconButton, TextField } from '@mui/material';
 import { GroupAdd } from '@mui/icons-material';
 
@@ -28,9 +28,17 @@ export default function Chat({ token }) {
   const [userData, setUserData] = useState(null);
   const [showUserList, setShowUserList] = useState(false);
   const [showGroupModal, setShowGroupModal] = useState(false);
+  const [groups, setGroups] = useState([]); // Add this state for groups list
+  const groupCreatedRef = useRef(null);
+
   const handleGroupCreated = (newGroup) => {
     console.log('New group created:', newGroup);
     setSelectedChat(newGroup);
+
+    // Call the handler in UserListWidget to update the state
+    if (groupCreatedRef.current) {
+      groupCreatedRef.current(newGroup);
+    }
   };
 
   // console.log("StoredEmail:", storedEmail);
@@ -135,7 +143,7 @@ export default function Chat({ token }) {
           display: { xs: selectedChat ? 'none' : 'flex', md: 'flex' },
           flexDirection: 'column',
           p: 2,
-          width: { xs: '100%', md: 280 },
+          width: { xs: '100%', md: 300 },
           height: '82vh',
           backgroundColor: '#fff',
           borderRadius: '10px',
@@ -154,19 +162,25 @@ export default function Chat({ token }) {
             onChange={(e) => setSearchQuery(e.target.value)}
             sx={{ flexGrow: 1 }}
           />
-          <IconButton
-            onClick={() => setShowGroupModal(true)}
-            title="Create Group Chat"
-            sx={{
-              backgroundColor: 'primary.main',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: 'primary.dark',
-              },
-            }}
-          >
-            <GroupAdd />
-          </IconButton>
+          {token?.Role === 'admin' && (
+            <IconButton
+              onClick={() => setShowGroupModal(true)}
+              title="Create Group Chat"
+              sx={{
+                backgroundColor: colorScheme.navy,
+                color: 'white',
+                '&:hover': {
+                  backgroundColor: colorScheme.textPrimary,
+                },
+              }}
+            >
+              <GroupAdd
+                sx={{
+                  color: colorScheme.gold,
+                }}
+              />
+            </IconButton>
+          )}
         </Box>
 
         <Box
@@ -182,6 +196,7 @@ export default function Chat({ token }) {
             userData={token}
             searchQuery={searchQuery}
             token={token}
+            onGroupCreated={groupCreatedRef}
           />
         </Box>
       </Box>
