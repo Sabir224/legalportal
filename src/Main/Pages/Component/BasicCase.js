@@ -1395,7 +1395,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                 className="d-flex gap-2 text-start"
                 style={{ maxWidth: '200px', minWidth: '200px', color: 'white' }}
               >
-                Service Type
+                Practice Area
                 <Dropdown show={showCaseSubTypeFilter} onToggle={() => setCaseSubTypeFilter(!showCaseSubTypeFilter)}>
                   <Dropdown.Toggle
                     variant=""
@@ -1670,7 +1670,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                                       setShowSubCaseType(true);
                                     }}
                                   >
-                                    {item?.headerCase?.CaseSubType ? 'Update' : 'Add'} Service Type
+                                    {item?.headerCase?.CaseSubType ? 'Update' : 'Add'} Practice Area
                                   </Dropdown.Item>
 
                                   <Dropdown.Item
@@ -1773,7 +1773,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                         </div>
                         {/* CASE SUB TYPE */}
                         <div className="d-flex flex-row gap-1">
-                          <span className="text-muted small">Service Type : </span>
+                          <span className="text-muted small">Practice Area : </span>
                           <span
                             className="fw-medium text-break"
                             style={{
@@ -1790,7 +1790,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                           </span>
                         </div>
                         {/* SERVICE SUB TYPE */}
-                        <div className="d-flex flex-row gap-1">
+                        {/* <div className="d-flex flex-row gap-1">
                           <span className="text-muted small">Service Sub Type : </span>
                           <span
                             className="fw-medium text-break"
@@ -1806,7 +1806,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                           >
                             {item?.headerCase?.ServiceSubType || 'N/A'}
                           </span>
-                        </div>
+                        </div> */}
                         {/* LFA */}
 
                         {item?.headerCase?.IsLFA && (
@@ -1990,7 +1990,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                                             setShowSubCaseType(true);
                                           }}
                                         >
-                                          {sub?.CaseSubType ? 'Update' : 'Add'} Service Type
+                                          {sub?.CaseSubType ? 'Update' : 'Add'} Practice Area
                                         </Dropdown.Item>
                                         <Dropdown.Item
                                           onClick={(event) => {
@@ -2081,7 +2081,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
 
                               {/* CASE SUB TYPE */}
                               <div className="d-flex flex-row gap-1">
-                                <span className="text-muted small">Service Type</span>
+                                <span className="text-muted small">Practice Area</span>
                                 <span
                                   className="fw-medium text-break"
                                   style={{
@@ -2365,7 +2365,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                                       setShowSubCaseType(true);
                                     }}
                                   >
-                                    {item?.headerCase.CaseSubType ? 'Update' : 'Add'} Service Type
+                                    {item?.headerCase.CaseSubType ? 'Update' : 'Add'} Practice Area
                                   </Dropdown.Item>
 
                                   <Dropdown.Item
@@ -2558,7 +2558,7 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
                                           setShowSubCaseType(true);
                                         }}
                                       >
-                                        {item?.CaseSubType ? 'Update' : 'Add'} Service Type
+                                        {item?.CaseSubType ? 'Update' : 'Add'} Practice Area
                                       </Dropdown.Item>
 
                                       <Dropdown.Item
@@ -2818,12 +2818,12 @@ const BasicCase = ({ token, isViewCase = false, onGoToLFA }) => {
 
       <Modal show={showSubCaseType} onHide={() => setShowSubCaseType(false)} centered>
         <Modal.Header closeButton>
-          <Modal.Title>{selectedCase?.CaseSubType ? 'Update' : 'Add'} Service Type</Modal.Title>
+          <Modal.Title>{selectedCase?.CaseSubType ? 'Update' : 'Add'} Practice Area</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <Form>
             <Form.Group controlId="mergeWithCase" className="w-100">
-              <Form.Label>Select Service Type</Form.Label>
+              <Form.Label>Select Practice Area</Form.Label>
 
               <Form.Select
                 className="w-100"

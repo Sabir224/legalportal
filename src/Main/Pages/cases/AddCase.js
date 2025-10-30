@@ -109,21 +109,21 @@ const AddCase = () => {
 
   const toggleDropdown = () => {
     setCaseStagedropdownOpen(false);
-     setCaseTypedropdownOpen(false);
-     setCaseSubTypedropdownOpen(false);
-      setDropdownOpen(!dropdownOpen);
+    setCaseTypedropdownOpen(false);
+    setCaseSubTypedropdownOpen(false);
+    setDropdownOpen(!dropdownOpen);
   };
   const toggleCaseTypeDropdown = () => {
     setCaseStagedropdownOpen(false);
-     setCaseTypedropdownOpen(!caseTypedropdownOpen);
-     setCaseSubTypedropdownOpen(false);
-      setDropdownOpen(false);
+    setCaseTypedropdownOpen(!caseTypedropdownOpen);
+    setCaseSubTypedropdownOpen(false);
+    setDropdownOpen(false);
   }
   const toggleCaseSubTypeDropdown = () => {
-setCaseStagedropdownOpen(false);
-     setCaseTypedropdownOpen(false);
-     setCaseSubTypedropdownOpen(!caseSubTypedropdownOpen);
-      setDropdownOpen(false);
+    setCaseStagedropdownOpen(false);
+    setCaseTypedropdownOpen(false);
+    setCaseSubTypedropdownOpen(!caseSubTypedropdownOpen);
+    setDropdownOpen(false);
   }
   const toggleCaseStageDropdown = () => {
     setCaseStagedropdownOpen(!caseStagedropdownOpen);
@@ -172,7 +172,7 @@ setCaseStagedropdownOpen(false);
       Description: discription,
       Priority: Priority,
       IsDubiCourts: false,
-      CaseStage:caseStage,
+      CaseStage: caseStage,
       ClientId: selectedclientdetails?._id,
       IsActive: true,
     };
@@ -191,7 +191,7 @@ setCaseStagedropdownOpen(false);
     }
 
     if (!regexCaseType.test(casetype)) {
-      showError("Case Type should contain only letters and spaces.");
+      showError("Type of Service should contain only letters and spaces.");
 
       return;
     }
@@ -213,7 +213,7 @@ setCaseStagedropdownOpen(false);
       setDiscription("");
     } catch (error) {
       if (error.response) {
-        showError("Error submitting the form.Check Case Number or Case Type.", error.response);
+        showError("Error submitting the form.Check Case Number or Type of Service.", error.response);
       } else {
         showError("Network or server error:", error.message);
       }
@@ -269,7 +269,7 @@ setCaseStagedropdownOpen(false);
                 setState: setClientname,
               },
               // {
-              //   label: "Case Type",
+              //   label: "Type of Service",
               //   icon: <BsType className="fs-5" />,
               //   state: casetype,
               //   setState: setCaseType,
@@ -348,7 +348,7 @@ setCaseStagedropdownOpen(false);
                   letterSpacing: "0.3px",
                 }}
               >
-                Case Type
+                Type of Service
               </label>
               <div className="input-group">
                 <div className="position-relative w-100" ref={dropdownRef}>
@@ -369,7 +369,7 @@ setCaseStagedropdownOpen(false);
                     aria-expanded={caseTypedropdownOpen}
                     aria-haspopup="listbox"
                   >
-                    <span>{casetype || "Select Case type"}</span>
+                    <span>{casetype || "Select Type of Service"}</span>
                     <FaChevronDown
                       className={`transition-all fs-6 ${caseTypedropdownOpen ? "rotate-180" : ""
                         }`}
@@ -431,7 +431,7 @@ setCaseStagedropdownOpen(false);
                   letterSpacing: "0.3px",
                 }}
               >
-                Case Sub Type
+                Practice Area
               </label>
               <div className="input-group">
                 <div className="position-relative w-100" ref={dropdownRef}>
@@ -452,7 +452,7 @@ setCaseStagedropdownOpen(false);
                     aria-expanded={caseSubTypedropdownOpen}
                     aria-haspopup="listbox"
                   >
-                    <span>{caseSubType || "Select Case SUb type"}</span>
+                    <span>{caseSubType || "Select Practice Area"}</span>
                     <FaChevronDown
                       className={`transition-all fs-6 ${caseSubTypedropdownOpen ? "rotate-180" : ""
                         }`}
@@ -536,7 +536,7 @@ setCaseStagedropdownOpen(false);
                     aria-expanded={caseStagedropdownOpen}
                     aria-haspopup="listbox"
                   >
-                    <span>{caseStage || "Select Case SUb type"}</span>
+                    <span>{caseStage || "Select Practice Area"}</span>
                     <FaChevronDown
                       className={`transition-all fs-6 ${caseStagedropdownOpen ? "rotate-180" : ""
                         }`}

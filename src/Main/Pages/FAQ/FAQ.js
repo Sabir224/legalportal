@@ -19,7 +19,7 @@ export const faqData = [
       {
         question: 'How can I contact AWS Legal Group for legal assistance?',
         answer:
-          'You can contact us via the form on our website or email us directly at <a href="mailto:info@aws-legalgroup.com">info@aws-legalgroup.com</a>.',
+          'You can contact us via the form on our website or email us directly at <a href="https://mail.google.com/mail/?view=cm&to=info@aws-legalgroup.com" target="_blank">info@aws-legalgroup.com</a>.',
       },
       {
         question: 'What are your office hours?',
