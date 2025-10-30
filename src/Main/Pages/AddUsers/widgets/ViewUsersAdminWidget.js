@@ -202,6 +202,7 @@ const ViewUsersAdminWidget = ({
         console.log(response.data.lawyerDetails);
       } else {
         response = await axios.get(`${ApiEndPoint}getClientDetails/${user.Email}`);
+        console.log('Client Details Details', response.data.clientDetails);
       }
 
       const userDetails = user.Role !== 'client' ? response.data.lawyerDetails : response.data.clientDetails;
@@ -212,11 +213,8 @@ const ViewUsersAdminWidget = ({
           email: user?.Email,
           password: user?.Password,
           phone:
-            user?.Role === 'lawyer'
-              ? response.data.lawyerDetails?.Contact
-              : response.data?.Contact
-              ? response.data?.Contact
-              : '',
+            user?.Role === 'client' ? response.data?.clientDetails?.Contact : response.data?.lawyerDetails?.Contact,
+
           profilePicture: user?.ProfilePicture,
           experience: user?.Role === 'lawyer' ? response.data.lawyerDetails?.YearOfExperience : '',
           fee: user?.Role === 'lawyer' ? response.data.lawyerDetails?.ConsultationFee : '',

@@ -21,6 +21,7 @@ const FormHandover = ({ token }) => {
   const [loading, setLoading] = useState(true);
   const [hasMatchingFormC, setHasMatchingFormC] = useState(false);
   const [showFormH, setShowFormH] = useState(false);
+  const [hasFormH, setHasFormH] = useState(false);
 
   const [selectedDrafts, setSelectedDrafts] = useState('Select Draft');
   const [successMessage, setSuccessMessage] = useState('');
@@ -70,14 +71,18 @@ const FormHandover = ({ token }) => {
       const result = await fetchFormHData(reduxCaseInfo?._id);
       setFormhOrFormCDetails(result);
       console.log('form c', FormCselected);
-      
+
       // Check if there's a matching Form C with the same case number
       const currentCaseNumber = reduxCaseInfo?.CaseNumber;
-      const hasMatchingFormC = result?.formC?.some(form => form.caseNumber === currentCaseNumber);
+      const hasMatchingFormC = result?.formC?.some((form) => form.caseNumber === currentCaseNumber);
       setHasMatchingFormC(hasMatchingFormC);
-      
-      // Only show Form H if there's a matching Form C
-      setShowFormH(hasMatchingFormC);
+
+      // Check if Form H already exists
+      const hasExistingFormH = !!result?.form;
+      setHasFormH(hasExistingFormH);
+
+      // Show Form H if there's a matching Form C OR if Form H already exists
+      setShowFormH(hasMatchingFormC || hasExistingFormH);
 
       // If Form H exists
       if (result?.form) {
@@ -103,7 +108,10 @@ const FormHandover = ({ token }) => {
           isrecevied: form.isReceived || false,
         });
         if (FormCselected) {
-          setFormData(FormCselected);
+          setFormData((prev) => ({
+            ...prev,
+            ...FormCselected,
+          }));
         }
       }
       // If Form H does not exist, fallback to initial blank data
@@ -129,7 +137,10 @@ const FormHandover = ({ token }) => {
           isDraft: false,
         });
         if (FormCselected) {
-          setFormData(FormCselected);
+          setFormData((prev) => ({
+            ...prev,
+            ...FormCselected,
+          }));
         }
       }
 
@@ -294,8 +305,14 @@ const FormHandover = ({ token }) => {
           'Content-Type': 'multipart/form-data',
         },
       });
+
+      // Refresh data after successful submission
+      await getData();
+
+      setIsFilled(true);
+      setHasFormH(true);
+      setShowFormH(true);
       showSuccess('Form submitted successfully!');
-      getData();
       console.log(res.data);
     } catch (error) {
       if (error.response) {
@@ -361,8 +378,14 @@ const FormHandover = ({ token }) => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      showSuccess('Form submitted successfully!');
-      getData();
+
+      // Refresh data after successful draft submission
+      await getData();
+
+      setIsFilled(true);
+      setHasFormH(true);
+      setShowFormH(true);
+      showSuccess('Draft saved successfully!');
       console.log(res.data);
     } catch (error) {
       if (error.response) {
@@ -407,10 +430,33 @@ const FormHandover = ({ token }) => {
 
   const isReadOnly = !!formData?.checklist;
 
+  // Improved function to get case number by ID
   function getCaseNumberById(id) {
+    if (!id) return 'Not selected';
+
     const match = (FormhOrFormCDetails?.formC || []).find((form) => form._id === id);
-    return match?.caseNumber || 'N/A';
+    return match?.caseNumber || '';
   }
+
+  // Get the selected Form C case number for display
+  const getSelectedFormCCaseNumber = () => {
+    const selectedFormCId = formData.checklist?.cForm;
+    if (!selectedFormCId) return '';
+
+    return getCaseNumberById(selectedFormCId);
+  };
+
+  // Filter Form C options to only show the current case's Form C
+  const getFilteredFormCOptions = () => {
+    const currentCaseNumber = reduxCaseInfo?.CaseNumber;
+    if (!currentCaseNumber) return [];
+
+    return (FormhOrFormCDetails?.formC || [])
+      .filter((form) => form?.caseNumber === currentCaseNumber)
+      .filter((form) => form?.caseNumber?.trim());
+  };
+
+  const filteredFormCOptions = getFilteredFormCOptions();
 
   // Show loading state
   if (loading) {
@@ -423,8 +469,8 @@ const FormHandover = ({ token }) => {
     );
   }
 
-  // Show message if no matching Form C exists
-  if (!showFormH) {
+  // Show message if no matching Form C exists AND no Form H exists
+  if (!showFormH && !hasFormH) {
     return (
       <div className="card shadow-sm mt-1" style={{ maxHeight: '86vh', overflowY: 'auto' }}>
         <div className="card-body">
@@ -438,11 +484,7 @@ const FormHandover = ({ token }) => {
             <h6>Form C Required</h6>
             <p>Please fill out Form C first before accessing Form H.</p>
             <div className="mt-3">
-              <Button 
-                variant="primary" 
-                onClick={handleGoToFormC}
-                className="me-2"
-              >
+              <Button variant="primary" onClick={handleGoToFormC} className="me-2">
                 Go to Form C
               </Button>
             </div>
@@ -455,13 +497,7 @@ const FormHandover = ({ token }) => {
   return (
     <div>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-        {loading ? (
-          <div className="d-flex justify-content-center align-items-center" style={{ height: '200px' }}>
-            <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Loading...</span>
-            </div>
-          </div>
-        ) : !isFilled ? (
+        {!isFilled ? (
           <div className="card shadow-sm mt-1" style={{ maxHeight: '86vh', overflowY: 'auto' }}>
             <div className="card-body">
               <div className="mb-4 text-center">
@@ -540,14 +576,10 @@ const FormHandover = ({ token }) => {
                     name="caseNumber"
                     className="form-control"
                     value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
-                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
                     disabled={true}
                     onChange={handleChange}
-                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? "No case number available" : ""}
+                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? 'No case number available' : ''}
                   />
-                  {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
-                    <div className="text-muted small mt-1">Case number will be auto-generated</div>
-                  )}
                   {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
                     <div className="text-muted small mt-1">Case number will be auto-generated</div>
                   )}
@@ -609,12 +641,12 @@ const FormHandover = ({ token }) => {
                             id={item.name}
                             disabled={item.name === 'cForm'}
                           />
-                          <label 
-                            className="form-check-label me-2" 
+                          <label
+                            className="form-check-label me-2"
                             htmlFor={item.name}
-                            style={{ 
+                            style={{
                               color: !isChecked ? '#6c757d' : 'inherit',
-                              fontWeight: !isChecked ? '500' : 'normal'
+                              fontWeight: !isChecked ? '500' : 'normal',
                             }}
                           >
                             {item.label}
@@ -648,14 +680,14 @@ const FormHandover = ({ token }) => {
                                 }));
                               }}
                             >
-                              <option value="">{FormhOrFormCDetails?.formC?.length > 0 ? "Select Case Number" : "No Form C available"}</option>
-                              {(FormhOrFormCDetails?.formC || [])
-                                .filter((form) => form?.caseNumber?.trim())
-                                .map((form) => (
-                                  <option key={form._id} value={form._id}>
-                                    {form.caseNumber}
-                                  </option>
-                                ))}
+                              <option value="">
+                                {filteredFormCOptions.length > 0 ? 'Select Case Number' : 'No Form C available'}
+                              </option>
+                              {filteredFormCOptions.map((form) => (
+                                <option key={form._id} value={form._id}>
+                                  {form.caseNumber}
+                                </option>
+                              ))}
                             </select>
                           )}
                         </div>
@@ -857,13 +889,13 @@ const FormHandover = ({ token }) => {
 
                 <div className="mb-3">
                   <label className="form-label">Case #:</label>
-                  <input 
-                    type="text" 
-                    name="caseNumber" 
-                    className="form-control" 
-                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''} 
-                    disabled 
-                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? "No case number available" : ""}
+                  <input
+                    type="text"
+                    name="caseNumber"
+                    className="form-control"
+                    value={formData.caseNumber || reduxCaseInfo?.CaseNumber || ''}
+                    disabled
+                    placeholder={!formData.caseNumber && !reduxCaseInfo?.CaseNumber ? 'No case number available' : ''}
                   />
                   {!formData.caseNumber && !reduxCaseInfo?.CaseNumber && (
                     <div className="text-muted small mt-1">Case number will be auto-generated</div>
@@ -908,12 +940,12 @@ const FormHandover = ({ token }) => {
                             disabled
                             id={item.name}
                           />
-                          <label 
-                            className="form-check-label me-2" 
+                          <label
+                            className="form-check-label me-2"
                             htmlFor={item.name}
-                            style={{ 
+                            style={{
                               color: !isChecked ? '#6c757d' : 'inherit',
-                              fontWeight: !isChecked ? '500' : 'normal'
+                              fontWeight: !isChecked ? '500' : 'normal',
                             }}
                           >
                             {item.label}
@@ -933,34 +965,9 @@ const FormHandover = ({ token }) => {
                             Go to {item.formName}
                           </button>
 
-                          {item.name === 'cForm' &&
-                            (isReadOnly ? (
-                              <div className="text-muted">{getCaseNumberById(formData.checklist.cForm)}</div>
-                            ) : (
-                              <select
-                                className="form-select form-select-sm w-auto"
-                                value={formData.checklist.cForm || ''}
-                                onChange={(e) => {
-                                  const selectedId = e.target.value;
-                                  setFormData((prev) => ({
-                                    ...prev,
-                                    checklist: {
-                                      ...prev.checklist,
-                                      cForm: selectedId,
-                                    },
-                                  }));
-                                }}
-                              >
-                                <option value="">{FormhOrFormCDetails?.formC?.length > 0 ? "Select Case Number" : "No Form C available"}</option>
-                                {(FormhOrFormCDetails?.formC || [])
-                                  .filter((form) => form?.caseNumber?.trim())
-                                  .map((form) => (
-                                    <option key={form._id} value={form._id}>
-                                      {form.caseNumber}
-                                    </option>
-                                  ))}
-                              </select>
-                            ))}
+                          {item.name === 'cForm' && (
+                            <div className="text-muted">{getCaseNumberById(formData.checklist.cForm)}</div>
+                          )}
                         </div>
                       );
                     })}
