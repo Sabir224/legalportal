@@ -158,7 +158,7 @@ const Dashboard = () => {
     if (cookies.token) {
       try {
         handlescreen2(0);
-        console.log('token dashborad', jwtDecode(cookies.token)); // Decode and store token
+
         setDecodedToken(jwtDecode(cookies.token));
       } catch (error) {
         console.error('Invalid token:', error);

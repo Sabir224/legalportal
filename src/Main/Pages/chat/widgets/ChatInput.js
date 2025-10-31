@@ -26,32 +26,25 @@ import 'pdfjs-dist/build/pdf.worker.entry';
 import { Document, Page } from 'react-pdf';
 import axios from 'axios';
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('pdfjs-dist/build/pdf.worker.min.js', import.meta.url).toString();
-// import SendMessageModal from "../../../Main page/SendTemplateViaChat";
+
 export default function ChatInput({ selectedChat, user }) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const [audioUrl, setAudioUrl] = useState(null);
-
   const [previewCaption, setPreviewCaption] = useState('');
-
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
   const docInputRef = useRef(null);
-
   const [showModal, setShowModal] = useState(false);
   const buttonRef = useRef(null);
   const [isClientSessionExpired, setClientSession] = useState(false);
-
   const openModal = () => setShowModal(true);
   const closeModal = () => setShowModal(false);
-
   const [message, setMessage] = useState('');
-  const [mentions, setMentions] = useState([]); // Array of { userId, userName }
+  const [mentions, setMentions] = useState([]);
   const [allUsers, setAllUsers] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [filteredUsers, setFilteredUsers] = useState([]);
-
   const [isMessageSending, setMessageSending] = useState(false);
   const [isFileSending, setIsFileSending] = useState(false);
 
@@ -72,15 +65,35 @@ export default function ChatInput({ selectedChat, user }) {
 
   const [file, setFile] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  // Fetch all users for mention suggestions
+
+  // ✅ UPDATED: Fetch users based on chat type
   useEffect(() => {
-    if (user?._id) {
-      axios
-        .get(`${ApiEndPoint}users`)
-        .then((res) => setAllUsers(res.data || []))
-        .catch((err) => console.error('Error fetching users:', err));
-    }
-  }, [user]);
+    if (!selectedChat || !user?._id) return;
+
+    const fetchUsers = async () => {
+      try {
+        if (selectedChat.isGroupChat) {
+          // For group chats: get only group participants (excluding current user)
+          const participants = selectedChat.participants || selectedChat.users || [];
+          const filteredParticipants = participants.filter(
+            (participant) => participant._id !== user._id && participant.UserName
+          );
+          setAllUsers(filteredParticipants);
+          console.log('👥 Group participants for mentions:', filteredParticipants);
+        } else {
+          // For private chats: NO users for mentions
+          setAllUsers([]);
+          console.log('🔒 Private chat - no mention feature');
+        }
+      } catch (error) {
+        console.error('Error processing users:', error);
+        setAllUsers([]);
+      }
+    };
+
+    fetchUsers();
+  }, [selectedChat, user?._id]);
+
   useEffect(() => {
     let typingTimeout;
     if (isTyping) {
@@ -92,38 +105,48 @@ export default function ChatInput({ selectedChat, user }) {
     }
     return () => clearTimeout(typingTimeout);
   }, [isTyping, selectedChat?._id, user?._id]);
-  // Handle text input + mention detection
+
+  // ✅ UPDATED: Handle typing with mention detection (only for group chats)
   const handleTyping = (e) => {
     const value = e.target.value;
     setMessage(value);
 
     if (!isTyping) setIsTyping(true);
 
-    const mentionMatch = value.match(/@(\w*)$/);
-    if (mentionMatch) {
-      const search = mentionMatch[1].toLowerCase();
-      const filtered = allUsers.filter((u) => u.UserName.toLowerCase().startsWith(search));
-      setFilteredUsers(filtered);
-      setShowSuggestions(true);
-    } else {
-      setShowSuggestions(false);
-    }
+    // Only show mention suggestions for group chats
+    if (selectedChat?.isGroupChat) {
+      const mentionMatch = value.match(/@(\w*)$/);
+      if (mentionMatch) {
+        const search = mentionMatch[1].toLowerCase();
+        const filtered = allUsers.filter((u) => u.UserName.toLowerCase().startsWith(search));
+        setFilteredUsers(filtered);
+        setShowSuggestions(true);
+      } else {
+        setShowSuggestions(false);
+      }
 
-    // Track mentioned users
-    const mentionRegex = /@(\w+)/g;
-    const matches = [...value.matchAll(mentionRegex)];
-    const currentMentions = matches
-      .map((m) => {
-        const username = m[1];
-        const foundUser = allUsers.find((u) => u.UserName === username);
-        return foundUser ? { userId: foundUser._id, userName: foundUser.UserName } : null;
-      })
-      .filter(Boolean);
-    setMentions(currentMentions);
+      // Track mentioned users
+      const mentionRegex = /@(\w+)/g;
+      const matches = [...value.matchAll(mentionRegex)];
+      const currentMentions = matches
+        .map((m) => {
+          const username = m[1];
+          const foundUser = allUsers.find((u) => u.UserName === username);
+          return foundUser ? { userId: foundUser._id, userName: foundUser.UserName } : null;
+        })
+        .filter(Boolean);
+      setMentions(currentMentions);
+    } else {
+      // For private chats, clear any mentions and hide suggestions
+      setShowSuggestions(false);
+      setMentions([]);
+    }
   };
 
-  // Select mention from dropdown
+  // ✅ UPDATED: Select mention from dropdown (only for group chats)
   const handleSelectMention = (selectedUser) => {
+    if (!selectedChat?.isGroupChat) return;
+
     const textBefore = message.replace(/@\w*$/, '');
     const newText = `${textBefore}@${selectedUser.UserName} `;
     setMessage(newText);
@@ -141,13 +164,16 @@ export default function ChatInput({ selectedChat, user }) {
 
     setMessageSending(true);
 
+    // For private chats, don't send mentions
+    const messageMentions = selectedChat?.isGroupChat ? mentions : [];
+
     const messageData = {
       senderId: user._id,
       chatId: selectedChat._id,
       content: message.trim(),
       messageType: originalFile ? 'file' : 'text',
       file: originalFile || null,
-      mentions,
+      mentions: messageMentions,
     };
 
     if (originalFile) {
@@ -165,7 +191,7 @@ export default function ChatInput({ selectedChat, user }) {
     setMessageSending(false);
   };
 
-  // File handling logic
+  // File handling logic (same as before)
   const handleDocUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -229,7 +255,7 @@ export default function ChatInput({ selectedChat, user }) {
           ref={inputRef}
           value={message}
           onChange={(e) => handleTyping(e)}
-          placeholder="Type a message"
+          placeholder={selectedChat?.isGroupChat ? 'Type a message or mention with @' : 'Type a message'}
           className="text-input"
           onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
         />
@@ -248,8 +274,8 @@ export default function ChatInput({ selectedChat, user }) {
         )}
       </div>
 
-      {/* File Preview (Centered & Responsive) */}
-      {showSuggestions && filteredUsers.length > 0 && (
+      {/* ✅ UPDATED: Mention suggestions (only for group chats) */}
+      {selectedChat?.isGroupChat && showSuggestions && filteredUsers.length > 0 && (
         <div
           className="position-absolute bg-white border rounded shadow"
           style={{
@@ -269,7 +295,7 @@ export default function ChatInput({ selectedChat, user }) {
         </div>
       )}
 
-      {/* File Preview */}
+      {/* File Preview (same as before) */}
       {previewFile && (
         <div
           className="file-preview-container position-absolute p-2 border rounded shadow-sm bg-white"

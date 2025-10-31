@@ -34,6 +34,7 @@ import {
 
 export default function ChatField({ selectedChat, user, setSelectedChat }) {
   const isDesktop = useMediaQuery({ minWidth: 992 });
+
   const isTablet = useMediaQuery({ minWidth: 768, maxWidth: 991 });
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -46,13 +47,7 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
   const [isNewMessage, setNewMessage] = useState(false);
   const [unreadMentions, setUnreadMentions] = useState([]);
 
-  // MUI Notification States
-  const [mentionNotification, setMentionNotification] = useState(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [notificationAnchor, setNotificationAnchor] = useState(null);
-  const notificationOpen = Boolean(notificationAnchor);
-
-  // ✅ Function to check if the scroll is at the bottom
+  // ✅ Function to cdeeck if the scroll is at the bottom
   const isScrollAtBottom = useCallback(() => {
     if (!chatContainerRef.current) return false;
     const { scrollTop, scrollHeight, clientHeight } = chatContainerRef.current;
@@ -81,57 +76,9 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
     }
   }, [user?._id]);
 
-  // ✅ MUI Notification Handlers
-  const showMentionNotification = useCallback((data) => {
-    setMentionNotification(data);
-    setSnackbarOpen(true);
-
-    // Auto-hide notification after 6 seconds
-    setTimeout(() => {
-      setSnackbarOpen(false);
-    }, 6000);
-  }, []);
-
-  const handleSnackbarClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSnackbarOpen(false);
-  };
-
-  const handleNotificationClick = (event) => {
-    setNotificationAnchor(event.currentTarget);
-  };
-
-  const handleNotificationClose = () => {
-    setNotificationAnchor(null);
-  };
-
-  const handleNavigateToMention = (mention) => {
-    if (mention.chat?._id) {
-      // You can implement navigation logic here
-      console.log('Navigate to chat:', mention.chat._id);
-      // setSelectedChat(mention.chat); // Uncomment if you want to auto-navigate
-    }
-    handleNotificationClose();
-  };
-
-  const handleMarkAllMentionsAsRead = () => {
-    unreadMentions.forEach((mention) => {
-      handleMarkMentionAsRead(mention._id);
-    });
-    handleNotificationClose();
-  };
-
   // ✅ Socket Event Listeners
   useEffect(() => {
-    // Listen for mention notifications
-    SocketService.onUserMentioned((data) => {
-      console.log('🔔 You were mentioned in a message:', data);
-      showMentionNotification(data);
-    });
-
-    // Listen for messages with mentions
+    // Listen for messages with mentions (chat-specific)
     SocketService.onMessageWithMention((data) => {
       console.log('💬 Message with mention received:', data);
       if (data.message && data.chatId === selectedChat?._id) {
@@ -139,13 +86,7 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
       }
     });
 
-    // Listen for unread mentions
-    SocketService.onUnreadMentions((data) => {
-      console.log('📋 Unread mentions received:', data);
-      setUnreadMentions(data.mentions || []);
-    });
-
-    // Listen for mention read events
+    // Listen for mention read events (chat-specific)
     SocketService.onMentionRead((data) => {
       console.log('📖 Mention read event:', data);
       if (data.messageId) {
@@ -154,12 +95,10 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
     });
 
     return () => {
-      SocketService.socket.off('userMentioned');
       SocketService.socket.off('messageWithMention');
-      SocketService.socket.off('unreadMentions');
       SocketService.socket.off('mentionRead');
     };
-  }, [selectedChat, showMentionNotification]);
+  }, [selectedChat]);
 
   // ✅ Function to highlight mentioned message
   const highlightMentionedMessage = (messageId) => {
@@ -511,26 +450,6 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
             gap: '3px',
           }}
         >
-          {/* MUI Mention Notification Snackbar */}
-          <Snackbar
-            open={snackbarOpen}
-            autoHideDuration={6000}
-            onClose={handleSnackbarClose}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <Alert
-              onClose={handleSnackbarClose}
-              severity="info"
-              variant="filled"
-              sx={{ width: '100%' }}
-              icon={<NotificationsIcon />}
-            >
-              <strong>You were mentioned!</strong>
-              <br />
-              {mentionNotification?.mentionedByUserName} mentioned you in {mentionNotification?.chatName}
-            </Alert>
-          </Snackbar>
-
           <div
             className="d-block"
             style={{
@@ -552,84 +471,8 @@ export default function ChatField({ selectedChat, user, setSelectedChat }) {
               </div>
 
               {/* Mentions Badge */}
-              {unreadMentions.length > 0 && (
-                <Tooltip title="Unread Mentions">
-                  <IconButton onClick={handleNotificationClick} color="primary" sx={{ position: 'relative' }}>
-                    <Badge badgeContent={unreadMentions.length} color="error">
-                      <NotificationsIcon />
-                    </Badge>
-                  </IconButton>
-                </Tooltip>
-              )}
             </div>
           </div>
-
-          {/* Mentions Popover */}
-          {notificationOpen && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '60px',
-                right: '20px',
-                background: 'white',
-                border: '1px solid #ddd',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                padding: '16px',
-                minWidth: '300px',
-                maxWidth: '400px',
-                maxHeight: '400px',
-                overflow: 'auto',
-                zIndex: 9999,
-              }}
-            >
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h6 style={{ margin: 0 }}>Unread Mentions ({unreadMentions.length})</h6>
-                <div>
-                  <Tooltip title="Mark all as read">
-                    <IconButton size="small" onClick={handleMarkAllMentionsAsRead}>
-                      <MarkChatReadIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <IconButton size="small" onClick={handleNotificationClose}>
-                    <CloseIcon fontSize="small" />
-                  </IconButton>
-                </div>
-              </div>
-
-              {unreadMentions.map((mention) => (
-                <div
-                  key={mention._id}
-                  style={{
-                    padding: '8px',
-                    margin: '4px 0',
-                    border: '1px solid #e0e0e0',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                  }}
-                  onClick={() => handleNavigateToMention(mention)}
-                  onMouseEnter={(e) => (e.currentTarget.style.background = '#f5f5f5')}
-                  onMouseLeave={(e) => (e.currentTarget.style.background = 'white')}
-                >
-                  <div className="d-flex align-items-center">
-                    <Avatar src={mention.sender?.ProfilePicture} sx={{ width: 32, height: 32, mr: 1 }}>
-                      {mention.sender?.UserName?.charAt(0)}
-                    </Avatar>
-                    <div style={{ flex: 1 }}>
-                      <strong>{mention.sender?.UserName}</strong>
-                      <div style={{ fontSize: '0.875rem', color: '#666' }}>{mention.content?.substring(0, 100)}...</div>
-                      <Chip
-                        label={mention.chat?.chatName || 'Direct Message'}
-                        size="small"
-                        variant="outlined"
-                        sx={{ mt: 0.5 }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
 
           <div
             className="chat-messages m-0 flex-grow-1 border overflow-hidden-auto px-2 position-relative d-flex flex-column justify-content-end"

@@ -2,7 +2,7 @@
 // services/SocketService.js
 import { io } from 'socket.io-client';
 const ApiBase = 'https://portal.aws-legalgroup.com';
-//const ApiBase = "https://awsrealestate.awschatbot.online"; // Use this for production
+//const ApiBase = 'https://awsrealestate.awschatbot.online'; // Use this for production
 //const ApiBase = 'http://localhost:5001'; // Use this for local testing
 
 const socket = io(ApiBase, {
@@ -209,6 +209,34 @@ const onMentionRead = (callback) => {
     callback(data);
   });
 };
+// ✅ UPDATED: New Message Notification Handler
+const onNewMessageNotification = (callback) => {
+  socket.off('newMessageNotification');
+  socket.on('newMessageNotification', (data) => {
+    console.log('📱 Received new message notification:', data);
+    callback(data);
+  });
+};
+// ✅ NEW: User joined chat (track current active chat)
+const userJoinedChat = (userId, chatId) => {
+  if (socket.connected) {
+    console.log(`👤 User ${userId} joined chat ${chatId}`);
+    socket.emit('userJoinedChat', { userId, chatId });
+  } else {
+    console.error('userJoinedChat: Socket is not connected.');
+  }
+};
+
+// ✅ NEW: User left chat
+const userLeftChat = (userId, chatId) => {
+  if (socket.connected) {
+    console.log(`👤 User ${userId} left chat ${chatId}`);
+    socket.emit('userLeftChat', { userId, chatId });
+  } else {
+    console.error('userLeftChat: Socket is not connected.');
+  }
+};
+
 //----- Socket functions for appointment
 const bookAppointment = (update) => {
   console.log('BOOK Appointment', update);
@@ -278,6 +306,9 @@ export default {
   onMessageStatus,
   getMessageStatus,
   joinChat,
+  onNewMessageNotification,
+  userJoinedChat,
+  userLeftChat,
   getUnreadMentions,
   markMentionAsRead,
   onUnreadMentions,
